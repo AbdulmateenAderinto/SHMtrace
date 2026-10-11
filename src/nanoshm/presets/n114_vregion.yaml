@@ -1,0 +1,25 @@
+# Preset: N114 hybridoma immunoglobulin heavy-chain V region (monoclonal)
+name: n114_vregion
+description: >
+  Fixed monoclonal V region. Exact parental reference is known, so germline is
+  defined precisely; calls near the amplicon ends are trimmed. Excess mutation
+  over empty-vector controls reports AID activity.
+
+minimap2_preset: map-ont
+min_align_len: 400          # ~0.65 kb amplicon
+max_total_len: 900
+max_ee_rate: 0.01
+drop_supplementary: true
+downsample_to: 500
+
+contaminant_allele_frac: 0.5
+
+# 615-bp analysed window (positions 21-635 of the 655-bp reference).
+analysis_window: [21, 635]
+germline_freq_threshold: 0.50
+max_pvalue: 0.05
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 20             # drop calls within 20 bp of the reference ends
+density_scale: 100000

@@ -1,0 +1,89 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nanoshm"
+version = "0.2.0.dev0"
+description = "Somatic hypermutation profiling from Oxford Nanopore amplicon reads"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Abdulmateen Aderinto", email = "abdulmateen.aderinto@gmail.com" },
+    { name = "Alberto Martin" },
+]
+keywords = [
+    "somatic hypermutation", "AID", "nanopore", "immunoglobulin",
+    "bioinformatics", "variant calling", "JH4",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "mappy>=2.28",
+    "pyyaml>=6.0",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+bam = ["pysam>=0.22"]
+sanger = ["biopython>=1.83"]   # optional: a fallback reader for unusual .ab1 files; a built-in ABIF parser covers the usual ones
+web = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+]
+app = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+    "pywebview>=5.0",
+    "openpyxl>=3.1",
+    "pysam>=0.22",
+]
+excel = ["openpyxl>=3.1"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+nanoshm = "nanoshm.pipeline:main"
+nanoshm-compare = "nanoshm.compare:main"
+nanoshm-benchmark = "nanoshm.benchmark:main"
+nanoshm-validate = "nanoshm.simulate:main"
+nanoshm-app = "nanoshm.desktop:main"
+
+[project.urls]
+Homepage = "https://github.com/martinlab/nanoshm"
+Issues = "https://github.com/martinlab/nanoshm/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nanoshm"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/nanoshm", "tests", "examples", "docs", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+per-file-ignores = { "src/nanoshm/webapp/main.py" = ["B008"] }  # FastAPI Depends/File/Form idiom

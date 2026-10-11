@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nanoshm</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23274B7E'/%3E%3Cpath d='M8 23V9h3l6 9V9h3v14h-3l-6-9v9z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/vendor/plotly.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>nanoshm</h1><span class="version" id="version"></span>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-setup" aria-selected="true" onclick="showTab('setup')">Set up</button>
+    <button role="tab" id="tab-results" aria-selected="false" onclick="showTab('results')" disabled>Results</button>
+    <button role="tab" id="tab-tables" aria-selected="false" onclick="showTab('tables')" disabled>Tables</button>
+    <button role="tab" id="tab-export" aria-selected="false" onclick="showTab('export')" disabled>Export</button>
+  </nav>
+  <span class="spacer"></span>
+  <a class="btn small" href="/classic" title="The older single-sample page">Classic</a>
+</header>
+
+<main>
+<!-- ───────────────────────── set up ───────────────────────── -->
+<section class="page active" id="page-setup">
+  <div class="grid two">
+    <div>
+      <div class="card">
+        <h2>1 · Region and data type</h2>
+        <label for="region">Region</label>
+        <select id="region"></select>
+        <p class="hint" id="region-hint"></p>
+        <label for="platform">Sequencing platform</label>
+        <select id="platform"></select>
+        <label for="mode">Calling mode</label>
+        <select id="mode"></select>
+        <p class="hint" id="mode-hint"></p>
+        <details style="margin-top:12px">
+          <summary>Advanced</summary>
+          <label for="depth">Reads per sample (blank: the preset's default)</label>
+          <input type="number" id="depth" min="10" placeholder="preset default">
+          <label for="window">Analysis window, e.g. 100-630 (blank: the preset's)</label>
+          <input type="text" id="window" placeholder="preset default">
+          <label for="maxp">Significance threshold</label>
+          <input type="number" id="maxp" step="0.001" placeholder="0.05">
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>2 · Reference</h2>
+        <label for="ref-pick">Built-in reference</label>
+        <select id="ref-pick"><option value="">Use my own file…</option></select>
+        <div class="drop" id="drop-ref" style="margin-top:8px">Drop the reference FASTA here, or click to choose</div>
+        <p class="hint" id="ref-name">No reference chosen.</p>
+        <label for="drop-contam-label">Contaminant FASTA (optional)</label>
+        <div class="drop" id="drop-contam" style="padding:12px">Optional: a sequence to exclude</div>
+        <p class="hint" id="contam-name"></p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>3 · Samples</h2>
+        <div class="drop" id="drop-samples">
+          Drop read files or a folder here, or click to choose<br>
+          <span class="hint">FASTQ, FASTA, BAM, Sanger .ab1, plain or gzipped</span><br>
+          <span class="hint">A dropped folder becomes one sample, and R1/R2 files are paired</span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn small ghost" id="pick-folder">Choose a folder…</button>
+        </div>
+        <div class="row" style="margin:10px 0 4px">
+          <button class="btn small ghost" onclick="autoGroup()">Group by name</button>
+          <button class="btn small ghost" onclick="markControls()">Controls by name</button>
+          <button class="btn small ghost" onclick="clearSamples()">Clear</button>
+          <span class="spacer"></span>
+          <span class="hint" id="sample-count">0 samples</span>
+        </div>
+        <div class="samples" id="samples"></div>
+        <p class="hint">
+          A <b>control</b> is a sample with no real mutations (AID-knockout, empty vector,
+          germline). Controls measure the sequencing background for every other sample, and
+          each control is measured against the others, never itself.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>4 · Run</h2>
+        <div class="row">
+          <input type="text" id="proj-name" placeholder="Project name" style="flex:2 1 200px">
+          <button class="btn primary" id="run-btn" onclick="runProject()">Analyse</button>
+        </div>
+        <div id="run-status" style="margin-top:12px; display:none">
+          <div class="bar"><i id="run-bar"></i></div>
+          <p class="status"><span id="run-msg">starting…</span></p>
+        </div>
+        <div id="run-error"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── results ───────────────────────── -->
+<section class="page" id="page-results">
+  <div class="card" id="headline"></div>
+  <div class="figs" id="figs"></div>
+</section>
+
+<!-- ───────────────────────── tables ───────────────────────── -->
+<section class="page" id="page-tables">
+  <div class="card">
+    <div class="row">
+      <select id="table-pick" onchange="renderTable()" style="max-width:260px"></select>
+      <input type="text" id="table-filter" placeholder="Filter rows…" oninput="renderTable()" style="max-width:260px">
+      <span class="spacer"></span>
+      <span class="hint" id="table-count"></span>
+      <button class="btn small" onclick="downloadCurrentTable()">Download CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap"><table id="table"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<!-- ───────────────────────── export ───────────────────────── -->
+<section class="page" id="page-export">
+  <div class="card">
+    <h2>Download</h2>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn primary" onclick="dl('bundle.zip')">Everything (.zip)</button>
+      <button class="btn" onclick="dl('report.html')">Report (.html)</button>
+      <button class="btn" onclick="dl('tables.xlsx')">Tables (.xlsx)</button>
+    </div>
+    <h3>Tables</h3>
+    <div class="row" id="export-tables"></div>
+    <h3>Figures</h3>
+    <p class="hint">PNG for slides, SVG or PDF for figures you will edit.</p>
+    <div id="export-figs"></div>
+    <div id="save-local" style="display:none">
+      <h3>Save to a folder on this computer</h3>
+      <div class="row">
+        <input type="text" id="save-path" placeholder="/path/to/folder" style="flex:3 1 300px">
+        <button class="btn" onclick="saveLocal()">Save everything there</button>
+      </div>
+      <p class="hint" id="save-msg"></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

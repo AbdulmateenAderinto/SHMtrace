@@ -1,0 +1,25 @@
+# Preset: Sanger-sequenced clones of any SHM amplicon
+name: sanger_clones
+description: >
+  One trace per clone. Every high-quality mismatch inside the trimmed read is a
+  mutation; there is no statistical test, because a clone's mutation is seen in
+  exactly one read by construction. Use with --platform sanger, which also
+  turns on quality trimming.
+
+minimap2_preset: map-ont
+min_align_len: 200
+max_total_len: 3000
+max_ee_rate: 0.05
+drop_supplementary: true
+downsample_to: null
+
+contaminant_allele_frac: 0.5
+
+analysis_window: null
+germline_freq_threshold: 0.50
+max_pvalue: 1.0
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 20
+density_scale: 100000
