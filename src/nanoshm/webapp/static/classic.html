@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHM-webtool — somatic hypermutation from Nanopore reads</title>
+<style>
+  :root{--fg:#1a1a1a;--mut:#666;--line:#d9d9d9;--accent:#274B7E;--red:#9A3439;--bg:#fafafa}
+  *{box-sizing:border-box} body{font:15px/1.5 system-ui,sans-serif;color:var(--fg);
+    max-width:880px;margin:0 auto;padding:24px;background:#fff}
+  h1{font-size:22px;margin:0 0 2px} .sub{color:var(--mut);margin:0 0 16px}
+  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:2px solid var(--line)}
+  .tab{padding:9px 16px;cursor:pointer;border:0;background:none;font:inherit;font-weight:600;
+    color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-2px}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  fieldset{border:1px solid var(--line);border-radius:10px;margin:0 0 16px;padding:14px 16px}
+  legend{font-weight:600;padding:0 6px} label{display:block;margin:10px 0 4px;font-weight:500}
+  .row{display:flex;gap:18px;flex-wrap:wrap} .row>div{flex:1;min-width:160px}
+  input[type=file],select,input[type=number],input[type=text]{width:100%;padding:7px;
+    border:1px solid var(--line);border-radius:7px;font:inherit;background:var(--bg)}
+  .rng{display:flex;align-items:center;gap:10px} .rng output{min-width:52px;text-align:right;color:var(--accent);font-variant-numeric:tabular-nums}
+  small{color:var(--mut)} button.go{background:var(--accent);color:#fff;border:0;border-radius:8px;
+    padding:11px 20px;font:inherit;font-weight:600;cursor:pointer} button.go:disabled{opacity:.5}
+  .out{margin-top:20px} .card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+  .kpi{display:flex;gap:26px;flex-wrap:wrap} .kpi b{display:block;font-size:22px;color:var(--accent)}
+  table{border-collapse:collapse;width:100%;font-size:13px} th,td{border-bottom:1px solid var(--line);padding:4px 8px;text-align:right}
+  th:first-child,td:first-child{text-align:left} .err{color:var(--red);font-weight:600}
+  .spec{font-variant-numeric:tabular-nums} .hide{display:none}
+  .sig{font-weight:700} .down{color:var(--red)} .up{color:var(--accent)}
+  img.fig{width:100%;max-width:720px;display:block;margin:8px 0}
+</style>
+</head>
+<body>
+<h1>SHM-webtool <small style="color:var(--mut);font-weight:400">prototype</small></h1>
+<p class="sub">Somatic-hypermutation analysis from Nanopore amplicon reads — minimap2 backend, no cloning, no Geneious.</p>
+
+<div class="tabs">
+  <button class="tab on" data-t="single">Single sample</button>
+  <button class="tab" data-t="compare">Compare groups (case vs control)</button>
+</div>
+
+<!-- ================= SINGLE SAMPLE ================= -->
+<form id="fSingle">
+  <fieldset><legend>Inputs</legend>
+    <label>Reads (FASTQ / FASTQ.gz)</label>
+    <input type="file" name="fastq" accept=".fastq,.fq,.gz" required>
+    <div class="row">
+      <div><label>Reference (FASTA)</label><input type="file" name="reference" accept=".fasta,.fa,.fna" required></div>
+      <div><label>Contaminant(s) (FASTA) <small>optional</small></label><input type="file" name="contaminant" accept=".fasta,.fa,.fna"></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Assay preset and calling</legend>
+    <select name="preset" class="preset"></select>
+    <label>Calling mode</label><select name="mode"><option value="recommended">Recommended (quality-calibrated with controls; read quality without)</option><option value="geneious">Geneious (manuscript rule: uncorrected p ≤ 0.05, no phasing)</option><option value="v0.1">v0.1 default (per-position empirical null, BH)</option><option value="qcal+filter">Quality-calibrated + strand-bias filter</option><option value="strand">Strand-aware beta-binomial (needs controls)</option></select>
+    <label>Mutation-free control reads <small>optional, same run, e.g. Aicda−/−; select several</small></label>
+    <input type="file" name="null" accept=".fastq,.fq,.gz" multiple></fieldset>
+  <fieldset><legend>Parameters <small>(blank = preset default)</small></legend>
+    <div class="row">
+      <div><label>Downsample to reads</label><div class="rng"><input type="range" name="downsample_to" min="30" max="2000" step="10" value="500" oninput="ds.value=this.value"><output id="ds">500</output></div></div>
+      <div><label>Max expected-error rate</label><div class="rng"><input type="range" name="max_ee_rate" min="0.002" max="0.05" step="0.002" value="0.01" oninput="ee.value=this.value"><output id="ee">0.01</output></div></div>
+    </div>
+    <div class="row">
+      <div><label>Max variant p-value</label><div class="rng"><input type="range" name="max_pvalue" min="0.001" max="0.1" step="0.001" value="0.05" oninput="pv.value=this.value"><output id="pv">0.05</output></div></div>
+      <div><label>End-trim (bp)</label><input type="number" name="end_trim_bp" placeholder="preset" min="0" max="100"></div>
+    </div>
+    <label>Analysis window <small>start-end, 1-based</small></label><input type="text" name="analysis_window" placeholder="e.g. 101-629">
+  </fieldset>
+  <button class="go" type="submit">Run analysis</button>
+</form>
+<div class="out" id="outSingle"></div>
+
+<!-- ================= COMPARE GROUPS ================= -->
+<form id="fCompare" class="hide">
+  <fieldset><legend>Groups <small>— select multiple files per group; each file = one independent source (e.g. one mouse)</small></legend>
+    <div class="row">
+      <div><label>CONTROL reads (FASTQ ×N)</label><input type="file" name="control" accept=".fastq,.fq,.gz" multiple required></div>
+      <div><label>CASE reads (FASTQ ×N)</label><input type="file" name="case" accept=".fastq,.fq,.gz" multiple required></div>
+    </div>
+    <div class="row">
+      <div><label>Reference (FASTA)</label><input type="file" name="reference" accept=".fasta,.fa,.fna" required></div>
+      <div><label>Contaminant(s) (FASTA) <small>optional</small></label><input type="file" name="contaminant" accept=".fasta,.fa,.fna"></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Options</legend>
+    <div class="row">
+      <div><label>Assay preset</label><select name="preset" class="preset"></select></div>
+      <div><label>Subregion <small>start-end, optional</small></label><input type="text" name="subregion" placeholder="e.g. 200-400"></div>
+    </div>
+    <label>Calling mode</label><select name="mode"><option value="recommended">Recommended (quality-calibrated with controls; read quality without)</option><option value="geneious">Geneious (manuscript rule: uncorrected p ≤ 0.05, no phasing)</option><option value="v0.1">v0.1 default (per-position empirical null, BH)</option><option value="qcal+filter">Quality-calibrated + strand-bias filter</option><option value="strand">Strand-aware beta-binomial (needs controls)</option></select>
+  </fieldset>
+  <button class="go" type="submit">Run comparison</button>
+</form>
+<div class="out" id="outCompare"></div>
+
+<script>
+const BASES=["A","C","G","T"];
+// populate preset dropdowns
+fetch("/presets").then(r=>r.json()).then(d=>{
+  document.querySelectorAll("select.preset").forEach(sel=>{
+    d.presets.forEach(p=>{const o=document.createElement("option");o.value=p;o.textContent=p;sel.appendChild(o)});
+  });
+});
+// tab switching
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on")); t.classList.add("on");
+  const s=t.dataset.t==="single";
+  fSingle.classList.toggle("hide",!s); outSingle.classList.toggle("hide",!s);
+  fCompare.classList.toggle("hide",s); outCompare.classList.toggle("hide",s);
+}));
+function busy(btn,on){btn.disabled=on;btn.textContent=on?"Running…":btn.dataset.label;}
+
+// ---- single sample ----
+fSingle.addEventListener("submit",async e=>{
+  e.preventDefault(); const btn=e.target.querySelector("button"); btn.dataset.label="Run analysis"; busy(btn,true);
+  outSingle.innerHTML="";
+  try{
+    const d=await (await fetch("/analyze",{method:"POST",body:new FormData(e.target)})).json();
+    if(d.error){outSingle.innerHTML=`<p class="err">Error: ${d.error}</p>`;return;}
+    const s=d.summary,c=s.calling;
+    outSingle.innerHTML=`
+      <div class="card"><div class="kpi">
+        <div><b>${c.unique_variants}</b><small>unique variants</small></div>
+        <div><b>${s.unique_variant_density}</b><small>density (×10⁻⁵/bp)</small></div>
+        <div><b>${(s.gc_bias_unique.fraction_GC*100).toFixed(0)}%</b><small>at G:C</small></div>
+        <div><b>${s.reads.aligned_to_target}</b><small>reads</small></div></div></div>
+      ${d.plots?`<div class="card"><b>Figures</b>
+        <img class="fig" src="${d.plots.spectrum}"><img class="fig" src="${d.plots.spatial}"><img class="fig" src="${d.plots.mutation_load}"></div>`:""}`;
+  }catch(err){outSingle.innerHTML=`<p class="err">${err}</p>`;}finally{busy(btn,false);}
+});
+
+// ---- compare groups ----
+fCompare.addEventListener("submit",async e=>{
+  e.preventDefault(); const btn=e.target.querySelector("button"); btn.dataset.label="Run comparison"; busy(btn,true);
+  outCompare.innerHTML="";
+  try{
+    const d=await (await fetch("/compare",{method:"POST",body:new FormData(e.target)})).json();
+    if(d.error){outCompare.innerHTML=`<p class="err">Error: ${d.error}</p>`;return;}
+    const r=d.report,g=r.groups;
+    const frow=x=>`<tr><td>${x.metric}</td><td>${x.control_freq.toExponential(2)}</td><td>${x.case_freq.toExponential(2)}</td><td class="${x.change==='↓'?'down':'up'}">${x.change}</td><td class="sig">${x.sig}</td></tr>`;
+    const mrow=x=>`<tr><td>${x.metric.replace(/_/g,' ')}</td><td>${x.control_freq.toExponential(2)}</td><td>${x.case_freq.toExponential(2)}</td><td class="${x.change==='↓'?'down':'up'}">${x.change}</td><td class="sig">${x.sig}</td></tr>`;
+    const sb=r.strand_bias;
+    outCompare.innerHTML=`
+      <div class="card"><div class="kpi">
+        <div><b>${g.control_unique}</b><small>control unique</small></div>
+        <div><b>${g.case_unique}</b><small>case unique</small></div>
+        <div><b>${g.control_files}v${g.case_files}</b><small>files (ctrl v case)</small></div>
+        <div><b>${g.control_reads}/${g.case_reads}</b><small>reads</small></div></div></div>
+      <div class="card"><b>Mutation profile</b> <small>(base-composition corrected; * p&lt;.05 ** &lt;.01 *** &lt;.001)</small>
+        <table><tr><th>Metric</th><th>Control</th><th>Case</th><th>Δ</th><th>p</th></tr>${r.frequency_rows.map(frow).join("")}</table></div>
+      <div class="card"><b>Hot/cold-spot targeting</b>
+        <table><tr><th>Motif class</th><th>Control</th><th>Case</th><th>Δ</th><th>p</th></tr>${r.motif_rows.map(mrow).join("")}</table></div>
+      <div class="card"><b>Strand bias</b><br><small>Control WRC/GYW = ${sb.control_WRC}/${sb.control_GYW}; Case WRC/GYW = ${sb.case_WRC}/${sb.case_GYW}. ${sb.note}.</small></div>
+      ${d.plots?`<div class="card"><b>Figures</b>
+        <img class="fig" src="${d.plots.frequency_bars}"><img class="fig" src="${d.plots.spectrum_compare}"><img class="fig" src="${d.plots.motif_enrichment}"></div>`:""}`;
+  }catch(err){outCompare.innerHTML=`<p class="err">${err}</p>`;}finally{busy(btn,false);}
+});
+</script>
+</body>
+</html>

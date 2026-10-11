@@ -1,0 +1,24 @@
+# Preset: mouse IgH Sμ switch region (polyclonal; AID's other major target)
+name: igh_smu
+description: >
+  Mouse IgH Sμ switch-region amplicon. AID mutates the switch region heavily,
+  so mutation loads per read are high and the germline is the amplicon itself.
+  Tested on the CH12 and LPS-activated libraries of BioProject PRJNA1481264.
+
+minimap2_preset: map-ont
+min_align_len: 420          # ~650 bp amplicon
+max_total_len: 1200
+max_ee_rate: 0.01
+drop_supplementary: true
+downsample_to: 2000
+
+contaminant_allele_frac: 0.5
+
+analysis_window: [21, 631]
+germline_freq_threshold: 0.50
+max_pvalue: 0.05
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 20
+density_scale: 100000

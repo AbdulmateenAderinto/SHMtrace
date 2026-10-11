@@ -1,0 +1,25 @@
+# Preset: mouse JH4 downstream intron (polyclonal, selection-neutral SHM assay)
+name: jh4_intron
+description: >
+  Mouse heavy-chain JH4 downstream intron. Neutral polyclonal SHM readout.
+  Germline unknown, so high-frequency positions are removed by the <50% rule.
+
+minimap2_preset: map-ont
+min_align_len: 800          # ~1.23 kb amplicon; require a long clean alignment
+max_total_len: 2000
+max_ee_rate: 0.01           # Q20-equivalent expected-error gate
+drop_supplementary: true
+downsample_to: 500
+
+contaminant_allele_frac: 0.5
+
+# 529-bp Sanger-comparison window in the 1230-bp reference frame (positions 101-629).
+# Set to null to analyse the full-length reliably-covered window instead.
+analysis_window: [101, 629]
+germline_freq_threshold: 0.50
+max_pvalue: 0.05
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 0
+density_scale: 100000

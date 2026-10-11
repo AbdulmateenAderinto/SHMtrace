@@ -1,0 +1,25 @@
+# Preset: any amplicon, any region (JH6, Sγ, a V gene, an AID off-target)
+name: generic_amplicon
+description: >
+  A starting point for a region with no preset of its own. Length filters are
+  set from the reference at run time, the analysis window is everything except
+  20 bp at each end, and nothing is assumed about the germline beyond the
+  <50% rule. Narrow the window and the filters once you have seen one run.
+
+minimap2_preset: map-ont
+min_align_len: 200
+max_total_len: 20000
+max_ee_rate: 0.01
+drop_supplementary: true
+downsample_to: 1000
+
+contaminant_allele_frac: 0.5
+
+analysis_window: null       # everything inside the end trims
+germline_freq_threshold: 0.50
+max_pvalue: 0.05
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 20
+density_scale: 100000
