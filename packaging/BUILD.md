@@ -31,10 +31,6 @@ PyInstaller, wrap it in a drag-to-Applications disk image:
 sh packaging/make_dmg.sh        # writes dist/nanoshm-0.2.0-arm64.dmg
 ```
 
-PyInstaller prints `Hidden import "scipy.special._cdflib" not found`. It is
-harmless: that module is no longer part of SciPy, and the app runs a full
-analysis without it.
-
 ## What it does at run time
 
 It serves on `127.0.0.1` on a free port and opens a window on it. Nothing listens
@@ -55,3 +51,9 @@ to the end, figures appear in Results, and the ZIP export downloads.
 The bundle is roughly 300–400 MB, mostly SciPy, NumPy and matplotlib. Dropping
 matplotlib would save about 60 MB but lose the static figure exports, which the
 HTML report and the PNG/SVG/PDF buttons use.
+
+## A warning you can ignore
+
+PyInstaller prints `hidden import "scipy.special._cdflib" not found`. That
+module was removed in SciPy 1.14 and the warning comes from PyInstaller's own
+bundled SciPy hook, not from this spec. The build and the app are fine.
