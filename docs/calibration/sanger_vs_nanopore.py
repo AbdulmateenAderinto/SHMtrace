@@ -490,48 +490,53 @@ def fig_beyond(D, out, st, ref):
     fig.colorbar(im, ax=ax, fraction=.046, pad=.04, label="Pearson r, 12 types")
     ax.text(-0.3, 1.05, "A", transform=ax.transAxes, fontsize=15, fontweight="bold")
 
-    # B: where along the window, pooled wild type
-    ax = axes[0, 1]
-    edges = np.linspace(LO, HI + 1, 22)
-    mids = (edges[:-1] + edges[1:]) / 2
-    hs = np.histogram([p for n in WT for p, _r, _a in sv[n]], edges)[0]
-    ho = np.histogram([p for n in WT for p, _r, _a in ov[n]], edges)[0]
-    fs, fo = 100 * hs / hs.sum(), 100 * ho / ho.sum()
-    rp = stats.pearsonr(fs, fo)
-    ax.plot(mids, fs, "-o", color=SANGER[0], ms=4, label="Sanger")
-    ax.plot(mids, fo, "-o", color=ONT[0], ms=4, label="ONT")
-    ax.set_xlabel("Position in the JH4 reference (bp)")
-    ax.set_ylabel("% of unique mutations, 25-bp bins")
-    ax.legend(frameon=False)
-    ax.set_title(f"Along the window: r = {rp[0]:.2f} (p = {rp[1]:.1e})", fontsize=11)
-    ax.yaxis.grid(True, ls=(0, (5, 4)), color=GRID)
-    ax.set_axisbelow(True)
-    ax.text(-0.13, 1.05, "B", transform=ax.transAxes, fontsize=15, fontweight="bold")
+    def panel_where(ax, letter):
+        # where along the window, pooled wild type
+        edges = np.linspace(LO, HI + 1, 22)
+        mids = (edges[:-1] + edges[1:]) / 2
+        hs = np.histogram([p for n in WT for p, _r, _a in sv[n]], edges)[0]
+        ho = np.histogram([p for n in WT for p, _r, _a in ov[n]], edges)[0]
+        fs, fo = 100 * hs / hs.sum(), 100 * ho / ho.sum()
+        rp = stats.pearsonr(fs, fo)
+        ax.plot(mids, fs, "-o", color=SANGER[0], ms=4, label="Sanger")
+        ax.plot(mids, fo, "-o", color=ONT[0], ms=4, label="ONT")
+        ax.set_xlabel("Position in the JH4 reference (bp)")
+        ax.set_ylabel("% of unique mutations, 25-bp bins")
+        ax.legend(frameon=False)
+        ax.set_title(f"Along the window: r = {rp[0]:.2f} (p = {rp[1]:.1e})", fontsize=11)
+        ax.yaxis.grid(True, ls=(0, (5, 4)), color=GRID)
+        ax.set_axisbelow(True)
+        ax.text(-0.13, 1.05, letter, transform=ax.transAxes, fontsize=15, fontweight="bold")
+        return rp
 
-    # C: hotspot preference per mouse
-    ax = axes[1, 0]
-    H = {plat: np.array([hotspot(D[(plat, n)]["variants"], ref) for n in WT]) for plat in ("sanger", "ont")}
-    xx = np.arange(2)
-    for plat, o, (fill, edge), lab in (("sanger", -.18, SANGER, "Sanger"), ("ont", .18, ONT, "ONT")):
-        a = H[plat]
-        ax.bar(xx + o, a.mean(0), .34, color=fill, edgecolor=edge, lw=1.4, label=lab, zorder=2)
-        for k in range(3):
-            ax.scatter(xx + o + (k - 1) * .06, a[k], s=22, facecolor="white", edgecolor=edge, lw=1.2, zorder=4)
-    # the share expected if mutations ignored motifs: the window's own share
-    gc = [i for i in range(LO - 1, HI) if ref[i] in "GC"]
-    at = [i for i in range(LO - 1, HI) if ref[i] in "AT"]
-    exp = (100 * sum(1 for i in gc if motifs.is_site("WRC", ref, i) or motifs.is_site("GYW", ref, i)) / len(gc),
-           100 * sum(1 for i in at if motifs.is_site("WA", ref, i) or motifs.is_site("TW", ref, i)) / len(at))
-    for k in (0, 1):
-        ax.plot([k - .4, k + .4], [exp[k], exp[k]], ls="--", color="#555", lw=1.2)
-    ax.text(1.42, exp[1], "share of\nsites in\nwindow", fontsize=8, va="center", color="#555")
-    ax.set_xticks(xx, ["G:C in WRC/GYW", "A:T in WA/TW"])
-    ax.set_ylabel("% of that base's mutations")
-    ax.legend(frameon=False, loc="upper left")
-    ax.set_ylim(0, 100)
-    ax.yaxis.grid(True, ls=(0, (5, 4)), color=GRID)
-    ax.set_axisbelow(True)
-    ax.text(-0.13, 1.05, "C", transform=ax.transAxes, fontsize=15, fontweight="bold")
+    def panel_hotspot(ax, letter):
+        # hotspot preference per mouse
+        H = {plat: np.array([hotspot(D[(plat, n)]["variants"], ref) for n in WT]) for plat in ("sanger", "ont")}
+        xx = np.arange(2)
+        for plat, o, (fill, edge), lab in (("sanger", -.18, SANGER, "Sanger"), ("ont", .18, ONT, "ONT")):
+            a = H[plat]
+            ax.bar(xx + o, a.mean(0), .34, color=fill, edgecolor=edge, lw=1.4, label=lab, zorder=2)
+            for k in range(3):
+                ax.scatter(xx + o + (k - 1) * .06, a[k], s=22, facecolor="white", edgecolor=edge, lw=1.2, zorder=4)
+        # the share expected if mutations ignored motifs: the window's own share
+        gc = [i for i in range(LO - 1, HI) if ref[i] in "GC"]
+        at = [i for i in range(LO - 1, HI) if ref[i] in "AT"]
+        exp = (100 * sum(1 for i in gc if motifs.is_site("WRC", ref, i) or motifs.is_site("GYW", ref, i)) / len(gc),
+               100 * sum(1 for i in at if motifs.is_site("WA", ref, i) or motifs.is_site("TW", ref, i)) / len(at))
+        for k in (0, 1):
+            ax.plot([k - .4, k + .4], [exp[k], exp[k]], ls="--", color="#555", lw=1.2)
+        ax.text(1.42, exp[1], "share of\nsites in\nwindow", fontsize=8, va="center", color="#555")
+        ax.set_xticks(xx, ["G:C in WRC/GYW", "A:T in WA/TW"])
+        ax.set_ylabel("% of that base's mutations")
+        ax.legend(frameon=False, loc="upper left")
+        ax.set_ylim(0, 100)
+        ax.yaxis.grid(True, ls=(0, (5, 4)), color=GRID)
+        ax.set_axisbelow(True)
+        ax.text(-0.13, 1.05, letter, transform=ax.transAxes, fontsize=15, fontweight="bold")
+        return H, exp
+
+    rp = panel_where(axes[0, 1], "B")
+    H, exp = panel_hotspot(axes[1, 0], "C")
 
     # D: mutation load per mouse, both platforms
     ax = axes[1, 1]
@@ -561,6 +566,13 @@ def fig_beyond(D, out, st, ref):
 
     fig.tight_layout()
     save(fig, out, "fig3_agreement_beyond_spectrum")
+
+    # the two panels the manuscript uses (Supplementary Figure S9)
+    fig2, ax2 = plt.subplots(1, 2, figsize=(12, 4.8))
+    panel_where(ax2[0], "A")
+    panel_hotspot(ax2[1], "B")
+    fig2.tight_layout()
+    save(fig2, out, "fig3_agreement_position_hotspot")
 
     # site sharing between platforms: same mouse against different mice
     J = np.array([[jaccard({(p, a) for p, _r, a in sv[x]}, {(p, a) for p, _r, a in ov[y]}) for y in WT]

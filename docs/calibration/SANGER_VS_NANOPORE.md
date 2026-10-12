@@ -4,8 +4,9 @@
 
 > **What the manuscript uses (12 October 2026).** The author chose to keep every clone with the
 > mouse it was originally filed under, so that the manuscript measures nanopore performance and
-> concordance against the Sanger data as collected. Ver17 uses that set (`--original`; Wt2/3/4 =
-> 41/38/27 clones, 177/230/111 calls; ~41-fold, P = 0.0012; r = 0.96). The evidence-based
+> concordance against the Sanger data as collected. Ver17 uses that set (`--original`; the two renamed
+> MKLN K4 records are still dropped; Wt2/3/4 = 39/38/27 clones, 153/230/111 calls; ~39-fold,
+> P = 0.0009; r = 0.96). The evidence-based
 > reassignment below is kept as a record of what the chromatograms and nanopore lineages show:
 > Wt2's own-label clones remain nearly unmutated in every assembly in "WT2 re-analysis", and most
 > of the original Wt2 calls come from clones labelled w3 and from two renamed MKLN K4 records.

@@ -207,7 +207,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         for n, s in sorted(recs.items()):
             label = re.sub(r"-user_a\w*$", "", n)
             m = mouse_from_label(label)
-            reason = "" if ORIGINAL else GENBANK_EXCLUDE.get(n, "")
+            reason = GENBANK_EXCLUDE.get(n, "")  # provenance errors, dropped in --original too
             if reason:
                 m = "_excluded/unassigned"
             if m.startswith("_excluded") or not re.match(r"^(WT|Aicda)", m):
