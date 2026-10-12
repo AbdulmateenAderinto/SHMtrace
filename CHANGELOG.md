@@ -81,6 +81,7 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- Manuscript Sanger set: Wt4 clone w4-9 (434141-A11) moved to MKLN K2 (identical over 520 bp, all 7 mutations, to two K2 clones), applied in `organize_jh4_ab1.py --original` too. Wt4 26 clones, 106 calls; Ver17 rebuilt (~39-fold, P = 0.0008; r = 0.96).
 - Paralogue (Agouti-type) J꜀4 reads longer than the bundled paralogue record, and PCR chimeras, passed the contaminant filter and were called as mutations: 1–4% of every raw J꜀4 library, with 35–54 false calls per simulated 500-read library. The documented allele-level check is now implemented (`contaminant_min_alleles`, default 10; germline sites ignored). The manuscript's pre-sorted 500-read files contain none of these reads.
 - The single-read estimate counted events in every prepared read, not the analysed ones, so a library deeper than the analysis depth overstated the combined density by 1.3–2×. It now counts at the analysed depth, controls included.
 - **A Sanger sample of one to three clones reported germline differences as

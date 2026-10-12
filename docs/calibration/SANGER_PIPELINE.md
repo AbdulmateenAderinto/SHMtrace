@@ -133,8 +133,8 @@ The misfiled clones in your real data shared 10–21 mutations.
 
 | | WT2 | WT3 | WT4 | Aicda⁻/⁻ 1 | Aicda⁻/⁻ 2 | Aicda⁻/⁻ 3 |
 |---|---|---|---|---|---|---|
-| Clones | 39 | 38 | 27 | 11 | 10 | 10 |
-| Unique calls (101–629) | 153 | 230 | 111 | 1 | 1 | 2 |
+| Clones | 39 | 38 | 26 | 11 | 10 | 10 |
+| Unique calls (101–629) | 153 | 230 | 106 | 1 | 1 | 2 |
 
 The test runs where the traces are and is skipped elsewhere. On this sheet the QC reports, without changing anything:
 - **Duplicates (problem):** three clones labelled `wt3-3`, `wt3-4` and `wt3-6`, filed under WT2, are identical to WT3 clones (sharing 10–21 mutations).
@@ -142,7 +142,7 @@ The test runs where the traces are and is skipped elsewhere. On this sheet the Q
 - **Clean controls:** no Aicda⁻/⁻ clone carries more mutations than its qualities explain.
 - **Germline:** the same five germline positions are removed in all six mice, so they are true strain differences, and no lineage was lost to the rule.
 
-With the MKLN mice added (`jh4_with_mkln.csv`), the QC also finds that WT4 clone w4-9 (434141-A11) is identical over 520 bp, with 7 shared mutations, to two MKLN K2 clones (434141-E11 and 434355-H3).
+With the MKLN mice added (`jh4_with_mkln.csv`), the QC also found that WT4 clone w4-9 (434141-A11) is identical over 520 bp, with 7 shared mutations, to two MKLN K2 clones (434141-E11 and 434355-H3). Its G:C spectrum (one transition, two transversions) was too small to tell WT from MKLN. On the identity, the author moved it to MKLN K2 (12 Oct 2026); the counts above are without it.
 
 ## Known limits
 
