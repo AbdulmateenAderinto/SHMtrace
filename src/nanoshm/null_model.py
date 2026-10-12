@@ -22,6 +22,7 @@ import gzip
 import os
 import re
 import tempfile
+from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import replace
 
@@ -163,7 +164,8 @@ class NullModel(dict):
         # site_quals[(pos0, alt, strand)] = qualities of those miscalls at one site
         # site_depth[(pos0, strand)] = control bases observed there
         self.qtail = {k: list(v) for k, v in (qtail or {}).items()}
-        self.site_quals = {k: sorted(v, reverse=True) for k, v in (site_quals or {}).items()}
+        # ascending, so qrate can bisect instead of counting
+        self.site_quals = {k: sorted(v) for k, v in (site_quals or {}).items()}
         self.site_depth = dict(site_depth or {})
         # between-library inflation of the quality-calibrated rates, measured by
         # testing each control against the others (calibrate_qscale)
@@ -185,7 +187,8 @@ class NullModel(dict):
         tail = self.qtail.get((ref, alt, strand)) or self.qtail.get((ref, alt, -strand))
         g = tail[q] if tail else 0.0
         n = self.site_depth.get((pos0, strand), 0)
-        k = sum(1 for x in self.site_quals.get((pos0, alt, strand), ()) if x >= q)
+        site = self.site_quals.get((pos0, alt, strand))
+        k = (len(site) - bisect_left(site, q)) if site else 0
         site = (k + prior_trials * g) / (n + prior_trials) if n else g
         return min(1.0, self.qscale * max(g, site))
 

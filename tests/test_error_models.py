@@ -157,7 +157,8 @@ def test_panel_round_trip(tmp_path):
     back = load_panel(str(path))
     assert back == null
     assert back.strand_rates == null.strand_rates and back.rho == null.rho
-    assert back.qscale == 5.0 and back.site_quals == {(3, "T", 1): [30, 12]}
+    # a site's control qualities are held in ascending order, so qrate can bisect
+    assert back.qscale == 5.0 and back.site_quals == {(3, "T", 1): [12, 30]}
     assert back.meta["basecaller"] == "sup@v5"
 
 

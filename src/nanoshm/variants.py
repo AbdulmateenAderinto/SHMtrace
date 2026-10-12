@@ -33,14 +33,13 @@ from collections import defaultdict
 from dataclasses import dataclass
 from math import exp, lgamma
 
-from scipy.stats import betabinom, binom, chi2
+import numpy
+from scipy.stats import betabinom, binom, chi2, poisson
 
 from .config import Params
 from .io_utils import read_fasta
 
 BASES = ("A", "C", "G", "T")
-# how many supporting reads error_model="qcal" tests per candidate (see _qcal_pvalue)
-QCAL_MAX_TESTS = 100
 
 
 @dataclass
@@ -437,20 +436,21 @@ def _qcal_pvalue(rpos, refbase, alt, alt_quals, s_depth, null, p) -> float:
     if not quals:
         return 1.0
     quals.sort(reverse=True)
-    best = 1.0
-    # Only the highest-quality supporting reads are worth testing. Testing every
-    # one costs O(k^2) and at amplicon depth k reaches the thousands; the j-th
-    # test needs j miscalls at quality >= q_j, which past the first hundred is
-    # already impossible under any control rate. Truncating can only raise the
-    # p-value (fewer minima to take), never lower it, and the Bonferroni factor
-    # below stays the full count.
-    for j, (qj, _s) in enumerate(quals[:QCAL_MAX_TESTS], start=1):
+    # Every j is tested, but the Poisson tails are evaluated in one vectorised
+    # call. Summing each tail by hand costs O(j), so testing all k reads cost
+    # O(k^2); at amplicon depth k reaches the thousands (8,967 at one Ramos
+    # site) and that dominated the run. The regularised incomplete gamma gives
+    # the same tail in constant time per j.
+    lams = []
+    for qj, _s in quals:
         lam = 0.0
         for s in (1, -1):
             n = s_depth.get((rpos, s), 0)
             if n:
                 lam += n * null.qrate(rpos, refbase, alt, s, qj, p.null_prior_beta)
-        best = min(best, _poisson_sf(j, lam))
+        lams.append(lam)
+    js = numpy.arange(len(lams))          # sf(j-1, lam) = P(X >= j)
+    best = float(poisson.sf(js, numpy.asarray(lams)).min())
     return min(1.0, best * len(quals))
 
 
