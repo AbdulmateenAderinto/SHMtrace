@@ -27,7 +27,7 @@ They also agree on something the manuscript could not see. **WT2 is dominated by
 | A:T mutations in WA/TW (window share 50%) | Sanger 80%, ONT 70% | Sanger 80%, ONT 69% | not tested |
 | Mouse ranking by load | WT3 > WT4 > WT2 on both | same | not tested |
 
-WT2's Sanger spectrum rests on 6 mutations, so its per-mouse proportions are noise. That is why the paired, per-mouse tests (panel B's error bars, the interaction) are looser than the pooled correlation.
+WT2's Sanger spectrum rests on 6 mutations, three of them A>T, so its per-mouse proportions are noise (50% A>T). A mean of the three mice would let that one mouse pull Sanger's A>T bar to 24%. Panels B and D therefore show each platform's pooled proportion over all its unique mutations, with a 95% Wilson interval, and every mouse as a point sized by its number of mutations. Pooled, Sanger A>T is 11.3% against nanopore's 8.9%. The paired per-mouse tests and the interaction are reported as before, and are looser than the pooled correlation for the same reason.
 
 ## The Sanger data
 
@@ -54,8 +54,8 @@ A trace goes to the mouse its label names, unless its sequence contradicts the l
 
 | Trace | Label | Assigned | Evidence |
 |---|---|---|---|
-| 434141 E8 | w2-1 | **WT3** | 18 mutations; WT2's other 34 traces carry at most 3, while 10 of WT3's 19 carry 13 or more. It sits where w3-1 belongs (G8 w3-3, H8 w3-4, A9 w3-5), and w2-1 is already at A7 on the same plate. Filed under W2 by hand, so the manuscript counted it as WT2. |
-| 434141 F8 | w2-2 | **WT3** | 13 mutations; same plate logic (w2-2 is already at B7). |
+| 434141 E8 | w2-1 | **WT3** | Its lineage is in WT3's nanopore library and not WT2's: single WT3 reads carry 13 of its 18 mutations (12 reads share three or more), and no WT2 read shares more than two. It also sits where w3-1 belongs on the plate (G8 w3-3, H8 w3-4, A9 w3-5), and w2-1 is already at A7. Filed under W2 by hand, so the manuscript counted it as WT2. |
+| 434141 F8 | w2-2 | **WT3** | Same: WT3 reads carry 10 of its 13 mutations (35 reads share three or more); no WT2 read shares more than two. w2-2 is already at B7 on the plate. |
 | 434141 A11 | w4-9 | **MKLN K2** | Carries the same 7-mutation lineage as k2-1 (E11, same plate, where the K2 series starts right after the WT4 column) and k2-24 (order 434355). Not in any WT4 nanopore read. |
 | 432625 E6 | a1-1 | **unassigned** | 37 AID-type mutations (64% of G:C changes at WRC/GYW), impossible for an *Aicda*−/− mouse. Not the paralogue: 50 differences from J꜀4, 93 from the paralogue. It shares no lineage with any clone, so its mouse is unknown. It had no GenBank record, so the manuscript did not use it. |
 

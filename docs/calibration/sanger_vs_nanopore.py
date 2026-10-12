@@ -173,6 +173,17 @@ def rm_anova_interaction(y: np.ndarray) -> tuple[float, float, int, int]:
     return float(f), float(stats.f.sf(f, df1, df2)), df1, df2
 
 
+def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """95% Wilson interval for a proportion k/n, in percent."""
+    if n == 0:
+        return (0.0, 0.0)
+    ph = k / n
+    d = 1 + z * z / n
+    c = (ph + z * z / (2 * n)) / d
+    h = z * math.sqrt(ph * (1 - ph) / n + z * z / (4 * n * n)) / d
+    return 100 * (c - h), 100 * (c + h)
+
+
 def sidak(p: float, k: int) -> float:
     return 1 - (1 - p) ** k
 
@@ -315,13 +326,24 @@ def fig_spectrum(D, out, st, ref):
     for i in range(12):
         p = stats.ttest_rel(Ps[:, i], Po[:, i]).pvalue
         pairs.append(sidak(float(p), 12) if p == p else float("nan"))
-    for arr, o, (fill, edge), lab in ((Ps, -.2, SANGER, "Sanger"), (Po, .2, ONT, "ONT")):
-        axB.bar(x + o, arr.mean(0), .38, yerr=arr.std(0, ddof=1), capsize=3, color=fill,
-                edgecolor=edge, lw=1.4, error_kw=dict(ecolor=edge, lw=1.2), label=lab, zorder=2)
+    # Bars: the platform's pooled proportion (every unique mutation of the three mice)
+    # with a 95% Wilson interval. A mean of three mice would let a mouse with a handful
+    # of mutations (Sanger Wt2 has 6) swing a type by tens of points. Points: each
+    # mouse, area proportional to its number of mutations.
+    for vv, arr, o, (fill, edge), lab in ((sv, Ps, -.2, SANGER, "Sanger"), (ov, Po, .2, ONT, "ONT")):
+        allv = [m for n in WT for m in vv[n]]
+        cnt = Counter(f"{r}>{a}" for _p, r, a in allv)
+        N = sum(cnt[t] for t in MUT)
+        pooled = np.array([100 * cnt[t] / N for t in MUT])
+        ci = np.array([wilson(cnt[t], N) for t in MUT])
+        axB.bar(x + o, pooled, .38, yerr=[pooled - ci[:, 0], ci[:, 1] - pooled], capsize=3,
+                color=fill, edgecolor=edge, lw=1.4, error_kw=dict(ecolor=edge, lw=1.2),
+                label=f"{lab} (n = {N})", zorder=2)
+        sizes = [max(8, 70 * math.sqrt(len(vv[n]) / max(len(vv[m]) for m in WT))) for n in WT]
         for k in range(3):
-            axB.scatter(x + o + (k - 1) * .07, arr[k], s=18, facecolor="white", edgecolor=edge,
-                        lw=1.2, zorder=4)
-    top = np.nanmax(np.concatenate([Ps, Po])) + 4
+            axB.scatter(x + o + (k - 1) * .07, arr[k], s=sizes[k], facecolor="white",
+                        edgecolor=edge, lw=1.0, zorder=4, alpha=.9)
+    top = min(np.nanmax(np.concatenate([Ps, Po])), 40) + 4
     for i, p in enumerate(pairs):
         axB.text(x[i], top, "adj. p\n" + (">0.99" if p > .99 else f"{p:.2f}"), ha="center", fontsize=7.5,
                  color="#333")
@@ -330,6 +352,12 @@ def fig_spectrum(D, out, st, ref):
     axB.set_xticks(x, MUT)
     axB.set_ylabel("% of unique mutations")
     axB.set_ylim(0, top + 7)
+    small = [n for n in WT if len(sv[n]) < 20]
+    if small:
+        axB.text(.99, .62, "Points: each mouse, area ∝ its mutations.\n" + ", ".join(
+            f"Sanger {n.replace('WT', 'Wt')}: {len(sv[n])} mutations" for n in small)
+            + "\n(the smallest points)", transform=axB.transAxes, ha="right",
+            fontsize=8, color="#555")
     axB.legend(frameon=False, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2)
     axB.set_title(f"Platform × type interaction (repeated measures): F({df1},{df2}) = {F:.2f}, "
                   f"p = {p_int:.3f}", fontsize=10, loc="right", pad=26)
@@ -366,8 +394,15 @@ def fig_spectrum(D, out, st, ref):
     xx = np.arange(2)
     for plat, o, (fill, edge), lab in (("sanger", -.18, SANGER, "Sanger"), ("ont", .18, ONT, "ONT")):
         a = tsv[plat]
-        axD.bar(xx + o, a.mean(0), .34, yerr=a.std(0, ddof=1), capsize=4, color=fill, edgecolor=edge,
-                lw=1.4, error_kw=dict(ecolor=edge, lw=1.2), label=lab, zorder=2)
+        allv = [m for n in WT for m in (sv if plat == "sanger" else ov)[n]]
+        N = len(allv)
+        ks = (sum(1 for _p, r, al in allv if (r, al) in (("C", "T"), ("G", "A"))),
+              sum(1 for _p, r, al in allv if r in "CG" and (r, al) not in (("C", "T"), ("G", "A"))))
+        pooled = np.array([100 * k / N for k in ks])
+        ci = np.array([wilson(k, N) for k in ks])
+        axD.bar(xx + o, pooled, .34, yerr=[pooled - ci[:, 0], ci[:, 1] - pooled], capsize=4,
+                color=fill, edgecolor=edge, lw=1.4, error_kw=dict(ecolor=edge, lw=1.2), label=lab,
+                zorder=2)
         for k in range(3):
             axD.scatter(xx + o + (k - 1) * .06, a[k], s=22, facecolor="white", edgecolor=edge, lw=1.2, zorder=4)
     for k in (0, 1):
