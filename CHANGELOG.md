@@ -6,6 +6,17 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **A calibration bug introduced and corrected in the same session.** Capping
+  the quality-calibrated test for speed was not neutral: the same function
+  drives the leave-one-out calibration, where more conservative p-values let it
+  settle on a *smaller* inflation factor and so a *more permissive* null. On
+  deep data it chose 3.0 where the exact computation gives 20.0, roughly
+  doubling the calls. The cap is gone; the exact test is now fast because the
+  Poisson tails are evaluated in one vectorised call rather than summed term by
+  term, which also removes a catastrophic cancellation in the deep tail.
+  Nanopore results are unchanged throughout.
+
 ### Added
 - **Single-read mutations, estimated in aggregate** (`nanoshm/singletons.py`).
   A mutation in one read cannot be confirmed site by site, so each sample's

@@ -21,6 +21,7 @@ Every page names its data, its date and how to reproduce it.
 | [`EXTERNAL_VALIDATION.md`](EXTERNAL_VALIDATION.md) | A public nanopore deposit from another laboratory (Sμ, *Pim1*), and the GHVPDN run |
 | [`ILLUMINA.md`](ILLUMINA.md) | An Illumina J꜀4 study: AID dependence recovered, and no LDHA effect, both as published |
 | [`ECTOPIC_AID.md`](ECTOPIC_AID.md) | Ectopic AID versus empty vector in an AID-null line — the public counterpart of the N114 design |
+| [`HMCES_INDELS.md`](HMCES_INDELS.md) | The indel caller against a published biological effect: HMCES loss raises SHM deletions |
 | [`SANGER.md`](SANGER.md) | Matched Sanger clones from the same animals as the nanopore libraries |
 | [`PUBLIC_DATA.md`](PUBLIC_DATA.md) | The survey of public SHM data with usable controls, and what is still missing |
 
