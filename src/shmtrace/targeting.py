@@ -20,8 +20,8 @@ Two uses here, both reported rather than used to make calls:
   model; it is not used to call anything yet, because that needs its own
   validation.
 
-The model is a file, not part of nanoshm. SHazaM is AGPL-3 and nanoshm is MIT,
-so nanoshm does not ship SHazaM's models; `scripts/export_shazam_model.R`
+The model is a file, not part of shmtrace. SHazaM is AGPL-3 and shmtrace is MIT,
+so shmtrace does not ship SHazaM's models; `scripts/export_shazam_model.R`
 writes one from your own SHazaM installation in the format read here:
 
     fivemer,mutability,to_A,to_C,to_G,to_T

@@ -1,8 +1,10 @@
-# nanoshm
+# SHMtrace
 
-Somatic hypermutation profiling from Oxford Nanopore amplicon reads, without cloning and without Geneious.
+Somatic hypermutation measured from amplicon reads, on any platform: Oxford Nanopore, PacBio, Illumina or Sanger clones. Any targeted region works (the J꜀4 intron, V regions, switch regions), and real mutations are told apart from sequencing error using matched AID-deficient or empty-vector controls.
 
-You give it **FASTQ reads + a reference FASTA** (optionally a contaminant FASTA). It gives you a variant table, unique-variant density, and the substitution spectrum: the same quantities reported in Aderinto & Martin.
+*Formerly nanoshm. `import nanoshm` still works, as an alias of `shmtrace`.*
+
+You give it **reads + a reference FASTA** (optionally a contaminant FASTA). It gives you a variant table, unique-variant density, and the substitution spectrum: the same quantities reported in Aderinto & Martin.
 
 It replaces the Geneious *assemble + find variants* step with [minimap2](https://github.com/lh3/minimap2) (via `mappy`) plus a variant caller that reimplements the manuscript's filtering rules explicitly, so every threshold is visible and adjustable rather than buried in a GUI.
 
@@ -19,7 +21,7 @@ It replaces the Geneious *assemble + find variants* step with [minimap2](https:/
 > at r = 0.95 ([`SANGER.md`](docs/calibration/SANGER.md)).
 > Still validate against your own null control before publishing numbers.
 
-![The nanoshm workflow, step by step, with the counts from the bundled J꜀4 libraries](docs/figures/pipeline.svg)
+![The SHMtrace workflow, step by step, with the counts from the bundled J꜀4 libraries](docs/figures/pipeline.svg)
 
 ## The app
 
@@ -29,7 +31,7 @@ your own computer.
 
 ```bash
 pip install -e ".[app]"
-nanoshm-app
+shmtrace-app
 ```
 
 [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) walks through one experiment from
@@ -50,7 +52,7 @@ Python 3.10+. The alignment backend is `mappy`, which ships minimap2 as a wheel,
 ## Single sample
 
 ```bash
-nanoshm \
+SHMtrace \
   --fastq examples/WT3_JH4_sub500.fastq \
   --reference examples/JH4_reference.fasta \
   --contaminant examples/JH4_contaminant.fasta \
@@ -69,7 +71,7 @@ On the bundled example: **wild type ≈ 310 unique variants versus *Aicda*−/�
 ### Benchmark a set of samples
 
 ```bash
-nanoshm-benchmark --sheet examples_compare/samples.csv \
+shmtrace-benchmark --sheet examples_compare/samples.csv \
   --reference examples_compare/JH4_reference.fasta \
   --contaminant examples_compare/JH4_contaminant.fasta --preset jh4_intron --out bench
 ```
@@ -81,11 +83,11 @@ The sheet lists `sample, fastq, null, run, geneious_calls, geneious_export`. Eve
 If you have reads from a sample that should carry no somatic mutations, pass them with `--null`. The per-position error rate is measured from them directly instead of being assumed from base qualities, which on the J꜀4 data cut the held-out background by a further 40%:
 
 ```bash
-nanoshm --fastq WT.fastq --reference ref.fasta --preset jh4_intron \
+SHMtrace --fastq WT.fastq --reference ref.fasta --preset jh4_intron \
         --null AID_KO_1.fastq --null AID_KO_2.fastq --out results/WT
 ```
 
-**The control must come from the same sequencing run.** Nanopore error is run-specific, and a null fitted on another flow cell is not valid — `nanoshm` checks the run identifier in the read IDs and falls back to the read-quality model if they differ. So put a mutation-free sample on every flow cell; that is the same argument the manuscript makes for running an AID-null control alongside every experiment.
+**The control must come from the same sequencing run.** Nanopore error is run-specific, and a null fitted on another flow cell is not valid — `shmtrace` checks the run identifier in the read IDs and falls back to the read-quality model if they differ. So put a mutation-free sample on every flow cell; that is the same argument the manuscript makes for running an AID-null control alongside every experiment.
 
 ### Choose an error model
 
@@ -104,7 +106,7 @@ Add `+filter` to any mode (for example `qcal+filter`) to drop calls whose reads 
 On the paper deposit, `qcal` matches Geneious in WT J꜀4 (Jaccard 0.85–0.97, 73 vs 75 ×10⁻⁵) with a quarter of its Aicda-/- background (192-fold vs 49-fold separation), and on N114 keeps 84% of Geneious's AID signal with no calls in any empty-vector control. On in-silico spike-ins into held-out controls, it finds 70% (J꜀4) and 85% (N114) of planted mutations with at most 0.3 false calls per sample, against Geneious's 93% and 88% recall with 2.7 and 6.0 false calls (`docs/calibration/ERROR_MODELS.md`). Check it on your own data with:
 
 ```bash
-nanoshm-validate --control KO1.fastq --null KO2.fastq --null KO3.fastq \
+shmtrace-validate --control KO1.fastq --null KO2.fastq --null KO3.fastq \
   --reference ref.fasta --preset jh4_intron --profiles geneious,qcal,strand --out val
 ```
 
@@ -130,8 +132,8 @@ FASTQ, FASTA, Sanger `.ab1`/`.abi` traces, plain-text `.seq`, or BAM/SAM/CRAM, i
 Under Sanger each read is one clone. The germline rule (an alt in ≥ 50% of clones) applies only at positions covered by at least 4 clones. With fewer than 4 clones in the sample it is switched off and `summary.json` carries a note. Every platform writes `per_read.csv` (mutations and usable bases per read or clone) and a `mutation_load` block in `summary.json` (mutations per read, mutations per bp sequenced).
 
 ```bash
-nanoshm --fastq sanger_clones/ --reference ref.fasta --preset jh4_intron --platform sanger --out res/
-nanoshm --fastq lib_R1.fastq.gz+lib_R2.fastq.gz --reference ref.fasta --preset my_amplicon.yaml \
+SHMtrace --fastq sanger_clones/ --reference ref.fasta --preset jh4_intron --platform sanger --out res/
+SHMtrace --fastq lib_R1.fastq.gz+lib_R2.fastq.gz --reference ref.fasta --preset my_amplicon.yaml \
         --platform illumina --out res/
 ```
 
@@ -142,10 +144,10 @@ Short-read platforms cannot span a long-read amplicon, so give them an analysis 
 For a Sanger project, a sample sheet names each trace's animal, group and control status, along with its sequencing order, well and tube label. Each run then checks the bookkeeping: misfiled clones, copied traces, contaminated controls, labels that name another animal, and lineages lost to the germline rule. Problems are flagged and nothing is changed. Validated on simulated projects with planted errors and on the lab's JH4 traces: [docs/calibration/SANGER_PIPELINE.md](docs/calibration/SANGER_PIPELINE.md).
 
 ```bash
-nanoshm-sheet draft traces/ -o samplesheet.csv        # then check and edit every row
-nanoshm-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron -o results/
-nanoshm-concordance results/project.json ont/project.json --labels Sanger,ONT
-nanoshm-validate-sanger --reps 10 -o validation/
+shmtrace-sheet draft traces/ -o samplesheet.csv        # then check and edit every row
+shmtrace-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron -o results/
+shmtrace-concordance results/project.json ont/project.json --labels Sanger,ONT
+shmtrace-validate-sanger --reps 10 -o validation/
 ```
 
 ### More tools
@@ -154,17 +156,17 @@ nanoshm-validate-sanger --reps 10 -o validation/
 |---|---|---|
 | `umi = flank \| header` (setting) | One consensus read per molecule from UMIs | [UMI.md](docs/calibration/UMI.md) |
 | `animal_tests` (in every result) | Group tests with the animal as the unit: negative binomial, permutation, Welch, fold with 95% CI | [REPLICATES_AND_POWER.md](docs/calibration/REPLICATES_AND_POWER.md) |
-| `nanoshm-power` | How many animals and reads a comparison needs, from a pilot | [REPLICATES_AND_POWER.md](docs/calibration/REPLICATES_AND_POWER.md) |
-| `nanoshm-repair` | Repair-route indices (UNG, MSH2/Pol η) and spectrum decomposition | [REPAIR.md](docs/calibration/REPAIR.md) |
-| `nanoshm-switch` | Class-switch junctions: breakpoints, microhomology, insertions | [SWITCH.md](docs/calibration/SWITCH.md) |
-| `barcode` column, `nanoshm-screen` | Pooled runs with inline barcodes; screens ranked by q-value | [MULTIPLEX.md](docs/calibration/MULTIPLEX.md) |
+| `shmtrace-power` | How many animals and reads a comparison needs, from a pilot | [REPLICATES_AND_POWER.md](docs/calibration/REPLICATES_AND_POWER.md) |
+| `shmtrace-repair` | Repair-route indices (UNG, MSH2/Pol η) and spectrum decomposition | [REPAIR.md](docs/calibration/REPAIR.md) |
+| `shmtrace-switch` | Class-switch junctions: breakpoints, microhomology, insertions | [SWITCH.md](docs/calibration/SWITCH.md) |
+| `barcode` column, `shmtrace-screen` | Pooled runs with inline barcodes; screens ranked by q-value | [MULTIPLEX.md](docs/calibration/MULTIPLEX.md) |
 
 ## Case versus control
 
-`nanoshm-compare` does group comparison in the spirit of SHMTool ([MacCarthy et al., 2009](https://doi.org/10.1016/j.jim.2009.06.005)), but starting from raw FASTQ rather than pre-aligned sequences. Each file is one independent source, for example one mouse.
+`shmtrace-compare` does group comparison in the spirit of SHMTool ([MacCarthy et al., 2009](https://doi.org/10.1016/j.jim.2009.06.005)), but starting from raw FASTQ rather than pre-aligned sequences. Each file is one independent source, for example one mouse.
 
 ```bash
-nanoshm-compare \
+shmtrace-compare \
   --control examples_compare/WT2.fastq examples_compare/WT3.fastq examples_compare/WT4.fastq \
   --case    examples_compare/KO1.fastq examples_compare/KO2.fastq examples_compare/KO3.fastq \
   --reference examples_compare/JH4_reference.fasta \
@@ -178,7 +180,7 @@ Reports base-composition-corrected mutation frequencies with two-proportion test
 ## Web UI
 
 ```bash
-uvicorn nanoshm.webapp.main:app --reload
+uvicorn shmtrace.webapp.main:app --reload
 # http://127.0.0.1:8000
 ```
 
@@ -207,15 +209,15 @@ Indels are excluded throughout: this is a substitution-focused tool, matching th
 `jh4_intron` and `n114_vregion` ship with the package and are selected by name. Every field is overridable on the CLI or in the web UI, and a preset is just a YAML file, so a new assay means a new file rather than new code:
 
 ```bash
-nanoshm --preset my_locus.yaml ...      # a path works too
+SHMtrace --preset my_locus.yaml ...      # a path works too
 ```
 
-Parameters are documented in `src/nanoshm/config.py`; each one maps to a single control in the UI.
+Parameters are documented in `src/shmtrace/config.py`; each one maps to a single control in the UI.
 
 ## Layout
 
 ```
-src/nanoshm/
+src/shmtrace/
   config.py        parameter model + preset loading
   io_utils.py      FASTQ/FASTA/AB1/BAM readers, pair merging, trimming, EE maths
   align.py         competitive minimap2 alignment
@@ -233,7 +235,7 @@ examples/          bundled WT and Aicda-/- reads
 docs/ROADMAP.md    architecture, phases, validation plan
 ```
 
-The engine is a plain importable library with no web dependencies. The web layer never does science: it marshals uploads and parameters into `nanoshm.pipeline.run()` and formats the result. That is what makes "local now, hosted later" cheap.
+The engine is a plain importable library with no web dependencies. The web layer never does science: it marshals uploads and parameters into `shmtrace.pipeline.run()` and formats the result. That is what makes "local now, hosted later" cheap.
 
 ## Development
 

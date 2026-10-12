@@ -1,8 +1,8 @@
-# nanoshm user guide
+# SHMtrace user guide
 
 ## What the app does
 
-nanoshm takes the read files from a sequencing run, a reference sequence, and
+SHMtrace takes the read files from a sequencing run, a reference sequence, and
 your note of which samples are controls, and gives you the mutation tables and
 figures for a somatic hypermutation experiment. It replaces the part of the work
 that is done by hand in Geneious: mapping the reads to the reference, separating
@@ -20,11 +20,11 @@ Aderinto & Martin. Indels are ignored throughout; this is a substitution assay.
 There is a built application for macOS and for Windows. It contains everything
 it needs, including Python, so nothing else has to be installed.
 
-- **macOS:** drag `nanoshm.app` to Applications. The first time you open it,
+- **macOS:** drag `shmtrace.app` to Applications. The first time you open it,
   right-click (or control-click) the icon and choose **Open**, then confirm.
   The app is not signed by Apple, so a double-click on the first launch is
   refused. After that first time it opens normally.
-- **Windows:** unzip the folder anywhere and run `nanoshm.exe` inside it. Keep
+- **Windows:** unzip the folder anywhere and run `shmtrace.exe` inside it. Keep
   the whole folder together; the `.exe` needs the files beside it.
 
 The app opens one window. Inside that window is a page served by the app itself
@@ -39,13 +39,13 @@ If you would rather run it from a Python environment (Python 3.10 or newer):
 
 ```bash
 pip install -e ".[app]"
-nanoshm-app
+shmtrace-app
 ```
 
-`nanoshm-app` starts the same local server and opens the same window. If no
+`shmtrace-app` starts the same local server and opens the same window. If no
 window toolkit is available, it prints an address such as
 `http://127.0.0.1:52431/` and keeps serving; open that address in a browser.
-`nanoshm-app --no-window` does that deliberately, which is how to use the app on
+`shmtrace-app --no-window` does that deliberately, which is how to use the app on
 a machine you are logged into over SSH.
 
 The `[app]` extra brings in the window toolkit, the Excel writer and the BAM
@@ -379,7 +379,7 @@ mutation is seen in exactly one read by construction.
 When you drop a folder of traces on the sample box, the whole folder becomes **one sample**, which is what a library of clones is. The Choose a folder button does the same. Drop the individual files instead if you want each trace treated as its own sample.
 
 ```bash
-nanoshm --fastq sanger_clones/ --reference ref.fasta --preset sanger_clones \
+SHMtrace --fastq sanger_clones/ --reference ref.fasta --preset sanger_clones \
         --platform sanger --out results/library1
 ```
 
@@ -389,7 +389,7 @@ numbers of clones, or compare the per-clone frequency rather than the density.
 
 **Give it the other haplotype.** If your animals or cells can carry a second
 allele of the locus, pass it with `--contaminant` alongside your reference.
-On thousands of nanopore reads nanoshm finds such a haplotype by itself,
+On thousands of nanopore reads SHMtrace finds such a haplotype by itself,
 because the same block of differences recurs across reads; on a few dozen
 clones there is nothing for it to recur across, and a clone from the wrong
 allele is then read as one carrying forty or more mutations. On the paper's
@@ -413,7 +413,7 @@ recognises the read-number token, merges them into one sample and marks the row
 command line, write the pair as one argument:
 
 ```bash
-nanoshm --fastq lib1_R1.fastq.gz+lib1_R2.fastq.gz --reference ref.fasta \
+SHMtrace --fastq lib1_R1.fastq.gz+lib1_R2.fastq.gz --reference ref.fasta \
         --preset generic_amplicon --platform illumina --out results/lib1
 ```
 
@@ -438,7 +438,7 @@ are turned back to the orientation they were sequenced in, and each read is used
 once.
 
 Geneious's own exported assemblies are BAM files, so an old Geneious analysis can
-be re-run through nanoshm on exactly the reads Geneious used.
+be re-run through SHMtrace on exactly the reads Geneious used.
 
 ## Troubleshooting
 

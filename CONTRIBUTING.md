@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone <repo-url> && cd nanoshm
+git clone <repo-url> && cd SHMtrace
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,web]"
 pytest
@@ -11,8 +11,8 @@ pytest
 
 ## Ground rules
 
-**The web layer never does science.** `src/nanoshm/webapp/` marshals uploads and
-parameters into `nanoshm.pipeline.run()` and formats the result. Any analysis
+**The web layer never does science.** `src/shmtrace/webapp/` marshals uploads and
+parameters into `shmtrace.pipeline.run()` and formats the result. Any analysis
 logic belongs in the engine modules, where it can be tested without a server.
 
 **Every parameter lives in `config.Params`.** If you add a knob, add it there,

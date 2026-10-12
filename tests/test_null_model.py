@@ -1,5 +1,5 @@
 """Fitting an empirical error model, and refusing to use it across runs."""
-from nanoshm.null_model import check_same_run, run_token
+from shmtrace.null_model import check_same_run, run_token
 
 
 def _fastq(tmp_path, name, read_id):

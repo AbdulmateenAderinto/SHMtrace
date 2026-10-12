@@ -60,7 +60,7 @@ The GenBank records are faithful to the traces. Inside the window, 87 of 95 diff
 
 **The rule.** A clone belongs to the mouse the original GenBank organisation gives it, unless the sequence clearly shows otherwise. "Clearly" is calibrated against clones from *other* mice. MKLN clones, compared with the wild-type nanopore reads, share at most 7 identical mutations with a single read by coincidence: the J꜀4 intron has strong hotspots, and WT3's reads carry about 11 mutations each. Somatic mutations are not inherited, so inbred mice do not share them; the germline differences they do share are removed before any of this. A clone therefore moves only if a single read of another mouse's nanopore library shares **8 or more** of its mutations, or a whole batch it belongs to is shown to be another mouse's.
 
-**The default is the GenBank folder** the student filed each clone in (W2, W3, W4, A1, A2, A3); a trace with no GenBank record falls back on its label. **Only a trace nanoshm cannot read is excluded**: no stretch of good quality (a noisy chromatogram), or no or too short an alignment. A clean but short trace stays, and the density counts the bases each clone actually read.
+**The default is the GenBank folder** the student filed each clone in (W2, W3, W4, A1, A2, A3); a trace with no GenBank record falls back on its label. **Only a trace SHMtrace cannot read is excluded**: no stretch of good quality (a noisy chromatogram), or no or too short an alignment. A clean but short trace stays, and the density counts the bases each clone actually read.
 
 **Clones labelled "jh6" are J꜀4-intron clones.** They align across the whole window with only the strain's five germline differences, exactly like the a1/a2/a3 clones; an earlier version of this analysis excluded them by label as "another amplicon", which was wrong. The tag after "jh6" names the mouse (`jh6-a3-g9` is an A3 clone). The manuscript's single *Aicda*−/− 3 mutation is in `81-jh6-a3-g9`.
 
@@ -179,9 +179,9 @@ The manuscript's values come from Geneious assemblies built folder by folder:
 
 Its denominators (37/36/38) also count 19 paralogue sequences as unmutated J꜀4 clones. Its W2 assembly additionally held the two WT3 clones at 434141 E8/F8 and the two renamed K4 clones. Figures 2B and 3 and Supplementary S2 should be regenerated from the organised set. The spectrum and positional conclusions stand. The Sanger knockout comparison does not: it should be reported as underpowered.
 
-## A bug this comparison found in nanoshm
+## A bug this comparison found in SHMtrace
 
-A Sanger sample of fewer than four clones cannot apply the germline rule to itself, so nanoshm switched the rule off. A3's single clone then reported the strain's five germline differences from the reference as five mutations. Now a sample with too few clones uses the germline changes measured across the project's other clones (`project.sanger_germline`; test in `tests/test_platforms.py`).
+A Sanger sample of fewer than four clones cannot apply the germline rule to itself, so SHMtrace switched the rule off. A3's single clone then reported the strain's five germline differences from the reference as five mutations. Now a sample with too few clones uses the germline changes measured across the project's other clones (`project.sanger_germline`; test in `tests/test_platforms.py`).
 
 ## Reproduce
 

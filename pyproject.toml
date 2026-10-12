@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nanoshm"
+name = "shmtrace"
 version = "0.2.0.dev0"
-description = "Somatic hypermutation profiling from Oxford Nanopore amplicon reads"
+description = "SHMtrace: somatic hypermutation measured from amplicon reads on any platform (nanopore, PacBio, Illumina, Sanger), against matched controls"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -60,29 +60,29 @@ dev = [
 ]
 
 [project.scripts]
-nanoshm = "nanoshm.pipeline:main"
-nanoshm-compare = "nanoshm.compare:main"
-nanoshm-benchmark = "nanoshm.benchmark:main"
-nanoshm-validate = "nanoshm.simulate:main"
-nanoshm-simulate-lineages = "nanoshm.lineage_sim:main"
-nanoshm-sheet = "nanoshm.samplesheet:main"
-nanoshm-concordance = "nanoshm.concordance:main"
-nanoshm-validate-sanger = "nanoshm.sanger_sim:main"
-nanoshm-power = "nanoshm.power:main"
-nanoshm-repair = "nanoshm.repair:main"
-nanoshm-switch = "nanoshm.switch:main"
-nanoshm-screen = "nanoshm.demux:main"
-nanoshm-app = "nanoshm.desktop:main"
+shmtrace = "shmtrace.pipeline:main"
+shmtrace-compare = "shmtrace.compare:main"
+shmtrace-benchmark = "shmtrace.benchmark:main"
+shmtrace-validate = "shmtrace.simulate:main"
+shmtrace-simulate-lineages = "shmtrace.lineage_sim:main"
+shmtrace-sheet = "shmtrace.samplesheet:main"
+shmtrace-concordance = "shmtrace.concordance:main"
+shmtrace-validate-sanger = "shmtrace.sanger_sim:main"
+shmtrace-power = "shmtrace.power:main"
+shmtrace-repair = "shmtrace.repair:main"
+shmtrace-switch = "shmtrace.switch:main"
+shmtrace-screen = "shmtrace.demux:main"
+shmtrace-app = "shmtrace.desktop:main"
 
 [project.urls]
-Homepage = "https://github.com/martinlab/nanoshm"
-Issues = "https://github.com/martinlab/nanoshm/issues"
+Homepage = "https://github.com/martinlab/shmtrace"
+Issues = "https://github.com/martinlab/shmtrace/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nanoshm"]
+packages = ["src/shmtrace", "src/nanoshm"]   # nanoshm: the old name, an import alias
 
 [tool.hatch.build.targets.sdist]
-include = ["src/nanoshm", "tests", "examples", "docs", "README.md", "LICENSE"]
+include = ["src/shmtrace", "tests", "examples", "docs", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -95,4 +95,4 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
-per-file-ignores = { "src/nanoshm/webapp/main.py" = ["B008"] }  # FastAPI Depends/File/Form idiom
+per-file-ignores = { "src/shmtrace/webapp/main.py" = ["B008"] }  # FastAPI Depends/File/Form idiom

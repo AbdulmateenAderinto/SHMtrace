@@ -1,6 +1,6 @@
 # Class-switch junctions from long reads
 
-*12 October 2026. `nanoshm/switch.py`, `nanoshm-switch`; tests in `tests/test_switch.py`.*
+*12 October 2026. `shmtrace/switch.py`, `shmtrace-switch`; tests in `tests/test_switch.py`.*
 
 ## What it measures
 
@@ -18,7 +18,7 @@ Class-switch recombination joins a break in Sμ to a break in an acceptor switch
 Reads with breakpoints within 3 bp on both sides are one event: PCR copies of one recombined cell. They are counted once as a unique junction. Per sample, the module reports acceptor use, microhomology classes, mean microhomology, the ambiguous share and mutations near the join. Groups are compared animal by animal (Welch and permutation).
 
 ```bash
-nanoshm-switch --reference switch_regions.fa --donor Smu \
+shmtrace-switch --reference switch_regions.fa --donor Smu \
     --sample WT1=wt1.fastq:WT --sample WT2=wt2.fastq:WT --sample KO1=ko1.fastq:KO ... \
     --compare KO,WT -o switch_out
 ```

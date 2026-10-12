@@ -630,7 +630,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                 if motifs.is_site("WRC", ref, i) or motifs.is_site("GYW", ref, i)]
     progress(1.0, "done")
     return {
-        "name": project.get("name") or "nanoshm project",
+        "name": project.get("name") or "SHMtrace project",
         "params": {"region": project["region"], "platform": project.get("platform") or "ont",
                    "mode": project.get("mode") or "recommended", "depth": depth,
                    "error_model": p.error_model, "analysis_window": [lo + 1, hi + 1],

@@ -34,7 +34,7 @@ Planted errors (each in a known clone):
                        intact (label_mismatch; sharing cannot see it, since no
                        mate remains in the true animal)
 
-    nanoshm-validate-sanger --reps 10 -o sanger_validation/
+    shmtrace-validate-sanger --reps 10 -o sanger_validation/
 """
 from __future__ import annotations
 
@@ -379,7 +379,7 @@ def summarise(runs: list[dict]) -> dict:
 
 def main(argv=None):
     import argparse
-    ap = argparse.ArgumentParser(prog="nanoshm-validate-sanger", description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser(prog="shmtrace-validate-sanger", description=__doc__.split("\n\n")[0])
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("-o", "--out", required=True)

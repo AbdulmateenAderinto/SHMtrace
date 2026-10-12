@@ -1,4 +1,4 @@
-# Building the nanoshm desktop app
+# Building the SHMtrace desktop app
 
 The app is a Python program with a local web UI in a native window. It is built
 on the machine it will run on: macOS builds the `.app`, Windows builds the
@@ -9,16 +9,16 @@ on the machine it will run on: macOS builds the `.app`, Windows builds the
 ```bash
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -e ".[app,bam,sanger]" pyinstaller
-pyinstaller packaging/nanoshm.spec --noconfirm
+pyinstaller packaging/shmtrace.spec --noconfirm
 ```
 
 Output:
-- **macOS:** `dist/nanoshm.app`. Drag it to Applications. The first launch needs
+- **macOS:** `dist/SHMtrace.app`. Drag it to Applications. The first launch needs
   right-click then Open, because the app is not signed by Apple. To avoid that for
   other people, sign and notarise it: `codesign --deep --force --options runtime
-  --sign "Developer ID Application: <you>" dist/nanoshm.app`, then
+  --sign "Developer ID Application: <you>" dist/SHMtrace.app`, then
   `xcrun notarytool submit`.
-- **Windows:** `dist/nanoshm/nanoshm.exe` with its folder. Zip the folder, or wrap
+- **Windows:** `dist/shmtrace/shmtrace.exe` with its folder. Zip the folder, or wrap
   it with Inno Setup for an installer.
 
 ## macOS installer (like SciCanvas)
@@ -28,19 +28,19 @@ The spec gives the app its icon (`packaging/icon/icon.icns`, redrawn with
 PyInstaller, wrap it in a drag-to-Applications disk image:
 
 ```bash
-sh packaging/make_dmg.sh        # writes dist/nanoshm-0.2.0-arm64.dmg
+sh packaging/make_dmg.sh        # writes dist/SHMtrace-0.2.0-arm64.dmg
 ```
 
 ## What it does at run time
 
 It serves on `127.0.0.1` on a free port and opens a window on it. Nothing listens
-on the network and no data leaves the machine. `nanoshm-app --no-window` serves
+on the network and no data leaves the machine. `shmtrace-app --no-window` serves
 without a window and prints the address, which is how to use it over SSH.
 
 ## Testing a build
 
 ```bash
-dist/nanoshm/nanoshm --no-window        # then open the printed address
+dist/shmtrace/shmtrace --no-window        # then open the printed address
 ```
 
 Check: the Set-up tab lists presets and built-in references, a small project runs

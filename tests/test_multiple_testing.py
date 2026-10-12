@@ -1,6 +1,6 @@
 """Benjamini-Hochberg and the empirical binomial null."""
 
-from nanoshm.variants import _benjamini_hochberg, _binom_sf
+from shmtrace.variants import _benjamini_hochberg, _binom_sf
 
 
 def test_bh_rejects_nothing_when_all_null():
@@ -69,7 +69,7 @@ class TestEmpiricalNullFloor:
     """
 
     def test_floor_keeps_the_stricter_of_the_two(self):
-        from nanoshm.variants import _binom_sf
+        from shmtrace.variants import _binom_sf
 
         depth, observed = 500, 3
         quality_implied = 0.002          # what the base qualities say
@@ -81,7 +81,7 @@ class TestEmpiricalNullFloor:
 
     def test_floor_does_not_block_a_genuinely_noisy_position(self):
         """Where the control shows real error, the empirical rate must win."""
-        from nanoshm.variants import _binom_sf
+        from shmtrace.variants import _binom_sf
 
         depth, observed = 500, 3
         quality_implied = 0.0005

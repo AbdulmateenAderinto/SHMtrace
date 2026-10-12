@@ -20,7 +20,7 @@ a working prototype scaffold** (the prototype lives alongside this file).
 Everything Geneious does in this workflow has a mature open-source equivalent.
 The scientific content is not the alignment — it is the *filtering and counting
 rules*, which are already fully specified in the manuscript and reimplemented in
-the prototype `src/nanoshm/`.
+the prototype `src/shmtrace/`.
 
 | Step | Geneious (current) | Open-source replacement |
 |---|---|---|
@@ -48,14 +48,14 @@ public website:
 
 ```
         ┌──────────────────────────────────────────────┐
-        │  nanoshm/ (pure Python library, no web deps)  │  ← the science
+        │  shmtrace/ (pure Python library, no web deps)  │  ← the science
         │  align · filter · call variants · metrics     │
         └──────────────────────────────────────────────┘
               ▲                              ▲
               │ import                       │ import
      ┌────────┴────────┐            ┌────────┴─────────────┐
      │  CLI            │            │  web layer (FastAPI) │
-     │  nanoshm.pipeline│            │  upload + params     │
+     │  shmtrace.pipeline│            │  upload + params     │
      └─────────────────┘            └──────────────────────┘
                                              ▲
                                     ┌────────┴─────────┐
@@ -65,7 +65,7 @@ public website:
 ```
 
 The rule that makes "local now, hosted later" cheap: **the web layer never does
-science.** It only marshals uploads + parameters into an `nanoshm.pipeline.run()`
+science.** It only marshals uploads + parameters into an `shmtrace.pipeline.run()`
 call. Going from a single-user local server to a multi-user hosted service means
 inserting a job queue *between* the web layer and the engine — the engine code
 does not change.
@@ -103,7 +103,7 @@ does not change.
 
 ## 4. Parameter and preset model
 
-Every UI control maps 1:1 to a field in `nanoshm.config.Params`. A **preset** is
+Every UI control maps 1:1 to a field in `shmtrace.config.Params`. A **preset** is
 just that dataclass serialised to YAML with assay-appropriate defaults; the UI
 loads a preset, then overlays user overrides. This is what lets the tool be
 "B-cell SHM by default, but fully tunable."

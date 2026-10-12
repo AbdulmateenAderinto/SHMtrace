@@ -1,4 +1,4 @@
-"""HTTP layer for the nanoshm desktop app (and the same thing served locally).
+"""HTTP layer for the shmtrace desktop app (and the same thing served locally).
 
 The GUI is a single page talking to this API. A project (many samples, groups,
 controls, one reference) is submitted once, runs in a background thread, and
@@ -40,9 +40,9 @@ APP_DIR = Path(__file__).resolve().parent
 STATIC = APP_DIR / "static"
 MAX_UPLOAD_MB = 2000
 
-app = FastAPI(title=f"nanoshm {__version__}")
+app = FastAPI(title=f"shmtrace {__version__}")
 
-UPLOADS = Path(tempfile.mkdtemp(prefix="nanoshm_uploads_"))
+UPLOADS = Path(tempfile.mkdtemp(prefix="shmtrace_uploads_"))
 JOBS: dict[str, dict] = {}
 _LOCK = threading.Lock()
 
@@ -152,7 +152,7 @@ def local_scan(payload: dict):
     root = Path(payload.get("path", "")).expanduser()
     if not root.is_dir():
         raise HTTPException(400, f"not a folder: {root}")
-    exts = set(getattr(__import__("nanoshm.io_utils", fromlist=["x"]), "READ_EXTENSIONS",
+    exts = set(getattr(__import__("shmtrace.io_utils", fromlist=["x"]), "READ_EXTENSIONS",
                        (".fastq", ".fq", ".fasta", ".fa", ".bam", ".ab1")))
     files = []
     for p in sorted(root.iterdir()):
@@ -248,7 +248,7 @@ def export(job_id: str, what: str):
                             headers={"Content-Disposition": "attachment; filename=report.html"})
     if what == "bundle.zip":
         return Response(report.zip_bytes(res), media_type="application/zip",
-                        headers={"Content-Disposition": "attachment; filename=nanoshm_results.zip"})
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_results.zip"})
     if what == "tables.xlsx":
         try:
             blob = report.workbook(res)
@@ -256,7 +256,7 @@ def export(job_id: str, what: str):
             raise HTTPException(501, "Excel export needs openpyxl") from None
         return Response(blob, media_type=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-            headers={"Content-Disposition": "attachment; filename=nanoshm_tables.xlsx"})
+            headers={"Content-Disposition": "attachment; filename=shmtrace_tables.xlsx"})
     if what.endswith(".csv"):
         tables = report.tables(res)
         if what not in tables:

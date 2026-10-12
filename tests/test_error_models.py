@@ -4,11 +4,11 @@ from dataclasses import replace
 
 import pytest
 
-from nanoshm.align import AlignedRead
-from nanoshm.config import Params
-from nanoshm.null_model import NullModel, estimate_rho, fit_aligned, load_panel, save_panel
-from nanoshm.pipeline import mode_overrides
-from nanoshm.variants import (
+from shmtrace.align import AlignedRead
+from shmtrace.config import Params
+from shmtrace.null_model import NullModel, estimate_rho, fit_aligned, load_panel, save_panel
+from shmtrace.pipeline import mode_overrides
+from shmtrace.variants import (
     _betabinom_sf,
     _binom_sf,
     _pbinom_sf,

@@ -13,7 +13,7 @@ whatever the input is:
   * GenBank (.gb/.gbk), as sequencing providers and Benchling export Sanger
     results: each record's sequence, with FASTA_DEFAULT_Q qualities. IUPAC
     ambiguity codes are kept, so they are never counted as mutations
-  * BAM/SAM/CRAM, when pysam is installed (`pip install nanoshm[bam]`)
+  * BAM/SAM/CRAM, when pysam is installed (`pip install shmtrace[bam]`)
   * gzip of any of the text formats (add .gz)
   * Illumina paired-end reads as "R1.fastq.gz+R2.fastq.gz": the two files are
     merged pair by pair into single reads (merge_pairs)
@@ -89,7 +89,7 @@ def read_bam(path: str) -> Iterator[tuple[str, str, str]]:
     """Reads from a BAM/SAM as (name, seq, qual) in their sequenced orientation.
 
     Aligners store reverse-strand reads reverse-complemented; this undoes that,
-    so nanoshm realigns the reads exactly as they came off the sequencer. A read
+    so shmtrace realigns the reads exactly as they came off the sequencer. A read
     with several primary records (Geneious writes split alignments this way)
     is returned once, from its longest record. Hard-clipped records are
     skipped because the clipped bases are missing.
@@ -97,7 +97,7 @@ def read_bam(path: str) -> Iterator[tuple[str, str, str]]:
     try:
         import pysam
     except ImportError as e:                       # pragma: no cover
-        raise ImportError("reading BAM/SAM needs pysam: pip install 'nanoshm[bam]'") from e
+        raise ImportError("reading BAM/SAM needs pysam: pip install 'shmtrace[bam]'") from e
     best: dict[str, tuple[str, str]] = {}
     order: list[str] = []
     with pysam.AlignmentFile(path, check_sq=False) as fh:

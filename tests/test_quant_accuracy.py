@@ -3,8 +3,8 @@ import pytest
 
 pytest.importorskip("mappy", reason="alignment backend not installed")
 
-from nanoshm import lineage_sim  # noqa: E402
-from nanoshm.align import AlignedRead, drop_contaminant_alleles  # noqa: E402
+from shmtrace import lineage_sim  # noqa: E402
+from shmtrace.align import AlignedRead, drop_contaminant_alleles  # noqa: E402
 
 
 def _read(name, calls):

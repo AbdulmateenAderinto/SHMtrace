@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from nanoshm import pipeline
-from nanoshm.benchmark import read_geneious_export, read_sheet, site_concordance
-from nanoshm.config import load_preset
-from nanoshm.variants import _geneious_pvalue
+from shmtrace import pipeline
+from shmtrace.benchmark import read_geneious_export, read_sheet, site_concordance
+from shmtrace.config import load_preset
+from shmtrace.variants import _geneious_pvalue
 
 ROOT = Path(__file__).resolve().parents[1]
 CMP = ROOT / "examples_compare"
@@ -35,7 +35,7 @@ def test_export_parser_reads_geneious_annotation_tables(tmp_path):
     assert read_geneious_export(str(f), offset=-100) == {(20, "G", "A"), (900, "T", "C")}
 
 
-def test_export_parser_reads_nanoshm_variant_tables(tmp_path):
+def test_export_parser_reads_shmtrace_variant_tables(tmp_path):
     f = tmp_path / "v.csv"
     f.write_text("position,ref,alt,supporting_reads\n5,A,G,1\n")
     assert read_geneious_export(str(f)) == {(5, "A", "G")}

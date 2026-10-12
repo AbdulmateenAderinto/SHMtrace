@@ -1,4 +1,4 @@
-"""Draws the nanoshm app icon (icon.png, 1024 px) and builds icon.icns from it.
+"""Draws the shmtrace app icon (icon.png, 1024 px) and builds icon.icns from it.
 
 Same mark as the web UI's favicon: a navy rounded square with a white N,
 plus a read strand carrying three mutation ticks. Run from this folder:
@@ -33,7 +33,7 @@ for x, col in ((360, "#E4572E"), (520, "#F2B134"), (660, "#E4572E")):
     d.ellipse([x - 34, y0 - 34, x + 34, y0 + 34], fill=col, outline="white", width=8)
 img.save("icon.png")
 
-iconset = "nanoshm.iconset"
+iconset = "shmtrace.iconset"
 os.makedirs(iconset, exist_ok=True)
 for s in (16, 32, 128, 256, 512):
     img.resize((s, s), Image.LANCZOS).save(f"{iconset}/icon_{s}x{s}.png")

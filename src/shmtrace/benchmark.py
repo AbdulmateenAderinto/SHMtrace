@@ -1,6 +1,6 @@
-"""Benchmark nanoshm against Geneious on a set of samples.
+"""Benchmark shmtrace against Geneious on a set of samples.
 
-    nanoshm-benchmark --sheet samples.csv --reference ref.fasta \
+    shmtrace-benchmark --sheet samples.csv --reference ref.fasta \
         --contaminant contam.fasta --preset jh4_intron --out bench/
 
 The sample sheet is a CSV with one row per library:
@@ -80,7 +80,7 @@ def read_geneious_export(path: str, offset: int = 0, max_p: float | None = 0.05,
 
     Accepts the CSV/TSV that Geneious writes when the annotations of a "Find
     Variations/SNPs" track are exported (columns such as Minimum, Change,
-    Polymorphism Type), and also nanoshm's own variants.csv (position, ref,
+    Polymorphism Type), and also shmtrace's own variants.csv (position, ref,
     alt). `offset` is added to positions when the Geneious reference frame
     starts elsewhere.
     """
@@ -121,7 +121,7 @@ def read_geneious_export(path: str, offset: int = 0, max_p: float | None = 0.05,
 # ---- scoring ----------------------------------------------------------------
 def site_concordance(ours: set, theirs: set) -> dict:
     shared = len(ours & theirs)
-    return {"shared": shared, "nanoshm_only": len(ours - theirs),
+    return {"shared": shared, "shmtrace_only": len(ours - theirs),
             "geneious_only": len(theirs - ours),
             "precision_vs_geneious": round(shared / len(ours), 3) if ours else None,
             "recall_vs_geneious": round(shared / len(theirs), 3) if theirs else None,
@@ -209,7 +209,7 @@ def separation(rows: list[dict], mode: str) -> dict:
 def report_markdown(res: dict) -> str:
     rows = res["rows"]
     has_sites = any("jaccard" in r for r in rows)
-    out = ["# nanoshm versus Geneious", "",
+    out = ["# shmtrace versus Geneious", "",
            f"Depth: every sample analysed at {rows[0]['depth'] if rows else '?'} reads. "
            "Calls are distinct position-substitution pairs.", ""]
     head = ["Sample", "Mode", "Calls", "Geneious", "Δ", "Density ×10⁻⁵", "Null from",
@@ -245,7 +245,7 @@ def report_markdown(res: dict) -> str:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Benchmark nanoshm against Geneious")
+    ap = argparse.ArgumentParser(description="Benchmark shmtrace against Geneious")
     ap.add_argument("--sheet", required=True, help="sample sheet CSV/TSV (see module docs)")
     ap.add_argument("--reference", required=True)
     ap.add_argument("--contaminant", action="append", default=[])
@@ -254,7 +254,7 @@ def main():
                     help="comma-separated: recommended,geneious")
     ap.add_argument("--depth", type=int, help="analysis depth (default: common depth)")
     ap.add_argument("--geneious-offset", type=int, default=0,
-                    help="add this to Geneious positions to reach the nanoshm reference frame")
+                    help="add this to Geneious positions to reach the shmtrace reference frame")
     ap.add_argument("--out", default="benchmark")
     args = ap.parse_args()
 

@@ -166,7 +166,7 @@ def main(argv=None):
     import argparse
     import csv
     import json
-    ap = argparse.ArgumentParser(prog="nanoshm-screen",
+    ap = argparse.ArgumentParser(prog="shmtrace-screen",
                                  description="Rank every condition of a project against its "
                                              "control (animal-level tests, BH q-values)")
     ap.add_argument("result", help="project.json")

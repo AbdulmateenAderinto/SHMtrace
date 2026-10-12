@@ -1,4 +1,4 @@
-# How accurately does nanoshm quantify SHM? J꜀4 and N114
+# How accurately does SHMtrace quantify SHM? J꜀4 and N114
 
 *12 October 2026. `docs/calibration/quant_accuracy.py`; full output in `quant_accuracy/` (`report.md`, `runs.json`).*
 

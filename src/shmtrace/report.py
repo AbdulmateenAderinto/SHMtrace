@@ -117,7 +117,7 @@ def workbook(res: dict) -> bytes:
             ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = \
                 min(28, max(10, len(str(c)) + 2))
     meta = wb.create_sheet("Run", 0)
-    meta.append(["nanoshm report", res.get("name", "")])
+    meta.append(["SHMtrace report", res.get("name", "")])
     meta.append(["date", str(date.today())])
     for k, v in res["params"].items():
         meta.append([k, str(v)])
@@ -182,7 +182,7 @@ def html_report(res: dict, fmt: str = "png") -> str:
                    + "</div>")
     return f"""<!doctype html>
 <html lang=en><head><meta charset=utf-8>
-<title>{res.get('name', 'nanoshm report')}</title>
+<title>{res.get('name', 'SHMtrace report')}</title>
 <style>
  :root {{ color-scheme: light dark; --fg:#111; --muted:#666; --line:#ddd; --bg:#fff; }}
  @media (prefers-color-scheme: dark) {{ :root {{ --fg:#eee; --muted:#999; --line:#333; --bg:#111; }} }}
@@ -198,7 +198,7 @@ def html_report(res: dict, fmt: str = "png") -> str:
  figcaption {{ color:var(--muted); font-size:13px; }}
  .wrap {{ overflow-x:auto; }}
 </style></head><body>
-<h1>{res.get('name', 'nanoshm report')}</h1>
+<h1>{res.get('name', 'SHMtrace report')}</h1>
 <p class=muted>{date.today()} &middot; {p.get('region')} &middot; {p.get('platform')} &middot;
  mode {p.get('mode')} &middot; {len(res['samples'])} samples</p>
 {notes_html}

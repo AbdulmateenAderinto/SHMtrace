@@ -197,7 +197,7 @@ class NullModel(dict):
         return bool(self.strand_rates)
 
     def to_json(self) -> dict:
-        return {"format": "nanoshm-null-panel", "version": 2, "rho": self.rho,
+        return {"format": "shmtrace-null-panel", "version": 2, "rho": self.rho,
                 "qscale": self.qscale,
                 "meta": self.meta,
                 "qtail": [[k[0], k[1], k[2], v] for k, v in sorted(self.qtail.items())],
@@ -210,8 +210,8 @@ class NullModel(dict):
 
     @classmethod
     def from_json(cls, data: dict) -> NullModel:
-        if data.get("format") != "nanoshm-null-panel":
-            raise ValueError("not a nanoshm null panel")
+        if data.get("format") != "shmtrace-null-panel":
+            raise ValueError("not a shmtrace null panel")
         return cls({(int(a), b): float(v) for a, b, v in data["rates"]},
                    {(int(a), b, int(s)): float(v) for a, b, s, v in data.get("strand_rates", [])},
                    data.get("rho", 0.0), data.get("meta"),

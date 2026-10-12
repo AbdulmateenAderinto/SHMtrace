@@ -297,7 +297,7 @@ def main():
     ap.add_argument("--out", default="compare_results")
     ap.add_argument("--plots", action="store_true")
     ap.add_argument("--mode", default="recommended",
-                    help="calling profile, as for nanoshm --mode")
+                    help="calling profile, as for shmtrace --mode")
     args = ap.parse_args()
 
     p = load_preset(args.preset, **pipeline.mode_overrides(args.mode))

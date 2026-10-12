@@ -2,9 +2,9 @@
 import random
 from dataclasses import replace
 
-from nanoshm import indels, project
-from nanoshm.align import AlignedRead
-from nanoshm.config import Params
+from shmtrace import indels, project
+from shmtrace.align import AlignedRead
+from shmtrace.config import Params
 
 REF = "GATCCATGCAAATTTGGGCCCATATCGCGATCGATCGTAGCTAGCATGCAGTCAGTCAGGATCCTAGC" * 4
 P = replace(Params(), end_trim_bp=0, germline_freq_threshold=0.5, indel_min_reads=3)

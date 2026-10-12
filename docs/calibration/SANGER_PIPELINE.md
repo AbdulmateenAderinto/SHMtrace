@@ -9,7 +9,7 @@ The errors that changed the lab's JH4 Sanger result were not calling errors. The
 
 The pipeline therefore makes the sample assignment explicit, checks it, and flags anything suspicious for a person to decide. **Nothing is corrected automatically.**
 
-## 1. The sample sheet (`nanoshm.samplesheet`)
+## 1. The sample sheet (`shmtrace.samplesheet`)
 
 A CSV or tab-separated file with one row per trace:
 
@@ -43,15 +43,15 @@ It warns about, but accepts:
 - two different traces from the same order and well (usually a re-run).
 
 ```bash
-nanoshm-sheet draft traces_folder/ -o samplesheet.csv   # a first draft from sub-folders; check every row
-nanoshm-sheet check samplesheet.csv
-nanoshm-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron \
+shmtrace-sheet draft traces_folder/ -o samplesheet.csv   # a first draft from sub-folders; check every row
+shmtrace-sheet check samplesheet.csv
+shmtrace-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron \
       --contaminant contaminant.fasta -o results/
 ```
 
 In the app, type the sheet's path under **3 · Samples** and click **Load sheet**. The QC flags and the excluded clones appear under **Tables**, in the HTML report, and as `qc_flags.csv` and `excluded.csv`.
 
-## 2. QC flags (`nanoshm.qc`, run on every Sanger project)
+## 2. QC flags (`shmtrace.qc`, run on every Sanger project)
 
 | Check | Severity | Fires when |
 |---|---|---|
@@ -66,7 +66,7 @@ In the app, type the sheet's path under **3 · Samples** and click **Load sheet*
 
 Every clone that was not analysed is listed with the reason: excluded by the sheet, no quality segment, unmapped, contaminant or paralogue, alignment too short, no clean stretch, or minor haplotype.
 
-## 3. Concordance between two measurements (`nanoshm.concordance`)
+## 3. Concordance between two measurements (`shmtrace.concordance`)
 
 This is the manuscript's Sanger-vs-ONT comparison as a tested function, for any two runs of the same animals:
 - **Spectrum:** pooled proportions with 95% Wilson intervals; Pearson r with a Fisher interval, and slope; the platform × type repeated-measures interaction; paired t tests with Šídák adjustment per type and for G:C Ts/Tv.
@@ -75,7 +75,7 @@ This is the manuscript's Sanger-vs-ONT comparison as a tested function, for any 
 - **Density:** per-animal densities.
 
 ```bash
-nanoshm-concordance sanger/project.json ont/project.json --pair WT2=WT2 --pair WT3=WT3 \
+shmtrace-concordance sanger/project.json ont/project.json --pair WT2=WT2 --pair WT3=WT3 \
       --pair WT4=WT4 --labels Sanger,ONT
 ```
 
@@ -83,7 +83,7 @@ nanoshm-concordance sanger/project.json ont/project.json --pair WT2=WT2 --pair W
 
 ## 4. Validation with known answers
 
-### Simulation (`nanoshm.sanger_sim`)
+### Simulation (`shmtrace.sanger_sim`)
 
 Each simulated project has:
 - **Animals:** three wild-type and three knockout animals, about 30 clones each.
@@ -99,7 +99,7 @@ Each simulated project has:
   - a mutated clone filed under a control;
   - a whole lineage filed under another animal.
 
-The pipeline then runs exactly as on real data, from the sample sheet. Results from 40 projects (`nanoshm-validate-sanger --reps 40 --seed 101`; full output in `sanger_validation_summary.json`):
+The pipeline then runs exactly as on real data, from the sample sheet. Results from 40 projects (`shmtrace-validate-sanger --reps 40 --seed 101`; full output in `sanger_validation_summary.json`):
 
 | | Result |
 |---|---|

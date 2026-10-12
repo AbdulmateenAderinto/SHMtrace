@@ -69,7 +69,7 @@ Running the paper's own phased FASTQs through the current caller confirms the si
 | KO3 unphased | 78 | 56.8 |
 | KO3 phased | 22 | 8.4 |
 
-**Phasing alone accounts for ~7× of the background.** nanoshm had no phasing step at the time; the manuscript pipeline did. It has one now. Everything below is measured on already-phased reads, so it is additional to this.
+**Phasing alone accounts for ~7× of the background.** SHMtrace had no phasing step at the time; the manuscript pipeline did. It has one now. Everything below is measured on already-phased reads, so it is additional to this.
 
 ## 2. No multiple-testing correction *(fixed: BH is now the default)*
 

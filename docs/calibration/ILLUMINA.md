@@ -12,7 +12,7 @@ Genotypes, from the GEO sample records:
 
 ## What this amplicon covers
 
-The study amplified from a primer in the rearranged VDJ to one in the J꜀4 intron (Fwd `CATAACAAAGGTTAAAAATAAAGAC`, Rev `GCCTGACATCTGAGGACTC`) by reverse-complement PCR. On nanoshm's J꜀4 reference, the intron primer ends at position 123. The J꜀4 gene segment is 53–104, and the intron starts at 105.
+The study amplified from a primer in the rearranged VDJ to one in the J꜀4 intron (Fwd `CATAACAAAGGTTAAAAATAAAGAC`, Rev `GCCTGACATCTGAGGACTC`) by reverse-complement PCR. On SHMtrace's J꜀4 reference, the intron primer ends at position 123. The J꜀4 gene segment is 53–104, and the intron starts at 105.
 
 The usable window is therefore **53–122 (70 bp)**: the J꜀4 coding segment and the first 18 bp of the intron. It is not the 529-bp intron window of the nanopore assay. Both mates of a pair cover all of it, so pairs are merged before alignment.
 
@@ -20,7 +20,7 @@ Settings: `--platform illumina`, `analysis_window: [53, 122]`, `min_align_len: 6
 
 ## PCR duplicates
 
-80–100 ng of genomic DNA is about 15,000 genomes, sequenced to 10–20 million read pairs. Each starting molecule is therefore read hundreds of times. The study collapsed duplicates, using the VDJ junction as a cell barcode, and kept clusters of at least 10 reads. nanoshm does not deduplicate.
+80–100 ng of genomic DNA is about 15,000 genomes, sequenced to 10–20 million read pairs. Each starting molecule is therefore read hundreds of times. The study collapsed duplicates, using the VDJ junction as a cell barcode, and kept clusters of at least 10 reads. SHMtrace does not deduplicate.
 
 Mutation frequency (mutations per base sequenced) and the share of mutated reads stay valid under duplication. Counts of distinct mutations, the single-read estimate and per-site support do not, because one molecule's mutation appears in many reads. Those are therefore not interpreted here. The single-read estimates in this run swing between −12 and +20 for exactly this reason.
 
@@ -38,10 +38,10 @@ Mutation frequency (mutations per base sequenced) and the share of mutated reads
 | LDHA-KO vs *Aicda*-/- | **P = 0.034** | P = 0.058 |
 | Wild type vs LDHA-KO | P = 0.57 | P = 0.90 |
 
-**nanoshm reproduces both of the study's findings, positive and negative.**
+**SHMtrace reproduces both of the study's findings, positive and negative.**
 
 - **AID dependence is recovered.** Wild type is about 18-fold above *Aicda*-/-, which carry 0–4 calls each in 20,000 reads. G:C mutations in wild type fall at WRC/GYW hotspots 47–71% of the time. The quality-calibrated model, chosen on nanopore J꜀4, therefore separates AID-active from AID-null mice on Illumina reads from another laboratory, another amplicon design and another part of the locus.
-- **No LDHA effect, which is what the paper reports.** Here LDHA is deleted by AID-Cre, that is in *activated* B cells, and the paper concludes that deleting it at that stage has "only minimal effects on the GC reaction and in the generation of high-affinity antibodies". nanoshm sees no difference in J꜀4 mutation (P = 0.57), while still separating both genotypes from the AID-null control. A method that manufactured differences would not behave this way.
+- **No LDHA effect, which is what the paper reports.** Here LDHA is deleted by AID-Cre, that is in *activated* B cells, and the paper concludes that deleting it at that stage has "only minimal effects on the GC reaction and in the generation of high-affinity antibodies". SHMtrace sees no difference in J꜀4 mutation (P = 0.57), while still separating both genotypes from the AID-null control. A method that manufactured differences would not behave this way.
 
 Caveat on the negative result: with 70 bp, 20,000 undeduplicated reads per mouse and n = 7, this run can exclude only a large LDHA effect, not a small one. It agrees with the paper; it does not independently establish the absence of an effect.
 

@@ -1,7 +1,7 @@
 """Parameter model, preset resolution and override precedence."""
 import pytest
 
-from nanoshm.config import Params, available_presets, load_preset, preset_path, to_dict
+from shmtrace.config import Params, available_presets, load_preset, preset_path, to_dict
 
 
 def test_bundled_presets_are_discoverable():

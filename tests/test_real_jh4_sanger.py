@@ -11,11 +11,11 @@ import pytest
 
 pytest.importorskip("mappy", reason="alignment backend not installed")
 
-from nanoshm import project, samplesheet  # noqa: E402
+from shmtrace import project, samplesheet  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 SHEET = ROOT / "docs/calibration/samplesheets/jh4_manuscript.csv"
-REF = ROOT / "src/nanoshm/references"
+REF = ROOT / "src/shmtrace/references"
 # mouse: (clones analysed, unique calls in 101-629) as in the manuscript
 EXPECTED = {"WT2": (39, 153), "WT3": (38, 230), "WT4": (26, 106),
             "Aicda_A1": (11, 1), "Aicda_A2": (10, 1), "Aicda_A3": (10, 2)}

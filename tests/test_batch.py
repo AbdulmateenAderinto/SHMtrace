@@ -1,6 +1,6 @@
 """Batch behaviour: shared haplotype evidence and a common analysis depth."""
-from nanoshm import batch, pipeline
-from nanoshm.config import load_preset
+from shmtrace import batch, pipeline
+from shmtrace.config import load_preset
 
 BLOCK = [(10, "T"), (20, "T"), (30, "T"), (40, "T")]
 CLONE = [(110, "C"), (120, "C"), (130, "C"), (140, "C")]

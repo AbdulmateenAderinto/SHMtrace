@@ -1,6 +1,6 @@
 # Group tests with the animal as the unit, and power
 
-*12 October 2026. `nanoshm/replicates.py`, `nanoshm/power.py`; calibration `docs/calibration/replicates_calibration.py`, output in `replicates_calibration/`.*
+*12 October 2026. `shmtrace/replicates.py`, `shmtrace/power.py`; calibration `docs/calibration/replicates_calibration.py`, output in `replicates_calibration/`.*
 
 ## Why
 
@@ -45,7 +45,7 @@ On the real J꜀4 libraries (Wt vs Aicda−/−, 3 vs 3):
 
 ## Power: how many mice?
 
-`nanoshm-power` simulates whole experiments analysed with the animal-level test. It takes the rate, the variation between animals and the clumping within animals from a pilot project.
+`shmtrace-power` simulates whole experiments analysed with the animal-level test. It takes the rate, the variation between animals and the clumping within animals from a pilot project.
 
 From the J꜀4 wild types (3 mice, 500 reads) as the pilot, power at α = 0.05 (Welch on log10, 1,000 simulated experiments per cell):
 
@@ -64,5 +64,5 @@ What this means for designing experiments:
 - **The CV estimate is itself uncertain.** It comes from 3 mice. A pilot with more animals would tighten every number here.
 
 ```bash
-nanoshm-power --pilot project.json --group WT --metric density --fold 0.5 --animals 3,5,8,10,15
+shmtrace-power --pilot project.json --group WT --metric density --fold 0.5 --animals 3,5,8,10,15
 ```

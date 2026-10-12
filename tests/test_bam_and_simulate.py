@@ -3,10 +3,10 @@ import random
 
 import pytest
 
-from nanoshm.compare import Unique
-from nanoshm.config import Params
-from nanoshm.io_utils import read_fastq
-from nanoshm.simulate import choose_sites, evaluate, spike
+from shmtrace.compare import Unique
+from shmtrace.config import Params
+from shmtrace.io_utils import read_fastq
+from shmtrace.simulate import choose_sites, evaluate, spike
 
 pysam = pytest.importorskip("pysam")
 
@@ -72,7 +72,7 @@ def test_unique_mutations_are_counted_once_per_file_not_pooled():
 
 
 def test_messy_sanger_ends_are_trimmed_and_mutations_kept():
-    from nanoshm.align import AlignedRead, trim_messy_ends
+    from shmtrace.align import AlignedRead, trim_messy_ends
     ref = "ACGTTGCAAGCTAGCTAGGATCCATGCATGCAAATTTGGGCCCATATCGCGATCGATCG" * 2
     bases = list(ref)
     for i in (1, 3, 4, 6):                 # a messy start: ambiguity codes and mismatches

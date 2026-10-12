@@ -1,6 +1,6 @@
 # Repair routes from the spectrum
 
-*12 October 2026. `nanoshm/repair.py`, `nanoshm-repair`.*
+*12 October 2026. `shmtrace/repair.py`, `shmtrace-repair`.*
 
 ## What it reads
 
@@ -28,8 +28,8 @@ Groups are compared animal by animal (Welch and permutation). A Fisher test on p
 **Decomposition:** a group's 12-type spectrum is fitted as a non-negative mixture of reference spectra, with weights summing to 1. The references are other groups in the same project, for example Ung⁻/⁻, Msh2⁻/⁻ or Ung⁻/⁻Msh2⁻/⁻ mice sequenced alongside. The 95% intervals come from resampling animals, and mutations within animals, in both the group and its references. On simulated mixtures the weights are recovered to within 0.05 (`tests/test_repair.py`).
 
 ```bash
-nanoshm-repair project.json --case MKLN --control WT
-nanoshm-repair project.json --case MKLN --reference ung_msh2=UngMsh2 --reference msh2=Msh2 --reference wt=WT
+shmtrace-repair project.json --case MKLN --control WT
+shmtrace-repair project.json --case MKLN --reference ung_msh2=UngMsh2 --reference msh2=Msh2 --reference wt=WT
 ```
 
 ## First use: MKLN against wild type (Sanger, J꜀4)

@@ -1,4 +1,4 @@
-# Trying nanoshm on the bundled example
+# Trying SHMtrace on the bundled example
 
 A ten-minute check that the install works and produces the expected numbers.
 [`QUICKSTART.md`](QUICKSTART.md) is the one-page guide to using it on your own
@@ -17,10 +17,10 @@ Next time, only `cd` and `source .venv/bin/activate`.
 ## 2. The app
 
 ```bash
-nanoshm-app
+shmtrace-app
 ```
 
-A window opens. If no window appears, run `nanoshm-app --no-window` and open
+A window opens. If no window appears, run `shmtrace-app --no-window` and open
 the address it prints.
 
 In **1 · Region and data type** leave the defaults (`jh4_intron`, `ont`,
@@ -58,7 +58,7 @@ Per-sample numbers to expect, at the common depth of 497 reads:
 The same project from a sample sheet:
 
 ```bash
-nanoshm-benchmark --sheet examples_compare/samples.csv \
+shmtrace-benchmark --sheet examples_compare/samples.csv \
   --reference examples_compare/JH4_reference.fasta \
   --contaminant examples_compare/JH4_contaminant.fasta \
   --preset jh4_intron --out bench
@@ -67,7 +67,7 @@ nanoshm-benchmark --sheet examples_compare/samples.csv \
 One sample on its own, with the manuscript's Geneious rule for comparison:
 
 ```bash
-nanoshm --fastq examples/WT3_JH4_sub500.fastq \
+SHMtrace --fastq examples/WT3_JH4_sub500.fastq \
   --reference examples/JH4_reference.fasta \
   --contaminant examples/JH4_contaminant.fasta \
   --preset jh4_intron --mode geneious --out results/WT3 --plots
