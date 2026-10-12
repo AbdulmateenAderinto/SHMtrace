@@ -17,6 +17,17 @@ this project uses [semantic versioning](https://semver.org/).
   one-read mutations, and it brings Wt2 from 55.7 to 74.9 × 10⁻⁵ while the
   knockouts stay at 0.4–1.2. See `docs/calibration/SINGLE_READ.md`.
   `single_read_min_quality` (35; 30 on Illumina; off for Sanger) sets the cut.
+- **Indel calling** (`nanoshm/indels.py`, opt-in with `exclude_indels: false` or
+  the app's Advanced checkbox). Indels are left-aligned, counted at quality
+  ≥ Q30, and tested against the controls' rate for that exact indel, calibrated
+  by leave-one-control-out and corrected by BH; at least 3 reads are needed.
+  Reported in `indels.csv` and per-sample counts, not in the substitution
+  density. Spike-ins on J꜀4: recall 0.43 at 3 reads, 0.72 at 5, 0.94 at 10;
+  1-bp homopolymer deletions stay mostly undetectable; 0.71 false calls per
+  library. Sanger clones call every indel at ≥ Q20. See
+  `docs/calibration/INDELS.md`.
+- The app's Tables tab shows every column any row has, so a control without
+  peers no longer hides the other samples' estimates.
 
 ### Fixed (Mac app, found by running the built app end to end)
 - SVG and PDF figure exports failed in the packaged app: matplotlib's PDF and

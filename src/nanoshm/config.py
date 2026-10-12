@@ -163,6 +163,17 @@ class Params:
     # sup, Q capped at 50); 0 or None turns the estimate off.
     single_read_min_quality: int | None = 35
 
+    # ---- indels ---------------------------------------------------------------
+    # exclude_indels=False calls insertions and deletions (indels.py). Only
+    # indels whose quality (weakest inserted base, or weaker base flanking a
+    # deletion) reaches this are counted, in controls and samples alike:
+    # nanopore indel errors mostly come with low-quality flanks.
+    indel_min_quality: int = 30
+    # A knockout library holds a few real indel molecules (PCR-made deletions,
+    # for instance) in two or three reads; no error model removes those, and a
+    # floor on support does. See docs/calibration/INDELS.md.
+    indel_min_reads: int = 3
+
     # ---- reporting ----------------------------------------------------------
     density_scale: float = 1e5             # unique-variant density is reported x this
 

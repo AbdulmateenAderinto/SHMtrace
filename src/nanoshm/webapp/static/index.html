@@ -44,6 +44,12 @@
           <input type="text" id="window" placeholder="preset default">
           <label for="maxp">Significance threshold</label>
           <input type="number" id="maxp" step="0.001" placeholder="0.05">
+          <label style="display:flex;gap:8px;align-items:center;margin-top:10px">
+            <input type="checkbox" id="call-indels" style="width:auto"> Call insertions and deletions
+          </label>
+          <p class="hint">Tested against your controls' own indel rate; needs two or more
+            controls (or Sanger clones). Reported in their own table, not in the
+            substitution density.</p>
         </details>
       </div>
 

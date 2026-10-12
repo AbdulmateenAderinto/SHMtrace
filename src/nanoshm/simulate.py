@@ -127,6 +127,62 @@ def spike(reads: list[tuple[str, str, str]], reference: str, sites, p: Params,
     return out, planted
 
 
+def spike_indels(reads: list[tuple[str, str, str]], reference: str, sites, p: Params,
+                 rng: random.Random) -> tuple[list[tuple[str, str, str]], dict]:
+    """Write planted insertions and deletions into reads.
+
+    `sites` are (pos0, "ins" or "del", bases, reads_to_carry): a deletion of
+    the reference bases starting at pos0, or an insertion before pos0. A read
+    receives a site only if it aligns every base from the one before the event
+    to the one after it. Inserted bases take the quality of the base they
+    precede. Returns the new reads and how many reads received each site,
+    keyed as indels.normalise would report it.
+    """
+    from .indels import normalise
+    ref = read_fasta(reference)[0][1]
+    aligner, _t, _c = build_index([reference], [], p.minimap2_preset)
+    info, covering = {}, defaultdict(list)
+    for idx, (_name, seq, _qual) in enumerate(reads):
+        hit = next((h for h in aligner.map(seq) if h.is_primary), None)
+        if hit is None:
+            continue
+        r2q = _ref_to_query(hit, len(seq))
+        info[idx] = (hit.strand, r2q)
+        for pos, kind, bases, _k in sites:
+            span = range(pos - 1, pos + (len(bases) if kind == "del" else 0) + 1)
+            if all(x in r2q for x in span):
+                covering[(pos, kind, bases)].append(idx)
+    edits, planted = defaultdict(list), {}
+    for pos, kind, bases, k in sites:
+        take = rng.sample(covering[(pos, kind, bases)], min(k, len(covering[(pos, kind, bases)])))
+        for idx in take:
+            edits[idx].append((pos, kind, bases))
+        pos_n, kind_n, bases_n = normalise(ref, pos, "D" if kind == "del" else "I",
+                                           len(bases) if kind == "del" else bases)
+        planted[(pos_n, kind_n, bases_n)] = len(take)
+    out = []
+    for idx, (name, seq, qual) in enumerate(reads):
+        if idx not in edits:
+            out.append((name, seq, qual))
+            continue
+        strand, r2q = info[idx]
+        fs = seq if strand == 1 else seq.translate(_COMP)[::-1]
+        fq = qual if strand == 1 else qual[::-1]
+        # right to left, so earlier query coordinates stay valid
+        for pos, kind, bases in sorted(edits[idx], key=lambda e: -e[0]):
+            a = r2q[pos]
+            if kind == "del":
+                b = r2q[pos + len(bases) - 1] + 1
+                fs, fq = fs[:a] + fs[b:], fq[:a] + fq[b:]
+            else:
+                fs = fs[:a] + bases + fs[a:]
+                fq = fq[:a] + fq[a] * len(bases) + fq[a:]
+        if strand == -1:
+            fs, fq = fs.translate(_COMP)[::-1], fq[::-1]
+        out.append((name, fs, fq))
+    return out, planted
+
+
 def evaluate(called: set, planted: dict) -> dict:
     """Recall per planted read count, and false calls."""
     by_k: dict[int, list[int]] = defaultdict(lambda: [0, 0])

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import mappy as mp
 
@@ -34,6 +34,11 @@ class AlignedRead:
     pairs: list              # list of (rpos, base, qval) at aligned columns
     seq: str
     strand: int = 1          # +1 read runs along the reference, -1 reverse-complemented
+    # (rpos, "I" or "D", bases, quality): an insertion before reference
+    # position rpos, or a deletion of the reference bases starting there, as
+    # aligned (indels.normalise left-aligns them). Quality is the weakest
+    # inserted base, or the weaker of the two bases flanking a deletion.
+    indels: list = field(default_factory=list)
 
 
 def build_index(target_fastas: list[str], contaminant_fastas: list[str],
@@ -91,18 +96,20 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params):
             wseq = seq
             wquals = phred(qual)
             q_start = best.q_st
-        pairs = _aligned_pairs(best, wseq, wquals, q_start)
-        yield AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand)
+        pairs, indels = _aligned_pairs(best, wseq, wquals, q_start, with_indels=True)
+        yield AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand,
+                          indels)
 
 
-def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int):
+def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int, with_indels: bool = False):
     """Walk the CIGAR to produce (rpos, base, qval) at aligned ref columns.
 
     `seq`/`quals` are already in reference-forward orientation and `q_start` is
-    the query offset within them. Insertions/deletions are skipped. Only aligned
-    columns (M/=/X) yield a base + its Phred quality for quality-aware pileup.
+    the query offset within them. Only aligned columns (M/=/X) yield a base +
+    its Phred quality for quality-aware pileup. With `with_indels`, insertions
+    and deletions are also returned, as AlignedRead.indels describes.
     """
-    pairs = []
+    pairs, indels = [], []
     qpos, rpos = q_start, hit.r_st
     for length, op in hit.cigar:            # op: 0=M,1=I,2=D,3=N,4=S,7==,8=X
         if op in (0, 7, 8):                 # alignment match/mismatch
@@ -111,9 +118,17 @@ def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int):
             qpos += length
             rpos += length
         elif op == 1:                       # insertion to reference
+            if with_indels:
+                indels.append((rpos, "I", seq[qpos:qpos + length],
+                               min(quals[qpos:qpos + length])))
             qpos += length
-        elif op in (2, 3):                  # deletion / skip in read
+        elif op == 2:                       # deletion in read
+            if with_indels:
+                flank = [quals[i] for i in (qpos - 1, qpos) if 0 <= i < len(quals)]
+                indels.append((rpos, "D", length, min(flank) if flank else 0))
+            rpos += length
+        elif op == 3:                       # skip
             rpos += length
         elif op == 4:                       # soft clip
             qpos += length
-    return pairs
+    return (pairs, indels) if with_indels else pairs

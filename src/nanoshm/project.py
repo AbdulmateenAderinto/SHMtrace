@@ -21,7 +21,7 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from . import batch, metrics, motifs, null_model, pipeline, singletons
+from . import batch, indels, metrics, motifs, null_model, pipeline, singletons
 from .config import load_preset
 from .io_utils import read_fasta
 
@@ -123,6 +123,19 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "warnings": "; ".join(list(s.get("warnings") or [])
                               + list(s["calling"].get("notes") or [])),
     }
+
+
+def add_indels(m: dict, called: list, res: dict, scale: float) -> None:
+    """Indel counts for a sample row, kept apart from the substitution density."""
+    s = res["summary"]["calling"]
+    denom = (s.get("analysed_positions") or 0) * max(1.0, s.get("mean_depth") or 0.0)
+    m.update({
+        "indels_called": len(called),
+        "insertions": sum(1 for v in called if v.kind == "ins"),
+        "deletions": sum(1 for v in called if v.kind == "del"),
+        "frameshift_indels": sum(1 for v in called if v.frameshift),
+        "indel_density_x1e5": round(len(called) * scale / denom, 3) if denom else None,
+    })
 
 
 def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
@@ -252,6 +265,17 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     single_q = p.single_read_min_quality if (not sanger and depth is not None) else None
     tallies: dict = {}
     single_read: dict = {}
+    # indels: tested against the peers' indel rate, or thresholded for Sanger
+    want_indels = not p.exclude_indels
+    indel_piles: dict = {}
+    indel_nulls: dict = {}
+    indel_rows: list = []
+    indel_qscale = None
+    indel_minq = (p.min_base_quality or 20) if sanger else p.indel_min_quality
+    if want_indels and not sanger and len(controls) >= 1:
+        for c in sorted(controls):
+            indel_piles[c] = indels.Pileup(b["reads"][c], ref, lo, hi, indel_minq)
+        indel_qscale = indels.calibrate([indel_piles[c] for c in sorted(controls)], ref, p)[0]
     for i, s in enumerate(samples):
         name = s["name"]
         progress(0.15 + 0.75 * i / len(samples), f"calling {name}")
@@ -278,6 +302,24 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                 p.germline_freq_threshold, ref,
                 called={(v.pos - 1, v.alt) for v in res["variants"]})
             add_single_read(m, single_read[name], res, p.density_scale)
+        if want_indels and (sanger or peers):
+            pile = indels.Pileup(res["_aligned"], ref, lo, hi, indel_minq)
+            null_i = None
+            if not sanger:
+                if peers not in indel_nulls:
+                    indel_nulls[peers] = indels.IndelNull([indel_piles[c] for c in peers], ref)
+                    indel_nulls[peers].qscale = indel_qscale
+                null_i = indel_nulls[peers]
+            called_i, _st = indels.call(pile, null_i, p, sanger=sanger)
+            add_indels(m, called_i, res, p.density_scale)
+            for v in called_i:
+                indel_rows.append({"sample": name, "group": s.get("group") or name,
+                                   "pos": v.pos, "kind": v.kind, "length": v.length,
+                                   "bases": v.seq, "reads": v.supporting_reads,
+                                   "depth": v.depth, "frequency": round(v.frequency, 6),
+                                   "p_value": _clean(v.p_value), "plus_reads": v.plus_reads,
+                                   "minus_reads": v.minus_reads, "homopolymer": v.homopolymer,
+                                   "frameshift": v.frameshift})
         m["null_from"] = "+".join(peers) if null is not None else "none"
         per_sample.append(m)
         details[name] = res
@@ -297,6 +339,10 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      f"by leaving a control out; the default factor "
                      f"({null_model.DEFAULT_QSCALE:g}, measured on JH4) was used instead. "
                      f"Two or more controls per run is better.")
+    if want_indels and not sanger and len(controls) < 2:
+        notes.append("Indels need a control other than the sample itself, so they were "
+                     + ("not called." if not controls else
+                        "not called for the control. Two or more controls per run is better."))
     if depth is not None and any(s["reads"] < depth for s in per_sample):
         notes.append("Some samples have fewer reads than the common depth, and mutation "
                      "density rises with depth, so compare those with care.")
@@ -363,6 +409,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "samples": per_sample,
         # per-sample detail of the single-read estimate (singletons.estimate)
         "single_read": single_read,
+        "indels": indel_rows,
         "groups": groups,
         "notes": notes,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
