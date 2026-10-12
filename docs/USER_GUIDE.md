@@ -280,11 +280,18 @@ One row per sample.
 | `mean_mutations_per_read` | Total mutations divided by reads |
 | `pct_GC` | Percentage of the unique mutations whose reference base is G or C. AID targets G:C, so a wild-type library should sit well above half |
 | `pct_transitions` | Percentage of the unique mutations that are transitions, that is A to G, G to A, C to T or T to C |
+| `pct_CT_GA` | Percentage of the unique mutations that are C to T or G to A. These are what AID leaves when the uracil it makes is not repaired, so in a UNG- or MSH2-deficient background a genuine AID signal is close to 100% here. In a repair-proficient animal the figure is much lower (15–19% in the bundled wild types), because the uracil is processed into the other substitution types |
 | `pct_GC_in_WRC_GYW` | Of the mutations at G:C bases, the percentage in a WRC or GYW motif, the canonical AID hotspot. The denominator is the G:C mutations, not all mutations |
 | `pct_AT_in_WA_TW` | Of the mutations at A:T bases, the percentage in a WA or TW motif, the Pol-η signature. The denominator is the A:T mutations |
 | `analysed_bp` | Width of the analysed window after the end trims |
+| `multi_read_mutations` | Of `unique_mutations`, how many were carried by two or more reads. These are the calls the per-site test judges reliably |
+| `single_read_observed`, `single_read_background`, `single_read_estimate` | Mutations carried by one read, estimated in aggregate rather than called one at a time: how many high-quality single-read events this sample has, how many the controls predict, and the difference corrected for the share of real bases the quality cut removes. The estimate can be negative, which means no more than the controls show. Needs at least one control besides the sample itself |
+| `single_read_density_x1e5` (and `_ci_low`, `_ci_high`) | The single-read estimate as a density, with a 95% interval |
+| `combined_density_x1e5` (and `_ci_low`, `_ci_high`) | Every per-site call plus the estimated single-read mutations, per base sequenced, × 10⁵, with a 95% interval. This is the fullest estimate of mutation load; `unique_density_x1e5` is the conservative one. See `docs/calibration/SINGLE_READ.md` |
+| `indels_called`, `insertions`, `deletions`, `frameshift_indels`, `indel_density_x1e5` | Only when indel calling is on. Kept apart from the substitution density so that densities stay comparable with published numbers. See `docs/calibration/INDELS.md` |
+| `clustered_calls` | How many calls fall in a window far more tightly packed than chance allows. Real hypermutation is spread along the amplicon, so a cluster usually means a localised PCR or sequencing artefact in that one library, which a control-fitted background cannot see. Anything above zero is also spelled out in `warnings`. See `docs/calibration/ECTOPIC_AID.md` |
 | `null_from` | The controls this sample's background was measured from, or `none` |
-| `warnings` | Messages from the run, most often that fewer reads were available than the target depth |
+| `warnings` | Messages from the run: fewer reads than the target depth, a missing or single control, and any cluster of calls |
 
 A sample with no reads shows `0` reads and empty cells in the derived columns.
 
@@ -528,9 +535,14 @@ and duplicate sample names.
 
 ## What the app does not do
 
-- **Indels.** Insertions and deletions are excluded at every step. Only
-  substitutions are called, counted and plotted. An indel-rich amplicon needs a
-  different tool.
+- **Indels, unless you ask for them.** By default only substitutions are
+  called, counted and plotted, which is what keeps the numbers comparable with
+  published Geneious-based work. Ticking "Call insertions and deletions" under
+  Advanced turns on a separate indel caller, tested against your controls' own
+  indel rate and reported in its own table and columns. It needs at least one
+  control besides the sample, and it cannot see 1-bp deletions inside
+  homopolymers or indels carried by fewer than three reads. See
+  `docs/calibration/INDELS.md`.
 - **Clonality and lineage.** There is no clone calling, no lineage tree and no
   mutation-sharing analysis. The app flags a block of co-occurring positions
   that could be a second haplotype or an expanded clone, and leaves it in unless
@@ -542,3 +554,13 @@ and duplicate sample names.
 - **UMI-based template counting.** Reads are not grouped by molecular barcode,
   so the counts are read counts, not template counts, and PCR duplicates are not
   collapsed.
+  On a deeply resequenced amplicon, where each starting molecule is read many
+  times over, this makes `unique_mutations`, the single-read estimate and
+  per-site read support unreliable; `mutation_frequency_x1e3` and
+  `mutated_reads_pct` stay valid. See `docs/calibration/ILLUMINA.md`.
+- **Artefacts present in one library only.** The background is measured from
+  your controls, so it describes error the controls share with the sample. An
+  artefact confined to a single library is invisible to it. Two independent
+  checks are reported instead — `clustered_calls` and the substitution spectrum
+  — and both are worth reading before trusting an unexpected result. See
+  `docs/calibration/ECTOPIC_AID.md`.
