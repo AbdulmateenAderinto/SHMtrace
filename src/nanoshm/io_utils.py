@@ -10,6 +10,9 @@ whatever the input is:
     in the ABIF file (a built-in parser, no Biopython needed)
   * plain-text Sanger sequence (.seq): one read per file, named after the file,
     with FASTA_DEFAULT_Q qualities (a .seq that is really FASTA is read as FASTA)
+  * GenBank (.gb/.gbk), as sequencing providers and Benchling export Sanger
+    results: each record's sequence, with FASTA_DEFAULT_Q qualities. IUPAC
+    ambiguity codes are kept, so they are never counted as mutations
   * BAM/SAM/CRAM, when pysam is installed (`pip install nanoshm[bam]`)
   * gzip of any of the text formats (add .gz)
   * Illumina paired-end reads as "R1.fastq.gz+R2.fastq.gz": the two files are
@@ -38,8 +41,9 @@ FASTQ_EXT = (".fastq", ".fq")
 FASTA_EXT = (".fasta", ".fa", ".fna", ".fas", ".fsa")
 ABIF_EXT = (".ab1", ".abi", ".ab!")
 SEQ_EXT = (".seq",)
+GENBANK_EXT = (".gb", ".gbk", ".genbank")
 ALIGN_EXT = (".bam", ".sam", ".cram")
-READ_EXTENSIONS = FASTQ_EXT + FASTA_EXT + ABIF_EXT + SEQ_EXT + ALIGN_EXT
+READ_EXTENSIONS = FASTQ_EXT + FASTA_EXT + ABIF_EXT + SEQ_EXT + GENBANK_EXT + ALIGN_EXT
 
 PAIR_SEPARATOR = "+"
 
@@ -125,7 +129,7 @@ def _stem(path: str) -> str:
 
 
 def sniff_format(path: str) -> str | None:
-    """'fastq', 'fasta', 'abif', 'seq', 'bam' or None (not a read file)."""
+    """'fastq', 'fasta', 'abif', 'seq', 'genbank', 'bam' or None (not a read file)."""
     low = _strip_gz(path)
     if low.endswith(ALIGN_EXT):
         return "bam"
@@ -137,13 +141,17 @@ def sniff_format(path: str) -> str | None:
         return "fasta"
     if low.endswith(SEQ_EXT):
         return "seq"
+    if low.endswith(GENBANK_EXT):
+        return "genbank"
     try:
         opener = gzip.open if path.lower().endswith(".gz") else open
         with opener(path, "rb") as fh:
-            head = fh.read(4)
+            head = fh.read(5)
     except (OSError, EOFError):
         return None
-    if head == b"ABIF":
+    if head == b"LOCUS":
+        return "genbank"
+    if head[:4] == b"ABIF":
         return "abif"
     if head[:1] == b"@":
         return "fastq"
@@ -191,6 +199,25 @@ def _read_seq_text(path: str, default_q: int) -> Iterator[tuple[str, str, str]]:
     # a text file that is not mostly nucleotides (notes, a report) is not a read
     if seq and len(seq) >= 0.9 * len(letters):
         yield _stem(path), seq, chr(default_q + 33) * len(seq)
+
+
+def _read_genbank(path: str, default_q: int) -> Iterator[tuple[str, str, str]]:
+    """Each GenBank record as a read: named by its LOCUS, sequence from ORIGIN."""
+    name, seq, in_seq = None, [], False
+    with _open(path) as fh:
+        for line in fh:
+            if line.startswith("LOCUS"):
+                parts = line.split()
+                name, seq, in_seq = (parts[1] if len(parts) > 1 else _stem(path)), [], False
+            elif line.startswith("ORIGIN"):
+                in_seq = True
+            elif line.startswith("//"):
+                s = _SEQ_CHARS.sub("", "".join(seq).upper()).replace("U", "T")
+                if s:
+                    yield name or _stem(path), s, chr(default_q + 33) * len(s)
+                name, seq, in_seq = None, [], False
+            elif in_seq:
+                seq.append(re.sub(r"[^A-Za-z]", "", line))
 
 
 # ------------------------------------------------------------------ ABIF --
@@ -422,6 +449,8 @@ def _read_one(path: str, default_q: int, fmt: str | None = None):
         yield from _read_fasta_reads(path, default_q)
     elif fmt == "seq":
         yield from _read_seq_text(path, default_q)
+    elif fmt == "genbank":
+        yield from _read_genbank(path, default_q)
     elif fmt == "fastq":
         yield from _read_fastq_text(path)
     else:
@@ -453,7 +482,7 @@ def read_fastq(path: str, default_q: int = FASTA_DEFAULT_Q) -> Iterator[tuple[st
     """Every read of one sample as (name, seq, qual), whatever the input format.
 
     See the module docstring for what `path` may be. `default_q` is the Phred
-    given to bases of inputs without qualities (FASTA, .seq).
+    given to bases of inputs without qualities (FASTA, .seq, GenBank).
     """
     path = os.fspath(path)
     if os.path.isdir(path):

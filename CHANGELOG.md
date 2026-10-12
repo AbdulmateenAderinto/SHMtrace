@@ -26,6 +26,15 @@ this project uses [semantic versioning](https://semver.org/).
   1-bp homopolymer deletions stay mostly undetectable; 0.71 false calls per
   library. Sanger clones call every indel at ≥ Q20. See
   `docs/calibration/INDELS.md`.
+- **GenBank input** (`.gb`/`.gbk`), as Benchling and sequencing providers
+  export Sanger clones: one read per record, flat Q30, ambiguity codes kept.
+- **A J꜀4 paralogue in the bundled contaminant reference.** 18% of the lab's J꜀4
+  Sanger clones, and up to 41% of raw nanopore J꜀4 reads, are a J꜀4-like
+  sequence about 11% divergent from the intron that the J꜀4 primers also
+  amplify. Its consensus is now the second record of
+  `mouse_jh4_contaminant.fasta`. Left in, it inflated one raw library's
+  mutation frequency fivefold. See `docs/calibration/SANGER.md`, which also
+  compares Sanger clones with nanopore in the same animals (spectrum r = 0.91).
 - The app's Tables tab shows every column any row has, so a control without
   peers no longer hides the other samples' estimates.
 

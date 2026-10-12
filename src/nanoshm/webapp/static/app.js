@@ -135,7 +135,7 @@ async function upload(files) {
 // "sample_R1.fastq.gz", "sample.R1.fq", "sample_1.fastq": the 1 is the mate number
 const R1R2 = /([._-])(R)?1(?=(\.|_|-|$))/i;
 const strip = (n) => n.replace(/\.(gz|bz2)$/i, "")
-  .replace(/\.(fastq|fq|fasta|fa|fna|fas|fsa|bam|sam|cram|ab1|abi|seq)$/i, "");
+  .replace(/\.(fastq|fq|fasta|fa|fna|fas|fsa|bam|sam|cram|ab1|abi|seq|gb|gbk)$/i, "");
 
 function addSamples(files) {
   // A dropped folder is one sample: a folder of Sanger traces is one library,
