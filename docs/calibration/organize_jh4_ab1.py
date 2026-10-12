@@ -35,6 +35,8 @@ ROOT = Path(__file__).resolve().parents[2]
 REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
 CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
 
+MIN_USABLE = 0.80
+
 # GenBank records with no trace whose label is contradicted by the sequence: the K4
 # traces 88-k4-28 and 96-k4-36 renamed as WT2 clones (identical sequences).
 GENBANK_EXCLUDE = {"88-w2-28-user_added": "renamed copy of trace 434355-H11 88-k4-28 (MKLN K4)",
@@ -102,6 +104,10 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         fates: dict = {}
         aligned, _ = pipeline.prepare_reads(str(fq), REF, CON, p, fates=fates)
     germ = project.sanger_germline({"all": aligned}, ref, 100, 628, p)
+    # share of the 529-bp window (101-629) each trace reads at Q>=20. Below MIN_USABLE a
+    # trace is excluded: mutations / (sequences x 529) assumes every sequence covers it
+    usable = {a.qname: sum(1 for pos, b, q in a.pairs if 100 <= pos <= 628 and q >= 20 and b in "ACGT")
+              / 529 for a in aligned}
     muts = {a.qname: sum(1 for pos, b, q in a.pairs if 100 <= pos <= 628 and q >= 20 and b in "ACGT"
                          and b != ref[pos] and (pos, b) not in germ) for a in aligned}
     fate_dir = {"contaminant": "_excluded/paralogue_or_contaminant", "unmapped": "_excluded/failed_read",
@@ -125,6 +131,10 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         elif key in fates:
             f = fates[key]["fate"]
             mouse, status, reason = fate_dir.get(f, "_excluded/failed_read"), "excluded", f"nanoshm: {f}"
+        elif usable.get(key, 0) < MIN_USABLE:
+            mouse, status = "_excluded/low_quality", "excluded"
+            reason = (f"only {100 * usable.get(key, 0):.0f}% of the 529-bp window read at Q>=20 "
+                      f"(minimum {100 * MIN_USABLE:.0f}%)")
         tag = by_label.split("/")[-1]
         name = f"{mouse.split('/')[-1] if not mouse.startswith('_excluded') else tag}_{t['order']}-{t['well']}_{t['label']}.ab1"
         dest = out_p / mouse / name
@@ -133,7 +143,9 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         rows.append({"mouse": mouse, "file": str(dest.relative_to(out_p)), "status": status,
                      "original_label": t["label"], "mouse_by_label": by_label, "order": t["order"],
                      "well": t["well"], "run_date": t["date"],
-                     "mutations_q20_101_629": muts.get(key, ""), "reason": reason,
+                     "mutations_q20_101_629": muts.get(key, ""),
+                     "usable_q20_101_629": round(usable[key], 3) if key in usable else "",
+                     "reason": reason,
                      "original_path": str(t["path"])})
     if genbank:
         from nanoshm.io_utils import read_fastq
