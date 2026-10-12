@@ -7,6 +7,10 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- UMI consensus (`umi.py`; `umi = flank | header`): UMIs read next to an anchor at either or both read ends, or from read names; grouped with error tolerance (directional); one quality-weighted consensus per molecule. Simulated UMI libraries from real reads (`lineage_sim.build_umi_library`, `docs/calibration/umi_sim.py`, UMI.md): 0–0.7 false calls and 0.99–1.00 recall of single-molecule mutations, against 1–7 and 0.77–0.94 read by read.
+- Group tests with the animal as the unit (`replicates.py`, `animal_tests` in every result, `animal_tests.csv`, app table): negative binomial with shared dispersion (bootstrap p), permutation, Welch on log10, fold with 95% CI; pooled-read p shown only as contrast. Calibrated by simulation: 5.0–5.7% false positives at α = 0.05, against 91–94% for pooled reads.
+- `nanoshm-power` (`power.py`): power by simulation from a pilot project's rate, between-animal variation and within-animal clumping, for read-weighted, unique-density or clone-weighted measures.
+- Repair-route indices and spectrum decomposition against reference groups (`repair.py`, `nanoshm-repair`, REPAIR.md).
 - `docs/calibration/quant_accuracy.py` and QUANT_ACCURACY.md: the accuracy of the reported SHM numbers against truth on J꜀4 and N114, over 168 simulated libraries at 125–1,000 reads. `lineage_sim` now scores unique and combined density, takes a depth, and has an N114-like `subclonal` scenario.
 - Sanger pipeline for unseen data (docs/calibration/SANGER_PIPELINE.md):
   - `nanoshm.samplesheet` / `nanoshm-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.

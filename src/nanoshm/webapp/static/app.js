@@ -724,6 +724,7 @@ const TABLES = {
       .sort((a, b) => a.mutations_per_read - b.mutations_per_read))],
   spectrum: ["Substitution spectrum", r => Object.entries(r.spectrum_group).flatMap(([g, c]) =>
     Object.entries(c).map(([k, v]) => ({ group: g, substitution: k, count: v })))],
+  animal_tests: ["Group tests (animal as the unit)", r => r.animal_tests || []],
   qc: ["QC flags (Sanger)", r => (r.qc || {}).flags || []],
   excluded: ["Clones not analysed (Sanger)", r => (r.qc || {}).excluded || []],
 };

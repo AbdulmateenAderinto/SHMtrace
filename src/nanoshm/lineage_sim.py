@@ -644,3 +644,153 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------- UMI libraries
+
+def _random_umi(n: int, rng: random.Random) -> str:
+    return "".join(rng.choice(BASES) for _ in range(n))
+
+
+def build_umi_library(reads: list, reference: str, truth: dict, p, rng: random.Random,
+                      copies_mean: float = 6.0, umi_len: int = 18, ends: str = "both",
+                      umi_q: int = 15) -> tuple[list, dict]:
+    """Molecules with UMIs, each sequenced several times.
+
+    `truth` is a design() over molecules. Each molecule's copies are *different*
+    donor reads with the molecule's mutations (and junction) written in, so every
+    copy carries its own real sequencing errors. The molecule's UMI is written
+    just outside the reference ends with errors at Phred `umi_q` and 2% indels,
+    as a nanopore read of a UMI would show. A copy whose read does not reach a
+    reference end gets no UMI there, as in a real library. Returns the reads and,
+    per read, its molecule and the mutations it carries.
+    """
+    ref = read_fasta(reference)[0][1]
+    n_mol = len(truth["read_clone"])
+    order = list(range(len(reads)))
+    rng.shuffle(order)
+    assign, k = {}, 0
+    for m in range(n_mol):
+        copies = 1 + _poisson(max(copies_mean - 1, 0), rng)
+        for _ in range(copies):
+            if k >= len(order):
+                break
+            assign[order[k]] = m
+            k += 1
+    donors = sorted(assign)
+    sub = [reads[i] for i in donors]
+    read_truth = {"read_clone": {j: truth["read_clone"][assign[i]] for j, i in enumerate(donors)},
+                  "read_muts": {j: truth["read_muts"].get(assign[i], set())
+                                for j, i in enumerate(donors)},
+                  "junctions": truth["junctions"], "jstarts": truth["jstarts"]}
+    lib, carried = build_library(sub, reference, read_truth, p, rng)
+    umis = {m: (_random_umi(umi_len, rng), _random_umi(umi_len, rng)) for m in range(n_mol)}
+    aligner, _t, _c = build_index([reference], [], p.minimap2_preset)
+    qch = chr(umi_q + 33)
+    out = []
+    for j, (name, seq, qual) in enumerate(lib):
+        m = assign[donors[j]]
+        carried[name]["molecule"] = m
+        carried[name]["umi"] = umis[m]
+        hit = next((h for h in aligner.map(seq) if h.is_primary), None)
+        if hit is None:
+            out.append((name, seq, qual))
+            continue
+        fs = seq if hit.strand == 1 else seq.translate(_COMP)[::-1]
+        fq = qual if hit.strand == 1 else qual[::-1]
+        q_st = hit.q_st if hit.strand == 1 else len(seq) - hit.q_en
+        q_en = hit.q_en if hit.strand == 1 else len(seq) - hit.q_st
+        left, right = umis[m]
+        if ends in ("right", "both") and hit.r_en >= len(ref) - 3:
+            at = q_en + (len(ref) - hit.r_en)
+            u, uq = _noisy(right, qch * umi_len, rng, 0.02)
+            fs, fq = fs[:at] + u + fs[at:], fq[:at] + uq + fq[at:]
+        if ends in ("left", "both") and hit.r_st <= 3:
+            at = max(0, q_st - hit.r_st)
+            u, uq = _noisy(left, qch * umi_len, rng, 0.02)
+            fs, fq = fs[:at] + u + fs[at:], fq[:at] + uq + fq[at:]
+        out.append((name, fs, fq))
+    return out, carried
+
+
+def score_umi(res: dict, row: dict, carried: dict, lo: int, hi: int) -> dict:
+    """Score a UMI run: each consensus read stands for the molecule most of its reads
+    came from; truth is that molecule's mutations at positions the consensus covers."""
+    bp = hi - lo + 1
+    mol_muts: dict = defaultdict(set)
+    for c in carried.values():
+        if "molecule" in c:
+            mol_muts[c["molecule"]] |= {m for m in c["muts"] if lo <= m[0] <= hi}
+    support, purity, per_mol = Counter(), [], []
+    for r in res["_aligned"]:
+        mem = [carried[n]["molecule"] for n in getattr(r, "members", []) if n in carried]
+        if not mem:
+            continue
+        m, k = Counter(mem).most_common(1)[0]
+        purity.append(k / len(mem))
+        covered = {rp for rp, _b, _q in r.pairs}
+        muts = {x for x in mol_muts[m] if x[0] in covered}
+        per_mol.append(len(muts))
+        support.update(muts)
+    called = {(v.pos - 1, v.alt) for v in res["variants"]}
+    truth_set = set(support)
+    tp, fp = len(called & truth_set), len(called - truth_set)
+    n = len(per_mol)
+    s_call = res["summary"]["calling"]
+    denom = (s_call.get("analysed_positions") or 0) * max(1.0, s_call.get("mean_depth") or 0.0)
+    return {"molecules_analysed": n, "planted_mutations": len(truth_set),
+            "true_calls": tp, "false_calls": fp,
+            "recall": round(tp / len(truth_set), 4) if truth_set else None,
+            "recall_single_molecule": _recall_exact(called, support, 1),
+            "group_purity": round(sum(purity) / len(purity), 4) if purity else None,
+            "true_read_weighted_x1e3": _r(1e3 * sum(per_mol) / (n * bp)) if n else None,
+            "est_read_weighted_x1e3": row.get("mutation_frequency_x1e3"),
+            "true_unique_density_x1e5": _r(1e5 * len(truth_set) / denom) if denom else None,
+            "est_unique_density_x1e5": row.get("unique_density_x1e5"),
+            "est_combined_density_x1e5": row.get("combined_density_x1e5")}
+
+
+def _recall_exact(called: set, support: Counter, k: int) -> float | None:
+    t = {m for m, n in support.items() if n == k}
+    return round(len(called & t) / len(t), 4) if t else None
+
+
+def score_umi_reads(res: dict, row: dict, carried: dict, lo: int, hi: int) -> dict:
+    """Score a UMI library analysed read by read, against the molecules' truth:
+    calls against the molecules' mutations; frequency per read (each copy counts),
+    and unique density on the read denominator."""
+    bp = hi - lo + 1
+    support, per = Counter(), []
+    for r in res["_aligned"]:
+        c = carried.get(r.qname)
+        if not c:
+            continue
+        covered = {rp for rp, _b, _q in r.pairs}
+        muts = {m for m in c["muts"] if lo <= m[0] <= hi and m[0] in covered}
+        per.append(len(muts))
+        support.update(muts)
+    mol_support = Counter()
+    seen = defaultdict(set)
+    for r in res["_aligned"]:
+        c = carried.get(r.qname)
+        if c and "molecule" in c:
+            for m in c["muts"]:
+                if lo <= m[0] <= hi:
+                    seen[m].add(c["molecule"])
+    for m, mols in seen.items():
+        mol_support[m] = len(mols)
+    called = {(v.pos - 1, v.alt) for v in res["variants"]}
+    truth_set = set(support)
+    tp, fp = len(called & truth_set), len(called - truth_set)
+    n = len(per)
+    s_call = res["summary"]["calling"]
+    denom = (s_call.get("analysed_positions") or 0) * max(1.0, s_call.get("mean_depth") or 0.0)
+    return {"reads_analysed": n, "planted_mutations": len(truth_set),
+            "true_calls": tp, "false_calls": fp,
+            "recall": round(tp / len(truth_set), 4) if truth_set else None,
+            "recall_single_molecule": _recall_exact(called, mol_support, 1),
+            "true_read_weighted_x1e3": _r(1e3 * sum(per) / (n * bp)) if n else None,
+            "est_read_weighted_x1e3": row.get("mutation_frequency_x1e3"),
+            "true_unique_density_x1e5": _r(1e5 * len(truth_set) / denom) if denom else None,
+            "est_unique_density_x1e5": row.get("unique_density_x1e5"),
+            "est_combined_density_x1e5": row.get("combined_density_x1e5")}

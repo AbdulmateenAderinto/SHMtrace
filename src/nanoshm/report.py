@@ -78,6 +78,7 @@ def tables(res: dict) -> dict[str, str]:
               "mutations": r["mutations"], "positions": " ".join(map(str, r["positions"]))}
              for n, c in (res.get("clones") or {}).items() for r in c["rows"]])}
            if res.get("clones") else {}),
+        **({"animal_tests.csv": _rows_csv(res["animal_tests"])} if res.get("animal_tests") else {}),
         **({"qc_flags.csv": _rows_csv(res["qc"]["flags"], QC_COLUMNS)}
            if (res.get("qc") or {}).get("flags") else {}),
         **({"excluded.csv": _rows_csv(res["qc"]["excluded"])}
@@ -204,6 +205,10 @@ def html_report(res: dict, fmt: str = "png") -> str:
 <h2>Figures</h2>{fig_html}
 <h2>Samples</h2><div class=wrap>{_html_table(res['samples'], SAMPLE_COLUMNS)}</div>
 <h2>Groups</h2><div class=wrap>{_html_table(res['groups'])}</div>
+{('<h2>Group tests, animal as the unit</h2><p class=muted>Negative binomial (bootstrap), '
+  'permutation and Welch on log10 rates; pooled reads shown only to show how much '
+  'pseudoreplication would overstate the evidence.</p><div class=wrap>'
+  + _html_table(res['animal_tests']) + '</div>') if res.get('animal_tests') else ''}
 {qc_html}
 <h2>Mutations</h2><div class=wrap>{_html_table(res['variants'], VARIANT_COLUMNS)}</div>
 <h2>Settings</h2><table>{settings}</table>

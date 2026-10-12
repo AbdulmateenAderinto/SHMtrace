@@ -60,6 +60,11 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
         aligned, n_drop = drop_contaminant_alleles(aligned, sites, p.contaminant_min_alleles,
                                                    p.contaminant_germline_frac, fates)
         s_pre["dropped_contaminant_alleles"] = n_drop
+    if p.umi != "off":
+        # one consensus read per molecule (umi.py); everything after counts molecules
+        from .umi import consensus_reads
+        aligned, s_umi = consensus_reads(aligned, ref_seq, p, fates)
+        s_pre.update(s_umi)
     if p.platform == "sanger" and p.sanger_clean_window:
         # cut each clone back to where its sequence is clean (Params docs)
         trimmed = [trim_messy_ends(a, ref_seq, p.sanger_clean_window,
