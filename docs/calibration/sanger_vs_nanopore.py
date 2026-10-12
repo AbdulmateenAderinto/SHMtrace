@@ -5,10 +5,10 @@ figures (Figure 2A/B, Figure 3A-E, Supplementary S2/S3) from those calls, plus
 tests the manuscript did not have. Writes figures, stats.json and stats.md.
 
     python docs/calibration/sanger_vs_nanopore.py [--ont-mode recommended|geneious]
-        [--sanger-dir ~/Nanoshm/sanger_jh4_corrected] [--out docs/calibration/figures/sanger_vs_nanopore]
+        [--sanger-dir ~/Nanoshm/sanger_ab1_by_mouse] [--out docs/calibration/figures/sanger_vs_nanopore]
 
-Sanger input: one FASTA per mouse, clones assigned to mice by clone name
-(SANGER.md explains why not by folder). Nanopore: the six bundled libraries.
+Sanger input: one folder per mouse of .ab1 traces (plus a FASTA of clones whose
+traces are missing), built by organize_jh4_ab1.py. Nanopore: the six bundled libraries.
 """
 from __future__ import annotations
 
@@ -57,12 +57,20 @@ plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11, "axes.edgeco
 
 # ------------------------------------------------------------------ data
 
+def sanger_path(sanger_dir: Path, n: str) -> Path | None:
+    """A mouse's clones: a folder of .ab1 traces (organize_jh4_ab1.py) or one FASTA."""
+    for cand in (sanger_dir / n, sanger_dir / f"Aicda_{n}", sanger_dir / f"{n}.fasta"):
+        if cand.exists():
+            return cand
+    return None
+
+
 def run_platforms(sanger_dir: Path, ont_mode: str) -> dict:
     """Both platforms through nanoshm. Returns per-sample calls and loads."""
     out = {}
     sp = {"name": "sanger", "region": "jh4_intron", "platform": "sanger", "reference": REF,
           "contaminants": CON,
-          "samples": [{"name": n, "path": str(sanger_dir / f"{n}.fasta"),
+          "samples": [{"name": n, "path": str(sanger_path(sanger_dir, n)),
                        "group": "WT" if n in WT else "KO", "control": n not in WT}
                       for n in WT + KO_SANGER]}
     op = {"name": "ont", "region": "jh4_intron", "mode": ont_mode, "reference": REF,
@@ -322,9 +330,9 @@ def fig_spectrum(D, out, st, ref):
     axB.set_xticks(x, MUT)
     axB.set_ylabel("% of unique mutations")
     axB.set_ylim(0, top + 7)
-    axB.legend(frameon=False, loc="upper left", ncol=2)
+    axB.legend(frameon=False, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2)
     axB.set_title(f"Platform × type interaction (repeated measures): F({df1},{df2}) = {F:.2f}, "
-                  f"p = {p_int:.3f}", fontsize=10, loc="right")
+                  f"p = {p_int:.3f}", fontsize=10, loc="right", pad=26)
     axB.yaxis.grid(True, ls=(0, (5, 4)), color=GRID)
     axB.set_axisbelow(True)
     axB.text(-0.07, 1.06, "B", transform=axB.transAxes, fontsize=15, fontweight="bold")
@@ -551,15 +559,19 @@ def fig_per_mouse(D, out):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--ont-mode", default="recommended")
-    # the per-mouse clone sets with three misfiled MKLN clones removed
-    # (SANGER_VS_NANOPORE.md, "Were clones mixed between mice?")
-    ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_jh4_corrected"))
+    ap.add_argument("--suffix", default="", help="appended to the output folder name")
+    # one folder per mouse, built from the AB1 traces by organize_jh4_ab1.py
+    # (SANGER_VS_NANOPORE.md, "Which clone belongs to which mouse")
+    ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_ab1_by_mouse"))
     ap.add_argument("--out", default=str(ROOT / "docs/calibration/figures/sanger_vs_nanopore"))
     a = ap.parse_args()
-    out = Path(a.out) / a.ont_mode
+    out = Path(a.out) / (a.ont_mode + a.suffix)
     out.mkdir(parents=True, exist_ok=True)
     ref = read_fasta(REF)[0][1].upper()
-    D = run_platforms(Path(a.sanger_dir).expanduser(), a.ont_mode)
+    sd = Path(a.sanger_dir).expanduser()
+    # knockout mice with no Sanger clones (A3 has no usable trace) are left out
+    KO_SANGER[:] = [n for n in KO_SANGER if sanger_path(sd, n)]
+    D = run_platforms(sd, a.ont_mode)
     st = {"ont_mode": a.ont_mode,
           "unique_mutations": {f"{p}:{n}": len(d["variants"]) for (p, n), d in D.items()},
           "sequences": {f"{p}:{n}": d["n"] for (p, n), d in D.items()},

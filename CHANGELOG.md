@@ -18,6 +18,16 @@ this project uses [semantic versioning](https://semver.org/).
   the misfiled wild-type clones belong to the mouse their names give, but
   three clones filed as WT2 and WT4 are MKLN clones (lineages of 8 and 7
   identical mutations shared with K4 and K2) and are removed.
+- **The J꜀4 Sanger traces organised by mouse** (`docs/calibration/organize_jh4_ab1.py`).
+  288 .ab1 traces copied into one folder per mouse, renamed
+  `<mouse>_<order>-<well>_<label>.ab1`, with a manifest. Labels the sequence
+  contradicts are corrected: two WT3 clones labelled w2 (18 and 13 mutations,
+  in the w3 wells of their plate), w4-9 to MKLN K2, and an AID-type clone in an
+  Aicda-/- sample left unassigned. From the traces, WT2 is nearly unmutated
+  (30 of 34 clones), matching its nanopore library's dominant unmutated clone,
+  and Sanger alone no longer separates wild type from Aicda-/- (P = 0.27);
+  nanopore does (P = 0.0017). The comparison now reads these folders: spectrum
+  r = 0.90, positional r = 0.89.
 - **Simulated libraries with known clones** (`nanoshm/lineage_sim.py`,
   `nanoshm-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
