@@ -1,6 +1,6 @@
 # Do Sanger and nanopore agree in the same wild-type mice?
 
-*12 October 2026. `docs/calibration/sanger_vs_nanopore.py`. Sanger: the lab's J꜀4 clones, assigned to mice by clone name ([`SANGER.md`](SANGER.md)), in nanoshm's Sanger mode. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`.*
+*12 October 2026. `docs/calibration/sanger_vs_nanopore.py`. Sanger: the lab's J꜀4 clones, assigned to mice by clone name ([`SANGER.md`](SANGER.md)), with three misfiled clones removed (below), in nanoshm's Sanger mode. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`.*
 
 ## Answer
 
@@ -16,16 +16,16 @@ They don't agree on absolute mutation density. Neither did the manuscript's numb
 
 | Test | Recommended mode | Geneious rule | Manuscript (Ver13) |
 |---|---|---|---|
-| Unique mutations, Sanger / ONT | 434 / 548 | 434 / 585 | 515 / 571 |
-| 12-type spectrum, Pearson r [95% CI] | **0.92 [0.72–0.98]** | **0.94 [0.81–0.98]** | 0.97 [0.91–0.99] |
-| Slope (ONT on Sanger) | 1.08 | 1.12 | 1.11 |
-| Mean / largest difference per type | 1.5 / 3.0 points | 1.3 / 2.8 points | ≤ 1.4 points |
-| Platform × type interaction (RM ANOVA) | p = 0.39 | p = 0.53 | p = 0.875 |
-| Smallest paired, Šídák-adjusted type difference | p = 0.44 (C>T) | p = 0.70 | p = 0.106 |
-| G:C transitions / transversions, adjusted p | 0.10 / 0.80 | 0.42 / 0.88 | 0.80 / 0.98 |
-| Position along the window, 25-bp bins, r | **0.90** (p = 2 × 10⁻⁸) | 0.91 | not tested |
+| Unique mutations, Sanger / ONT | 395 / 548 | 395 / 585 | 515 / 571 |
+| 12-type spectrum, Pearson r [95% CI] | **0.92 [0.74–0.98]** | **0.95 [0.81–0.98]** | 0.97 [0.91–0.99] |
+| Slope (ONT on Sanger) | 1.04 | 1.07 | 1.11 |
+| Mean / largest difference per type | 1.5 / 3.0 points | 1.4 / 2.8 points | ≤ 1.4 points |
+| Platform × type interaction (RM ANOVA) | p = 0.50 | p = 0.60 | p = 0.875 |
+| Smallest paired, Šídák-adjusted type difference | p = 0.15 (G>T) | p = 0.24 (G>T) | p = 0.106 |
+| G:C transitions / transversions, adjusted p | 0.06 / 0.95 | 0.13 / 1.00 | 0.80 / 0.98 |
+| Position along the window, 25-bp bins, r | **0.89** (p < 10⁻⁷) | 0.88 | not tested |
 | G:C mutations in WRC/GYW (window share 20%) | Sanger 57%, ONT 56% | Sanger 57%, ONT 55% | not tested |
-| A:T mutations in WA/TW (window share 50%) | Sanger 74%, ONT 70% | Sanger 74%, ONT 69% | not tested |
+| A:T mutations in WA/TW (window share 50%) | Sanger 72%, ONT 70% | Sanger 72%, ONT 69% | not tested |
 | Mouse ranking by load | WT3 > WT4 > WT2 on both | same | not tested |
 
 ## Figures
@@ -43,7 +43,7 @@ Each figure is written as PNG, PDF and SVG.
 |---|---|---|---:|---:|
 | ONT, recommended | 56.7 [26–127] × 10⁻⁵ | 0.55 | 103 | 0.0017 |
 | ONT, Geneious rule | 60.7 [26–131] | 1.43 | 42 | 0.0060 |
-| Sanger | 923 [603–1612] | ≤ 70 | ≥ 13 | 0.018 |
+| Sanger | 759 [348–1612] | ≤ 70 | ≥ 11 | 0.024 |
 | *Manuscript: ONT / Sanger* | *59 / 828* | *1.2 / 20* | *47 / 41* | *0.0037 / 0.0045* |
 
 The nanopore numbers reproduce the manuscript's.
@@ -68,8 +68,34 @@ The manuscript's denominators (37/36/38 = 111) are these 92 clones plus the 19 p
 This has three consequences for the manuscript:
 
 1. **"W2" and "W3" are each a mixture of two mice.** Pooled wild-type figures are barely affected, because the same clones are in the pool. The mouse-matched tests, though (paired t, the repeated-measures interaction, per-mouse matrices S2), pair a nanopore mouse with a Sanger mixture of two mice. Assigned by name, the paired analysis above reaches the same conclusion, so the claim stands; the numbers in the manuscript's Figure 3 and Table should be replaced.
-2. **The *Aicda*−/− Sanger denominators are 54% JH6 clones** (15 of 28), a different amplicon. That made the knockout density look about 2–3 times lower than its own J꜀4 clones support, and so made the Sanger fold change look larger (41× against ≥ 13× here).
-3. **The paralogue sequences were counted as unmutated J꜀4 clones,** which lowers every wild-type Sanger density. Removing them, and counting each mouse's own clones, puts the wild-type geometric mean at 923 against 828.
+2. **The *Aicda*−/− Sanger denominators are 54% JH6 clones** (15 of 28), a different amplicon. That made the knockout density look about 2–3 times lower than its own J꜀4 clones support, and so made the Sanger fold change look larger (41× against ≥ 11× here).
+3. **The paralogue sequences were counted as unmutated J꜀4 clones,** which lowers every wild-type Sanger density. Removing them, counting each mouse's own clones and removing the three misfiled MKLN clones puts the wild-type geometric mean at 759 against 828.
+
+## Were clones mixed between mice, or only misfiled?
+
+The clones were collated by hand, and the folders mix mice. Names and folders disagree for 25 wild-type clones. Two kinds of evidence decide which is right, and neither uses a label.
+
+**Mutation load.** WT3 is far more mutated than WT2 on both platforms, so a clone's load says which mouse it can belong to:
+
+| Clones | n | Mutations per 10³ bp | Like | Unlike |
+|---|---:|---:|---|---|
+| named WT3, filed in the W2 folder | 11 | 26.4 | named WT3 in its own folder (28.5; p = 0.25) | WT2 (7.5; p = 0.0008) |
+| named WT2, filed in the W3 folder | 11 | 1.6 | named WT2 in its own folder (p = 0.44) | WT3 (p = 0.0001) |
+
+So for those, **the name is right and only the folder was wrong.**
+
+**Shared lineages.** Clones sharing five or more identical mutations descend from one B cell, so they must come from one mouse. Nine such lineages exist among all 318 J꜀4 clones. Seven stay within the mouse their names give, including a 25-mutation WT3 clone found in both the W2 folder (9 Aug) and the W3 folder (29 Jul), which confirms that the WT3-named clones in the W2 folder are WT3's. Two cross mice:
+
+| Lineage | Shared mutations | Clones | Verdict |
+|---|---:|---|---|
+| A | 8 | MKLN K4: k4-7, k4-22 (two records), k4-11, sequenced 29 Jul – 1 Aug 2024; **"WT2": w2-28, w2-36**, 9 Aug | K4 clones misfiled as WT2 |
+| B | 7, identical | MKLN K2: k2-24, k2-1; **"WT4": w4-9**, same day as k2-1 | a K2 clone misfiled as WT4 |
+
+Neither lineage is in the wild-type mouse it was filed under: no WT2 nanopore read carries two of lineage A's eight mutations, and no WT4 read carries two of lineage B's seven. Each lineage otherwise appears only in MKLN clones sequenced on several dates. **These three are real mix-ups, not naming slips**: a tube or colony from an MKLN mouse ended up among the wild types. They are removed from the wild-type sets; `~/Nanoshm/sanger_jh4_corrected/CORRECTIONS.txt` records the change, and the original files are untouched.
+
+Removing them changes WT2 the most. Its Sanger load halves (7.5 → 3.7 × 10⁻³) because the two clones carried 22 and 24 mutations, and its unique mutations fall from 67 to 37. The spectrum agreement does not change (r = 0.92).
+
+Limits: the Sanger reads start at J꜀4, so they carry no V(D)J junction, the strongest clone barcode. A clone that is a misfiled copy of a lightly mutated clone from another mouse, sharing no lineage, cannot be caught this way. Mutation load still catches a misfile between mice as different as WT3 and WT2.
 
 ## A bug this comparison found in nanoshm
 
@@ -80,8 +106,8 @@ A Sanger sample of fewer than 4 clones cannot apply the germline rule to itself,
 ## What does not agree, and why that is expected
 
 - **Absolute density.** Sanger counts unique mutations over 18–34 clones and nanopore over 497 reads. More sequences resample the same mutations, so the per-sequence density falls with depth. Compare within a platform, not between them.
-- **Mutation load per sequence** (Figure 3E, Figure 3D here). Nanopore per read is lower than Sanger per clone in every mouse. In WT2 it is 1.7 against 7.5 × 10⁻³, because one almost unmutated clone holds 85% of WT2's nanopore reads ([`CLONES.md`](CLONES.md)). Counted per clone, nanopore WT2 is 12.0, and all three mice then sit on or near the Sanger line. Separate PCRs can sample a lineage that dominates one reaction and not the other.
-- **Per-mouse spectra against each other** (Figure 3A here). Each Sanger mouse matches its own nanopore spectrum no better than another mouse's (mean r 0.60 against 0.72). The spectrum is AID's signature, not the mouse's. WT2's and WT4's Sanger spectra rest on 67 and 77 mutations, too few for a 12-type profile per mouse; WT3's, with 290, correlates at r = 0.93 with its own nanopore.
+- **Mutation load per sequence** (Figure 3E, Figure 3D here). Nanopore per read is lower than Sanger per clone in every mouse. In WT2 it is 1.7 against 3.7 × 10⁻³, because one almost unmutated clone holds 85% of WT2's nanopore reads ([`CLONES.md`](CLONES.md)). Counted per clone, nanopore WT2 is 12.0. Separate PCRs, and a mouse whose response is dominated by a few lineages, make WT2 the least stable mouse on either platform. Separate PCRs can sample a lineage that dominates one reaction and not the other.
+- **Per-mouse spectra against each other** (Figure 3A here). Each Sanger mouse matches its own nanopore spectrum no better than another mouse's (mean r 0.57 against 0.71). The spectrum is AID's signature, not the mouse's. WT2's and WT4's Sanger spectra rest on 37 and 68 mutations, too few for a 12-type profile per mouse; WT3's, with 290, correlates at r = 0.93 with its own nanopore.
 
 ## Reproduce
 
@@ -90,4 +116,4 @@ python docs/calibration/sanger_vs_nanopore.py --ont-mode recommended
 python docs/calibration/sanger_vs_nanopore.py --ont-mode geneious
 ```
 
-The Sanger FASTAs are read from `~/Nanoshm/sanger_jh4` (`--sanger-dir`): one file per mouse, built from the GenBank clone exports by clone name. The repeated-measures ANOVA assumes sphericity. With three mice, nothing here is powered to show equivalence; agreement is descriptive, as in the manuscript.
+The Sanger FASTAs are read from `~/Nanoshm/sanger_jh4_corrected` (`--sanger-dir`): one file per mouse, built from the GenBank clone exports by clone name, with the three misfiled clones removed. The repeated-measures ANOVA assumes sphericity. With three mice, nothing here is powered to show equivalence; agreement is descriptive, as in the manuscript.

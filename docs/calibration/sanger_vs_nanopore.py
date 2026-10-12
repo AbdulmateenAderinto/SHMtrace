@@ -5,7 +5,7 @@ figures (Figure 2A/B, Figure 3A-E, Supplementary S2/S3) from those calls, plus
 tests the manuscript did not have. Writes figures, stats.json and stats.md.
 
     python docs/calibration/sanger_vs_nanopore.py [--ont-mode recommended|geneious]
-        [--sanger-dir ~/Nanoshm/sanger_jh4] [--out docs/calibration/figures/sanger_vs_nanopore]
+        [--sanger-dir ~/Nanoshm/sanger_jh4_corrected] [--out docs/calibration/figures/sanger_vs_nanopore]
 
 Sanger input: one FASTA per mouse, clones assigned to mice by clone name
 (SANGER.md explains why not by folder). Nanopore: the six bundled libraries.
@@ -551,7 +551,9 @@ def fig_per_mouse(D, out):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--ont-mode", default="recommended")
-    ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_jh4"))
+    # the per-mouse clone sets with three misfiled MKLN clones removed
+    # (SANGER_VS_NANOPORE.md, "Were clones mixed between mice?")
+    ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_jh4_corrected"))
     ap.add_argument("--out", default=str(ROOT / "docs/calibration/figures/sanger_vs_nanopore"))
     a = ap.parse_args()
     out = Path(a.out) / a.ont_mode

@@ -14,7 +14,10 @@ this project uses [semantic versioning](https://semver.org/).
   no platform × type interaction (p = 0.39), positional r = 0.90. It also
   found that the manuscript's Geneious Sanger assemblies mix mice (W2 and W3
   are each two mice) and that the Aicda-/- Sanger denominators are 54% JH6
-  clones.
+  clones. Checked from sequence alone (mutation load and shared lineages),
+  the misfiled wild-type clones belong to the mouse their names give, but
+  three clones filed as WT2 and WT4 are MKLN clones (lineages of 8 and 7
+  identical mutations shared with K4 and K2) and are removed.
 - **Simulated libraries with known clones** (`nanoshm/lineage_sim.py`,
   `nanoshm-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
