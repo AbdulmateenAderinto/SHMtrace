@@ -21,7 +21,7 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from . import batch, browse, indels, metrics, motifs, null_model, pipeline, singletons, targeting
+from . import batch, browse, clones, indels, metrics, motifs, null_model, pipeline, singletons, targeting
 from .config import load_preset
 from .io_utils import read_fasta
 
@@ -329,6 +329,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     control_background: dict = {}
     alignments: dict = {}
     coverage: dict = {}
+    clone_results: dict = {}
     # project["saturation"]: True for a sensible ladder up to the analysed
     # depth, or an explicit list of depths. Off by default.
     sat = project.get("saturation")
@@ -365,12 +366,6 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             null = nulls[peers]
         res = pipeline.analyse(b["reads"][name], reference, p, b["stats"][name],
                                null_rates=null, depth=depth)
-        dep = res["summary"]["calling"].get("_depth") or []
-        if dep:
-            coverage[name] = {"start": lo + 1, "depth": dep}
-            low = coverage_dips(dep, lo + 1)
-            if low:
-                m["warnings"] = "; ".join(x for x in [m["warnings"], low] if x)
         if want_browse:
             progress(0.15 + 0.75 * i / len(samples), f"recording the alignment of {name}")
             fates: dict = {}
@@ -399,6 +394,24 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             control_background.update(per_pos)
         m = sample_metrics(name, res, ref, lo, hi, s.get("group") or name, name in controls,
                            scale=p.density_scale)
+        cl = None if sanger else clones.call_clones(res["_aligned"], res["variants"], p, lo, hi)
+        if cl:
+            clone_results[name] = cl
+            m.update({"reads_with_junction": cl["reads_with_junction"],
+                      "clones": cl["clones"],
+                      "largest_clone_pct": cl["largest_clone_pct"],
+                      "clone_weighted_frequency_x1e3": cl["clone_weighted_frequency_x1e3"]})
+            if cl["largest_clone_pct"] >= 50:
+                note = (f"one clone holds {cl['largest_clone_pct']:.0f}% of the reads with a "
+                        "junction; read-weighted numbers are dominated by it, so compare "
+                        "clone_weighted_frequency_x1e3")
+                m["warnings"] = "; ".join(x for x in [m["warnings"], note] if x)
+        dep = res["summary"]["calling"].get("_depth") or []
+        if dep:
+            coverage[name] = {"start": lo + 1, "depth": dep}
+            low = coverage_dips(dep, lo + 1)
+            if low:
+                m["warnings"] = "; ".join(x for x in [m["warnings"], low] if x)
         if single_q and peers:
             for n in (name, *peers):
                 if n not in tallies:
@@ -454,6 +467,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      "density rises with depth, so compare those with care.")
 
     keys = ["unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5",
+            "clone_weighted_frequency_x1e3",
             "mutation_frequency_x1e3", "mutated_reads_pct",
             "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_GC_in_WRC_GYW"]
     groups = group_table(per_sample, keys)
@@ -567,6 +581,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "base_composition": base_sites,
         "targeting": targeting_out,
         "coverage": coverage,
+        # per sample: clones from the V(D)J junction, each counted once (clones.py)
+        "clones": clone_results,
         "spectrum_sample": spec_sample,
         "positional": pos_rows,
         "positional_sample": pos_sample_rows,

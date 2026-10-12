@@ -767,6 +767,7 @@ const FIGURES = [
 // needs, so the Export tab asks the server which ones exist.
 const DIAGNOSTIC_FIGURES = [
   ["coverage", "Coverage along the amplicon"],
+  ["clone_map", "Clones from the V(D)J junction"],
   ["targeting_profile", "Do the mutations follow the AID targeting model?"],
   ["targeting_spectrum", "Spectrum against the targeting model"],
   ["mutability_hedgehog", "The targeting model (hedgehog plot)"],
@@ -788,6 +789,7 @@ function buildExport() {
   $("export-tables").innerHTML = ["samples.csv", "groups.csv", "variants.csv",
     ...((S.result.indels || []).length ? ["indels.csv"] : []),
     ...(S.result.coverage && Object.keys(S.result.coverage).length ? ["coverage.csv"] : []),
+    ...(S.result.clones && Object.keys(S.result.clones).length ? ["clones.csv"] : []),
     "positional_frequency.csv", "spectrum.csv", "mutation_load.csv"]
     .map(f => `<button class="btn small" onclick="dl('${f}')">${f}</button>`).join("");
   const avail = new Set(S.result.available_figures || FIGURES.map(([f]) => f));
