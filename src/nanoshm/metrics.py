@@ -1,6 +1,7 @@
 """Downstream SHM summaries: unique-variant density, spectrum, call clustering."""
 from __future__ import annotations
 
+from bisect import bisect_left
 from math import exp
 
 from .config import Params
@@ -66,10 +67,11 @@ def positional_clusters(variants: list[Variant], analysed_bp: int, window: int =
     for i, start in enumerate(pos):
         if i and pos[i - 1] == start:
             continue
-        members = [q for q in pos[i:] if q < start + window]
-        k = len(members)
+        j = bisect_left(pos, start + window, i)     # pos is sorted: no linear scan
+        k = j - i
         if k < 3:
             continue
+        members = pos[i:j]
         # P(X >= k) for X ~ Poisson(lam)
         term, cdf = exp(-lam), exp(-lam)
         for j in range(1, k):
