@@ -162,6 +162,133 @@ def spectrum_corrected(res: dict, fmt: str = "png") -> bytes | None:
     return _save(fig, fmt)
 
 
+# ---- AID targeting against a 5-mer model ---------------------------------------
+
+def targeting_profile(res: dict, fmt: str = "png") -> bytes | None:
+    """Do mutations follow the model? A dose-response, then the model along the amplicon.
+
+    Left: positions are split into five equal bins by the model's mutability,
+    and each group's unique mutations per position per sample is drawn for each
+    bin. AID mutations rise from the least to the most mutable bin; sequencing
+    error, which does not know the model, stays flat. Right: the model along
+    the amplicon, relative to the window mean.
+    """
+    t = res.get("targeting") or {}
+    prof = t.get("profile") or {}
+    if not prof:
+        return None
+    colour = _group_colour(res)
+    pos_rel = sorted((float(v), int(k)) for k, v in prof.items())
+    nb = 5
+    edges = [pos_rel[min(len(pos_rel) - 1, round(i * len(pos_rel) / nb))][0] for i in range(nb)]
+    bin_of = {}
+    for rank, (_v, pos) in enumerate(pos_rel):
+        bin_of[pos] = min(nb - 1, rank * nb // len(pos_rel))
+    sites = Counter(bin_of.values())
+    n_samples = Counter(s["group"] for s in res["samples"])
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(11.0, 3.9),
+                                  gridspec_kw={"width_ratios": [1, 1.6]})
+    for a in (ax, ax2):
+        for side in ("top", "right"):
+            a.spines[side].set_visible(False)
+    for g in res["group_order"]:
+        per_bin = Counter(bin_of[v["pos"]] for v in res.get("variants") or []
+                          if v["group"] == g and v["pos"] in bin_of)
+        ys = [per_bin.get(b, 0) / max(1, sites[b]) / max(1, n_samples[g]) for b in range(nb)]
+        gi = (t.get("groups") or {}).get(g) or {}
+        if gi.get("index") is not None:
+            lab = f"{g}: index {gi['index']:.2f}, p = {gi['p']:.2g}"
+        else:
+            lab = f"{g}: {gi.get('note') or 'no calls'}"
+        ax.plot(range(1, nb + 1), ys, marker="o", lw=1.6, color=colour.get(g, MS_BLUE), label=lab)
+    ax.set_xticks(range(1, nb + 1))
+    ax.set_xticklabels(["lowest", "2", "3", "4", "highest"], fontsize=8)
+    ax.set_xlabel("Model mutability of the position (fifths)")
+    ax.set_ylabel("Unique mutations per position per sample")
+    ax.set_title("Do the mutations follow the model?", loc="left", fontsize=10)
+    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
+    xs = sorted(int(k) for k in prof)
+    ys2 = [prof[str(x)] for x in xs]
+    ax2.plot(xs, ys2, color=GREY, lw=0.8)
+    ax2.fill_between(xs, 0, ys2, color=GREY, alpha=0.2)
+    ax2.axhline(1, color=GREY, ls="--", lw=0.8)
+    ax2.set_xlabel("Reference position")
+    ax2.set_ylabel("Model mutability (× window mean)")
+    ax2.set_title(f"The model ({t.get('model')}) along the amplicon", loc="left", fontsize=10)
+    fig.tight_layout()
+    return _save(fig, fmt)
+
+
+def targeting_spectrum(res: dict, fmt: str = "png") -> bytes | None:
+    """Observed substitution spectrum against the one the model predicts here."""
+    t = res.get("targeting") or {}
+    exp = t.get("expected_spectrum") or {}
+    if not exp:
+        return None
+    colour = _group_colour(res)
+    ctrl = {g["group"] for g in res.get("groups") or [] if g.get("control")}
+    order = [g for g in res["group_order"] if g not in ctrl and res["spectrum_group"].get(g)]
+    if not order:
+        return None
+    n = len(order) + 1
+    width = 0.8 / n
+    fig, ax = _ax((8.0, 4.0))
+    xs = range(len(SUBS12))
+    ax.bar([i - 0.4 + width / 2 for i in xs], [100 * exp.get(k, 0) for k in SUBS12],
+           width=width, color=FAINT, edgecolor=GREY, label=f"expected ({t.get('model')})")
+    for j, g in enumerate(order, start=1):
+        c = res["spectrum_group"][g]
+        tot = sum(c.values()) or 1
+        ax.bar([i - 0.4 + width / 2 + j * width for i in xs],
+               [100 * c.get(k, 0) / tot for k in SUBS12], width=width,
+               color=colour.get(g, MS_BLUE), label=f"observed, {g}")
+    ax.set_xticks(list(xs))
+    ax.set_xticklabels([k.replace(">", "→") for k in SUBS12], fontsize=8)
+    ax.set_ylabel("% of mutations")
+    ax.set_title("Observed spectrum against the model's expectation for this window",
+                 loc="left", fontsize=11)
+    ax.legend(frameon=False, fontsize=8)
+    return _save(fig, fmt)
+
+
+def mutability_hedgehog(res: dict, fmt: str = "png") -> bytes | None:
+    """The targeting model itself, drawn as SHazaM's plotMutability draws it.
+
+    One ring per centre base. Each spike is a 5-mer, ordered by its flanks;
+    length is mutability. Classical hotspots (WRCY / RGYW) are red, coldspots
+    (SYC / GRS) are blue, the rest grey.
+    """
+    from . import targeting as tg
+    t = res.get("targeting") or {}
+    mm = t.get("model_mutability") or {}
+    if not mm:
+        return None
+    import numpy as np
+    fig, axes = plt.subplots(1, 4, figsize=(12.4, 3.6), subplot_kw={"projection": "polar"})
+    top = max(mm.values()) or 1.0
+    for ax, centre in zip(axes, "ACGT", strict=True):
+        ks = sorted(k for k in mm if k[2] == centre)
+        th = np.linspace(0, 2 * np.pi, len(ks), endpoint=False)
+        cols = []
+        for k in ks:
+            if tg.matches(k, "WRCY") or tg.matches(k, "RGYW"):
+                cols.append(MS_RED)
+            elif tg.matches(k, "SYC") or tg.matches(k, "GRS"):
+                cols.append(MS_BLUE)
+            else:
+                cols.append(GREY)
+        ax.bar(th, [mm[k] / top for k in ks], width=2 * np.pi / len(ks) * 0.9,
+               bottom=0.25, color=cols, alpha=0.85, linewidth=0)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_ylim(0, 1.3)
+        ax.set_title(f"centre {centre}", fontsize=9)
+        ax.spines["polar"].set_visible(False)
+    fig.suptitle(f"The targeting model ({t.get('model')}): red = WRCY/RGYW hotspots, "
+                 "blue = SYC/GRS coldspots", x=0.007, ha="left", fontsize=11)
+    return _save(fig, fmt)
+
+
 # ---- 2. single-read excess ---------------------------------------------------
 
 def single_read_excess(res: dict, fmt: str = "png") -> bytes | None:
@@ -667,6 +794,12 @@ FIGURES = [
      lambda r: bool(r.get("coverage"))),
     ("spectrum_corrected", spectrum_corrected, "Spectrum, base-composition corrected",
      lambda r: bool(r.get("spectrum_corrected_group"))),
+    ("targeting_profile", targeting_profile, "AID targeting along the amplicon",
+     lambda r: bool((r.get("targeting") or {}).get("profile"))),
+    ("targeting_spectrum", targeting_spectrum, "Spectrum against the targeting model",
+     lambda r: bool((r.get("targeting") or {}).get("expected_spectrum"))),
+    ("mutability_hedgehog", mutability_hedgehog, "The targeting model",
+     lambda r: bool((r.get("targeting") or {}).get("model_mutability"))),
     ("saturation", saturation, "Saturation (depth)",
      lambda r: _any_detail(r, "rarefaction")),
     ("single_read_excess", single_read_excess, "Single-read excess",
