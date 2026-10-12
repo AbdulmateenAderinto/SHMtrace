@@ -1,0 +1,32 @@
+{
+ "command": "nanoshm-validate-sanger --reps 40 --seed 101 -o <dir>",
+ "summary": {
+  "runs": 40,
+  "recall_min": 0.8333333333333334,
+  "recall_mean": 0.9942167416494062,
+  "precision_min_mutated": 0.8478260869565217,
+  "precision_mean_mutated": 0.9525584839315635,
+  "false_calls_per_1e5_bases": 21.4,
+  "germline_called": 0,
+  "unusable_traces_analysed": 0,
+  "detection": {
+   "control_contaminant": "40/40",
+   "file_copy": "40/40",
+   "lineage_misfiled": "125/125",
+   "misfiled_labelled": "40/40",
+   "misfiled_relabelled": "22/40",
+   "retyped_copy": "40/40"
+  },
+  "false_flags": "0 of 6018 clean clones",
+  "relabelled_misfiling_by_shared_mutations": {
+   "3": "0/3",
+   "4": "0/6",
+   "5": "4/10",
+   "6": "9/10",
+   "7": "6/7",
+   "8+": "3/4"
+  },
+  "lost_to_germline_rule_flagged": "9/9",
+  "germline_flags_without_cause": 0
+ }
+}

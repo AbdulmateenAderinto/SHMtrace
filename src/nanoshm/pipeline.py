@@ -54,6 +54,10 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
         trimmed = [trim_messy_ends(a, ref_seq, p.sanger_clean_window,
                                    p.sanger_clean_max_mismatch) for a in aligned]
         s_pre["clones_without_clean_stretch"] = sum(t is None for t in trimmed)
+        if fates is not None:
+            for a, t in zip(aligned, trimmed, strict=True):
+                if t is None:
+                    fates[a.qname] = {"fate": "no clean stretch"}
         aligned = [t for t in trimmed if t is not None]
     s_pre["aligned_before_phasing"] = len(aligned)
     # Remove a co-occurring minor haplotype before depth standardisation, so the

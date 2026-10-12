@@ -20,6 +20,12 @@ whatever the input is:
   * a directory: every readable file inside it is one sample (for example a
     folder of Sanger clones). Files whose names differ only in _R1/_R2 (also
     _1/_2 before the extension) are merged as Illumina pairs.
+  * a list of any of the above, read in turn as one sample. An item may be
+    [path, id] (or {"file": path, "id": id}): a one-read file's read is then
+    named `id`, and a many-read file's reads `id/name`. This is how a sample
+    sheet (samplesheet.py) names each Sanger clone by its order and well.
+    Read names that repeat across the list get "#2", "#3", ... so every read
+    stays distinct (clone labels are often reused between sequencing orders).
 
 Files of unknown extension are sniffed by content (ABIF magic, '@' FASTQ,
 '>' FASTA). In a directory, files that are none of these are skipped.
@@ -290,6 +296,28 @@ def read_abif(path: str) -> tuple[str, str, str]:
     return _stem(path), seq, qual
 
 
+def write_abif(path: str, seq: str, quals: list[int], sample: str = "clone") -> None:
+    """A minimal ABIF (.ab1) file: basecalls (PBAS 2), qualities (PCON 2) and a
+    sample name (SMPL 1), which is all read_abif needs. For simulated traces."""
+    entries = [(b"PBAS", 2, 2, 1, seq.encode()),
+               (b"PCON", 2, 2, 1, bytes(min(int(q), 93) for q in quals)),
+               (b"SMPL", 1, 18, 1, bytes([len(sample)]) + sample.encode())]
+    body, offsets = b"", []
+    for *_x, data in entries:
+        offsets.append(128 + len(body))
+        body += data
+    dir_off = 128 + len(body)
+    directory = b""
+    for (name, num, etype, esize, data), off in zip(entries, offsets, strict=True):
+        field = data.ljust(4, b"\0") if len(data) <= 4 else struct.pack(">i", off)
+        directory += struct.pack(">4sihhii", name, num, etype, esize, len(data) // esize,
+                                 len(data)) + field + struct.pack(">i", 0)
+    header = struct.pack(">4sH4sihhiiii", b"ABIF", 101, b"tdir", 1, 1023, 28,
+                         len(entries), len(directory), dir_off, 0)
+    with open(path, "wb") as fh:
+        fh.write(header.ljust(128, b"\0") + body + directory)
+
+
 # ---------------------------------------------------------- paired reads --
 
 def _phred_char(q: int) -> str:
@@ -487,12 +515,35 @@ def _read_dir(path: str, default_q: int):
         yield from _read_one(f, default_q, fmt)
 
 
+def _list_item(item) -> tuple[str, str | None]:
+    if isinstance(item, dict):
+        return os.fspath(item["file"]), item.get("id")
+    if isinstance(item, (list, tuple)):
+        return os.fspath(item[0]), (item[1] if len(item) > 1 else None)
+    return os.fspath(item), None
+
+
+def _read_list(items, default_q: int):
+    seen: dict = {}
+    for item in items:
+        f, rid = _list_item(item)
+        recs = list(read_fastq(f, default_q))
+        for name, seq, qual in recs:
+            if rid:
+                name = rid if len(recs) == 1 else f"{rid}/{name}"
+            k = seen[name] = seen.get(name, 0) + 1
+            yield (name if k == 1 else f"{name}#{k}"), seq, qual
+
+
 def read_fastq(path: str, default_q: int = FASTA_DEFAULT_Q) -> Iterator[tuple[str, str, str]]:
     """Every read of one sample as (name, seq, qual), whatever the input format.
 
     See the module docstring for what `path` may be. `default_q` is the Phred
     given to bases of inputs without qualities (FASTA, .seq, GenBank).
     """
+    if isinstance(path, (list, tuple)):
+        yield from _read_list(path, default_q)
+        return
     path = os.fspath(path)
     if os.path.isdir(path):
         yield from _read_dir(path, default_q)

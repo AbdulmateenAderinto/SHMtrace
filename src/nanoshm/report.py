@@ -33,6 +33,10 @@ VARIANT_COLUMNS = ["sample", "group", "pos", "ref", "alt", "reads", "depth", "fr
                    "WRC_GYW", "s5f_mutability_rel", "s5f_substitution"]
 
 
+QC_COLUMNS = ["severity", "check", "sample", "clone", "mutations", "other_sample", "other_clone",
+              "detail", "order", "well", "label", "file"]
+
+
 def _rows_csv(rows: list[dict], columns: list[str] | None = None) -> str:
     if not rows:
         return ""
@@ -74,6 +78,10 @@ def tables(res: dict) -> dict[str, str]:
               "mutations": r["mutations"], "positions": " ".join(map(str, r["positions"]))}
              for n, c in (res.get("clones") or {}).items() for r in c["rows"]])}
            if res.get("clones") else {}),
+        **({"qc_flags.csv": _rows_csv(res["qc"]["flags"], QC_COLUMNS)}
+           if (res.get("qc") or {}).get("flags") else {}),
+        **({"excluded.csv": _rows_csv(res["qc"]["excluded"])}
+           if (res.get("qc") or {}).get("excluded") else {}),
         **({"coverage.csv": _rows_csv(
             [{"sample": n, "pos": c["start"] + i, "depth": d}
              for n, c in (res.get("coverage") or {}).items()
@@ -162,6 +170,15 @@ def html_report(res: dict, fmt: str = "png") -> str:
     notes_html = "".join(
         f"<p class=muted><b>Note:</b> {n}</p>" for n in res.get("notes") or [])
     settings = "".join(f"<tr><th>{k.replace('_', ' ')}</th><td>{v}</td></tr>" for k, v in p.items())
+    qc = res.get("qc") or {}
+    qc_html = ""
+    if qc:
+        qc_html = ("<h2>QC flags</h2><p class=muted>Flagged for a person to decide; nothing was "
+                   "changed.</p><div class=wrap>"
+                   + (_html_table(qc["flags"], QC_COLUMNS) if qc.get("flags") else "<p>None.</p>")
+                   + "</div><h2>Clones not analysed</h2><div class=wrap>"
+                   + (_html_table(qc["excluded"]) if qc.get("excluded") else "<p>None.</p>")
+                   + "</div>")
     return f"""<!doctype html>
 <html lang=en><head><meta charset=utf-8>
 <title>{res.get('name', 'nanoshm report')}</title>
@@ -187,6 +204,7 @@ def html_report(res: dict, fmt: str = "png") -> str:
 <h2>Figures</h2>{fig_html}
 <h2>Samples</h2><div class=wrap>{_html_table(res['samples'], SAMPLE_COLUMNS)}</div>
 <h2>Groups</h2><div class=wrap>{_html_table(res['groups'])}</div>
+{qc_html}
 <h2>Mutations</h2><div class=wrap>{_html_table(res['variants'], VARIANT_COLUMNS)}</div>
 <h2>Settings</h2><table>{settings}</table>
 </body></html>"""

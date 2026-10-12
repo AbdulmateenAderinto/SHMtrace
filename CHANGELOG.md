@@ -7,6 +7,13 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Sanger pipeline for unseen data (docs/calibration/SANGER_PIPELINE.md):
+  - `nanoshm.samplesheet` / `nanoshm-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.
+  - `nanoshm.qc`, run on every Sanger project: duplicate files and clones, mutations shared across animals beyond chance, control clones with more mutations than their qualities predict, label mismatches, mutations lost to the germline rule, load outliers, and every clone not analysed with its reason. Flags only; nothing is changed. The flags appear in the app (Tables), the HTML report, `qc_flags.csv` and `excluded.csv`.
+  - `nanoshm.concordance` / `nanoshm-concordance`: the manuscript's two-platform statistics as a tested function; `manuscript_stats.py` now uses it, with unchanged numbers.
+  - `nanoshm.sanger_sim` / `nanoshm-validate-sanger`: simulated Sanger projects with known truth and planted bookkeeping errors. Over 40 projects: recall 99.4%, no germline calls, every planted copy, contaminant and labelled misfiling flagged, and no false flags on 6,018 clean clones.
+  - The app loads a sample sheet by path. `io_utils.write_abif`. The germline rule now records which positions it removed (`germline_sites`).
+  - Tests: `test_samplesheet.py`, `test_concordance.py`, `test_sanger_validation.py`, and `test_real_jh4_sanger.py`, which reproduces the manuscript's Sanger counts from the lab's traces when they are present.
 - `organize_jh4_ab1.py --original`: organise the .ab1 traces exactly as filed in the GenBank folders (no evidence-based moves); `manuscript_corrected/export_sanger_calls.py` exports the Sanger calls the manuscript figures read. Ver17 now uses the original classification, drops the TOST analysis and the inclusion figure; `--original` still drops the two Wt2 GenBank records that are renamed MKLN K4 traces; `sanger_window_figure.py --name`; `sanger_vs_nanopore.py` also writes the two-panel `fig3_agreement_position_hotspot`.
 - **Sanger against nanopore, same mice** (`docs/calibration/sanger_vs_nanopore.py`,
   `SANGER_VS_NANOPORE.md`). Redraws the manuscript's Figure 2A/B, 3A–E and

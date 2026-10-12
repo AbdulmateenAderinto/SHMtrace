@@ -162,6 +162,26 @@ def local_scan(payload: dict):
     return {"folder": str(root), "files": files}
 
 
+@app.post("/api/samplesheet")
+def load_samplesheet(payload: dict):
+    """Read a sample sheet on this machine: its samples, warnings and exclusions.
+
+    The sheet's file paths are local (absolute, ~, or relative to the sheet), so
+    this is for the desktop app or a server reading its own disk.
+    """
+    from .. import samplesheet
+    path = Path(payload.get("path", "")).expanduser()
+    if not path.is_file():
+        raise HTTPException(400, f"no sample sheet at {path}")
+    try:
+        sh = samplesheet.load(str(path))
+    except samplesheet.SheetError as e:
+        raise HTTPException(400, {"problems": e.problems}) from None
+    return {"samples": sh.samples(), "warnings": sh.warnings, "excluded": sh.excluded(),
+            "sheet": {"path": sh.path, "provenance": sh.provenance(), "aliases": sh.aliases(),
+                      "excluded": sh.excluded(), "warnings": sh.warnings}}
+
+
 # ---- running a project -------------------------------------------------------
 def _run_job(job_id: str, proj: dict):
     job = JOBS[job_id]

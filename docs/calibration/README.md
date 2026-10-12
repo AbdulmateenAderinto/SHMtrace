@@ -26,6 +26,7 @@ Every page names its data, its date and how to reproduce it.
 | [`ECTOPIC_AID.md`](ECTOPIC_AID.md) | Ectopic AID versus empty vector in an AID-null line — the public counterpart of the N114 design |
 | [`HMCES_INDELS.md`](HMCES_INDELS.md) | The indel caller against a published biological effect: HMCES loss raises SHM deletions |
 | [`SANGER_VS_NANOPORE.md`](SANGER_VS_NANOPORE.md) | Sanger against nanopore in the same wild-type mice: the manuscript's comparison figures, redone with clones assigned by name |
+| [`SANGER_PIPELINE.md`](SANGER_PIPELINE.md) | The Sanger pipeline: sample sheet, QC flags, concordance, and validation on simulated projects with planted errors and on the lab's JH4 traces |
 | [`SANGER.md`](SANGER.md) | Matched Sanger clones from the same animals as the nanopore libraries |
 | [`PUBLIC_DATA.md`](PUBLIC_DATA.md) | The survey of public SHM data with usable controls, and what is still missing |
 

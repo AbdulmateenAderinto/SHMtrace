@@ -37,13 +37,17 @@ def recurring_blocks(blocks_by_sample: dict[str, list], min_shared: int) -> list
 
 def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[str],
                   p: Params, control_blocks: list | None = None,
-                  depth: int | None = None, controls: set | None = None) -> dict:
+                  depth: int | None = None, controls: set | None = None,
+                  fates: dict | None = None) -> dict:
     """Align and phase every sample; return reads, stats and the common depth.
 
     `samples` maps a sample name to its FASTQ. `control_blocks` are blocks
     found in mutation-free controls (from null_model.fit), which count as known
     regardless of recurrence. Samples named in `controls` are mutation-free:
     every block in them is dropped and counts as known for the others.
+
+    Pass `fates` (an empty dict) to get, per sample, why each dropped read was
+    dropped (pipeline.prepare_reads); reads that survive are not in it.
     """
     from .null_model import control_params
     controls = set(controls or ())
@@ -55,7 +59,8 @@ def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[st
     raw, stats, blocks = {}, {}, {}
     for name, fq in samples.items():
         pp = control_params(p) if name in controls else detect
-        aligned, st = pipeline.prepare_reads(fq, reference, contaminants, pp)
+        f = fates.setdefault(name, {}) if fates is not None else None
+        aligned, st = pipeline.prepare_reads(fq, reference, contaminants, pp, fates=f)
         raw[name], stats[name] = aligned, st
         blocks[name] = [[(pos - 1, alt) for pos, alt in b["sites"]] for b in st.get("blocks", [])]
 
@@ -67,7 +72,11 @@ def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[st
         for name in samples:
             if name in controls:
                 continue
+            before = {a.qname for a in raw[name]}
             raw[name], st = partition(raw[name], ref_seq, p, lo, hi, known)
+            if fates is not None:
+                for q in before - {a.qname for a in raw[name]}:
+                    fates[name][q] = {"fate": "minor haplotype"}
             stats[name] = {**{k: v for k, v in stats[name].items()
                               if k not in st}, **st}
 
