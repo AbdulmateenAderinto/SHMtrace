@@ -6,7 +6,18 @@ You give it **FASTQ reads + a reference FASTA** (optionally a contaminant FASTA)
 
 It replaces the Geneious *assemble + find variants* step with [minimap2](https://github.com/lh3/minimap2) (via `mappy`) plus a variant caller that reimplements the manuscript's filtering rules explicitly, so every threshold is visible and adjustable rather than buried in a GUI.
 
-> **Status: beta.** Calibrated against AID-deficient controls in July 2026. On held-out *Aicda*−/− mice the background is 1.0 × 10⁻⁵ per analysed base against the manuscript's 1.2 × 10⁻⁵, with wild-type signal retained and ~76-fold separation. See [`docs/calibration/FINDINGS.md`](docs/calibration/FINDINGS.md). Still validate against your own null control before publishing numbers.
+> **Status: beta.** The default calling mode is quality-calibrated against your
+> own mutation-free controls ([`ERROR_MODELS.md`](docs/calibration/ERROR_MODELS.md)).
+> On the manuscript's J꜀4 libraries it reproduces Geneious-level wild-type signal
+> with a quarter of its control background ([`GENEIOUS.md`](docs/calibration/GENEIOUS.md)).
+> It has since been checked on data it was not tuned on: a public nanopore deposit
+> from another laboratory ([`EXTERNAL_VALIDATION.md`](docs/calibration/EXTERNAL_VALIDATION.md)),
+> an Illumina J꜀4 study whose published positive *and* negative findings both
+> reproduce ([`ILLUMINA.md`](docs/calibration/ILLUMINA.md)), an ectopic-AID versus
+> empty-vector experiment ([`ECTOPIC_AID.md`](docs/calibration/ECTOPIC_AID.md)), and
+> matched Sanger clones from the same animals, whose substitution spectrum agrees
+> at r = 0.95 ([`SANGER.md`](docs/calibration/SANGER.md)).
+> Still validate against your own null control before publishing numbers.
 
 ## The app
 
