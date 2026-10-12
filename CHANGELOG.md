@@ -6,6 +6,22 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
+  in three groups: detail the project already computed but never drew (the
+  saturation curve, the single-read excess by substitution class, indels,
+  per-sample positional maps, the combined density with its intervals);
+  diagnostics that make the method auditable rather than taken on trust (the
+  base-quality histogram the default model keys on, the read-by-site carriage
+  behind each phasing decision, read attrition per stage, the fitted control
+  background along the amplicon, and the caller's own decision boundary); and
+  biology the tables held but nothing showed (clonal structure, replicate
+  agreement). Each is drawn only when the run carries what it needs. The
+  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
+  To support them the caller now records every tested candidate, the base
+  qualities of matching and mismatching bases, and the per-read carriage of
+  each phasing block; the project records the fitted control background.
+
 ### Fixed
 - **A calibration bug introduced and corrected in the same session.** Capping
   the quality-calibrated test for speed was not neutral: the same function
@@ -60,6 +76,22 @@ this project uses [semantic versioning](https://semver.org/).
   when the uracil goes unrepaired, and a quick check that calls look like AID's.
 - The app's Tables tab shows every column any row has, so a control without
   peers no longer hides the other samples' estimates.
+
+### Added
+- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
+  in three groups: detail the project already computed but never drew (the
+  saturation curve, the single-read excess by substitution class, indels,
+  per-sample positional maps, the combined density with its intervals);
+  diagnostics that make the method auditable rather than taken on trust (the
+  base-quality histogram the default model keys on, the read-by-site carriage
+  behind each phasing decision, read attrition per stage, the fitted control
+  background along the amplicon, and the caller's own decision boundary); and
+  biology the tables held but nothing showed (clonal structure, replicate
+  agreement). Each is drawn only when the run carries what it needs. The
+  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
+  To support them the caller now records every tested candidate, the base
+  qualities of matching and mismatching bases, and the per-read carriage of
+  each phasing block; the project records the fitted control background.
 
 ### Fixed (Mac app, found by running the built app end to end)
 - SVG and PDF figure exports failed in the packaged app: matplotlib's PDF and
@@ -124,6 +156,22 @@ this project uses [semantic versioning](https://semver.org/).
 - **BAM/SAM input** (`pip install nanoshm[bam]`): reads straight from a Geneious
   assembly, restored to sequenced orientation.
 
+### Added
+- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
+  in three groups: detail the project already computed but never drew (the
+  saturation curve, the single-read excess by substitution class, indels,
+  per-sample positional maps, the combined density with its intervals);
+  diagnostics that make the method auditable rather than taken on trust (the
+  base-quality histogram the default model keys on, the read-by-site carriage
+  behind each phasing decision, read attrition per stage, the fitted control
+  background along the amplicon, and the caller's own decision boundary); and
+  biology the tables held but nothing showed (clonal structure, replicate
+  agreement). Each is drawn only when the run carries what it needs. The
+  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
+  To support them the caller now records every tested candidate, the base
+  qualities of matching and mismatching bases, and the per-read carriage of
+  each phasing block; the project records the fitted control background.
+
 ### Fixed (11 October 2026, second round)
 - `nanoshm-compare` pooled unique mutations across files into one set.
   SHMTool counts a mutation once per file, with L = sites x files; counts are
@@ -156,6 +204,22 @@ this project uses [semantic versioning](https://semver.org/).
 - `nanoshm-compare` analyses every file at the same depth.
 - A sample below its target depth is now reported in `summary.json` warnings.
 - `summary.json` records `nanoshm_version`.
+
+### Added
+- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
+  in three groups: detail the project already computed but never drew (the
+  saturation curve, the single-read excess by substitution class, indels,
+  per-sample positional maps, the combined density with its intervals);
+  diagnostics that make the method auditable rather than taken on trust (the
+  base-quality histogram the default model keys on, the read-by-site carriage
+  behind each phasing decision, read attrition per stage, the fitted control
+  background along the amplicon, and the caller's own decision boundary); and
+  biology the tables held but nothing showed (clonal structure, replicate
+  agreement). Each is drawn only when the run carries what it needs. The
+  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
+  To support them the caller now records every tested candidate, the base
+  qualities of matching and mismatching bases, and the per-read carriage of
+  each phasing block; the project records the fitted control background.
 
 ### Fixed (October 2026)
 - `minimap2_preset` was ignored (hardcoded `map-ont`).
@@ -191,6 +255,22 @@ this project uses [semantic versioning](https://semver.org/).
   number submitted to the aligner.
 - `min_variant_reads` stays at 1. Once the statistics are right, raising it buys
   no background and costs ~15% of signal.
+
+### Added
+- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
+  in three groups: detail the project already computed but never drew (the
+  saturation curve, the single-read excess by substitution class, indels,
+  per-sample positional maps, the combined density with its intervals);
+  diagnostics that make the method auditable rather than taken on trust (the
+  base-quality histogram the default model keys on, the read-by-site carriage
+  behind each phasing decision, read attrition per stage, the fitted control
+  background along the amplicon, and the caller's own decision boundary); and
+  biology the tables held but nothing showed (clonal structure, replicate
+  agreement). Each is drawn only when the run carries what it needs. The
+  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
+  To support them the caller now records every tested candidate, the base
+  qualities of matching and mismatching bases, and the per-read carriage of
+  each phasing block; the project records the fitted control background.
 
 ### Fixed
 - Held-out *Aicda*-/- background: 30.9 -> 1.0 x 10-5 per analysed base on

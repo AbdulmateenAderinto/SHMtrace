@@ -533,6 +533,27 @@ message is the error the analysis raised. The most common are a reference file
 that is not FASTA, a read file that is none of the formats the app recognises,
 and duplicate sample names.
 
+## The diagnostic figures
+
+The Export tab lists the manuscript's figures first, then whichever of these
+the run can support. Each is drawn only when the data is there, so a run
+without controls or without indel calling simply shows fewer of them.
+
+| Figure | What it answers |
+|---|---|
+| Saturation | Is the depth enough? Unique mutations against reads sampled, one line per sample, with the analysed depth marked. Opt-in under Advanced, because it re-calls variants at every depth |
+| Combined density with intervals | The fullest estimate of mutation load, per-site calls plus the single-read estimate, with 95% intervals. The grey dash is the per-site calls alone |
+| Single-read excess | For each substitution class, single-read events seen against what the controls predict. The gap is the signal |
+| Insertions and deletions | Size, direction and position. Only when indel calling is on |
+| Position, per sample | One panel per sample, so a group mean cannot hide one animal |
+| Base quality: mismatches vs matches | The assumption the default model rests on. Sequencing error piles up at low quality, real mutations are read at ordinary quality. The further apart, the more a quality-aware test can do |
+| Phasing blocks | How many of a block's sites each read carries. All-or-nothing means a haplotype or paralogue; graded means hypermutation. This is the evidence behind a drop-or-keep decision |
+| Where reads are lost | Reads surviving each stage. A library that is mostly contaminant should be visible before you read a p-value |
+| The background your controls measured | The fitted error rate position by position. Spikes are positions where the controls themselves err, and a call there needs much more support |
+| Clonal structure | What share of mutated reads carry the single commonest mutation profile. A large share means an expanded clone, and recurrence-weighted numbers should then be read with care |
+| What the caller kept | Every candidate tested, frequency against p-value, filled if called. Shows what was thrown away |
+| Do replicates agree? | Per-position mutated-read counts, each sample against the rest of its group |
+
 ## What the app does not do
 
 - **Indels, unless you ask for them.** By default only substitutions are

@@ -215,6 +215,10 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     if model == "sanger" and minq <= 0:
         minq = 20
 
+    win = p.analysis_window
+    lo = (win[0] - 1) if win else 0
+    hi = (win[1] - 1) if win else reflen - 1
+
     counts = defaultdict(lambda: defaultdict(int))
     err_lambda = defaultdict(lambda: defaultdict(float))   # expected false reads / alt
     depth = defaultdict(int)
@@ -223,6 +227,8 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     s_lambda = defaultdict(float)                           # (pos, alt, strand) -> expected errors
     alt_qsum = defaultdict(lambda: defaultdict(int))        # pos -> base -> summed q
     alt_quals = defaultdict(list)                           # (pos, base, strand) -> qualities
+    qual_hist: dict = defaultdict(int)                      # quality -> mismatching bases
+    ref_qual_hist: dict = defaultdict(int)                  # quality -> matching bases
     col_probs = defaultdict(list) if model == "pbinom" else None
     n_clones = 0
     for r in aligned_reads:
@@ -235,9 +241,15 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
                 continue
             counts[rpos][base] += 1
             depth[rpos] += 1
+            if base == ref[rpos].upper() and lo <= rpos <= hi:
+                ref_qual_hist[min(int(q), 60)] += 1
             s_counts[(rpos, base, s)] += 1
             s_depth[(rpos, s)] += 1
             alt_qsum[rpos][base] += q
+            if base != ref[rpos].upper() and lo <= rpos <= hi:
+                # every mismatching base's quality, whatever the model: this is
+                # what the quality-calibrated test keys on
+                qual_hist[min(int(q), 60)] += 1
             if model in ("qcal", "sanger") and base != ref[rpos]:
                 alt_quals[(rpos, base, s)].append(q)
             # per-read chance of an error landing on each of the 3 non-observed
@@ -249,10 +261,6 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
                 if alt != base:
                     err_lambda[rpos][alt] += e3
                     s_lambda[(rpos, alt, s)] += e3
-
-    win = p.analysis_window
-    lo = (win[0] - 1) if win else 0
-    hi = (win[1] - 1) if win else reflen - 1
 
     candidates: list[Variant] = []
     pvals: list[float] = []
@@ -376,6 +384,8 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         if aligned_reads else None,
         "unique_variants": len(variants),
         "min_base_quality": minq,
+        "variant_base_quality_hist": dict(sorted(qual_hist.items())),
+        "reference_base_quality_hist": dict(sorted(ref_qual_hist.items())),
     }
     if model == "sanger":
         stats["clones"] = n_clones
@@ -384,6 +394,10 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         stats["overdispersion_rho"] = round(null_rates.rho, 6)
     if notes:
         stats["notes"] = notes
+    # every candidate the test saw, kept or not: the decision boundary a volcano
+    # plot draws. Underscored so write_outputs keeps it out of summary.json.
+    stats["_candidates"] = [(round(v.frequency, 6), v.p_value, bool(k))
+                            for v, k in zip(candidates, keep, strict=True)]
     return variants, stats
 
 

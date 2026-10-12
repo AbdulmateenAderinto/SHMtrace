@@ -203,7 +203,11 @@ def _window(p: Params, ref_seq: str) -> tuple[int, int]:
 def write_outputs(result: dict, out_dir: str):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "summary.json"), "w") as fh:
-        json.dump(result["summary"], fh, indent=2)
+        # underscored keys are bulk data for figures, not part of the summary
+        summary = dict(result["summary"])
+        summary["calling"] = {k: v for k, v in summary["calling"].items()
+                              if not k.startswith("_")}
+        json.dump(summary, fh, indent=2)
     with open(os.path.join(out_dir, "variants.csv"), "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["position", "ref", "alt", "supporting_reads", "depth",
