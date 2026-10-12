@@ -137,6 +137,17 @@ nanoshm --fastq lib_R1.fastq.gz+lib_R2.fastq.gz --reference ref.fasta --preset m
 
 Short-read platforms cannot span a long-read amplicon, so give them an analysis window the reads actually cover.
 
+### Sanger projects: a sample sheet and QC flags
+
+For a Sanger project, a sample sheet names each trace's animal, group and control status, along with its sequencing order, well and tube label. Each run then checks the bookkeeping: misfiled clones, copied traces, contaminated controls, labels that name another animal, and lineages lost to the germline rule. Problems are flagged and nothing is changed. Validated on simulated projects with planted errors and on the lab's JH4 traces: [docs/calibration/SANGER_PIPELINE.md](docs/calibration/SANGER_PIPELINE.md).
+
+```bash
+nanoshm-sheet draft traces/ -o samplesheet.csv        # then check and edit every row
+nanoshm-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron -o results/
+nanoshm-concordance results/project.json ont/project.json --labels Sanger,ONT
+nanoshm-validate-sanger --reps 10 -o validation/
+```
+
 ## Case versus control
 
 `nanoshm-compare` does group comparison in the spirit of SHMTool ([MacCarthy et al., 2009](https://doi.org/10.1016/j.jim.2009.06.005)), but starting from raw FASTQ rather than pre-aligned sequences. Each file is one independent source, for example one mouse.

@@ -4,6 +4,7 @@
 const S = {                       // everything the page knows
   options: null, reference: null, contaminant: null,
   samples: [],                    // {name, path, group, control}
+  sheet: null,                    // the loaded sample sheet (provenance for the Sanger QC)
   job: null, result: null, table: "samples", sort: null, sortDir: 1,
 };
 const $ = (id) => document.getElementById(id);
@@ -185,7 +186,33 @@ function addSamples(files) {
   autoGroup();
 }
 
-function clearSamples() { S.samples = []; renderSamples(); }
+function clearSamples() { S.samples = []; S.sheet = null; $("sheet-msg").innerHTML = ""; renderSamples(); }
+
+// A sample sheet names every file's sample, group and control status, and where
+// each clone came from (order, well, label), which the Sanger QC reports with
+// every flag. See nanoshm.samplesheet.
+async function loadSheet() {
+  const path = $("sheet-path").value.trim();
+  if (!path) return;
+  const r = await fetch("/api/samplesheet", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+  });
+  const d = await r.json();
+  if (!r.ok) {
+    const probs = (d.detail && d.detail.problems) || [d.detail || "could not read the sheet"];
+    $("sheet-msg").innerHTML = `<div class="msg err" style="margin-top:8px">The sheet has problems:
+      <ul>${probs.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>`;
+    return;
+  }
+  S.samples = d.samples.map(s => ({ name: s.name, path: s.path, group: s.group,
+                                    control: s.control, note: `${s.path.length} file(s) from the sheet` }));
+  S.sheet = d.sheet;
+  const ex = d.excluded.length ? `; ${d.excluded.length} row(s) excluded by the sheet` : "";
+  $("sheet-msg").innerHTML = `<div class="hint" style="margin-top:6px">${d.samples.length} samples
+    from ${esc(path)}${ex}</div>` + d.warnings.map(w => `<div class="msg" style="margin-top:6px">${esc(w)}</div>`).join("");
+  renderSamples();
+}
 
 function autoGroup() {
   // Guess the group from the file name: drop the parts every sample shares
@@ -266,6 +293,7 @@ async function runProject() {
     targeting_model: S.model ? S.model.path : null,
     overrides: over,
     samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control })),
+    sample_sheet: S.sheet || null,
   };
   $("run-btn").disabled = true;
   $("run-status").style.display = "";
@@ -696,6 +724,8 @@ const TABLES = {
       .sort((a, b) => a.mutations_per_read - b.mutations_per_read))],
   spectrum: ["Substitution spectrum", r => Object.entries(r.spectrum_group).flatMap(([g, c]) =>
     Object.entries(c).map(([k, v]) => ({ group: g, substitution: k, count: v })))],
+  qc: ["QC flags (Sanger)", r => (r.qc || {}).flags || []],
+  excluded: ["Clones not analysed (Sanger)", r => (r.qc || {}).excluded || []],
 };
 function buildTablePicker() {
   $("table-pick").innerHTML = Object.entries(TABLES)

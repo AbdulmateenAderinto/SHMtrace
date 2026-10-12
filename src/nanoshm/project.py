@@ -21,7 +21,19 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from . import batch, browse, clones, indels, metrics, motifs, null_model, pipeline, singletons, targeting
+from . import (
+    batch,
+    browse,
+    clones,
+    indels,
+    metrics,
+    motifs,
+    null_model,
+    pipeline,
+    qc,
+    singletons,
+    targeting,
+)
 from .config import load_preset
 from .io_utils import read_fasta
 
@@ -327,8 +339,10 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     want_browse = bool(project.get("browse"))
 
     progress(0.05, "aligning and filtering reads")
+    fates: dict | None = {} if sanger else None
     b = batch.prepare_batch({s["name"]: s["path"] for s in samples}, reference,
-                            contaminants, p, depth=project.get("depth"), controls=controls)
+                            contaminants, p, depth=project.get("depth"), controls=controls,
+                            fates=fates)
     depth = None if sanger else b["depth"]
 
     # The quality-calibrated model needs one leave-one-control-out calibration.
@@ -475,6 +489,19 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
     progress(0.92, "summarising")
     notes = []
+    qc_out = None
+    if sanger:
+        # bookkeeping checks: misfiled or duplicated clones, contaminated controls (qc.py)
+        sheet = project.get("sample_sheet") or {}
+        qc_out = qc.run(details, samples, ref, lo, hi, minq=p.min_base_quality or 20,
+                        provenance=sheet.get("provenance"), fates=fates,
+                        sheet_excluded=sheet.get("excluded"), aliases=sheet.get("aliases"))
+        notes += sheet.get("warnings") or []
+        n_prob = len({f["clone"] for f in qc_out["flags"] if f["severity"] == "problem"})
+        if n_prob:
+            notes.append(f"{n_prob} clone(s) flagged as likely misfiled, duplicated or "
+                         "contaminating; see the QC table. Nothing was changed: decide each one "
+                         "and record the decision in the sample sheet.")
     if sanger:
         notes += sorted({n for s in per_sample for n in ([s["warnings"]] if s["warnings"] else [])
                          if "germline" in n})
@@ -596,6 +623,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                    "error_model": p.error_model, "analysis_window": [lo + 1, hi + 1],
                    "reference_name": ref_name, "reference_length": len(ref)},
         "samples": per_sample,
+        # Sanger: flags for a person to review, and every clone not analysed (qc.py)
+        "qc": qc_out,
         # per-sample detail of the single-read estimate (singletons.estimate)
         "single_read": single_read,
         "indels": indel_rows,

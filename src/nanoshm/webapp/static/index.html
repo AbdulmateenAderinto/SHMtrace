@@ -91,6 +91,12 @@
         <div class="row" style="margin-top:8px">
           <button class="btn small ghost" id="pick-folder">Choose a folder…</button>
         </div>
+        <div class="row" style="margin-top:8px">
+          <input id="sheet-path" placeholder="…or a sample sheet: /path/to/samplesheet.csv"
+                 style="flex:1;min-width:0">
+          <button class="btn small ghost" onclick="loadSheet()">Load sheet</button>
+        </div>
+        <div id="sheet-msg"></div>
         <div class="row" style="margin:10px 0 4px">
           <button class="btn small ghost" onclick="autoGroup()">Group by name</button>
           <button class="btn small ghost" onclick="markControls()">Controls by name</button>

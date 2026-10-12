@@ -265,6 +265,7 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     candidates: list[Variant] = []
     pvals: list[float] = []
     germline_removed = 0
+    germline_sites: list = []
     n_hypotheses = 0
     germline_on = True
     germline_min_depth = 0
@@ -295,6 +296,7 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
             if (germline_on and d >= germline_min_depth
                     and freq >= p.germline_freq_threshold):   # fixed/germline -> not SHM
                 germline_removed += 1
+                germline_sites.append([rpos + 1, alt, c, d])
                 continue
             if model == "sanger":
                 # informational: error probability of the best supporting base
@@ -366,6 +368,8 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         "analysed_positions": len(covered),
         "mean_depth": round(win_depth_sum / max(1, len(covered)), 1),
         "germline_positions_removed": germline_removed,
+        # (1-based position, alt, reads carrying it, depth) for each one
+        "germline_sites": germline_sites,
         "candidates_tested": len(candidates),
         "hypotheses": n_hypotheses if p.bh_family == "all" else len(candidates),
         "multiple_testing": "none" if model == "sanger" else p.multiple_testing,
