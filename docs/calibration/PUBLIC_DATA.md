@@ -27,7 +27,7 @@
 
 ## Order of work
 
-1. PRJNA973112 on J꜀4: substitutions and single-read estimate on Illumina (`--platform illumina`), against the AID-KO mice.
+1. ~~PRJNA973112 on J꜀4~~ done: `ILLUMINA.md`. Wild type is about 18-fold above *Aicda*-/- (P = 0.015). The amplicon covers 70 bp (J꜀4 segment and start of the intron), not the intron window.
 2. PRJNA820976: indels (HMCES-KO against WT, both against AID-KO), and substitutions in a human V region.
-3. The lab's matched Sanger clones: substitution and indel concordance with nanopore in the same animals.
+3. ~~The lab's matched Sanger clones~~ done: `SANGER.md`.
 4. PRJNA918596 if a V-region Illumina set is still needed after 2.
