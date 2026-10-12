@@ -57,6 +57,22 @@ class Params:
     contaminant_min_alleles: int = 10
     contaminant_germline_frac: float = 0.2
 
+    # ---- UMI consensus (umi.py) --------------------------------------------
+    # "off", "flank" (UMI next to an anchor at a read end) or "header" (in the
+    # read name). With UMIs on, each molecule becomes one consensus read and
+    # every count downstream is of molecules.
+    umi: str = "off"
+    umi_ends: str = "both"           # flank: "left", "right" or "both" (dual UMIs)
+    umi_length: int = 18
+    umi_offset: int = 0              # bases between the UMI and its anchor
+    umi_anchor_length: int = 20      # default anchors: this many reference bases at each end
+    umi_left_anchor: str = ""        # or give the anchors outright (reference-forward)
+    umi_right_anchor: str = ""
+    umi_anchor_edits: int = 6
+    umi_header_regex: str = r"(?:_|UMI[=:])([ACGTN]{6,})"
+    umi_max_edits: int = 3           # per UMI end, when grouping
+    umi_min_reads: int = 3           # smaller groups are dropped
+
     # ---- variant calling ----------------------------------------------------
     analysis_window: tuple[int, int] | None = None  # 1-based inclusive; None = whole ref
     germline_freq_threshold: float = 0.50  # positions with an alt >= this are germline -> removed

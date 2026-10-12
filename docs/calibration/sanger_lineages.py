@@ -25,6 +25,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -105,7 +106,7 @@ def main(sheet_path):
         ont_reads[m] = [{(rp + 1, b) for rp, b, q in r.pairs if q >= 20} for r in aligned]
 
     rows = []
-    for k, (root, members) in enumerate(sorted(groups.items(), key=lambda kv: -len(kv[1]))):
+    for k, (_root, members) in enumerate(sorted(groups.items(), key=lambda kv: -len(kv[1]))):
         cnt = Counter(m for n in members for m in clones[n]["muts"])
         founders = []
         for mut, c in cnt.items():

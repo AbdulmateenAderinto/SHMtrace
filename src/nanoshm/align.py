@@ -40,9 +40,10 @@ class AlignedRead:
     # aligned (indels.normalise left-aligns them). Quality is the weakest
     # inserted base, or the weaker of the two bases flanking a deletion.
     indels: list = field(default_factory=list)
-    # where the alignment starts in `seq`, so the unaligned 5' sequence (for
-    # J꜀4, the V(D)J junction) can be read back
+    # where the alignment starts and ends in `seq`, so the unaligned 5' sequence
+    # (for J꜀4, the V(D)J junction) and 3' sequence (a UMI) can be read back
     q_st: int = 0
+    q_en: int = -1
 
 
 def diagnostic_sites(reference: str, contaminant_fastas: list[str],
@@ -192,7 +193,7 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params,
             q_start = best.q_st
         pairs, indels = _aligned_pairs(best, wseq, wquals, q_start, with_indels=True)
         yield AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand,
-                          indels, q_start)
+                          indels, q_start, q_start + (best.q_en - best.q_st))
 
 
 def _oriented_pairs(hit, seq: str, qual: str):

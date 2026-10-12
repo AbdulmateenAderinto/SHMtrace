@@ -31,6 +31,7 @@ from . import (
     null_model,
     pipeline,
     qc,
+    replicates,
     singletons,
     targeting,
 )
@@ -142,6 +143,10 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "pct_GC_in_WRC_GYW": round(100 * hot / gc, 1) if gc else None,
         "pct_AT_in_WA_TW": round(100 * wa / at, 1) if at else None,
         "analysed_bp": bp,
+        # the counts behind the two rates, for count-based tests (replicates.py)
+        "mutations_total": total_mut,
+        "frequency_bases": nreads * bp,
+        "density_bases": round(denom),
         "model_used": s["calling"].get("error_model", ""),
         "clustered_calls": sum(c["calls"] for c in clusters),
         "warnings": "; ".join(list(s.get("warnings") or [])
@@ -533,6 +538,9 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             "mutation_frequency_x1e3", "mutated_reads_pct",
             "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_GC_in_WRC_GYW"]
     groups = group_table(per_sample, keys)
+    # count-based tests with the animal as the unit (replicates.py)
+    animal_tests = (replicates.group_tests(per_sample)
+                    if project.get("animal_tests", True) else [])
 
     # spectrum per group (unique mutations, ref>alt counts) and per sample
     spec_group = defaultdict(Counter)
@@ -636,6 +644,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         # position -> fitted control error rate, for the background diagnostic
         "control_background": {str(k): round(v, 8) for k, v in sorted(control_background.items())},
         "groups": groups,
+        "animal_tests": animal_tests,
         "notes": notes,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
         # unique mutations per site of the from-base, per animal: the SHMTool
