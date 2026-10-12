@@ -19,6 +19,8 @@ It replaces the Geneious *assemble + find variants* step with [minimap2](https:/
 > at r = 0.95 ([`SANGER.md`](docs/calibration/SANGER.md)).
 > Still validate against your own null control before publishing numbers.
 
+![The nanoshm workflow, step by step, with the counts from the bundled J꜀4 libraries](docs/figures/pipeline.svg)
+
 ## The app
 
 Most people should use the desktop app: a window where you drop in your reads,
