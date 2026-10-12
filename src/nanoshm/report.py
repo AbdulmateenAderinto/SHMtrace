@@ -15,6 +15,11 @@ from . import viz
 
 SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "unique_density_x1e5", "one_event_density_x1e5",
+                  "combined_density_x1e5", "combined_density_ci_low",
+                  "combined_density_ci_high", "multi_read_mutations",
+                  "single_read_observed", "single_read_background", "single_read_estimate",
+                  "single_read_density_x1e5", "single_read_density_ci_low",
+                  "single_read_density_ci_high",
                   "mutation_frequency_x1e3", "mutated_reads_pct",
                   "mean_mutations_per_read", "pct_GC", "pct_transitions",
                   "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",

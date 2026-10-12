@@ -270,7 +270,9 @@ def platform_overrides(platform: str, base: Params | None = None) -> dict:
     elif plat == "pacbio":
         out.update(minimap2_preset="map-hifi", bh_family="all")
     elif plat == "illumina":
-        out.update(minimap2_preset="sr", bh_family="all",
+        # Illumina qualities top out near Q40 (binned at 37 on NovaSeq), so the
+        # single-read cut sits lower than on nanopore
+        out.update(minimap2_preset="sr", bh_family="all", single_read_min_quality=30,
                    max_ee_rate=max(0.02, base.max_ee_rate if base else 0.0),
                    min_align_len=min(100, base.min_align_len) if base else 100)
     elif plat == "sanger":
@@ -278,7 +280,7 @@ def platform_overrides(platform: str, base: Params | None = None) -> dict:
                    max_ee_rate=0.05,
                    min_align_len=min(200, base.min_align_len) if base else 200,
                    max_total_len=max(3000, base.max_total_len) if base else 3000,
-                   downsample_to=None, **MODES["sanger"])
+                   downsample_to=None, single_read_min_quality=None, **MODES["sanger"])
     return out
 
 

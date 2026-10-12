@@ -154,6 +154,15 @@ class Params:
     phase_score_threshold: float = 0.6     # read carrying >= this fraction of alts = minor haplotype
     phase_max_drop: float = 0.45           # refuse to drop more than this share of reads
 
+    # ---- single-read mutations ----------------------------------------------
+    # Mutations seen in one read are estimated in aggregate, as the excess of
+    # single-read events over the controls' rate, rather than called one by one
+    # (singletons.py, docs/calibration/SINGLE_READ.md). Only events whose base
+    # has at least this quality are counted; the estimate is corrected for the
+    # share of real bases the cut removes. 35 suits current nanopore (Dorado
+    # sup, Q capped at 50); 0 or None turns the estimate off.
+    single_read_min_quality: int | None = 35
+
     # ---- reporting ----------------------------------------------------------
     density_scale: float = 1e5             # unique-variant density is reported x this
 

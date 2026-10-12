@@ -6,6 +6,18 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Single-read mutations, estimated in aggregate** (`nanoshm/singletons.py`).
+  A mutation in one read cannot be confirmed site by site, so each sample's
+  high-quality single-read events are counted and the controls' rate of such
+  events is subtracted, corrected for the share of real bases the quality cut
+  removes. Projects with two or more controls now report
+  `single_read_estimate` and `combined_density_x1e5` (per-site calls plus the
+  estimate) with 95% intervals. On J꜀4 spike-ins it recovers 91–104% of planted
+  one-read mutations, and it brings Wt2 from 55.7 to 74.9 × 10⁻⁵ while the
+  knockouts stay at 0.4–1.2. See `docs/calibration/SINGLE_READ.md`.
+  `single_read_min_quality` (35; 30 on Illumina; off for Sanger) sets the cut.
+
 ### Fixed (Mac app, found by running the built app end to end)
 - SVG and PDF figure exports failed in the packaged app: matplotlib's PDF and
   SVG backends were not bundled. PNG was unaffected.
