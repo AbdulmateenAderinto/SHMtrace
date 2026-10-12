@@ -1,6 +1,6 @@
 # Do Sanger and nanopore agree in the same wild-type mice?
 
-*12 October 2026. Sanger: the lab's J꜀4 clones from their `.ab1` traces, organised by mouse with `organize_jh4_ab1.py`, plus the GenBank records of the six clones whose traces have not been found. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`; script: `sanger_vs_nanopore.py`.*
+*12 October 2026. Sanger: the lab's J꜀4 clones from their `.ab1` traces, organised by mouse with `organize_jh4_ab1.py`, every clone now read from its trace. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`; script: `sanger_vs_nanopore.py`.*
 
 ## Answer
 
@@ -31,18 +31,18 @@ WT2's Sanger spectrum rests on 6 mutations, so its per-mouse proportions are noi
 
 ## The Sanger data
 
-The traces are in seven sequencing orders, 429 files. Two orders were run on 9 January 2024: `414310` (the `jhextra-w3` and `jhextra-w4` clones) and `414309` (mostly JH6-amplicon clones, plus K1 and w1 "extra" clones). The other five were run in July 2024: `432625`, `434138`, `434141`, `434355` and `434545`. Each trace stores the order number, not the clone name, so a clone's identity is its file name and its plate well. Geneious cut the GenBank record names at 23 characters (`23-jhextra-w3-2-user_ad` is the trace `23-jhextra-w3-2-user_added`), which the organiser allows for.
+The traces are in eight sequencing orders, 447 files. The earliest, `406809` (11 October 2023), holds the first J꜀4 clone of each mouse (`8-w2-jh4`, `10-w4-jh4`, `15-a1-jh4`, …). Two orders were run on 9 January 2024: `414310` (the `jhextra-w3` and `jhextra-w4` clones) and `414309` (mostly JH6-amplicon clones, plus K1 and w1 "extra" clones). The other five were run in July 2024: `432625`, `434138`, `434141`, `434355` and `434545`. Each trace stores the order number, not the clone name, so a clone's identity is its file name and its plate well. Geneious cut the GenBank record names at 23 characters (`23-jhextra-w3-2-user_ad` is the trace `23-jhextra-w3-2-user_added`), which the organiser allows for.
 
 The January traces confirm their GenBank records. All 29 that have one carry exactly the same mutations as their record, and one (`jhextra-w4-10`, 5 mutations) is a clone the GenBank set never had.
 
 | What | Count |
 |---|---:|
-| Traces | 429 |
+| Traces | 447 |
 | Usable J꜀4 traces, wild type, *Aicda*−/− and MKLN | 249 |
 | JH6 amplicon (another target) | 81 |
 | J꜀4 paralogue or other contaminant | 74 |
 | Failed reads (no or too short an alignment) | 24 |
-| Wild-type and *Aicda*−/− GenBank records still without a trace | 6 (`8-w2-jh4`, `9-w3-jh4`, `10-w4-jh4`, `15-a1-jh4`, `16-a2-jh4`, `17-a3-jh4`) |
+| Wild-type and *Aicda*−/− GenBank records without a trace | 0 |
 
 Clone labels were reused between orders: "w4-2" in three orders is three different colonies (3, 31 and 0 mutations, none shared). Every trace is therefore one colony, identified by order and well.
 
@@ -67,12 +67,29 @@ The organised set (`~/Nanoshm/sanger_ab1_by_mouse`, with `manifest.csv` and `REA
 
 | Mouse | Traces | GenBank-only clones | Usable J꜀4 clones | Unique mutations |
 |---|---:|---:|---:|---:|
-| WT2 | 34 | 1 | 35 | 6 |
-| WT3 | 39 (2 relabelled) | 1, the paralogue | 39 | 303 |
-| WT4 | 25 | 1 | 26 | 106 |
+| WT2 | 35 | 0 | 35 | 6 |
+| WT3 | 39 (2 relabelled) | 0 | 39 | 303 |
+| WT4 | 26 | 0 | 26 | 106 |
 | *Aicda*−/− A1 | 5 | 1 | 6 | 1 |
 | *Aicda*−/− A2 | 6 | 1 | 7 | 1 |
 | *Aicda*−/− A3 | 0 | 1 | 1 | 0 |
+
+## Is the 529-bp window defensible?
+
+Yes, and the reason is biological as much as technical (`figS_sanger_window`, `sanger_window_figure.py`). The J꜀4 coding segment runs from reference 53 to 104 (`…CTCCTCAG`), and the intron starts at 105 with the splice donor `GTAAG`. Positions 101–629 are therefore the J꜀4 intron, the region the assay measures because it is not translated and so not shaped by antigen selection, plus four bases of coding sequence. Its 3' end sits where the forward Sanger reads begin to fade.
+
+| Window | Clones spanning it end to end (of 100) | Unique wild-type mutations | What the extra bases are |
+|---|---:|---:|---|
+| **101–629 (529 bp)** | **86** | 415 | the intron |
+| 74–629 (556 bp) | 86 | 425 | the last 27 bases of the J꜀4 coding segment |
+| 101–656 (556 bp) | 77 | 429 | intron where the reads are ending: 91 clones have a Q≥20 base at 629, 77 at 656, none at 670 |
+
+The background is not what separates them. Sanger error in the *Aicda*−/− clones is 3 mismatches in 7,375 bases inside the window and none in either flank.
+
+- **Against 101–656**, 529 is cleaner in the sense that matters for a frequency: F = mutations ÷ (sequences × length) assumes every sequence covers every base, and nine more clones fall short of 656 than of 629.
+- **Against 74–629**, read quality is the same, so "cleaner" is the wrong word. The defensible reason is that 74–100 is coding sequence, which in a productively rearranged allele is part of the antibody (FR4) and can be selected; wild-type mutation density there is less than half the intron's (5.6 against 13.9 per 10³ bp).
+
+Either way the choice hardly moves the numbers: each mouse's count changes by at most 3% between the three windows. Even in the 529-bp window, 14 of 100 clones do not span every base, so mutations ÷ (n × 529) slightly understates the frequency. nanoshm's per-bp frequency, which divides by the bases each clone actually sequenced, avoids that.
 
 ## AID dependence on each platform
 
@@ -128,6 +145,5 @@ The same folders run in the app. Drop a mouse's folder (or choose it) as one sam
 
 ## Limits
 
-- **Six traces are still missing**, the `-jh4` clones listed above, so those clones are read from GenBank at a flat Q30.
 - **The Sanger reads start at J꜀4**, so they carry no V(D)J junction, the strongest identity check. A misfiled clone with few mutations and no relatives in its true mouse cannot be caught; mutation load still catches a misfile between mice as different as WT2 and WT3.
 - **Three mice per group.** The agreement tests are descriptive, as in the manuscript, and the repeated-measures ANOVA assumes sphericity.
