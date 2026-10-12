@@ -70,6 +70,7 @@ nanoshm-concordance = "nanoshm.concordance:main"
 nanoshm-validate-sanger = "nanoshm.sanger_sim:main"
 nanoshm-power = "nanoshm.power:main"
 nanoshm-repair = "nanoshm.repair:main"
+nanoshm-switch = "nanoshm.switch:main"
 nanoshm-app = "nanoshm.desktop:main"
 
 [project.urls]

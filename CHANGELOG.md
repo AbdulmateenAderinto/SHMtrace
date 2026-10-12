@@ -7,6 +7,7 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Class-switch junction analysis (`switch.py`, `nanoshm-switch`, SWITCH.md): breakpoints, microhomology, insertions, mutations near the join, ambiguity in repetitive acceptors, internal Sμ deletions, unique junctions, animal-level group comparison. On simulated junction reads at 2% error: all found, breakpoints within MH + 3 bp for 95%, ≥4-nt microhomology classed correctly 97%.
 - UMI consensus (`umi.py`; `umi = flank | header`): UMIs read next to an anchor at either or both read ends, or from read names; grouped with error tolerance (directional); one quality-weighted consensus per molecule. Simulated UMI libraries from real reads (`lineage_sim.build_umi_library`, `docs/calibration/umi_sim.py`, UMI.md): 0–0.7 false calls and 0.99–1.00 recall of single-molecule mutations, against 1–7 and 0.77–0.94 read by read.
 - Group tests with the animal as the unit (`replicates.py`, `animal_tests` in every result, `animal_tests.csv`, app table): negative binomial with shared dispersion (bootstrap p), permutation, Welch on log10, fold with 95% CI; pooled-read p shown only as contrast. Calibrated by simulation: 5.0–5.7% false positives at α = 0.05, against 91–94% for pooled reads.
 - `nanoshm-power` (`power.py`): power by simulation from a pilot project's rate, between-animal variation and within-animal clumping, for read-weighted, unique-density or clone-weighted measures.
