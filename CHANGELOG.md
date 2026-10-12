@@ -7,6 +7,18 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
+  opt-in with "Keep the read alignment"). Every input read is drawn in its
+  aligned place against the reference, banded by what became of it — analysed,
+  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
+  low quality, too long, unmapped — so a dropped read is still visible where it
+  would have sat. Zoom to base level for the reference letters and each
+  mismatched base, with called positions marked and indels ticked; click a read
+  for its strand, span and every mismatch with its quality. Reads travel as
+  their differences from the reference rather than their sequence, which is
+  what makes a few thousand of them cheap enough to send to a browser, and the
+  API serves one window at a time. Every filtering stage now records why it
+  rejected a read.
 - **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
@@ -78,6 +90,18 @@ this project uses [semantic versioning](https://semver.org/).
   peers no longer hides the other samples' estimates.
 
 ### Added
+- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
+  opt-in with "Keep the read alignment"). Every input read is drawn in its
+  aligned place against the reference, banded by what became of it — analysed,
+  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
+  low quality, too long, unmapped — so a dropped read is still visible where it
+  would have sat. Zoom to base level for the reference letters and each
+  mismatched base, with called positions marked and indels ticked; click a read
+  for its strand, span and every mismatch with its quality. Reads travel as
+  their differences from the reference rather than their sequence, which is
+  what makes a few thousand of them cheap enough to send to a browser, and the
+  API serves one window at a time. Every filtering stage now records why it
+  rejected a read.
 - **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
@@ -157,6 +181,18 @@ this project uses [semantic versioning](https://semver.org/).
   assembly, restored to sequenced orientation.
 
 ### Added
+- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
+  opt-in with "Keep the read alignment"). Every input read is drawn in its
+  aligned place against the reference, banded by what became of it — analysed,
+  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
+  low quality, too long, unmapped — so a dropped read is still visible where it
+  would have sat. Zoom to base level for the reference letters and each
+  mismatched base, with called positions marked and indels ticked; click a read
+  for its strand, span and every mismatch with its quality. Reads travel as
+  their differences from the reference rather than their sequence, which is
+  what makes a few thousand of them cheap enough to send to a browser, and the
+  API serves one window at a time. Every filtering stage now records why it
+  rejected a read.
 - **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
@@ -206,6 +242,18 @@ this project uses [semantic versioning](https://semver.org/).
 - `summary.json` records `nanoshm_version`.
 
 ### Added
+- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
+  opt-in with "Keep the read alignment"). Every input read is drawn in its
+  aligned place against the reference, banded by what became of it — analysed,
+  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
+  low quality, too long, unmapped — so a dropped read is still visible where it
+  would have sat. Zoom to base level for the reference letters and each
+  mismatched base, with called positions marked and indels ticked; click a read
+  for its strand, span and every mismatch with its quality. Reads travel as
+  their differences from the reference rather than their sequence, which is
+  what makes a few thousand of them cheap enough to send to a browser, and the
+  API serves one window at a time. Every filtering stage now records why it
+  rejected a read.
 - **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
@@ -257,6 +305,18 @@ this project uses [semantic versioning](https://semver.org/).
   no background and costs ~15% of signal.
 
 ### Added
+- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
+  opt-in with "Keep the read alignment"). Every input read is drawn in its
+  aligned place against the reference, banded by what became of it — analysed,
+  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
+  low quality, too long, unmapped — so a dropped read is still visible where it
+  would have sat. Zoom to base level for the reference letters and each
+  mismatched base, with called positions marked and indels ticked; click a read
+  for its strand, span and every mismatch with its quality. Reads travel as
+  their differences from the reference rather than their sequence, which is
+  what makes a few thousand of them cheap enough to send to a browser, and the
+  API serves one window at a time. Every filtering stage now records why it
+  rejected a read.
 - **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,

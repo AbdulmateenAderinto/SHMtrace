@@ -11,14 +11,16 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;
 
 /* ── tabs ─────────────────────────────────────────────────── */
 function showTab(name) {
-  for (const t of ["setup", "results", "tables", "export"]) {
+  for (const t of ["setup", "results", "reads", "tables", "export"]) {
     $("page-" + t).classList.toggle("active", t === name);
     $("tab-" + t).setAttribute("aria-selected", String(t === name));
   }
   if (name === "results") drawFigures();
+  if (name === "reads") rdInit();
 }
 function enableResultTabs(on) {
   for (const t of ["results", "tables", "export"]) $("tab-" + t).disabled = !on;
+  $("tab-reads").disabled = !(on && S.result && S.result.has_alignments);
 }
 
 /* ── start up ─────────────────────────────────────────────── */
@@ -257,6 +259,7 @@ async function runProject() {
     contaminants: S.contaminant ? [S.contaminant.path] : [],
     depth: $("depth").value ? +$("depth").value : null,
     saturation,
+    browse: $("keep-alignment").checked,
     overrides: over,
     samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control })),
   };
@@ -803,3 +806,201 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
   if (S.result) { $("figs").dataset.job = ""; drawFigures(); }
 });
 init();
+
+
+/* ── reads: the alignment, before and after processing ────── */
+// Colours run from "analysed" through the stages that drop a read, in the
+// order the pipeline applies them, so the legend reads like the pipeline.
+const FATE_COLOUR = {
+  "kept": "#3F6FA8",
+  "not sampled": "#9AA6B4",
+  "minor haplotype": "#8E6BB5",
+  "alignment too short": "#C98A2E",
+  "chimeric": "#B5651D",
+  "contaminant": "#C0392B",
+  "off target": "#A33E6B",
+  "low quality": "#7A8794",
+  "too long": "#6B7A5A",
+  "no quality segment": "#7A8794",
+  "unmapped": "#5D6D7E",
+};
+const RD = { sample: null, from: 1, to: null, offset: 0, limit: 300, data: null,
+             index: null, rowH: 7, left: 108 };
+
+async function rdInit() {
+  if (RD.index) return;
+  const r = await fetch(`/api/alignment/${S.job}`);
+  if (!r.ok) { $("rd-status").textContent = "This run did not record read alignments."; return; }
+  RD.index = await r.json();
+  $("rd-sample").innerHTML = RD.index.samples
+    .map(s => `<option value="${esc(s.sample)}">${esc(s.sample)} — ${s.reads.toLocaleString()} reads</option>`).join("");
+  const first = RD.index.samples[0];
+  if (!first) { $("rd-status").textContent = "No alignments were recorded."; return; }
+  RD.sample = first.sample; RD.from = 1; RD.to = first.reference_length;
+  $("rd-from").value = RD.from; $("rd-to").value = RD.to;
+  rdLoad(true);
+}
+
+function rdCurrent() {
+  return (RD.index.samples || []).find(s => s.sample === $("rd-sample").value);
+}
+
+async function rdLoad(reset) {
+  if (!RD.index) return;
+  if (reset) RD.offset = 0;
+  RD.sample = $("rd-sample").value;
+  RD.from = Math.max(1, +$("rd-from").value || 1);
+  RD.to = Math.max(RD.from + 1, +$("rd-to").value || (rdCurrent() || {}).reference_length || 1000);
+  const show = $("rd-show").value;
+  let fates = "";
+  if (show === "kept") fates = "kept";
+  else if (show === "dropped") fates = Object.keys(FATE_COLOUR).filter(f => f !== "kept").join(",");
+  const q = new URLSearchParams({ start: RD.from, end: RD.to, offset: RD.offset,
+                                  limit: RD.limit, ...(fates ? { fates } : {}) });
+  const r = await fetch(`/api/alignment/${S.job}/${encodeURIComponent(RD.sample)}?${q}`);
+  if (!r.ok) { $("rd-status").textContent = (await r.json()).detail || "could not load"; return; }
+  RD.data = await r.json();
+  rdDraw();
+}
+
+function rdZoom(by) {
+  const mid = (RD.from + RD.to) / 2, span = (RD.to - RD.from) * by;
+  const len = (rdCurrent() || {}).reference_length || RD.to;
+  $("rd-from").value = Math.max(1, Math.round(mid - span / 2));
+  $("rd-to").value = Math.min(len, Math.round(mid + span / 2));
+  rdLoad(true);
+}
+function rdAll() {
+  $("rd-from").value = 1;
+  $("rd-to").value = (rdCurrent() || {}).reference_length || 1000;
+  rdLoad(true);
+}
+function rdPage(dir) {
+  const next = RD.offset + dir * RD.limit;
+  if (next < 0 || next >= (RD.data ? RD.data.total : 0)) return;
+  RD.offset = next; rdLoad(false);
+}
+
+function rdDraw() {
+  const d = RD.data, cv = $("rd-canvas"), ctx = cv.getContext("2d");
+  const reads = d.reads, span = d.end - d.start + 1;
+  const width = Math.max(760, $("rd-scroll").clientWidth - 2);
+  const plot = width - RD.left - 14;
+  const perBase = plot / span;
+  const head = 44;
+  const dpr = window.devicePixelRatio || 1;
+  const height = head + reads.length * RD.rowH + 10;
+  cv.width = width * dpr; cv.height = height * dpr;
+  cv.style.width = width + "px"; cv.style.height = height + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.body);
+  const fg = css.getPropertyValue("--fg") || "#111";
+  const bg = css.getPropertyValue("--bg") || "#fff";
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height);
+  const x = p => RD.left + (p - d.start) * perBase;
+
+  // called mutations, as vertical guides behind everything
+  if (perBase >= 1.2) {
+    for (const c of d.called) {
+      ctx.fillStyle = "rgba(192,57,43,.13)";
+      ctx.fillRect(x(c.pos), head - 6, Math.max(1, perBase), height - head);
+    }
+  }
+  // the reference: its sequence when there is room, otherwise a rule
+  ctx.font = "11px ui-monospace, Menlo, monospace";
+  ctx.fillStyle = fg;
+  ctx.globalAlpha = 0.75;
+  if (perBase >= 7) {
+    for (let p = d.start; p <= d.end; p++) {
+      ctx.fillText(d.sequence[p - d.start] || "", x(p) + perBase / 2 - 3, 26);
+    }
+  } else {
+    ctx.fillRect(RD.left, 22, plot, 2);
+  }
+  ctx.globalAlpha = 1;
+  ctx.font = "10px system-ui, sans-serif";
+  for (let i = 0; i <= 6; i++) {                       // position ruler
+    const p = Math.round(d.start + (span - 1) * i / 6);
+    ctx.fillStyle = fg; ctx.globalAlpha = 0.55;
+    ctx.fillText(String(p), Math.min(x(p), width - 30), 12);
+    ctx.globalAlpha = 1;
+  }
+
+  let band = null;
+  reads.forEach((rd, i) => {
+    const y = head + i * RD.rowH;
+    const colour = FATE_COLOUR[rd.fate] || "#888";
+    if (rd.fate !== band) {                              // name each band once
+      band = rd.fate;
+      ctx.fillStyle = fg; ctx.globalAlpha = 0.1;
+      ctx.fillRect(0, y, width, 1);
+      ctx.globalAlpha = 0.85; ctx.font = "600 9px system-ui, sans-serif";
+      ctx.fillStyle = colour;
+      ctx.fillText(rd.fate, 4, y + 9);
+      ctx.globalAlpha = 1;
+    }
+    const a = Math.max(RD.left, x(Math.max(rd.start, d.start)));
+    const b = Math.min(RD.left + plot, x(Math.min(rd.end || d.end, d.end)));
+    ctx.fillStyle = colour;
+    ctx.globalAlpha = rd.fate === "kept" ? 0.3 : 0.22;
+    if (b > a) ctx.fillRect(a, y + 1, b - a, RD.rowH - 2);   // the read's span
+    ctx.globalAlpha = 1;
+    for (const [pos, base] of rd.diffs) {                     // its mismatches
+      if (pos < d.start || pos > d.end) continue;
+      ctx.fillStyle = colour;
+      ctx.fillRect(x(pos), y + 1, Math.max(1.4, perBase), RD.rowH - 2);
+      if (perBase >= 7) {
+        ctx.fillStyle = bg; ctx.font = "9px ui-monospace, monospace";
+        ctx.fillText(base, x(pos) + perBase / 2 - 2.5, y + RD.rowH - 1.5);
+      }
+    }
+    for (const [pos, op] of rd.indels) {                      // and its indels
+      if (pos < d.start || pos > d.end) continue;
+      ctx.fillStyle = op === "D" ? "#111" : "#1B8A5A";
+      ctx.fillRect(x(pos) - 1, y, 2.2, RD.rowH);
+    }
+  });
+  // row labels only when the rows are tall enough to read
+  if (RD.rowH >= 14) {
+    ctx.font = "9px ui-monospace, monospace"; ctx.globalAlpha = 0.7;
+    reads.forEach((rd, i) => {
+      ctx.fillStyle = fg;
+      ctx.fillText(rd.name.slice(0, 14), 4, head + i * RD.rowH + RD.rowH - 1.5);
+    });
+    ctx.globalAlpha = 1;
+  }
+  cv.onclick = ev => {
+    const r = cv.getBoundingClientRect();
+    const i = Math.floor((ev.clientY - r.top - head) / RD.rowH);
+    if (i >= 0 && i < reads.length) rdDetail(reads[i]);
+  };
+
+  const c = d.counts, kept = c.kept || 0;
+  const total = Object.values(c).reduce((a, b) => a + b, 0);
+  $("rd-status").textContent =
+    `${RD.sample}: ${total.toLocaleString()} reads recorded, ${kept.toLocaleString()} analysed`
+    + (d.truncated ? ` (${d.truncated.toLocaleString()} more not recorded)` : "")
+    + ` · showing ${reads.length} of ${d.total.toLocaleString()} over ${d.start}–${d.end}`
+    + ` · ${d.called.length} called mutation${d.called.length === 1 ? "" : "s"} in view`;
+  $("rd-page").textContent = `reads ${d.offset + 1}–${d.offset + reads.length} of ${d.total.toLocaleString()}`;
+  $("rd-legend").innerHTML = Object.entries(c)
+    .sort((a, b) => b[1] - a[1])
+    .map(([f, n]) => `<span class="hint"><span style="display:inline-block;width:10px;height:10px;
+      border-radius:2px;background:${FATE_COLOUR[f] || "#888"};margin-right:5px"></span>${esc(f)} (${n.toLocaleString()})</span>`)
+    .join("") + `<span class="hint"><span style="display:inline-block;width:3px;height:10px;
+      background:#111;margin-right:5px"></span>deletion</span>
+      <span class="hint"><span style="display:inline-block;width:3px;height:10px;
+      background:#1B8A5A;margin-right:5px"></span>insertion</span>`;
+}
+
+function rdDetail(rd) {
+  const box = $("rd-detail");
+  box.style.display = "";
+  const diffs = rd.diffs.map(([p, b, q]) => `${p}${b} (Q${q})`).join(", ") || "none in this window";
+  const ind = rd.indels.map(([p, op, x]) => `${p} ${op === "D" ? "del " + x : "ins " + x}`).join(", ") || "none";
+  box.innerHTML = `<h3 style="margin:0 0 6px">${esc(rd.name)}</h3>
+    <p class="hint" style="margin:0 0 8px">${esc(rd.fate)} ·
+      ${rd.start}–${rd.end} · ${rd.strand === 1 ? "forward" : "reverse"} strand</p>
+    <p style="margin:0 0 4px"><strong>Mismatches:</strong> ${esc(diffs)}</p>
+    <p style="margin:0"><strong>Indels:</strong> ${esc(ind)}</p>`;
+}

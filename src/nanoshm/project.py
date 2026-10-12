@@ -21,7 +21,7 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from . import batch, indels, metrics, motifs, null_model, pipeline, singletons
+from . import batch, browse, indels, metrics, motifs, null_model, pipeline, singletons
 from .config import load_preset
 from .io_utils import read_fasta
 
@@ -252,6 +252,11 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     controls = {s["name"] for s in samples if s.get("control")}
     sanger = (project.get("platform") == "sanger")
 
+    # project["browse"]: keep the alignment of every read, kept or dropped, so
+    # the result can be inspected read by read. Off by default: it re-runs the
+    # read preparation to record what became of each one.
+    want_browse = bool(project.get("browse"))
+
     progress(0.05, "aligning and filtering reads")
     b = batch.prepare_batch({s["name"]: s["path"] for s in samples}, reference,
                             contaminants, p, depth=project.get("depth"), controls=controls)
@@ -278,6 +283,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     tallies: dict = {}
     single_read: dict = {}
     control_background: dict = {}
+    alignments: dict = {}
     # project["saturation"]: True for a sensible ladder up to the analysed
     # depth, or an explicit list of depths. Off by default.
     sat = project.get("saturation")
@@ -314,6 +320,17 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             null = nulls[peers]
         res = pipeline.analyse(b["reads"][name], reference, p, b["stats"][name],
                                null_rates=null, depth=depth)
+        if want_browse:
+            progress(0.15 + 0.75 * i / len(samples), f"recording the alignment of {name}")
+            fates: dict = {}
+            kept, _st = pipeline.prepare_reads(s["path"], reference, contaminants, p,
+                                               known_blocks=b.get("known_blocks"), fates=fates)
+            analysed = {a.qname for a in res["_aligned"]}
+            for a in kept:
+                if a.qname not in analysed:
+                    fates.setdefault(a.qname, {"fate": "not sampled"})
+            alignments[name] = browse.alignment(res["_aligned"], fates, reference,
+                                                res["variants"])
         if saturation_depths:
             # the whole depth curve, not just the one analysed point. Opt-in:
             # it re-calls variants at every depth.
@@ -462,6 +479,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "hotspots": hotspots,
         "group_order": list(dict.fromkeys(gmap[s["name"]] for s in samples)),
         "_details": details,
+        "_alignments": alignments,
     }
 
 
@@ -473,7 +491,10 @@ def public(res: dict) -> dict:
             "substitution_matrix", "spectrum_by_group", "positional_map", "mutation_load"]
     if any(s.get("pct_GC_in_WRC_GYW") is not None for s in res.get("samples", [])):
         base.append("hotspot_targeting")
-    return {**out, "available_figures": base + viz_diagnostics.drawable(res)}
+    return {**out, "available_figures": base + viz_diagnostics.drawable(res),
+            # the alignments themselves stay on the server; the Reads tab asks
+            # for the window it is showing
+            "has_alignments": bool(res.get("_alignments"))}
 
 
 __all__ = ["run_project", "public", "build_params", "metrics", "replace"]

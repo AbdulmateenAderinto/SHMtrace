@@ -533,6 +533,47 @@ message is the error the analysis raised. The most common are a reference file
 that is not FASTA, a read file that is none of the formats the app recognises,
 and duplicate sample names.
 
+## The Reads tab
+
+Tick **Keep the read alignment** under Advanced and the run records where every
+read aligned and what became of it. The **Reads** tab then draws the pile-up:
+the reference along the top, one row per read, and a coloured tick wherever a
+read disagrees with the reference. It is the view the Geneious *assemble, then
+find variants* step gave, with one addition — a read the pipeline threw away is
+still drawn, in the place it would have occupied, in the colour of the reason it
+went.
+
+Reads are grouped into bands by what happened to them, analysed first, so the
+before-and-after is the shape of the picture rather than something you have to
+work out. The bands are:
+
+| Band | Why the read went |
+|---|---|
+| analysed | kept, and counted in the result |
+| not sampled | dropped at depth normalisation, so every sample is compared at one depth |
+| minor haplotype | removed as part of a co-occurring block (see the phasing figure) |
+| alignment too short | aligned span below the preset's minimum |
+| chimeric | more than one primary alignment |
+| contaminant | best hit was a contaminant reference, not the target |
+| off target | best hit was neither |
+| low quality | expected-error rate above the gate |
+| too long | longer than the amplicon window allows |
+| unmapped | did not align at all |
+
+Zoom in until the reference letters appear and each mismatch shows its base.
+Red columns mark the positions the caller called. Deletions are black ticks and
+insertions green. Click any read for its name, strand, span, and every mismatch
+with the quality of that base.
+
+This is the quickest way to answer two questions the tables cannot: *does this
+library look like the assay I think it is*, and *was that call real*. A library
+that is largely contaminant, or a mutation that rests on three reads that all
+look odd, is obvious here and invisible in a p-value.
+
+Recording the alignment re-runs the read preparation, so it adds roughly the
+time of one extra pass. Large libraries are capped at the first few thousand
+reads, analysed ones first, and the tab says when that has happened.
+
 ## The diagnostic figures
 
 The Export tab lists the manuscript's figures first, then whichever of these

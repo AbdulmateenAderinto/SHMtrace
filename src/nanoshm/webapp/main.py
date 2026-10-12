@@ -32,7 +32,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .. import __version__, pipeline, project, report, viz
+from .. import __version__, browse, pipeline, project, report, viz
 from .. import compare as compare_mod
 from ..config import available_presets, load_preset
 
@@ -252,6 +252,35 @@ def export(job_id: str, what: str):
         return Response(figs[what], media_type=mime,
                         headers={"Content-Disposition": f"attachment; filename={what}"})
     raise HTTPException(404, f"cannot export {what}")
+
+
+@app.get("/api/alignment/{job_id}/{sample}")
+def alignment(job_id: str, sample: str, start: int = 1, end: int | None = None,
+              offset: int = 0, limit: int = 400, fates: str | None = None):
+    """A window of one sample's read alignment, for the Reads tab.
+
+    `fates` is a comma-separated filter ("kept,contaminant"); omit it for all.
+    """
+    res = _result(job_id)
+    data = (res.get("_alignments") or {}).get(sample)
+    if data is None:
+        raise HTTPException(404, "this run did not record read alignments; "
+                                 "tick 'Keep the read alignment' and run again")
+    want = {f for f in fates.split(",") if f} if fates else None
+    return browse.window(data, start=max(1, start), end=end, fates=want,
+                         offset=max(0, offset), limit=min(2000, max(1, limit)))
+
+
+@app.get("/api/alignment/{job_id}")
+def alignment_index(job_id: str):
+    """Which samples have a recorded alignment, and how big each is."""
+    res = _result(job_id)
+    al = res.get("_alignments") or {}
+    return {"samples": [{"sample": k, "reads": len(v["reads"]), "counts": v["counts"],
+                         "truncated": v["truncated"],
+                         "reference_length": len(v["reference"])}
+                        for k, v in al.items()],
+            "fates": [{"name": n, "description": d} for n, d in browse.FATES]}
 
 
 @app.get("/api/figure/{job_id}/{name}")

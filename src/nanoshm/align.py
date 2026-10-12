@@ -60,13 +60,28 @@ def build_index(target_fastas: list[str], contaminant_fastas: list[str],
     return aligner, {n for n, _ in targets}, {n for n, _ in contams}
 
 
-def align_reads(reads, aligner, target_names, contam_names, p: Params):
+def align_reads(reads, aligner, target_names, contam_names, p: Params,
+                fates: dict | None = None):
     """reads = iterable of (qname, seq, qual). Yields AlignedRead for kept reads.
 
     Returns a stats dict via the .stats attribute on the generator's closure —
     here we just yield and let the caller tally
     see pipeline.py.
+
+    Pass `fates` to record why each read was dropped, keyed by read name. A
+    read that aligned but was rejected is recorded with its alignment, so the
+    read browser can show it in place against the reference.
     """
+    def note(name, why, hit=None, seq=None, qual=None):
+        if fates is None:
+            return
+        rec = {"fate": why}
+        if hit is not None:
+            rec.update(ctg=hit.ctg, r_st=hit.r_st, r_en=hit.r_en, strand=hit.strand)
+            if seq is not None:
+                rec["pairs"] = _oriented_pairs(hit, seq, qual)
+        fates[name] = rec
+
     for qname, seq, qual in reads:
         best = None
         n_primary = 0
@@ -76,14 +91,19 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params):
                 if best is None or hit.mlen > best.mlen:
                     best = hit
         if best is None:
-            continue                                  # unmapped
+            note(qname, "unmapped")
+            continue
         if p.drop_supplementary and n_primary > 1:
+            note(qname, "chimeric", best, seq, qual)
             continue                                  # chimera / structural anomaly
         if best.ctg in contam_names:
+            note(qname, "contaminant", best)
             continue                                  # best hit is a contaminant
         if best.ctg not in target_names:
+            note(qname, "off target", best)
             continue
         if (best.r_en - best.r_st) < p.min_align_len:
+            note(qname, "alignment too short", best, seq, qual)
             continue                                  # aligned span too short
         # minimap2 CIGAR is reference-forward. For a reverse-strand hit the
         # query bases/qualities must come from the reverse-complemented read,
@@ -99,6 +119,15 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params):
         pairs, indels = _aligned_pairs(best, wseq, wquals, q_start, with_indels=True)
         yield AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand,
                           indels)
+
+
+def _oriented_pairs(hit, seq: str, qual: str):
+    """The aligned (ref position, base, quality) triples for a hit, any strand."""
+    if hit.strand == -1:
+        wseq, wquals, q_start = _revcomp(seq), phred(qual)[::-1], len(seq) - hit.q_en
+    else:
+        wseq, wquals, q_start = seq, phred(qual), hit.q_st
+    return _aligned_pairs(hit, wseq, wquals, q_start)
 
 
 def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int, with_indels: bool = False):
