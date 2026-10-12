@@ -1,39 +1,39 @@
 {
- "clones": 93,
+ "clones": 103,
  "exon_end": 104,
  "intron_start": 105,
- "ko_mismatches_in_window": "3/7375",
+ "ko_mismatches_in_window": "5/16344",
  "windows": {
   "101-629": {
-   "clones_spanning": 86,
-   "of": 93,
-   "unique_mutations": 409,
-   "gc_at_wrc_gyw": "79/150"
+   "clones_spanning": 89,
+   "of": 103,
+   "unique_mutations": 415,
+   "gc_at_wrc_gyw": "79/153"
   },
   "74-629": {
-   "clones_spanning": 86,
-   "of": 93,
-   "unique_mutations": 419,
-   "gc_at_wrc_gyw": "79/156"
+   "clones_spanning": 89,
+   "of": 103,
+   "unique_mutations": 425,
+   "gc_at_wrc_gyw": "79/159"
   },
   "101-656": {
-   "clones_spanning": 77,
-   "of": 93,
-   "unique_mutations": 423,
-   "gc_at_wrc_gyw": "84/155"
+   "clones_spanning": 78,
+   "of": 103,
+   "unique_mutations": 429,
+   "gc_at_wrc_gyw": "84/158"
   }
  },
  "coverage_at": {
   "53": 21,
-  "60": 78,
-  "74": 93,
-  "101": 93,
-  "300": 93,
-  "500": 92,
-  "600": 87,
-  "629": 86,
-  "640": 85,
-  "656": 74,
+  "60": 81,
+  "74": 96,
+  "101": 96,
+  "300": 99,
+  "500": 102,
+  "600": 96,
+  "629": 94,
+  "640": 93,
+  "656": 78,
   "670": 0
  }
 }

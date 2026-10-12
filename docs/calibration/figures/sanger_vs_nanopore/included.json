@@ -69,63 +69,63 @@
  "now": {
   "WT2": {
    "composition": {
-    "own traces": 34,
-    "relabelled traces": 0,
+    "own traces": 23,
+    "relabelled traces": 13,
     "GenBank-only": 0
    },
-   "clones_counted": 34,
+   "clones_counted": 36,
    "unique_mutations": 6,
-   "density_x1e5": 33.4
+   "density_x1e5": 31.5
   },
   "WT3": {
    "composition": {
-    "own traces": 35,
-    "relabelled traces": 2,
+    "own traces": 25,
+    "relabelled traces": 16,
     "GenBank-only": 0
    },
-   "clones_counted": 37,
+   "clones_counted": 41,
    "unique_mutations": 303,
-   "density_x1e5": 1548.1
+   "density_x1e5": 1397.0
   },
   "WT4": {
    "composition": {
-    "own traces": 22,
+    "own traces": 26,
     "relabelled traces": 0,
     "GenBank-only": 0
    },
-   "clones_counted": 22,
-   "unique_mutations": 100,
-   "density_x1e5": 859.3
+   "clones_counted": 26,
+   "unique_mutations": 106,
+   "density_x1e5": 770.7
   },
   "A1": {
    "composition": {
-    "own traces": 6,
+    "own traces": 11,
     "relabelled traces": 0,
     "GenBank-only": 0
    },
-   "clones_counted": 6,
+   "clones_counted": 11,
    "unique_mutations": 1,
-   "density_x1e5": 31.5
+   "density_x1e5": 17.2
   },
   "A2": {
    "composition": {
-    "own traces": 7,
+    "own traces": 10,
     "relabelled traces": 0,
     "GenBank-only": 0
    },
-   "clones_counted": 7,
+   "clones_counted": 10,
    "unique_mutations": 1,
-   "density_x1e5": 27.0
+   "density_x1e5": 18.9
   },
   "A3": {
    "composition": {
-    "own traces": 1,
+    "own traces": 10,
     "relabelled traces": 0,
     "GenBank-only": 0
    },
-   "clones_counted": 1,
-   "unique_mutations": 0,
-   "density_x1e5": 189.0
+   "clones_counted": 10,
+   "unique_mutations": 2,
+   "density_x1e5": 37.8
   }
  }
 }

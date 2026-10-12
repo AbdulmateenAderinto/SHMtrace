@@ -87,6 +87,9 @@ def run_platforms(sanger_dir: Path, ont_mode: str) -> dict:
                 "n": s["reads"],
                 "variants": [(v.pos, v.ref, v.alt) for v in vs],
                 "per_seq": [r["mutations"] for r in d["per_read"]],
+                # bases each sequence read inside the window at good quality: a short but
+                # clean Sanger clone counts what it read, not the full 529 bp
+                "bp": sum(r["bases"] for r in d["per_read"]),
                 "warnings": s.get("warnings") or "",
                 "clone_weighted_x1e3": s.get("clone_weighted_frequency_x1e3"),
             }
@@ -94,13 +97,15 @@ def run_platforms(sanger_dir: Path, ont_mode: str) -> dict:
 
 
 def density(d: dict) -> tuple[float, bool]:
-    """The manuscript's density: unique mutations / (sequences x 529 bp), x 1e5.
+    """Unique mutations per base read, x 1e5: the manuscript's density, with the bases each
+    sequence actually read in place of sequences x 529 (the same for full-length reads).
 
     A sample with none is set to one mutation's worth, as the manuscript does,
     which can only make it look more mutated. Returns (value, censored).
     """
     k = len(d["variants"])
-    return 1e5 * max(k, 1) / (d["n"] * BP), k == 0
+    bp = d.get("bp") or d["n"] * BP
+    return 1e5 * max(k, 1) / bp, k == 0
 
 
 def matrix(variants) -> np.ndarray:
@@ -530,8 +535,8 @@ def fig_beyond(D, out, st, ref):
 
     # D: mutation load per mouse, both platforms
     ax = axes[1, 1]
-    fs_ = [1e3 * sum(D[("sanger", n)]["per_seq"]) / (D[("sanger", n)]["n"] * BP) for n in WT]
-    fo_ = [1e3 * sum(D[("ont", n)]["per_seq"]) / (D[("ont", n)]["n"] * BP) for n in WT]
+    fs_ = [1e3 * sum(D[("sanger", n)]["per_seq"]) / D[("sanger", n)]["bp"] for n in WT]
+    fo_ = [1e3 * sum(D[("ont", n)]["per_seq"]) / D[("ont", n)]["bp"] for n in WT]
     fc_ = [D[("ont", n)]["clone_weighted_x1e3"] for n in WT]
     for n, a, b, c in zip(WT, fs_, fo_, fc_, strict=True):
         ax.scatter(a, b, s=90, color=ONT[0], edgecolor="white", zorder=3)

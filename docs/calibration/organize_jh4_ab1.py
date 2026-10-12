@@ -35,7 +35,18 @@ ROOT = Path(__file__).resolve().parents[2]
 REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
 CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
 
-MIN_USABLE = 0.80
+FOLDER_MOUSE = {"W2": "WT2", "W3": "WT3", "W4": "WT4", "A1": "Aicda_A1", "A2": "Aicda_A2",
+                "A3": "Aicda_A3", "K2": "MKLN_K2", "K3": "MKLN_K3", "K4": "MKLN_K4"}
+
+# (GenBank folder, mouse by label) -> (mouse, reason): whole batches the folder contradicts,
+# with evidence at the batch level (docs/calibration/SANGER_VS_NANOPORE.md)
+GROUP_MOVES = {
+    ("W2", "WT3"): ("WT3", "filed under W2, labelled w3/wt3: five of this batch share 8-13 "
+                           "mutations with single WT3 nanopore reads and none with WT2's; its loads "
+                           "match WT3's clones (p = 0.28), not WT2's own (p = 1.5e-6)"),
+    ("W3", "WT2"): ("WT2", "filed under W3, labelled w2: near-unmutated (11 of 12 carry none), "
+                           "which 22 of WT3's 23 clones are not; WT2's own clones are"),
+}
 
 # GenBank records with no trace whose label is contradicted by the sequence: the K4
 # traces 88-k4-28 and 96-k4-36 renamed as WT2 clones (identical sequences).
@@ -52,6 +63,10 @@ CORRECTIONS = {
     ("434141", "A11"): ("MKLN_K2", "labelled w4-9, but carries the same 7-mutation lineage as K2 "
                                    "clones k2-1 (E11, same plate) and k2-24 (order 434355); not in "
                                    "any WT4 nanopore read"),
+    ("414309", "F7"): ("_excluded/unassigned", "labelled jh6-a1-e6 (Aicda-/-), but 5 confident AID-type "
+                                               "mutations (Q26-56, four at WRC/GYW or WA/TW, mostly A:T "
+                                               "transitions); a contaminant, removed at the user's "
+                                               "decision"),
     ("432625", "E6"): ("_excluded/unassigned", "labelled a1-1 (Aicda-/-), but 37 AID-type mutations "
                                                "(64% of G:C changes at WRC/GYW); an AID-null mouse "
                                                "cannot make this, and it shares no lineage with any "
@@ -61,7 +76,10 @@ CORRECTIONS = {
 
 def mouse_from_label(label: str) -> str:
     s = label.lower()
-    for pat, m in ((r"jh6", "_excluded/JH6_amplicon"), (r"(mkln_ko_)(\d)", "MKLN_K{}"),
+    jh6 = re.search(r"jh6-(\w+?)-", s)
+    if jh6:        # 'jh6' clones are J꜀4-intron clones from another primer set: their mouse is
+        s = jh6.group(1) + "-"           # the tag after it (jh6-a3-g9 is an A3 clone)
+    for pat, m in ((r"(mkln_ko_)(\d)", "MKLN_K{}"),
                    (r"(jh4k)(\d)", "MKLN_K{}"), (r"(^|-)k(\d)", "MKLN_K{}"),
                    (r"(^|-)a(\d)", "Aicda_A{}"), (r"(^|-)wt?2-", "WT2"), (r"(^|-)wt?3-", "WT3"),
                    (r"(^|-)w4", "WT4"), (r"w1", "_excluded/unassigned")):
@@ -110,8 +128,28 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
               / 529 for a in aligned}
     muts = {a.qname: sum(1 for pos, b, q in a.pairs if 100 <= pos <= 628 and q >= 20 and b in "ACGT"
                          and b != ref[pos] and (pos, b) not in germ) for a in aligned}
-    fate_dir = {"contaminant": "_excluded/paralogue_or_contaminant", "unmapped": "_excluded/failed_read",
-                "alignment too short": "_excluded/failed_read", "chimeric": "_excluded/failed_read"}
+    # only a trace nanoshm cannot read is excluded: no stretch of good quality (a noisy
+    # chromatogram), no or too short an alignment, or a chimera. A clean but short trace
+    # stays, and counts the bases it reads.
+    fate_dir = {"contaminant": "_excluded/paralogue_or_contaminant"}
+
+    # the original organisation: the GenBank folder each record was filed in (the "24"
+    # folder is the union of all and says nothing). It is the default; the label is used
+    # only for traces with no GenBank record.
+    gb_folder: dict = {}
+    if genbank:
+        for f in Path(genbank).glob("*/*.gb"):
+            fo = f.parent.name.split("_-_")[0]
+            if fo == "24":
+                continue
+            name = open(f).readline().split()[1]
+            gb_folder.setdefault(name, set()).add(fo)
+
+    def folder_of(stem):
+        for n in (stem, stem[:23]):        # Geneious cuts names at 23 characters
+            if n in gb_folder and len(gb_folder[n]) == 1:
+                return next(iter(gb_folder[n]))
+        return None
 
     if out_p.exists():
         shutil.rmtree(out_p)
@@ -119,22 +157,20 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
     for t in traces:
         key = f"{t['order']}|{t['well']}"
         by_label = mouse_from_label(t["label"])
-        mouse, status, reason = by_label, "kept", ""
+        fo = folder_of(t["path"].stem)
+        default = FOLDER_MOUSE.get(fo, by_label) if fo else by_label
+        mouse, status, reason = default, "kept", (f"GenBank folder {fo}" if fo else "label (no GenBank record)")
+        group = GROUP_MOVES.get((fo, by_label))
         if (t["order"], t["well"]) in CORRECTIONS:
             mouse, reason = CORRECTIONS[(t["order"], t["well"])]
             status = "excluded" if mouse.startswith("_excluded") else "relabelled"
-        elif by_label.startswith("_excluded"):
-            # the label already says what it is (JH6 amplicon, w1): that is the reason
-            status = "excluded"
-            reason = ("another amplicon (JH6)" if "JH6" in by_label
-                      else "label names no mouse in this study")
         elif key in fates:
             f = fates[key]["fate"]
-            mouse, status, reason = fate_dir.get(f, "_excluded/failed_read"), "excluded", f"nanoshm: {f}"
-        elif usable.get(key, 0) < MIN_USABLE:
-            mouse, status = "_excluded/low_quality", "excluded"
-            reason = (f"only {100 * usable.get(key, 0):.0f}% of the 529-bp window read at Q>=20 "
-                      f"(minimum {100 * MIN_USABLE:.0f}%)")
+            mouse, status, reason = fate_dir.get(f, "_excluded/noisy_or_failed"), "excluded", f"nanoshm: {f}"
+        elif group:
+            mouse, status, reason = group[0], "relabelled", group[1]
+        elif default.startswith("_excluded"):
+            status, reason = "excluded", "no GenBank folder, and the label names no mouse in this study"
         tag = by_label.split("/")[-1]
         name = f"{mouse.split('/')[-1] if not mouse.startswith('_excluded') else tag}_{t['order']}-{t['well']}_{t['label']}.ab1"
         dest = out_p / mouse / name
@@ -145,6 +181,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
                      "well": t["well"], "run_date": t["date"],
                      "mutations_q20_101_629": muts.get(key, ""),
                      "usable_q20_101_629": round(usable[key], 3) if key in usable else "",
+                     "genbank_folder": fo or "",
                      "reason": reason,
                      "original_path": str(t["path"])})
     if genbank:
