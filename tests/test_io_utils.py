@@ -57,3 +57,19 @@ def test_bundled_example_reads_are_readable(wt_fastq):
     for _name, seq, qual in reads[:20]:
         assert len(seq) == len(qual), "FASTQ seq/qual length mismatch"
         assert not math.isnan(expected_error_rate(qual))
+
+
+def test_genbank_records_are_reads(tmp_path):
+    from nanoshm.io_utils import read_fastq, sniff_format
+    gb = tmp_path / "clone.gb"
+    gb.write_text("LOCUS       w2-1-user_added     24 bp ds-DNA     linear\n"
+                  "DEFINITION  .\nFEATURES             Location/Qualifiers\nORIGIN\n"
+                  "        1 acgtacgtac gtmkacgtac gtac\n//\n")
+    assert sniff_format(str(gb)) == "genbank"
+    (name, seq, qual), = list(read_fastq(str(gb)))
+    assert name == "w2-1-user_added" and seq == "ACGTACGTACGTMKACGTACGTAC"
+    assert len(qual) == len(seq)
+    # a GenBank file without the extension is sniffed by its LOCUS line
+    other = tmp_path / "clone_noext"
+    other.write_text(gb.read_text())
+    assert sniff_format(str(other)) == "genbank"
