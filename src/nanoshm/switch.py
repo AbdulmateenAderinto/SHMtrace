@@ -36,7 +36,7 @@ The references: one FASTA record per switch region, named as given to `donor`
 from __future__ import annotations
 
 import csv
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import asdict, dataclass
 
 import mappy as mp
