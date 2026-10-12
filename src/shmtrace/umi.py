@@ -43,8 +43,14 @@ from .align import AlignedRead
 QMAX = 60
 
 
+IUPAC = {"A": "A", "C": "C", "G": "G", "T": "T", "R": "AG", "Y": "CT", "S": "CG", "W": "AT",
+         "K": "GT", "M": "AC", "B": "CGT", "D": "AGT", "H": "ACT", "V": "ACG", "N": "ACGT"}
+
+
 def _semiglobal(text: str, pat: str) -> tuple[int, int, int]:
-    """Best match of all of `pat` within `text`: (edits, start, end), end exclusive."""
+    """Best match of all of `pat` within `text`: (edits, start, end), end exclusive.
+
+    `pat` may carry IUPAC codes (degenerate primers): R matches A or G, and so on."""
     n, m = len(text), len(pat)
     if not n or not m:
         return m, 0, 0
@@ -54,9 +60,9 @@ def _semiglobal(text: str, pat: str) -> tuple[int, int, int]:
     for i in range(1, m + 1):
         cur = [i] + [0] * n
         starts = [0] * (n + 1)
-        pc = pat[i - 1]
+        ok = IUPAC.get(pat[i - 1], pat[i - 1])
         for j in range(1, n + 1):
-            d = prev[j - 1] + (pc != text[j - 1])
+            d = prev[j - 1] + (text[j - 1] not in ok)
             u = prev[j] + 1
             left = cur[j - 1] + 1
             if d <= u and d <= left:

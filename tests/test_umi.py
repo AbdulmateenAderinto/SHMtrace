@@ -109,3 +109,8 @@ def test_umi_consensus_end_to_end(examples):
     assert sc["molecules_analysed"] >= 15
     assert sc["group_purity"] >= 0.98
     assert sc["recall"] >= 0.95 and sc["false_calls"] <= 1
+
+
+def test_anchor_search_accepts_degenerate_primer_bases():
+    ed, s, e = umi._semiglobal("NNNNAGAGTTTGATCATGGCTCAGNNN", "AGRGTTYGATYMTGGCTCAG")
+    assert ed == 0 and s == 4 and e == 24

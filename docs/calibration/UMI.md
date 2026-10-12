@@ -58,8 +58,49 @@ In this simulation, read-by-read analysis already benefits from about six copies
 - **Reads lost to filtering.** About two-thirds of raw reads fail the pipeline's filters. A design that counts on 3 or more copies per molecule needs about 3× more raw reads than molecules × 3.
 - **Errors in the UMI itself.** The UMI is read with nanopore errors, so copies of one molecule differ from each other by 0–6 edits. Plain centroid grouping split molecules; the directional rule fixed this. A UMI at the very end of a read had often lost a base and was rejected; now a UMI short by up to `umi_max_edits` bases is kept.
 
+## On real nanopore UMI data
+
+`docs/calibration/umi_karst.py`, output in `umi_karst/results.json`.
+
+**Data:** the Karst et al. (2021) test set, from github.com/SorenKarst/longread_umi. It is used here and not redistributed.
+- 4,259 MinION R10 reads (guppy 3.4.4, high accuracy) of 4.4-kb rRNA operons from the ZymoBIOMICS mock community.
+- Each molecule carries an 18-nt UMI at both ends, just outside the degenerate primers 8F and 2490R. SHMtrace's anchor search now accepts IUPAC codes for primers like these.
+- The truth: the 43 distinct operon sequences of the community.
+
+**Method:** every read was aligned to the 43 operons. Its UMIs were read next to the primers with `umi.extract`, reads were grouped with `umi.group`, and each group of 3 or more became one consensus with `umi._consensus`, on the operon most of its reads align to. Error rates are measured against the best-matching operon.
+
+| | Raw reads | UMI consensus |
+|---|---:|---:|
+| Reads with both UMIs read | 4,082 of 4,259 | |
+| Molecules (3 or more reads; median 34) | | 103 |
+| Error per aligned base, all kinds | 9.5% | 0.17% (57-fold lower) |
+| Consensus matching its own operon best | | 100% |
+
+**By reads per molecule:**
+
+| Reads per molecule | Molecules | All errors | Substitutions | Molecules with no substitution |
+|---|---:|---:|---:|---:|
+| 3–4 | 4 | 2.1% | 0.28% | 0% |
+| 5–9 | 7 | 0.47% | 0.033% | 29% |
+| 10–19 | 15 | 0.10% | 0.011% | 53% |
+| 20 or more | 77 | 0.053% | 0.010% | 56% |
+
+**What this shows:**
+- **Substitutions fall to about 1 in 10,000 bases from 10 reads per molecule.** Substitutions are the only error that matters for SHM calls. That is 100-fold below a wild-type J꜀4 mutation frequency of about 10⁻², and it holds with no control-based correction at all.
+- **What's left is mostly indels in homopolymers.** They don't affect substitution calling.
+- **The authors' pipeline** (two rounds of racon and medaka polishing) reaches a lower total error, mainly by fixing those indels. SHMtrace's column-wise consensus doesn't attempt that.
+- **Grouping is reliable on real UMIs:** 95% of a group's reads align to the same operon copy, and the consensus always matches it best. The remaining 5% are reads that the near-identical operon copies make ambiguous.
+- **Design guidance:** aim for 10 or more reads per molecule. Molecules with 3–4 reads still carry about 0.3% substitution error.
+
+`tests/test_umi_karst.py` checks these numbers wherever the data are present.
+
+## Other public data checked
+
+- **Ramos IGHV4-34 SHM** (PLoS Comput Biol 2021, 10.1371/journal.pcbi.1009323): induced V-region SHM in Ramos cells with UMIs (MiSeq 2×300), plus a background control. The supplement (S4, S7) gives only the UMI consensus sequences as FASTA, with duplicate counts in S10. There are no raw reads or UMIs, so it can't test this step. It could serve as an error-corrected SHM case-against-control dataset for a V region.
+- **R2C2+UMI human IGH** (PNAS Nexus 2024, PRJNA1005293): only processed consensus reads were deposited.
+
 ## Limits
 
 - **No PCR errors were simulated.** An error in an early cycle is shared by many copies and survives consensus. Its rate with a high-fidelity polymerase (about 10⁻⁶ per base per doubling) is far below the nanopore error rate.
-- **No real UMI data has been tested yet.** Public nanopore UMI amplicon data (for example the dual-UMI method of Karst et al., 2021) would be the next test.
+- **Real UMI data comes from 16S rRNA operons, not SHM.** No public dataset has raw UMI reads of a fixed SHM locus. The lab's own UMI JH4 libraries would be the decisive test.
 - **Molecules with fewer than 3 reads are dropped.** That's the right trade for accuracy, but it costs depth.
