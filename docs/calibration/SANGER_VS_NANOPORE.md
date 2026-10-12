@@ -134,6 +134,27 @@ Nanopore separates the groups clearly, because 497 reads also catch WT2's minori
 
 Two independent PCRs and two platforms see one almost unmutated lineage dominating this mouse's germinal-centre B cells. Sanger's 36 clones, almost all from that lineage, miss the rest; nanopore's 497 reads do not.
 
+## Can the nanopore data say which clones are WT2's?
+
+Yes, for any clone that carries enough mutations, because a clone's mutations travel together in its relatives' reads.
+
+**Each mouse's nanopore lineages, searched for among all Sanger clones** (lineages = reads grouped by V(D)J junction, consensus of 4 or more mutations; a hit = 4 or more shared):
+
+| Nanopore library | Mutated lineages | Found in a Sanger clone | Where those clones are |
+|---|---:|---:|---|
+| WT3 | 33 | 15 | all assigned WT3, including E8/F8, `wt3-6` and `wt3-2` from the W2 folder; and `a1-1`, the contaminant in the A1 sample, which carries all 37 mutations of a 21-read WT3 lineage |
+| WT2 | 12 | 2 | one is the K4 five-mutation set (carry-over); one shares 4 of 16 with a WT3 clone, within coincidence |
+| WT4 | 3 | 0 | — |
+
+None of WT2's mutated lineages is in a clone assigned to another mouse, so WT2's mutated clones were not filed as WT3's.
+
+**Why WT2's Sanger count is low.** Resampling WT2's nanopore reads as if Sanger-cloning them separates two things:
+
+- *How many sequences are mutated agrees.* 5 of 36 Sanger clones carry a mutation (14%), against 17% of nanopore reads (P = 0.40). On both platforms about 85% of WT2's sequences are one unmutated lineage, seen independently in separate PCRs.
+- *How mutated they are does not.* The five carry 1, 1, 1, 1 and 3 mutations. Five reads drawn from WT2's mutated nanopore reads would carry about 23 unique mutations (95% range 7–51). With only about five non-dominant clones, Sanger sampled lightly mutated ones and missed the heavily mutated minority lineages. That is unlucky (36 random reads give a median of 28; P = 0.04 for 6 or fewer), not impossible.
+
+So WT2's low Sanger value comes from a mouse dominated by one unmutated clone, sampled with too few clones to reach its minority lineages. It does not come from misfiling. A per-clone measure, which nanopore's junctions allow (WT2 12.0 × 10⁻³ per clone against 1.7 per read), is the fair way to compare this mouse with the others.
+
 ## What changed from the manuscript's Sanger numbers
 
 `figures/sanger_vs_nanopore/figS_sanger_inclusion` (from `sanger_inclusion_figure.py`) draws this: what each mouse's Sanger value was built from in the manuscript and now, each mouse's density before and after, and the group comparison.
