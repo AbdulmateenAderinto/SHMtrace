@@ -2,6 +2,9 @@
 
 *12 October 2026. `shmtrace/replicates.py`, `shmtrace/power.py`; calibration `docs/calibration/replicates_calibration.py`, output in `replicates_calibration/`.*
 
+
+**In the app:** the *Power* tab. Take the pilot from a group of the current analysis (choose the measure), or type the numbers in.
+
 ## Why
 
 Reads and clones from one mouse are not independent. A clone's reads share its mutations, and mice differ from each other far more than reads within a mouse do. Testing every read of one group against every read of another (pseudoreplication) treats thousands of correlated observations as independent.

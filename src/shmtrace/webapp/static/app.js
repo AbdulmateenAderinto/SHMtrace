@@ -12,15 +12,17 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;
 
 /* ── tabs ─────────────────────────────────────────────────── */
 function showTab(name) {
-  for (const t of ["setup", "results", "reads", "tables", "export", "switch"]) {
+  for (const t of ["setup", "results", "reads", "tables", "export", "switch", "repair", "power"]) {
     $("page-" + t).classList.toggle("active", t === name);
     $("tab-" + t).setAttribute("aria-selected", String(t === name));
   }
   if (name === "results") drawFigures();
   if (name === "reads") rdInit();
+  if (name === "repair") rpInit();
+  if (name === "power") pwInit();
 }
 function enableResultTabs(on) {
-  for (const t of ["results", "tables", "export"]) $("tab-" + t).disabled = !on;
+  for (const t of ["results", "tables", "export", "repair"]) $("tab-" + t).disabled = !on;
   $("tab-reads").disabled = !(on && S.result && S.result.has_alignments);
 }
 
@@ -1190,3 +1192,102 @@ function swShow() {
 }
 
 function swDl(what) { location.href = `/api/switch/export/${SW.job}/${what}`; }
+
+
+/* ── repair routes (repair.py) ────────────────────────────── */
+const RP_INDICES = [["pct_AT", "A:T of all"], ["pct_GC_Ts_of_GC", "G:C Ts of G:C"],
+  ["pct_GC_Tv_of_GC", "G:C Tv of G:C"], ["pct_CG_of_GC_Tv", "C>G + G>C of Tv"]];
+const RP_MIN_MUTATIONS = 20;     // a group with fewer gives proportions too noisy to chart
+
+function resultGroups() { return S.result ? S.result.group_order || [...new Set(S.result.samples.map(s => s.group))] : []; }
+
+function rpInit() {
+  const gs = resultGroups();
+  const opts = gs.map(g => `<option>${esc(g)}</option>`).join("");
+  const keep = [$("rp-case").value, $("rp-control").value];
+  $("rp-case").innerHTML = opts;
+  $("rp-control").innerHTML = "<option value=''>(none)</option>" + opts;
+  const ctrl = S.result.samples.find(s => s.control);
+  $("rp-case").value = gs.includes(keep[0]) ? keep[0] : (gs.find(g => !ctrl || g !== ctrl.group) || gs[0]);
+  $("rp-control").value = gs.includes(keep[1]) ? keep[1] : "";
+  $("rp-refs").innerHTML = gs.map(g => `<label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--fg)">
+      <input type="checkbox" style="width:auto" value="${esc(g)}"> ${esc(g)}</label>`).join("");
+}
+
+async function rpRun() {
+  $("rp-error").innerHTML = "";
+  const refs = {};
+  for (const c of $("rp-refs").querySelectorAll("input:checked")) refs[c.value] = c.value;
+  if (refs[$("rp-case").value]) return $("rp-error").innerHTML = `<div class="msg err" style="margin-top:8px">The group cannot be its own reference.</div>`;
+  if (Object.keys(refs).length === 1) return $("rp-error").innerHTML = `<div class="msg err" style="margin-top:8px">A decomposition needs two or more reference groups.</div>`;
+  const r = await fetch("/api/repair/" + S.job, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ case: $("rp-case").value, control: $("rp-control").value, references: refs }) });
+  const d = await r.json();
+  if (!r.ok) return $("rp-error").innerHTML = `<div class="msg err" style="margin-top:8px">${esc(d.detail || "failed")}</div>`;
+  $("rp-results").hidden = false;
+  swTable($("rp-animals"), d.per_animal);
+  $("rp-comp-card").hidden = !d.comparison.length;
+  swTable($("rp-comp"), d.comparison);
+  const total = (g) => d.per_animal.filter(a => a.group === g).reduce((t, a) => t + a.mutations, 0);
+  const all = resultGroups(), gs = all.filter(g => total(g) >= RP_MIN_MUTATIONS);
+  const left = all.filter(g => !gs.includes(g));
+  const L = withLegend(layoutBase()); L.barmode = "group"; L.yaxis.title = "% (mean of animals)";
+  if (left.length) L.annotations = [{ text: `Not shown, too few mutations: ${left.map(g => `${g} (${total(g)})`).join(", ")}`,
+    xref: "paper", yref: "paper", x: 0, y: -0.22, showarrow: false, xanchor: "left", font: { size: 11 } }];
+  Plotly.newPlot("rp-fig", gs.map((g, i) => {
+    const rows = d.per_animal.filter(a => a.group === g);
+    return { type: "bar", name: g, x: RP_INDICES.map(x => x[1]),
+      y: RP_INDICES.map(([k]) => { const v = rows.map(a => a[k]).filter(v => v != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }),
+      marker: { color: colourOf(g) } };
+  }), L, CONFIG);
+  $("rp-dec-card").hidden = !d.decomposition;
+  if (d.decomposition) {
+    const D = d.decomposition, names = Object.keys(D.weights);
+    $("rp-dec").innerHTML = `<p class="hint">${esc(D.group)} as a mixture of ${names.map(esc).join(", ")}; fit R² ${D.r2.toFixed(2)}.</p>`
+      + (D.warning ? `<div class="msg err" style="margin:6px 0">${esc(D.warning)}</div>` : "");
+    const L2 = layoutBase(); L2.yaxis.title = "share of the spectrum"; L2.yaxis.range = [0, 1];
+    Plotly.newPlot("rp-dec-fig", [{ type: "bar", x: names, y: names.map(n => D.weights[n]),
+      error_y: { type: "data", symmetric: false, array: names.map(n => D.ci[n][1] - D.weights[n]),
+                 arrayminus: names.map(n => D.weights[n] - D.ci[n][0]) },
+      marker: { color: names.map(n => colourOf(n)) } }], L2, CONFIG);
+  }
+}
+
+/* ── power (power.py) ─────────────────────────────────────── */
+function pwSource() {
+  const manual = $("pw-source").value === "manual";
+  $("pw-manual").hidden = !manual; $("pw-from-result").hidden = manual;
+}
+
+function pwInit() {
+  const gs = resultGroups().filter(g => !(S.result.samples.find(s => s.group === g) || {}).control);
+  $("pw-group").innerHTML = gs.map(g => `<option>${esc(g)}</option>`).join("");
+  $("pw-noresult").hidden = !!S.result;
+  if (!S.result) { $("pw-source").value = "manual"; }
+  pwSource();
+}
+
+async function pwRun() {
+  $("pw-error").innerHTML = "";
+  const nums = (id) => $(id).value.split(/[,\s]+/).filter(Boolean).map(Number).filter(n => n > 0);
+  const body = { fold: +$("pw-fold").value, animals: nums("pw-animals"), reads: nums("pw-reads"),
+    test: $("pw-test").value, sims: +$("pw-sims").value };
+  if ($("pw-source").value === "result") {
+    if (!S.result) return $("pw-error").innerHTML = `<div class="msg err">Run an analysis first, or choose numbers.</div>`;
+    Object.assign(body, { job: S.job, group: $("pw-group").value, metric: $("pw-metric").value });
+  } else Object.assign(body, { rate: +$("pw-rate").value, cv: +$("pw-cv").value,
+    dispersion: +$("pw-disp").value, bp: +$("pw-bp").value });
+  $("pw-run").disabled = true; $("pw-msg").textContent = "simulating…";
+  const r = await fetch("/api/power", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const d = await r.json();
+  $("pw-run").disabled = false; $("pw-msg").textContent = "";
+  if (!r.ok) return $("pw-error").innerHTML = `<div class="msg err">${esc(d.detail || "failed")}</div>`;
+  const U = d.used;
+  $("pw-used").textContent = `${U.fold}-fold difference; rate ${U.rate.toExponential(2)} per base, animal-to-animal CV ${U.cv_between.toFixed(2)}, clumping ${U.dispersion.toFixed(1)}`
+    + (d.pilot ? ` (from ${d.pilot.group}, ${d.pilot.animals} animals${d.pilot.animals < 5 ? ": an estimate from so few animals is itself uncertain" : ""})` : "") + `; ${U.sims} experiments per cell.`;
+  const animals = [...new Set(d.rows.map(x => x.animals_per_group))], reads = [...new Set(d.rows.map(x => x.reads_per_animal))];
+  const cell = (p) => `<td class="num" style="background:${p >= 0.8 ? "#2d7a4b33" : p >= 0.5 ? "#B07A1E26" : "transparent"}">${p.toFixed(2)}</td>`;
+  $("pw-table").innerHTML = "<thead><tr><th>animals per group</th>" + reads.map(r => `<th class="num">${r} reads</th>`).join("") + "</tr></thead><tbody>"
+    + animals.map(a => `<tr><td>${a}</td>` + reads.map(r => cell(d.rows.find(x => x.animals_per_group === a && x.reads_per_animal === r).power)).join("") + "</tr>").join("") + "</tbody>";
+  $("pw-results").hidden = false;
+}

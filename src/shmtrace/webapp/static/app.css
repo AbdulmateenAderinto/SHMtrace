@@ -139,7 +139,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
 /* grid columns never grow to fit a wide child (a table scrolls inside its own wrap) */
 .grid > * { min-width: 0; }
 #page-switch .table-wrap { overflow-x: auto; }
-@media (max-width: 820px) {
+@media (max-width: 1000px) {
   .tabs button { padding: 7px 8px; }
   header .version { display: none; }
+  /* too many tabs for one line: let them wrap rather than scroll out of sight */
+  header { flex-wrap: wrap; }
+  header > .tabs { order: 3; flex-basis: 100%; flex-wrap: wrap; overflow: visible; }
 }

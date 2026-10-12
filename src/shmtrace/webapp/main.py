@@ -19,6 +19,9 @@ Endpoints
   POST /api/switch/run        class-switch junctions for several samples; {"job": id}
   GET  /api/switch/result/{id}  per-sample summaries, comparison and every junction
   GET  /api/switch/export/{id}/{what}  summary.csv | comparison.csv | junctions.csv
+  POST /api/repair/{id}       repair-route indices per animal, a group comparison and a
+                              spectrum decomposition against reference groups
+  POST /api/power             power by simulation, from a finished project or given numbers
   POST /api/compare           the older two-group comparison (kept)
   POST /api/analyze           the older single-sample endpoint (kept)
 """
@@ -49,6 +52,20 @@ app = FastAPI(title=f"shmtrace {__version__}")
 UPLOADS = Path(tempfile.mkdtemp(prefix="shmtrace_uploads_"))
 JOBS: dict[str, dict] = {}
 _LOCK = threading.Lock()
+
+
+def _finite(x):
+    """JSON has no NaN or infinity: an undefined statistic is sent as null."""
+    import math
+    if isinstance(x, float):
+        return x if math.isfinite(x) else None
+    if isinstance(x, dict):
+        return {k: _finite(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [_finite(v) for v in x]
+    if hasattr(x, "item"):                       # numpy scalars
+        return _finite(x.item())
+    return x
 
 
 # ---- pages ------------------------------------------------------------------
@@ -280,7 +297,7 @@ def switch_run(payload: dict):
 
 @app.get("/api/switch/result/{job_id}")
 def switch_result(job_id: str):
-    return JSONResponse(json.loads(json.dumps(_result(job_id), default=str)))
+    return JSONResponse(_finite(json.loads(json.dumps(_result(job_id), default=str))))
 
 
 @app.get("/api/switch/export/{job_id}/{what}")
@@ -307,6 +324,74 @@ def switch_export(job_id: str, what: str):
                     headers={"Content-Disposition": f"attachment; filename=switch_{what}"})
 
 
+# ---- repair routes (repair.py) and power (power.py) ---------------------------
+@app.post("/api/repair/{job_id}")
+def repair_routes(job_id: str, payload: dict):
+    from .. import repair
+    res = _result(job_id)
+    groups = {s["sample"]: s["group"] for s in res["samples"]}
+    by_animal: dict = {}
+    for v in res["variants"]:
+        by_animal.setdefault(v["sample"], []).append((v["pos"], v["ref"], v["alt"]))
+    per = []
+    for name, g in groups.items():
+        i = repair.indices(by_animal.get(name, []), res["reference"])
+        i.pop("_counts", None)
+        per.append({"sample": name, "group": g, **i})
+    out: dict = {"per_animal": per, "comparison": [], "decomposition": None}
+    case, control = payload.get("case"), payload.get("control")
+    if case and control and case != control:
+        out["comparison"] = repair.compare_indices(res, case, control)
+    refs = {k: v for k, v in (payload.get("references") or {}).items() if v}
+    if case and refs:
+        spectra = {n: repair.group_spectra(res, g) for n, g in refs.items()}
+        if any(not sum(sum(x.values()) for x in sp) for sp in spectra.values()):
+            raise HTTPException(400, "a reference group has no mutations to build a spectrum from")
+        d = repair.decompose_animals(repair.group_spectra(res, case), spectra,
+                                     boot=int(payload.get("boot", 499)))
+        sparse = {n: sum(sum(x.values()) for x in sp) for n, sp in spectra.items()}
+        sparse = {n: k for n, k in sparse.items() if k < 20}
+        out["decomposition"] = {"group": case, "weights": d["weights"], "ci": d["ci"],
+                                "r2": d["r2"], "residual": d["residual"],
+                                "warning": ("Reference spectra built from fewer than 20 mutations "
+                                            "make the fit unreliable: " + ", ".join(
+                                                f"{n} ({k})" for n, k in sparse.items()))
+                                if sparse else ""}
+    return JSONResponse(_finite(out))
+
+
+@app.post("/api/power")
+def power_table(payload: dict):
+    from .. import power
+    metric = payload.get("metric") or "frequency"
+    pilot = None
+    if payload.get("job"):
+        try:
+            pilot = power.pilot(_result(payload["job"]), payload.get("group"), metric)
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from None
+        rate, cv, disp, bp = pilot["rate"], pilot["cv_between"], pilot["dispersion"], pilot["bp"]
+    else:
+        try:
+            rate, cv = float(payload["rate"]), float(payload["cv"])
+            disp, bp = float(payload.get("dispersion") or 1), int(payload["bp"])
+        except (KeyError, TypeError, ValueError):
+            raise HTTPException(400, "give a finished project and group, or rate, cv and bp") from None
+    if rate <= 0:
+        raise HTTPException(400, "the pilot rate is zero; pick a group with mutations")
+    fold = float(payload.get("fold") or 2)
+    animals = [int(x) for x in payload.get("animals") or [3, 4, 5, 6, 8, 10]][:12]
+    reads = [int(x) for x in payload.get("reads") or [125, 250, 500, 1000]][:8]
+    sims = max(100, min(int(payload.get("sims") or 1000), 5000))
+    rows = power.table(rate, fold, animals, reads, bp, cv, disp, sims=sims,
+                       alpha=float(payload.get("alpha") or 0.05),
+                       test=payload.get("test") or "welch")
+    return JSONResponse(_finite({"pilot": pilot, "used": {"rate": rate, "cv_between": cv,
+                                                          "dispersion": disp, "bp": bp, "fold": fold,
+                                                          "metric": metric, "sims": sims},
+                                 "rows": rows}))
+
+
 @app.get("/api/job/{job_id}")
 def job_status(job_id: str):
     job = JOBS.get(job_id)
@@ -326,7 +411,7 @@ def _result(job_id: str) -> dict:
 
 @app.get("/api/result/{job_id}")
 def result(job_id: str):
-    return JSONResponse(json.loads(json.dumps(project.public(_result(job_id)), default=str)))
+    return JSONResponse(_finite(json.loads(json.dumps(project.public(_result(job_id)), default=str))))
 
 
 @app.get("/api/export/{job_id}/{what}")
