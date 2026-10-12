@@ -23,12 +23,12 @@ SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "indels_called", "insertions", "deletions", "frameshift_indels",
                   "indel_density_x1e5", "clustered_calls",
                   "mutation_frequency_x1e3", "mutated_reads_pct",
-                  "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_CT_GA",
+                  "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_CT_GA", "s5f_index", "s5f_p",
                   "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",
                   "model_used", "warnings"]
 VARIANT_COLUMNS = ["sample", "group", "pos", "ref", "alt", "reads", "depth", "frequency",
                    "p_value", "plus_reads", "minus_reads", "context", "homopolymer",
-                   "WRC_GYW"]
+                   "WRC_GYW", "s5f_mutability_rel", "s5f_substitution"]
 
 
 def _rows_csv(rows: list[dict], columns: list[str] | None = None) -> str:

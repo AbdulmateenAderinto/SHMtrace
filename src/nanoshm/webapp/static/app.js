@@ -49,6 +49,9 @@ async function init() {
     S.contaminant = x; $("contam-name").textContent = "Contaminant: " + x.name;
   }));
   dropZone($("drop-samples"), true, (f) => upload(f).then(addSamples), "pick-folder");
+  dropZone($("drop-model"), false, (f) => upload(f).then(([x]) => {
+    S.model = x; $("model-name").textContent = "Targeting model: " + x.name;
+  }));
   if (new URLSearchParams(location.search).has("desktop")) $("save-local").style.display = "";
 }
 
@@ -260,6 +263,7 @@ async function runProject() {
     depth: $("depth").value ? +$("depth").value : null,
     saturation,
     browse: $("keep-alignment").checked,
+    targeting_model: S.model ? S.model.path : null,
     overrides: over,
     samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control })),
   };
@@ -763,6 +767,9 @@ const FIGURES = [
 // needs, so the Export tab asks the server which ones exist.
 const DIAGNOSTIC_FIGURES = [
   ["coverage", "Coverage along the amplicon"],
+  ["targeting_profile", "Do the mutations follow the AID targeting model?"],
+  ["targeting_spectrum", "Spectrum against the targeting model"],
+  ["mutability_hedgehog", "The targeting model (hedgehog plot)"],
   ["spectrum_corrected", "Spectrum, corrected for base composition"],
   ["saturation", "Saturation (is the depth enough?)"],
   ["combined_density", "Combined density with 95% intervals"],

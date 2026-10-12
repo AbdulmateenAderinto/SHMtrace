@@ -11,6 +11,7 @@ Every page names its data, its date and how to reproduce it.
 | [`GENEIOUS.md`](GENEIOUS.md) | Reproducing the manuscript's Geneious calls, site by site |
 | [`SINGLE_READ.md`](SINGLE_READ.md) | Mutations carried by one read, estimated in aggregate against the control background |
 | [`INDELS.md`](INDELS.md) | Opt-in indel calling, and what it can and cannot see |
+| [`TARGETING.md`](TARGETING.md) | Whether called mutations land where a 5-mer AID targeting model expects; a check independent of the error model |
 | [`FINDINGS.md`](FINDINGS.md) | The July 2026 investigation that produced phasing, FDR correction and the control-fitted null. A historical record |
 | [`CONFOUNDING.md`](CONFOUNDING.md) | What the J꜀4 result could still be confounded by |
 

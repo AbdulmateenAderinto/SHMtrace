@@ -7,6 +7,18 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
+  key `targeting_model`, or the model drop under Advanced). The targeting index
+  is the mean model mutability at called positions over the window mean, with a
+  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
+  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
+  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
+  flags that artefact by itself. Each call is annotated with its 5-mer's
+  relative mutability and substitution probability. Three figures: a
+  dose-response by mutability fifth, observed against expected spectrum, and
+  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
+  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
+  from your own install. See `docs/calibration/TARGETING.md`.
 - **Coverage along the amplicon.** Every sample's per-position read depth is
   kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
   positions below half the sample's median depth is named in its warnings.
@@ -107,6 +119,18 @@ this project uses [semantic versioning](https://semver.org/).
   peers no longer hides the other samples' estimates.
 
 ### Added
+- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
+  key `targeting_model`, or the model drop under Advanced). The targeting index
+  is the mean model mutability at called positions over the window mean, with a
+  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
+  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
+  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
+  flags that artefact by itself. Each call is annotated with its 5-mer's
+  relative mutability and substitution probability. Three figures: a
+  dose-response by mutability fifth, observed against expected spectrum, and
+  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
+  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
+  from your own install. See `docs/calibration/TARGETING.md`.
 - **Coverage along the amplicon.** Every sample's per-position read depth is
   kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
   positions below half the sample's median depth is named in its warnings.
@@ -215,6 +239,18 @@ this project uses [semantic versioning](https://semver.org/).
   assembly, restored to sequenced orientation.
 
 ### Added
+- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
+  key `targeting_model`, or the model drop under Advanced). The targeting index
+  is the mean model mutability at called positions over the window mean, with a
+  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
+  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
+  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
+  flags that artefact by itself. Each call is annotated with its 5-mer's
+  relative mutability and substitution probability. Three figures: a
+  dose-response by mutability fifth, observed against expected spectrum, and
+  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
+  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
+  from your own install. See `docs/calibration/TARGETING.md`.
 - **Coverage along the amplicon.** Every sample's per-position read depth is
   kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
   positions below half the sample's median depth is named in its warnings.
@@ -293,6 +329,18 @@ this project uses [semantic versioning](https://semver.org/).
 - `summary.json` records `nanoshm_version`.
 
 ### Added
+- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
+  key `targeting_model`, or the model drop under Advanced). The targeting index
+  is the mean model mutability at called positions over the window mean, with a
+  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
+  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
+  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
+  flags that artefact by itself. Each call is annotated with its 5-mer's
+  relative mutability and substitution probability. Three figures: a
+  dose-response by mutability fifth, observed against expected spectrum, and
+  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
+  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
+  from your own install. See `docs/calibration/TARGETING.md`.
 - **Coverage along the amplicon.** Every sample's per-position read depth is
   kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
   positions below half the sample's median depth is named in its warnings.
@@ -373,6 +421,18 @@ this project uses [semantic versioning](https://semver.org/).
   no background and costs ~15% of signal.
 
 ### Added
+- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
+  key `targeting_model`, or the model drop under Advanced). The targeting index
+  is the mean model mutability at called positions over the window mean, with a
+  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
+  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
+  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
+  flags that artefact by itself. Each call is annotated with its 5-mer's
+  relative mutability and substitution probability. Three figures: a
+  dose-response by mutability fifth, observed against expected spectrum, and
+  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
+  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
+  from your own install. See `docs/calibration/TARGETING.md`.
 - **Coverage along the amplicon.** Every sample's per-position read depth is
   kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
   positions below half the sample's median depth is named in its warnings.

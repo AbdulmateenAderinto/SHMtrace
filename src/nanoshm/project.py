@@ -21,7 +21,7 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from . import batch, browse, indels, metrics, motifs, null_model, pipeline, singletons
+from . import batch, browse, indels, metrics, motifs, null_model, pipeline, singletons, targeting
 from .config import load_preset
 from .io_utils import read_fasta
 
@@ -488,6 +488,38 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                   or motifs.is_site("GYW", ref, v.pos - 1)})
         load_hist[name] = dict(Counter(res.get("per_read_mutations") or []))
 
+    # AID targeting against a 5-mer model, when one is given (targeting.py)
+    targeting_out = None
+    if project.get("targeting_model"):
+        tm = targeting.load(project["targeting_model"])
+        prof = targeting.window_profile(tm, ref, lo, hi)
+        per_s, per_g = {}, {}
+        for name, res in details.items():
+            per_s[name] = targeting.targeting_index([v.pos - 1 for v in res["variants"]], prof)
+        for g in set(gmap.values()):
+            pos = [v.pos - 1 for n, res in details.items() if gmap[n] == g
+                   for v in res["variants"]]
+            per_g[g] = targeting.targeting_index(pos, prof)
+        for row in per_sample:
+            t = per_s.get(row["sample"]) or {}
+            row["s5f_index"], row["s5f_p"] = t.get("index"), t.get("p")
+        notes_by = {(v["sample"], v["pos"], v["alt"]): None for v in variants_rows}
+        for name, res in details.items():
+            for a in targeting.annotate(res["variants"], tm, ref, prof):
+                notes_by[(name, a["pos"], a["alt"])] = a
+        for v in variants_rows:
+            a = notes_by.get((v["sample"], v["pos"], v["alt"])) or {}
+            v["s5f_mutability_rel"] = a.get("s5f_mutability_rel")
+            v["s5f_substitution"] = a.get("s5f_substitution")
+        targeting_out = {
+            "model": tm.name, "window_mean": prof["mean"],
+            "profile": {str(i + 1): round(m / prof["mean"], 4)
+                        for i, m in sorted(prof["mutability"].items())} if prof["mean"] else {},
+            "samples": per_s, "groups": per_g,
+            "expected_spectrum": targeting.expected_spectrum(tm, ref, prof),
+            # the model itself, for the hedgehog plot (1,024 values)
+            "model_mutability": {k: round(v, 8) for k, v in tm.mutability.items()}}
+
     base_sites = {b: sum(1 for i in range(lo, hi + 1) if ref[i].upper() == b) for b in "ACGT"}
     n_in_group = Counter(gmap[n] for n in details)
     spec_corr_group = {g: corrected_spectrum(c, base_sites, n_in_group[g])
@@ -533,6 +565,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "spectrum_corrected_group": spec_corr_group,
         "spectrum_corrected_sample": spec_corr_sample,
         "base_composition": base_sites,
+        "targeting": targeting_out,
         "coverage": coverage,
         "spectrum_sample": spec_sample,
         "positional": pos_rows,
