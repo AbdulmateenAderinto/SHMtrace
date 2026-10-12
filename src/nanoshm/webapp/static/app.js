@@ -47,7 +47,7 @@ async function init() {
     S.contaminant = x; $("contam-name").textContent = "Contaminant: " + x.name;
   }));
   dropZone($("drop-samples"), true, (f) => upload(f).then(addSamples), "pick-folder");
-  if (window.nanoshmLocal) $("save-local").style.display = "";
+  if (new URLSearchParams(location.search).has("desktop")) $("save-local").style.display = "";
 }
 
 function fill(sel, items, def) {

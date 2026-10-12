@@ -24,6 +24,15 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
+def _port_taken(port: int) -> bool:
+    with socket.socket() as s:
+        try:
+            s.bind((HOST, port))
+        except OSError:
+            return True
+        return False
+
+
 def _serve(port: int):
     import uvicorn
 
@@ -49,6 +58,11 @@ def main():
     args = ap.parse_args()
 
     port = args.port or _free_port()
+    if _port_taken(port):
+        # otherwise _wait() would find whatever else is listening and open that
+        print(f"port {port} is already in use; pick another or leave --port out",
+              file=sys.stderr)
+        return 1
     url = f"http://{HOST}:{port}/"
     threading.Thread(target=_serve, args=(port,), daemon=True).start()
     if not _wait(url):
@@ -72,15 +86,14 @@ def main():
                 time.sleep(3600)
         except KeyboardInterrupt:
             return 0
-    window = webview.create_window(f"nanoshm {__version__}", url, width=1280, height=880,
-                                   min_size=(900, 640))
-    # tells the page it is the desktop app, so it can offer "save to a folder"
-    def _mark():
-        try:
-            window.evaluate_js("window.nanoshmLocal = true")
-        except Exception:
-            pass
-    webview.start(_mark)
+    # pywebview ignores downloads unless told otherwise, which would leave every
+    # button on the Export tab doing nothing
+    webview.settings["ALLOW_DOWNLOADS"] = True
+    # ?desktop=1 tells the page it is the desktop app, so it can offer "save to a
+    # folder"; a query survives reloads, and is there before the page's script runs
+    webview.create_window(f"nanoshm {__version__}", url + "?desktop=1", width=1280,
+                          height=880, min_size=(900, 640))
+    webview.start()
     return 0
 
 
