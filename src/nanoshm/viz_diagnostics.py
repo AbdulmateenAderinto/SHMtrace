@@ -163,18 +163,23 @@ def indel_figure(res: dict, fmt: str = "png") -> bytes | None:
     ax.legend(frameon=False, fontsize=8)
 
     ax = axes[1]                                   # insertions against deletions
-    for i, g in enumerate(order):
-        sub = [r for r in rows if groups.get(r["sample"]) == g]
-        per = defaultdict(lambda: [0, 0])
-        for r in sub:
-            per[r["sample"]][0 if r["kind"] == "del" else 1] += 1
-        d = [v[0] for v in per.values()]
-        ins = [v[1] for v in per.values()]
-        ax.bar(i - 0.18, sum(d) / max(1, len(per)), width=0.34, color=colour.get(g, MS_BLUE))
-        ax.bar(i + 0.18, sum(ins) / max(1, len(per)), width=0.34,
+    # every group, including one with no indels at all: a flat zero next to a
+    # tall bar is the comparison
+    all_groups = list(res["group_order"])
+    n_per = Counter(s["sample"] for s in res["samples"])
+    for i, g in enumerate(all_groups):
+        members = [s["sample"] for s in res["samples"] if s["group"] == g] or [None]
+        per = {m: [0, 0] for m in members}
+        for r in rows:
+            if groups.get(r["sample"]) == g:
+                per.setdefault(r["sample"], [0, 0])[0 if r["kind"] == "del" else 1] += 1
+        n = max(1, len(members))
+        ax.bar(i - 0.18, sum(v[0] for v in per.values()) / n, width=0.34,
+               color=colour.get(g, MS_BLUE))
+        ax.bar(i + 0.18, sum(v[1] for v in per.values()) / n, width=0.34,
                color=colour.get(g, MS_BLUE), alpha=0.45)
-    ax.set_xticks(range(len(order)))
-    ax.set_xticklabels(order, fontsize=9)
+    ax.set_xticks(range(len(all_groups)))
+    ax.set_xticklabels(all_groups, fontsize=9)
     ax.set_ylabel("Per sample (mean)")
     ax.set_title("Deletions (solid) and insertions (pale)", loc="left", fontsize=10)
 
