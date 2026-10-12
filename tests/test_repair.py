@@ -52,3 +52,34 @@ def test_decomposition_intervals_cover_the_truth():
         d = repair.decompose_animals(animals, refs, boot=200, seed=seed)
         covered += d["ci"]["a"][0] <= 0.4 <= d["ci"]["a"][1]
     assert covered >= 6
+
+
+def test_the_app_serves_repair_routes_and_power(tmp_path):
+    pytest.importorskip("fastapi")
+    pytest.importorskip("httpx")
+    from fastapi.testclient import TestClient
+
+    from shmtrace.webapp import main
+    calls = {"A1": [(3, "G", "A"), (4, "C", "T"), (8, "C", "G"), (1, "A", "G"), (2, "A", "T")] * 6,
+             "A2": [(3, "G", "A"), (8, "C", "G"), (1, "A", "G"), (2, "A", "T")] * 6,
+             "B1": [(3, "G", "A"), (4, "C", "T"), (10, "G", "C")] * 8,
+             "B2": [(4, "C", "T"), (8, "C", "G"), (10, "G", "C")] * 8}
+    group = {"A1": "A", "A2": "A", "B1": "B", "B2": "B"}
+    res = {"reference": REF, "group_order": ["A", "B"],
+           "samples": [{"sample": n, "group": group[n], "control": False, "mutations_total": 40 + 10 * i,
+                        "frequency_bases": 100000, "unique_mutations": 30, "density_bases": 100000,
+                        "analysed_bp": 400, "reads": 250} for i, n in enumerate(calls)],
+           "variants": [{"sample": n, "pos": p, "ref": r, "alt": a} for n, cs in calls.items()
+                        for p, r, a in cs],
+           "mutation_load": {n: {"0": 200, "1": 30, "3": 20} for n in calls}}
+    main.JOBS["t1"] = {"state": "done", "progress": 1, "message": "", "error": None, "result": res}
+    c = TestClient(main.app)
+    r = c.post("/api/repair/t1", json={"case": "B", "control": "A", "references": {}}).json()
+    assert {x["sample"] for x in r["per_animal"]} == set(calls)
+    assert any(x["index"] == "pct_GC_Tv_of_GC" for x in r["comparison"])
+    p = c.post("/api/power", json={"job": "t1", "group": "A", "metric": "frequency", "fold": 2,
+                                   "animals": [3, 6], "reads": [250], "sims": 200}).json()
+    assert len(p["rows"]) == 2 and p["pilot"]["group"] == "A"
+    m = c.post("/api/power", json={"rate": 0.003, "cv": 1, "bp": 500, "fold": 4,
+                                   "animals": [3, 10], "reads": [500], "sims": 200}).json()
+    assert m["rows"][1]["power"] > m["rows"][0]["power"]

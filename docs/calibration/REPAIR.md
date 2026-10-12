@@ -32,6 +32,9 @@ shmtrace-repair project.json --case MKLN --control WT
 shmtrace-repair project.json --case MKLN --reference ung_msh2=UngMsh2 --reference msh2=Msh2 --reference wt=WT
 ```
 
+
+**In the app:** the *Repair* tab, after an analysis. Pick a group, the group to compare it with, and optionally reference groups for a decomposition.
+
 ## First use: MKLN against wild type (Sanger, J꜀4)
 
 You expected more G:C transversions in the MKLN knockouts. Per mouse:

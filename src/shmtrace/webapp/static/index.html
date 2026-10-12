@@ -18,6 +18,8 @@
     <button role="tab" id="tab-reads" aria-selected="false" onclick="showTab('reads')" disabled>Reads</button>
     <button role="tab" id="tab-export" aria-selected="false" onclick="showTab('export')" disabled>Export</button>
     <button role="tab" id="tab-switch" aria-selected="false" onclick="showTab('switch')" title="Class-switch junctions">Switching</button>
+    <button role="tab" id="tab-repair" aria-selected="false" onclick="showTab('repair')" disabled title="Repair routes from the spectrum">Repair</button>
+    <button role="tab" id="tab-power" aria-selected="false" onclick="showTab('power')" title="How many animals and reads">Power</button>
   </nav>
   <span class="spacer"></span>
   <a class="btn small" href="/classic" title="The older single-sample page">Classic</a>
@@ -307,6 +309,89 @@
     <div class="card" id="sw-comp-card"><h2>Group comparison</h2><div class="table-wrap"><table id="sw-comp"></table></div></div>
     <div class="card"><h2>Microhomology at the join</h2><div id="sw-fig-mh" style="height:320px"></div></div>
     <div class="card"><h2>Where the joins fall</h2><div id="sw-fig-bp" style="height:320px"></div></div>
+  </div>
+</section>
+<!-- ───────────────────────── repair routes ───────────────────────── -->
+<section class="page" id="page-repair">
+  <div class="card">
+    <h2>Repair routes from the spectrum</h2>
+    <p class="hint">After AID, replication over U gives G:C transitions; UNG excision then
+      translesion synthesis gives G:C transversions (REV1: C&gt;G, G&gt;C); MSH2–Pol η gives
+      A:T mutations, more at WA than TW. These indices read the routes off each animal's
+      unique mutations. Groups are compared animal by animal. The decomposition fits one
+      group's spectrum as a mixture of reference groups' spectra (for example Ung⁻/⁻,
+      Msh2⁻/⁻ or double knockouts sequenced alongside), with 95% intervals.</p>
+    <div class="row">
+      <div><label for="rp-case">Group</label><select id="rp-case"></select></div>
+      <div><label for="rp-control">compared with</label><select id="rp-control"></select></div>
+    </div>
+    <label style="margin-top:10px">Reference groups for the decomposition (optional)</label>
+    <div id="rp-refs" class="row" style="flex-wrap:wrap;gap:6px 14px"></div>
+    <button class="btn primary" style="margin-top:10px" onclick="rpRun()">Analyse repair routes</button>
+    <div id="rp-error"></div>
+  </div>
+  <div id="rp-results" hidden>
+    <div class="card"><h2>Per animal</h2><div class="table-wrap"><table id="rp-animals"></table></div></div>
+    <div class="card" id="rp-comp-card"><h2>Group comparison</h2><div class="table-wrap"><table id="rp-comp"></table></div></div>
+    <div class="card"><h2>Indices by group</h2><div id="rp-fig" style="height:340px"></div></div>
+    <div class="card" id="rp-dec-card"><h2>Decomposition</h2><div id="rp-dec"></div><div id="rp-dec-fig" style="height:300px"></div></div>
+  </div>
+</section>
+<!-- ───────────────────────── power ───────────────────────── -->
+<section class="page" id="page-power">
+  <div class="grid two">
+    <div class="card">
+      <h2>How many animals?</h2>
+      <p class="hint">Simulates whole experiments analysed with the animal as the unit, from a
+        pilot: the group's rate, how much its animals differ, and how clumped mutations are
+        within an animal. Animals usually matter more than reads.</p>
+      <label for="pw-source">Pilot</label>
+      <select id="pw-source" onchange="pwSource()">
+        <option value="result">A group of the current analysis</option>
+        <option value="manual">Numbers I give</option>
+      </select>
+      <div id="pw-from-result">
+        <div class="row">
+          <div><label for="pw-group">Group</label><select id="pw-group"></select></div>
+          <div><label for="pw-metric">Measure</label>
+            <select id="pw-metric">
+              <option value="density">Unique-mutation density</option>
+              <option value="frequency">Mutation frequency (read-weighted)</option>
+              <option value="clone_weighted">Clone-weighted frequency</option>
+            </select></div>
+        </div>
+        <p class="hint" id="pw-noresult">Run an analysis first, or give numbers.</p>
+      </div>
+      <div id="pw-manual" hidden>
+        <div class="row">
+          <div><label for="pw-rate">Rate (mutations per base)</label><input type="number" id="pw-rate" step="any" value="0.003"></div>
+          <div><label for="pw-cv">Animal-to-animal CV</label><input type="number" id="pw-cv" step="any" value="1"></div>
+        </div>
+        <div class="row">
+          <div><label for="pw-disp">Clumping (variance/mean per read)</label><input type="number" id="pw-disp" step="any" value="1"></div>
+          <div><label for="pw-bp">Analysed bp per read</label><input type="number" id="pw-bp" value="529"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>The design</h2>
+      <div class="row">
+        <div><label for="pw-fold">Difference to detect (fold)</label><input type="number" id="pw-fold" step="any" value="2"></div>
+        <div><label for="pw-test">Test</label>
+          <select id="pw-test"><option value="welch">Welch on log rates</option><option value="permutation">Permutation (exact)</option></select></div>
+      </div>
+      <label for="pw-animals">Animals per group</label><input type="text" id="pw-animals" value="3, 4, 5, 6, 8, 10">
+      <label for="pw-reads">Reads per animal</label><input type="text" id="pw-reads" value="125, 250, 500, 1000">
+      <label for="pw-sims">Simulated experiments per cell</label><input type="number" id="pw-sims" value="1000" min="100" max="5000">
+      <button class="btn primary" style="margin-top:10px" id="pw-run" onclick="pwRun()">Calculate power</button>
+      <p class="status" id="pw-msg"></p>
+      <div id="pw-error"></div>
+    </div>
+  </div>
+  <div class="card" id="pw-results" hidden>
+    <h2>Power</h2>
+    <p class="hint" id="pw-used"></p>
+    <div class="table-wrap"><table id="pw-table"></table></div>
   </div>
 </section>
 </main>
