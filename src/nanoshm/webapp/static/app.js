@@ -248,6 +248,7 @@ async function runProject() {
   }
   if ($("maxp").value.trim()) over.max_pvalue = +$("maxp").value;
   if ($("call-indels").checked) over.exclude_indels = false;
+  const saturation = $("saturation").checked;
 
   const project = {
     name: $("proj-name").value || "nanoshm project",
@@ -255,6 +256,7 @@ async function runProject() {
     reference: S.reference.path,
     contaminants: S.contaminant ? [S.contaminant.path] : [],
     depth: $("depth").value ? +$("depth").value : null,
+    saturation,
     overrides: over,
     samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control })),
   };
@@ -754,12 +756,30 @@ const FIGURES = [
   ["mutation_load", "Mutations per read"],
   ["hotspot_targeting", "Hotspot targeting"],
 ];
+// Detail and diagnostics. Each is drawn only when the run carries what it
+// needs, so the Export tab asks the server which ones exist.
+const DIAGNOSTIC_FIGURES = [
+  ["saturation", "Saturation (is the depth enough?)"],
+  ["combined_density", "Combined density with 95% intervals"],
+  ["single_read_excess", "Single-read excess over controls"],
+  ["indels", "Insertions and deletions"],
+  ["positional_by_sample", "Position along the amplicon, per sample"],
+  ["quality_histogram", "Base quality: mismatches vs matches"],
+  ["phasing_blocks", "Phasing: how reads carry a block"],
+  ["qc_waterfall", "Where reads are lost"],
+  ["control_background", "The background your controls measured"],
+  ["clonality", "Clonal structure"],
+  ["volcano", "What the caller kept"],
+  ["replicate_concordance", "Do replicates agree?"],
+];
 function buildExport() {
   $("export-tables").innerHTML = ["samples.csv", "groups.csv", "variants.csv",
     ...((S.result.indels || []).length ? ["indels.csv"] : []),
     "positional_frequency.csv", "spectrum.csv", "mutation_load.csv"]
     .map(f => `<button class="btn small" onclick="dl('${f}')">${f}</button>`).join("");
-  $("export-figs").innerHTML = FIGURES.map(([f, label]) => `
+  const avail = new Set(S.result.available_figures || FIGURES.map(([f]) => f));
+  const shown = [...FIGURES, ...DIAGNOSTIC_FIGURES].filter(([f]) => avail.has(f));
+  $("export-figs").innerHTML = shown.map(([f, label]) => `
     <div class="row" style="margin:4px 0">
       <span style="flex:2 1 220px">${esc(label)}</span>
       ${["png", "svg", "pdf"].map(x => `<button class="btn small" onclick="dl('${f}.${x}')">${x.toUpperCase()}</button>`).join("")}

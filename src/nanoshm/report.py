@@ -102,8 +102,14 @@ def workbook(res: dict) -> bytes:
 
 
 def figures(res: dict, fmt: str = "png") -> dict[str, bytes]:
-    """Publication figures for a project, keyed by file name."""
-    return viz.project_figures(res, fmt=fmt)
+    """Publication figures for a project, keyed by file name.
+
+    The manuscript's figures first, then whichever diagnostics this result can
+    support (viz_diagnostics skips the ones whose data is absent).
+    """
+    from . import viz_diagnostics
+    return {**viz.project_figures(res, fmt=fmt),
+            **viz_diagnostics.diagnostic_figures(res, fmt=fmt)}
 
 
 def _data_uri(b: bytes, fmt: str) -> str:

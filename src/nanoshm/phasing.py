@@ -222,9 +222,21 @@ def partition(aligned, ref: str, p: Params, lo: int, hi: int,
         else:
             action, why = "flag", ("not seen in controls or other samples; may be a clone, "
                                    "kept")
+        # how many of the block's sites each read carries, as a histogram. A
+        # haplotype or paralogue is all-or-nothing (reads carry every site or
+        # none); hypermutation and even a clone are graded. This is the
+        # evidence behind the action taken, and viz_project draws it.
+        carried: dict = {}
+        for seen in idx:
+            covered = sum(1 for pos, _alt in block if pos in seen)
+            if covered < p.phase_min_cover:
+                continue
+            k = sum(1 for pos, alt in block if seen.get(pos) == alt)
+            carried[k] = carried.get(k, 0) + 1
         stats["blocks"].append({
             "sites": [[pos + 1, alt] for pos, alt in sorted(block)],   # 1-based for humans
-            "n_sites": len(block), "reads": len(carriers), "action": action, "why": why})
+            "n_sites": len(block), "reads": len(carriers), "action": action, "why": why,
+            "carried_hist": dict(sorted(carried.items()))})
         if action == "drop" and carriers:
             drop.update(carriers)
             dropped_sites += len(block)

@@ -277,6 +277,17 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     single_q = p.single_read_min_quality if (not sanger and depth is not None) else None
     tallies: dict = {}
     single_read: dict = {}
+    control_background: dict = {}
+    # project["saturation"]: True for a sensible ladder up to the analysed
+    # depth, or an explicit list of depths. Off by default.
+    sat = project.get("saturation")
+    if sat is True and depth:
+        saturation_depths = sorted({max(10, int(depth * f))
+                                    for f in (0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1.0)})
+    elif isinstance(sat, (list, tuple)):
+        saturation_depths = sorted(int(d) for d in sat)
+    else:
+        saturation_depths = []
     # indels: tested against the peers' indel rate, or thresholded for Sanger
     want_indels = not p.exclude_indels
     indel_piles: dict = {}
@@ -303,6 +314,21 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             null = nulls[peers]
         res = pipeline.analyse(b["reads"][name], reference, p, b["stats"][name],
                                null_rates=null, depth=depth)
+        if saturation_depths:
+            # the whole depth curve, not just the one analysed point. Opt-in:
+            # it re-calls variants at every depth.
+            res["rarefaction"] = pipeline.rarefaction(
+                b["reads"][name], reference, p,
+                [d for d in saturation_depths if d <= len(b["reads"][name])],
+                draws=project.get("saturation_draws", 3), null_rates=null)
+        if null is not None and not control_background:
+            # the fitted background a non-control sample is judged against:
+            # the highest per-alt error rate at each position (viz_project)
+            per_pos: dict = {}
+            for (pos0, _alt), rate in null.items():
+                if lo <= pos0 <= hi:
+                    per_pos[pos0 + 1] = max(per_pos.get(pos0 + 1, 0.0), rate)
+            control_background.update(per_pos)
         m = sample_metrics(name, res, ref, lo, hi, s.get("group") or name, name in controls,
                            scale=p.density_scale)
         if single_q and peers:
@@ -422,6 +448,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         # per-sample detail of the single-read estimate (singletons.estimate)
         "single_read": single_read,
         "indels": indel_rows,
+        # position -> fitted control error rate, for the background diagnostic
+        "control_background": {str(k): round(v, 8) for k, v in sorted(control_background.items())},
         "groups": groups,
         "notes": notes,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
@@ -438,7 +466,14 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
 
 def public(res: dict) -> dict:
-    return {k: v for k, v in res.items() if not k.startswith("_")}
+    """The result without the bulk per-sample detail, plus which figures it supports."""
+    from . import viz_diagnostics
+    out = {k: v for k, v in res.items() if not k.startswith("_")}
+    base = ["density_by_group", "mutation_frequency_by_group", "mutated_reads_by_group",
+            "substitution_matrix", "spectrum_by_group", "positional_map", "mutation_load"]
+    if any(s.get("pct_GC_in_WRC_GYW") is not None for s in res.get("samples", [])):
+        base.append("hotspot_targeting")
+    return {**out, "available_figures": base + viz_diagnostics.drawable(res)}
 
 
 __all__ = ["run_project", "public", "build_params", "metrics", "replace"]
