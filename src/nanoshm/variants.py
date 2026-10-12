@@ -396,6 +396,8 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         stats["notes"] = notes
     # every candidate the test saw, kept or not: the decision boundary a volcano
     # plot draws. Underscored so write_outputs keeps it out of summary.json.
+    # reads covering each analysed position, for the coverage track
+    stats["_depth"] = [depth.get(pos, 0) for pos in range(lo, hi + 1)]
     stats["_candidates"] = [(round(v.frequency, 6), v.p_value, bool(k))
                             for v, k in zip(candidates, keep, strict=True)]
     return variants, stats

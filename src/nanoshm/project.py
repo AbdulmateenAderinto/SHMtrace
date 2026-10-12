@@ -137,6 +137,50 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
     }
 
 
+def corrected_spectrum(counts, base_sites: dict, n_files: int) -> dict:
+    """Unique mutations of each class per site of its from-base, per file.
+
+    The denominator SHMTool uses (L = sites x files). A raw count of C>T and
+    one of A>G are not comparable when the window holds twice as many C as A;
+    divided by the sites that could have mutated, they are.
+    """
+    out = {}
+    for r in "ACGT":
+        for a in "ACGT":
+            if a == r:
+                continue
+            L = base_sites.get(r, 0) * max(1, n_files)
+            out[f"{r}>{a}"] = round(counts.get(f"{r}>{a}", 0) / L, 6) if L else None
+    return out
+
+
+def coverage_dips(depth: list, start: int, frac: float = 0.5, min_run: int = 10) -> str:
+    """A warning naming stretches covered by under `frac` of the median depth.
+
+    Density divides by analysed positions times mean depth, so it assumes even
+    coverage. A stretch well below the median is where that assumption fails.
+    """
+    if not depth:
+        return ""
+    med = sorted(depth)[len(depth) // 2]
+    if med <= 0:
+        return ""
+    runs, run_start = [], None
+    for i, d in enumerate(list(depth) + [med]):
+        low = d < frac * med
+        if low and run_start is None:
+            run_start = i
+        elif not low and run_start is not None:
+            if i - run_start >= min_run:
+                runs.append((start + run_start, start + i - 1))
+            run_start = None
+    if not runs:
+        return ""
+    where = ", ".join(f"{a}-{b}" for a, b in runs[:4])
+    return (f"coverage falls below half the median depth ({med}) at {where}; "
+            "densities assume even coverage there")
+
+
 def add_indels(m: dict, called: list, res: dict, scale: float) -> None:
     """Indel counts for a sample row, kept apart from the substitution density."""
     s = res["summary"]["calling"]
@@ -284,6 +328,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     single_read: dict = {}
     control_background: dict = {}
     alignments: dict = {}
+    coverage: dict = {}
     # project["saturation"]: True for a sensible ladder up to the analysed
     # depth, or an explicit list of depths. Off by default.
     sat = project.get("saturation")
@@ -320,6 +365,12 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             null = nulls[peers]
         res = pipeline.analyse(b["reads"][name], reference, p, b["stats"][name],
                                null_rates=null, depth=depth)
+        dep = res["summary"]["calling"].get("_depth") or []
+        if dep:
+            coverage[name] = {"start": lo + 1, "depth": dep}
+            low = coverage_dips(dep, lo + 1)
+            if low:
+                m["warnings"] = "; ".join(x for x in [m["warnings"], low] if x)
         if want_browse:
             progress(0.15 + 0.75 * i / len(samples), f"recording the alignment of {name}")
             fates: dict = {}
@@ -437,6 +488,13 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                   or motifs.is_site("GYW", ref, v.pos - 1)})
         load_hist[name] = dict(Counter(res.get("per_read_mutations") or []))
 
+    base_sites = {b: sum(1 for i in range(lo, hi + 1) if ref[i].upper() == b) for b in "ACGT"}
+    n_in_group = Counter(gmap[n] for n in details)
+    spec_corr_group = {g: corrected_spectrum(c, base_sites, n_in_group[g])
+                       for g, c in spec_group.items()}
+    spec_corr_sample = {n: corrected_spectrum(Counter(c), base_sites, 1)
+                        for n, c in spec_sample.items()}
+
     pos_rows = []
     for g, d in positional.items():
         n = group_reads[g] or 1
@@ -470,6 +528,12 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "groups": groups,
         "notes": notes,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
+        # unique mutations per site of the from-base, per animal: the SHMTool
+        # convention, so a base the window is short of is not under-counted
+        "spectrum_corrected_group": spec_corr_group,
+        "spectrum_corrected_sample": spec_corr_sample,
+        "base_composition": base_sites,
+        "coverage": coverage,
         "spectrum_sample": spec_sample,
         "positional": pos_rows,
         "positional_sample": pos_sample_rows,

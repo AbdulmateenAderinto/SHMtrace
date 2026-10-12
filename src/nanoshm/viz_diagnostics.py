@@ -94,6 +94,74 @@ def saturation(res: dict, fmt: str = "png") -> bytes | None:
     return _save(fig, fmt)
 
 
+# ---- coverage ------------------------------------------------------------------
+
+def coverage_track(res: dict, fmt: str = "png") -> bytes | None:
+    """Reads covering each analysed position, one line per sample.
+
+    Mutation density divides by analysed positions times mean depth, so it
+    assumes coverage is even. A dip means fewer reads could carry a mutation
+    there, and a density computed across it is lower than it should be.
+    """
+    cov = res.get("coverage") or {}
+    if not cov:
+        return None
+    groups = _groups_of(res)
+    colour = _group_colour(res)
+    fig, ax = _ax((7.8, 3.6))
+    for name, c in cov.items():
+        xs = range(c["start"], c["start"] + len(c["depth"]))
+        ax.plot(list(xs), c["depth"], lw=1.1, alpha=0.8,
+                color=colour.get(groups.get(name), MS_BLUE), label=name)
+    meds = [sorted(c["depth"])[len(c["depth"]) // 2] for c in cov.values() if c["depth"]]
+    if meds:
+        half = 0.5 * min(meds)
+        ax.axhline(half, color=MS_RED, ls="--", lw=0.9)
+        ax.annotate("half the lowest median: below this a warning is raised",
+                    (ax.get_xlim()[0], half), fontsize=7, color=MS_RED, va="bottom",
+                    xytext=(3, 2), textcoords="offset points")
+    ax.set_ylim(bottom=0)
+    ax.set_xlabel("Reference position (analysed window)")
+    ax.set_ylabel("Reads covering the position")
+    ax.set_title("Coverage along the amplicon", loc="left", fontsize=11)
+    if len(cov) <= 8:
+        ax.legend(frameon=False, fontsize=7, ncol=min(4, len(cov)), loc="lower right")
+    return _save(fig, fmt)
+
+
+# ---- base-composition-corrected spectrum ----------------------------------------
+
+def spectrum_corrected(res: dict, fmt: str = "png") -> bytes | None:
+    """The twelve classes as mutations per site of the from-base, per animal.
+
+    The raw spectrum counts mutations, so a class looks common when its
+    from-base is common in the window. Dividing by the sites that could have
+    mutated (SHMTool's convention) makes the classes comparable with each other
+    and with spectra from other amplicons.
+    """
+    corr = res.get("spectrum_corrected_group") or {}
+    if not corr:
+        return None
+    colour = _group_colour(res)
+    order = [g for g in res["group_order"] if g in corr]
+    width = 0.8 / max(1, len(order))
+    fig, ax = _ax((8.0, 4.0))
+    for j, g in enumerate(order):
+        vals = [1e3 * (corr[g].get(k) or 0) for k in SUBS12]
+        ax.bar([i + (j - (len(order) - 1) / 2) * width for i in range(len(SUBS12))],
+               vals, width=width, color=colour.get(g, MS_BLUE), label=g)
+    ax.set_xticks(range(len(SUBS12)))
+    ax.set_xticklabels([k.replace(">", "→") for k in SUBS12], fontsize=8)
+    ax.set_ylabel("Unique mutations per 10³ sites of the from-base")
+    comp = res.get("base_composition") or {}
+    if comp:
+        ax.set_title("Spectrum corrected for base composition   (window: "
+                     + ", ".join(f"{b} {comp[b]}" for b in "ACGT") + ")",
+                     loc="left", fontsize=10)
+    ax.legend(frameon=False, fontsize=8)
+    return _save(fig, fmt)
+
+
 # ---- 2. single-read excess ---------------------------------------------------
 
 def single_read_excess(res: dict, fmt: str = "png") -> bytes | None:
@@ -595,6 +663,10 @@ def _has_replicates(res: dict) -> bool:
 # The predicate exists so `project.public` can list the drawable figures for
 # the browser without rendering them all first.
 FIGURES = [
+    ("coverage", coverage_track, "Coverage along the amplicon",
+     lambda r: bool(r.get("coverage"))),
+    ("spectrum_corrected", spectrum_corrected, "Spectrum, base-composition corrected",
+     lambda r: bool(r.get("spectrum_corrected_group"))),
     ("saturation", saturation, "Saturation (depth)",
      lambda r: _any_detail(r, "rarefaction")),
     ("single_read_excess", single_read_excess, "Single-read excess",
