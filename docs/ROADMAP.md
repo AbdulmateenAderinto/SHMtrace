@@ -129,11 +129,21 @@ end-trim bp, analysis window (start–end), indels on/off, minimap2 preset.
 Estimates assume one developer comfortable in Python; halve calendar time with
 two. "Done" markers reflect the delivered prototype.
 
-**Phase 0 — Prototype (DONE, in this folder).**
+**Phase 0 — Prototype (DONE).**
 Working engine + CLI + minimal web UI + two presets + example data.
 Demonstrates the full path FASTQ→variants and reproduces WT≫KO. *Effort: done.*
 
-**Phase 1 — Scientific validation & error-model calibration (2–4 weeks).**
+**Phase 1 — Scientific validation & error-model calibration (DONE, July–October 2026).**
+Delivered: the quality-calibrated default chosen on J꜀4 and N114 benchmarks and
+spike-ins (`docs/calibration/ERROR_MODELS.md`, `GENEIOUS.md`), aggregate
+estimation of single-read mutations (`SINGLE_READ.md`), opt-in indel calling
+(`INDELS.md`), and validation on data the model had never seen: a public
+nanopore deposit (`EXTERNAL_VALIDATION.md`), an Illumina J꜀4 study whose
+positive and negative findings both reproduce (`ILLUMINA.md`), an ectopic-AID
+versus empty-vector set (`ECTOPIC_AID.md`), and the lab's own matched Sanger
+clones (`SANGER.md`). The original Phase 1 description follows.
+
+*(original plan)*
 The gating milestone. Run the engine on every sample in the paper and compare
 variant counts, densities, and spectra against the Geneious/published values.
 Tune the per-column variant test (quality-aware Poisson today; candidates:
@@ -142,7 +152,12 @@ filter, min-quality gate) until the Aicda-/- background and WT/KO fold-change
 match the paper within tolerance. Deliverable: a validation report + a locked,
 documented error model. *This is where the real research effort is.*
 
-**Phase 2 — Local application hardening (2–3 weeks).**
+**Phase 2 — Local application hardening (mostly done).**
+Delivered: the desktop app, multi-sample projects, BAM/Sanger/Illumina/PacBio
+input, publication figures and exports, and user docs. Outstanding: a
+`docker run` one-liner, and signing the Mac and Windows builds.
+
+*(original plan)*
 Robust upload handling (gz, multi-file, BAM input), input validation and helpful
 errors, progress reporting, batch mode (many samples at once), export of
 publication figures, a `docker run` one-liner, and a proper results view
@@ -190,7 +205,7 @@ Rough total to a published community tool: **~2.5–4 months** of focused work
 
 ---
 
-## 7. What I'd need from you to proceed to Phase 1
+## 7. What was needed to proceed to Phase 1 *(all supplied; Phase 1 is done)*
 
 1. The full sample→FASTQ→reference mapping for the paper's samples (so the
    validation harness can run the whole set), plus the Geneious per-sample

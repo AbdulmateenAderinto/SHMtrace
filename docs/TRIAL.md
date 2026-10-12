@@ -1,81 +1,91 @@
-# How to trial SHM-webtool
+# Trying nanoshm on the bundled example
 
-Open **Terminal** (Cmd-Space → "Terminal") and paste each block.
+A ten-minute check that the install works and produces the expected numbers.
+[`QUICKSTART.md`](QUICKSTART.md) is the one-page guide to using it on your own
+data; [`USER_GUIDE.md`](USER_GUIDE.md) is the full account.
 
 ## 1. One-time setup
+
 ```bash
-cd "/Users/abdulmateenaderinto/Documents/Projects/2026/PhD - Fundamental Immunology/Martin Lab/Paper #1 - Nanopore sequencing/June 2nd analyses/SHM-webtool"
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+cd ~/Nanoshm/nanoshm_v0.2
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[app,bam,sanger]"
 ```
-(Next time you only need the `cd` and `source .venv/bin/activate` lines.)
 
-## 2. Start the web app
+Next time, only `cd` and `source .venv/bin/activate`.
+
+## 2. The app
+
 ```bash
-uvicorn webapp.main:app --reload
+nanoshm-app
 ```
-Open **http://127.0.0.1:8000** in your browser. There are two tabs at the top:
-**Single sample** and **Compare groups**. Press **Ctrl-C** in Terminal to stop.
 
----
+A window opens. If no window appears, run `nanoshm-app --no-window` and open
+the address it prints.
 
-## Test case A — Single sample
-In the **Single sample** tab, choose these files (all in the `examples/` folder):
+In **1 · Region and data type** leave the defaults (`jh4_intron`, `ont`,
+`recommended`). In **2 · Reference** choose the built-in **Jh4 – Base**; the
+matching contaminants are added for you. In **3 · Samples** drag in the six
+FASTQ files from `examples_compare/`, then press **Controls by name**, which
+marks the three KO libraries as controls. Name the project and press
+**Analyse**.
 
-| Field | File |
+It takes about a minute. Expect:
+
+| | |
 |---|---|
-| Reads (FASTQ) | `examples/WT3_JH4_sub500.fastq` |
-| Reference (FASTA) | `examples/JH4_reference.fasta` |
-| Contaminant (FASTA) | `examples/JH4_contaminant.fasta` |
-| Assay preset | `jh4_intron` |
+| Wild type | ~57 × 10⁻⁵ unique mutations per base |
+| *Aicda*-/- | ~0.6 × 10⁻⁵ |
+| Separation | ~100-fold, P ≈ 0.002 (Welch on log densities, n = 3 vs 3) |
 
-Click **Run analysis**. Expect ~**320 unique variants**, a G:C/A:T-mixed spectrum,
-and the spectrum / position-map / per-read figures.
+The **Results** tab draws the density, frequency, spectrum, positional map and
+hotspot figures. **Tables** lists every call. **Export** writes CSV, Excel,
+figures (PNG, SVG, PDF), a standalone HTML report, or a ZIP of all of it.
 
-Then try the negative control `examples/KO3_JH4_sub500.fastq` (same reference /
-preset) → should drop to ~**25–30 variants**. That WT-vs-KO contrast is the
-AID-dependence signal.
+Per-sample numbers to expect, at the common depth of 497 reads:
 
-## Test case B — Compare groups (the SHMTool-style analysis)
-In the **Compare groups** tab, files are in the `examples_compare/` folder:
+| Sample | Unique mutations | Density ×10⁻⁵ |
+|---|---:|---:|
+| WT2 | 146 | 55.7 |
+| WT3 | 334 | 129.3 |
+| WT4 | 68 | 26.0 |
+| KO1 | 0 | 0.0 |
+| KO2 | 3 | 1.1 |
+| KO3 | 1 | 0.4 |
 
-| Field | Files (select multiple) |
-|---|---|
-| CONTROL reads | `WT2.fastq`, `WT3.fastq`, `WT4.fastq` |
-| CASE reads | `KO1.fastq`, `KO2.fastq`, `KO3.fastq` |
-| Reference | `JH4_reference.fasta` |
-| Contaminant | `JH4_contaminant.fasta` |
-| Preset | `jh4_intron` |
-| Subregion | (leave blank, or try `200-400`) |
+## 3. The command line
 
-Click **Run comparison**. Expect the wild-type control to show ~**7× higher**
-overall mutation frequency than the Aicda-/- case, with **\*\*\*** significance
-on overall, A:T, and G:C mutations and collapsed AID-hotspot targeting in the
-knockout — plus three comparison figures.
+The same project from a sample sheet:
 
-> To select several files at once in the file picker, hold **Cmd** and click each.
-
----
-
-## Command-line alternative (no browser)
 ```bash
-# single sample
-python -m nanoshm.pipeline --fastq examples/WT3_JH4_sub500.fastq \
-  --reference examples/JH4_reference.fasta --contaminant examples/JH4_contaminant.fasta \
-  --preset presets/jh4_intron.yaml --out results/WT3 --plots
-
-# case vs control
-python -m nanoshm.compare \
-  --control examples_compare/WT2.fastq examples_compare/WT3.fastq examples_compare/WT4.fastq \
-  --case    examples_compare/KO1.fastq examples_compare/KO2.fastq examples_compare/KO3.fastq \
+nanoshm-benchmark --sheet examples_compare/samples.csv \
   --reference examples_compare/JH4_reference.fasta \
   --contaminant examples_compare/JH4_contaminant.fasta \
-  --preset presets/jh4_intron.yaml --plots --out compare_results
+  --preset jh4_intron --out bench
 ```
 
-## Using your own data
-Swap in any FASTQ + a reference FASTA for that amplicon (+ optional contaminant
-FASTA). Pick the `jh4_intron` or `n114_vregion` preset, or adjust the sliders /
-window. Remember: this is the uncalibrated prototype, so read the magnitudes as
-illustrative until the Phase-1 validation in `ROADMAP.md` is done.
+One sample on its own, with the manuscript's Geneious rule for comparison:
+
+```bash
+nanoshm --fastq examples/WT3_JH4_sub500.fastq \
+  --reference examples/JH4_reference.fasta \
+  --contaminant examples/JH4_contaminant.fasta \
+  --preset jh4_intron --mode geneious --out results/WT3 --plots
+```
+
+## 4. Your own data
+
+Swap in your FASTQ files and a reference FASTA for your amplicon. Three things
+matter more than any setting:
+
+- **Mark your controls.** A mutation-free sample from the same flow cell (an
+  AID-knockout animal, an empty-vector line, germline DNA) is what measures the
+  sequencing background. Two or more is better than one; with none, every call
+  rests on base quality alone and the background rises.
+- **Check the window.** The preset's analysis window must lie inside the region
+  your reads actually cover.
+- **Read the warnings column.** Low depth, a missing control, and calls that
+  cluster in a few bases are all reported there.
+
+`docs/calibration/` records how the defaults were chosen and how they behave on
+independent data.
