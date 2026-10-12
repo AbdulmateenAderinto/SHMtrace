@@ -49,7 +49,10 @@ So this is a library-specific artefact, not biology and not a general property o
 1. **The substitution spectrum.** A real AID signal in this background is C→T and G→A. Anything else is suspect. In a wild-type background the test is weaker but still useful: G:C bias and WRC/GYW enrichment.
 2. **Positional clustering.** Calls packed into a few bases, recurring across replicates but not co-occurring within reads, are an error cluster rather than SHM.
 
-Neither is automatic yet. A positional-clustering flag in the per-sample warnings would be a worthwhile addition; see "Still open" below.
+**Both are now automatic.** This dataset is what prompted them:
+
+- `clustered_calls` and a per-sample warning name any window of 10 bases holding far more calls than a random scatter would give (Poisson tail, Bonferroni over windows, p < 10⁻³). It fires on R174ER178E r1 and r4 (9 calls in 164–172) and on none of the AID, R50E or EV replicates. On 3,000 random scatters of 25 calls over 529 bp it never fires. Two alternative bases called at one position count as two calls, since that is itself a sign of an artefact.
+- `pct_CT_GA` reports C→T and G→A as a share of all calls: 100% in every AID replicate, 0–29% in the mutant ones.
 
 ## At a matched 1,400 reads
 
@@ -64,8 +67,7 @@ Repeating with every library cut to 1,400 reads, so the two shallow mutant libra
 
 ## Still open
 
-- Flag calls that cluster positionally without co-occurring in reads, as a per-sample warning.
-- Report a spectrum-plausibility note: in an AID experiment, what share of calls fall in the classes AID can produce.
+- `metrics.spectrum_note` scores calls against an arbitrary set of expected substitution classes, but nothing calls it yet; `pct_CT_GA` covers the common case.
 
 ## Reproduce
 

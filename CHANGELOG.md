@@ -35,6 +35,14 @@ this project uses [semantic versioning](https://semver.org/).
   `mouse_jh4_contaminant.fasta`. Left in, it inflated one raw library's
   mutation frequency fivefold. See `docs/calibration/SANGER.md`, which also
   compares Sanger clones with nanopore in the same animals (spectrum r = 0.91).
+- **A positional-clustering flag.** Calls packed into a 10-bp window far more
+  tightly than chance allows are counted in `clustered_calls` and named in the
+  sample's warnings. Real SHM is spread out, and a genuine co-occurring block
+  shares reads and is handled by phasing; a localised PCR or sequencing
+  artefact is neither, and a control-fitted null cannot see one that is absent
+  from the controls. Found on PRJNA918596 (`docs/calibration/ECTOPIC_AID.md`).
+- **`pct_CT_GA`**, C→T and G→A as a share of calls: the signature AID leaves
+  when the uracil goes unrepaired, and a quick check that calls look like AID's.
 - The app's Tables tab shows every column any row has, so a control without
   peers no longer hides the other samples' estimates.
 
