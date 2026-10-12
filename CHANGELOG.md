@@ -7,6 +7,7 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- App: **UMI consensus** in Set up → Advanced (UMI position, length, anchors with IUPAC codes, minimum reads per molecule); results report molecules per sample and reads per molecule. **Switching** tab for class-switch junctions: switch-region reference with donor picker, samples and groups, animal-level comparison, per-sample summary, microhomology and breakpoint figures, CSV exports (`/api/switch/*`, `/api/fasta-names`). Header fits narrow windows.
 - UMI consensus tested on real nanopore UMI reads (Karst et al. 2021 Zymo rRNA operons, `docs/calibration/umi_karst.py`): raw error 9.5% to 0.17% (57-fold), substitutions about 0.01% from 10 reads per molecule. UMI anchors now accept IUPAC primer codes.
 - **Renamed nanoshm → SHMtrace.** The package is `shmtrace`, commands are `shmtrace`, `shmtrace-sheet`, `shmtrace-power`, ... and the app is SHMtrace.app. `import nanoshm` still works (an alias with a DeprecationWarning); the old `nanoshm-*` commands are gone.
 - Pooled runs and screens (`demux.py`, MULTIPLEX.md): inline single or dual barcodes split before analysis from a sample sheet's `barcode`/`barcode2` columns (no misassigned reads in simulation at 3% or 8% read error); `shmtrace-screen` ranks conditions against the control with animal-level tests and Benjamini-Hochberg q-values, with a volcano plot.

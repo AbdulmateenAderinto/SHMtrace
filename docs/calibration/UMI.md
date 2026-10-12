@@ -2,6 +2,9 @@
 
 *12 October 2026. `shmtrace/umi.py`; simulation `docs/calibration/umi_sim.py`, output in `umi_sim/`.*
 
+
+**In the app:** Set up → Advanced → *UMI consensus*. Choose where the UMI sits and how long it is; the anchors default to the reference ends. The results report molecules per sample.
+
 ## What it does
 
 A unique molecular identifier (UMI) is a random tag put on each template molecule before PCR, so all reads sharing a UMI are copies of one molecule. With `umi` on, shmtrace:

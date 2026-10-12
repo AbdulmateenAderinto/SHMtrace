@@ -116,3 +116,43 @@ def test_copies_of_one_junction_count_once():
          switch.Junction("d", "Smu", 1700, "Sg1", 900, "switch", 0, "", False, 0, 100)]
     u = switch.unique_junctions(j)
     assert len(u) == 2 and any(x.donor_break == 1500 and x.microhomology == 2 for x in u)
+
+
+def test_the_app_runs_switch_junctions_and_exports_them(sim, tmp_path):
+    pytest.importorskip("fastapi")
+    pytest.importorskip("httpx")
+    import time
+
+    from fastapi.testclient import TestClient
+
+    from shmtrace.webapp.main import app
+    rng = random.Random(2)
+    donor = _region(rng, 3000, "GAGCTGAGCTGGGGTGAGCT")
+    acc = _region(rng, 3000, "GGGACCAGTCCTAGCAGCTGT")
+    (tmp_path / "ref.fa").write_text(f">Smu\n{donor}\n>Sg1\n{acc}\n")
+    for name in ("A1", "A2", "B1", "B2"):
+        with open(tmp_path / f"{name}.fq", "w") as fh:
+            for i in range(25):
+                bd, ba = rng.randint(1200, 2200), rng.randint(800, 2200)
+                s = _noisy(donor[bd - 600:bd] + acc[ba:ba + 600], rng)
+                fh.write(f"@{name}_{i}\n{s}\n+\n{'5' * len(s)}\n")
+    c = TestClient(app)
+    names = c.post("/api/fasta-names", json={"path": str(tmp_path / "ref.fa")}).json()
+    assert [r["name"] for r in names["records"]] == ["Smu", "Sg1"]
+    job = c.post("/api/switch/run", json={
+        "reference": str(tmp_path / "ref.fa"), "donor": "Smu",
+        "samples": [{"name": n, "path": str(tmp_path / f"{n}.fq"), "group": n[0]}
+                    for n in ("A1", "A2", "B1", "B2")],
+        "compare": {"case": "B", "control": "A"}}).json()["job"]
+    for _ in range(200):
+        st = c.get(f"/api/job/{job}").json()
+        if st["state"] in ("done", "error"):
+            break
+        time.sleep(0.1)
+    assert st["state"] == "done", st
+    res = c.get(f"/api/switch/result/{job}").json()
+    assert all(res["samples"][n]["junction_reads"] >= 20 for n in ("A1", "A2", "B1", "B2"))
+    assert {r["feature"] for r in res["comparison"]} >= {"pct_mh_4plus", "pct_blunt"}
+    for what in ("summary.csv", "junctions.csv", "comparison.csv"):
+        r = c.get(f"/api/switch/export/{job}/{what}")
+        assert r.status_code == 200 and r.text.count("\n") >= 2

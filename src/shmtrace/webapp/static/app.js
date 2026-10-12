@@ -12,7 +12,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;
 
 /* ── tabs ─────────────────────────────────────────────────── */
 function showTab(name) {
-  for (const t of ["setup", "results", "reads", "tables", "export"]) {
+  for (const t of ["setup", "results", "reads", "tables", "export", "switch"]) {
     $("page-" + t).classList.toggle("active", t === name);
     $("tab-" + t).setAttribute("aria-selected", String(t === name));
   }
@@ -54,6 +54,7 @@ async function init() {
     S.model = x; $("model-name").textContent = "Targeting model: " + x.name;
   }));
   if (new URLSearchParams(location.search).has("desktop")) $("save-local").style.display = "";
+  swInit();
 }
 
 function fill(sel, items, def) {
@@ -280,6 +281,17 @@ async function runProject() {
   }
   if ($("maxp").value.trim()) over.max_pvalue = +$("maxp").value;
   if ($("call-indels").checked) over.exclude_indels = false;
+  if ($("umi").value !== "off") {
+    over.umi = $("umi").value;
+    over.umi_ends = $("umi-ends").value;
+    over.umi_length = +$("umi-length").value || 18;
+    over.umi_min_reads = +$("umi-min").value || 3;
+    over.umi_offset = +$("umi-offset").value || 0;
+    const L = $("umi-left").value.trim().toUpperCase(), R = $("umi-right").value.trim().toUpperCase();
+    if (/[^ACGTRYSWKMBDHVN]/.test(L + R)) return error("UMI anchors may only contain DNA letters and IUPAC codes.");
+    if (L) over.umi_left_anchor = L;
+    if (R) over.umi_right_anchor = R;
+  }
   const saturation = $("saturation").checked;
 
   const project = {
@@ -419,10 +431,10 @@ function buildHeadline() {
     <dl class="kv">
       <dt>Region</dt><dd>${esc(p.region)} · ${esc(p.reference_name)} ·
         window ${p.analysis_window[0]}–${p.analysis_window[1]} of ${p.reference_length} bp</dd>
-      <dt>Data</dt><dd>${esc(p.platform)} · mode ${esc(p.mode)} (${esc(p.error_model)})${p.depth ? " · " + p.depth + " reads per sample" : ""}</dd>
+      <dt>Data</dt><dd>${esc(p.platform)} · mode ${esc(p.mode)} (${esc(p.error_model)})${p.depth ? " · " + p.depth + (p.umi && p.umi !== "off" ? " molecules per sample (UMI consensus)" : " reads per sample") : ""}</dd>
       <dt>Samples</dt><dd>${r.samples.length} in ${r.group_order.length} group(s), ${ctrls.length} control(s)</dd>
     </dl>
-    ${(r.notes || []).map(n => `<div class="msg err" style="margin-top:10px">${esc(n)}</div>`).join("")}`;
+    ${(r.notes || []).map(n => `<div class="msg${n.startsWith("UMI consensus:") ? "" : " err"}" style="margin-top:10px">${esc(n)}</div>`).join("")}`;
 }
 
 function figShell(id, title, note) {
@@ -779,7 +791,8 @@ function downloadCurrentTable() {
   const map = { samples: "samples.csv", groups: "groups.csv", variants: "variants.csv",
     indels: "indels.csv",
     positional: "positional_frequency.csv", spectrum: "spectrum.csv",
-    mutation_load: "mutation_load.csv" };
+    mutation_load: "mutation_load.csv", animal_tests: "animal_tests.csv",
+    qc: "qc_flags.csv", excluded: "excluded.csv" };
   dl(map[$("table-pick").value]);
 }
 
@@ -1047,3 +1060,133 @@ function rdDetail(rd) {
     <p style="margin:0 0 4px"><strong>Mismatches:</strong> ${esc(diffs)}</p>
     <p style="margin:0"><strong>Indels:</strong> ${esc(ind)}</p>`;
 }
+
+/* ── class-switch junctions (switch.py) ───────────────────── */
+const SW = { reference: null, samples: [], job: null, result: null };
+const MH_CLASSES = [["blunt", "#9DB4C0"], ["1-3 nt", "#5B9BD5"], [">=4 nt", "#FF6B57"], ["insertion", "#B07A1E"]];
+
+function swInit() {
+  dropZone($("sw-drop-ref"), false, (f) => upload(f).then(async ([x]) => {
+    if (!x) return;
+    SW.reference = x;
+    $("sw-ref-name").textContent = "Reference: " + x.name;
+    $("sw-error").innerHTML = "";
+    const r = await fetch("/api/fasta-names", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: x.path }) });
+    const d = await r.json();
+    if (!r.ok) return swError(d.detail || "could not read the FASTA");
+    $("sw-donor").innerHTML = d.records.map((rec, i) =>
+      `<option value="${esc(rec.name)}"${i === 0 ? " selected" : ""}>${esc(rec.name)} (${rec.length} bp)</option>`).join("");
+    if (d.records.length < 2) swError("The reference has one record; it needs the donor (Sμ) and at least one acceptor.");
+  }));
+  dropZone($("sw-drop-samples"), true, (f) => upload(f).then(swAdd), "sw-pick-folder");
+}
+
+function swAdd(files) {
+  const folders = new Map();
+  for (const f of files) {
+    const rel = f.rel || "";
+    const top = rel.includes("/") ? rel.split("/")[0] : null;
+    if (top) {
+      if (!folders.has(top)) folders.set(top, (f.folder || f.path).replace(/\/[^/]*$/, ""));
+    } else SW.samples.push({ name: strip(f.name), path: f.path, group: "" });
+  }
+  for (const [name, dir] of folders) SW.samples.push({ name, path: dir, group: "" });
+  swRender();
+}
+
+function swFromSetup() {
+  SW.samples = S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || "" }));
+  swRender();
+}
+
+function swRender() {
+  $("sw-samples").innerHTML = SW.samples.map((s, i) => `
+    <div class="sample">
+      <span class="nm" title="${esc(s.path)}">${esc(s.name)}</span>
+      <input placeholder="group" value="${esc(s.group)}" oninput="SW.samples[${i}].group=this.value;swGroups()">
+      <button class="x" title="Remove" onclick="SW.samples.splice(${i},1);swRender()">✕</button>
+    </div>`).join("");
+  swGroups();
+}
+
+function swGroups() {
+  const gs = [...new Set(SW.samples.map(s => s.group || s.name))];
+  const opts = ["<option value=''>(no comparison)</option>"].concat(gs.map(g => `<option>${esc(g)}</option>`)).join("");
+  const keep = [$("sw-case").value, $("sw-control").value];
+  $("sw-case").innerHTML = opts; $("sw-control").innerHTML = opts;
+  if (gs.includes(keep[0])) $("sw-case").value = keep[0];
+  if (gs.includes(keep[1])) $("sw-control").value = keep[1];
+}
+
+function swError(msg) { $("sw-error").innerHTML = `<div class="msg err" style="margin-top:8px">${esc(msg)}</div>`; }
+
+async function swRun() {
+  $("sw-error").innerHTML = "";
+  if (!SW.reference) return swError("Choose the switch-region reference first.");
+  if (!SW.samples.length) return swError("Add at least one sample.");
+  const c = $("sw-case").value, k = $("sw-control").value;
+  if ((c || k) && (!c || !k || c === k)) return swError("Pick two different groups to compare, or neither.");
+  $("sw-run").disabled = true; $("sw-status").style.display = "";
+  const body = { reference: SW.reference.path, donor: $("sw-donor").value,
+    samples: SW.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name })),
+    compare: { case: c, control: k } };
+  const r = await fetch("/api/switch/run", { method: "POST",
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const d = await r.json();
+  if (!r.ok) { $("sw-run").disabled = false; return swError(d.detail || "could not start"); }
+  SW.job = d.job;
+  swPoll();
+}
+
+async function swPoll() {
+  const j = await (await fetch("/api/job/" + SW.job)).json();
+  $("sw-bar").style.width = Math.round(100 * j.progress) + "%";
+  $("sw-msg").textContent = j.message;
+  if (j.state === "error") { $("sw-run").disabled = false; return swError(j.error); }
+  if (j.state !== "done") return setTimeout(swPoll, 700);
+  SW.result = await (await fetch("/api/switch/result/" + SW.job)).json();
+  $("sw-run").disabled = false;
+  swShow();
+}
+
+function swTable(el, rows) {
+  if (!rows.length) { el.innerHTML = "<tr><td class=muted>No rows.</td></tr>"; return; }
+  const cols = [...new Set(rows.flatMap(r => Object.keys(r)))];
+  el.innerHTML = "<thead><tr>" + cols.map(c => `<th>${esc(c.replace(/_/g, " "))}</th>`).join("") +
+    "</tr></thead><tbody>" + rows.map(r => "<tr>" + cols.map(c => {
+      const v = r[c];
+      return `<td class="${typeof v === "number" ? "num" : ""}">${v == null ? "" : typeof v === "number" ? fmtNum(c, v) : esc(v)}</td>`;
+    }).join("") + "</tr>").join("") + "</tbody>";
+}
+
+function swShow() {
+  const R = SW.result;
+  $("sw-results").hidden = false;
+  const names = Object.keys(R.samples);
+  swTable($("sw-summary"), names.map(n => {
+    const s = R.samples[n], c = s.microhomology_classes_pct || {};
+    return { sample: n, group: R.groups[n], reads: s.reads, junction_reads: s.junction_reads,
+      unique_junctions: s.unique_junctions,
+      acceptors: Object.entries(s.acceptors || {}).map(([k, v]) => `${k} ${v}`).join(", "),
+      "blunt %": c["blunt"] || 0, "1-3 nt %": c["1-3 nt"] || 0, ">=4 nt %": c[">=4 nt"] || 0,
+      "insertion %": c["insertion"] || 0, mean_microhomology: s.mean_microhomology,
+      "ambiguous %": s.ambiguous_pct, mutations_near_join_per_1e3: s.mutations_near_join_per_1e3,
+      internal_deletions: s.internal_deletions };
+  }));
+  $("sw-comp-card").hidden = !R.comparison.length;
+  swTable($("sw-comp"), R.comparison);
+  const L = { ...withLegend(layoutBase()), barmode: "stack" };
+  L.yaxis.title = "% of unique junctions";
+  Plotly.newPlot("sw-fig-mh", MH_CLASSES.map(([k, col]) => ({
+    type: "bar", name: k, x: names, y: names.map(n => (R.samples[n].microhomology_classes_pct || {})[k] || 0),
+    marker: { color: col } })), L, CONFIG);
+  const sw = R.junctions.filter(j => j.kind === "switch");
+  const L2 = { ...withLegend(layoutBase()), barmode: "overlay" };
+  L2.xaxis.title = "Breakpoint in the donor (bp)"; L2.yaxis.title = "Junction reads";
+  Plotly.newPlot("sw-fig-bp", names.map((n, i) => ({
+    type: "histogram", name: n, x: sw.filter(j => j.sample === n).map(j => j.donor_break),
+    opacity: 0.6, nbinsx: 40, marker: { color: PALETTE[i % PALETTE.length] } })), L2, CONFIG);
+}
+
+function swDl(what) { location.href = `/api/switch/export/${SW.job}/${what}`; }
