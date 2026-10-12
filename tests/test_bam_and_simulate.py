@@ -69,3 +69,20 @@ def test_unique_mutations_are_counted_once_per_file_not_pooled():
     list.append(u, {(1, "C", "T")})
     assert len(u) == 3                      # SHMTool: once per file
     assert sorted(u) == [(1, "C", "T"), (1, "C", "T"), (2, "G", "A")]
+
+
+def test_messy_sanger_ends_are_trimmed_and_mutations_kept():
+    from nanoshm.align import AlignedRead, trim_messy_ends
+    ref = "ACGTTGCAAGCTAGCTAGGATCCATGCATGCAAATTTGGGCCCATATCGCGATCGATCG" * 2
+    bases = list(ref)
+    for i in (1, 3, 4, 6):                 # a messy start: ambiguity codes and mismatches
+        bases[i] = "N" if i % 2 else ("A" if ref[i] != "A" else "C")
+    bases[60] = "A" if ref[60] != "A" else "C"     # a real mutation in the clean part
+    bases[-2] = "M"                                 # a messy end
+    pairs = [(i, b, 30) for i, b in enumerate(bases)]
+    read = AlignedRead("c", "ref", 0, len(ref), pairs, "", 1, [(5, "D", 1, 30)])
+    t = trim_messy_ends(read, ref, 20, 1)
+    assert t.r_st == 6 and t.r_en < len(ref) - 1       # just past the indel at 5
+    assert any(r == 60 and b != ref[60] for r, b, _q in t.pairs)
+    assert t.indels == []
+    assert trim_messy_ends(read, ref, 0, 1) is read

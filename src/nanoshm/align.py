@@ -132,3 +132,46 @@ def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int, with_indels: b
         elif op == 4:                       # soft clip
             qpos += length
     return (pairs, indels) if with_indels else pairs
+
+
+def trim_messy_ends(read: AlignedRead, ref: str, window: int,
+                    max_mismatch: int) -> AlignedRead | None:
+    """Cut an aligned Sanger read back to where it is clean, from each end.
+
+    The start of the clean part is the first aligned column from which `window`
+    consecutive columns hold no ambiguity code, no indel and at most
+    `max_mismatch` mismatches against the reference; the end is found the same
+    way from the other side. Mutations inside the clean part are kept. Returns
+    None if no clean stretch exists.
+    """
+    pairs = read.pairs
+    n = len(pairs)
+    if window <= 0:
+        return read
+    if n < window:
+        return None
+    indel_at = {rpos for rpos, *_ in read.indels}
+
+    def clean(i: int) -> bool:
+        seg = pairs[i:i + window]
+        lo_r, hi_r = seg[0][0], seg[-1][0]
+        if hi_r - lo_r != window - 1:
+            return False                      # a deletion inside the run
+        if any(lo_r <= r <= hi_r + 1 for r in indel_at):
+            return False
+        mm = 0
+        for rpos, base, _q in seg:
+            if base not in "ACGT":
+                return False
+            mm += base != ref[rpos].upper()
+        return mm <= max_mismatch
+
+    start = next((i for i in range(n - window + 1) if clean(i)), None)
+    if start is None:
+        return None
+    end = next(j for j in range(n - window, start - 1, -1) if clean(j)) + window - 1
+    kept = pairs[start:end + 1]
+    lo_r, hi_r = kept[0][0], kept[-1][0]
+    indels = [e for e in read.indels if lo_r < e[0] <= hi_r]
+    return AlignedRead(read.qname, read.ctg, lo_r, hi_r + 1, kept, read.seq, read.strand,
+                       indels)
