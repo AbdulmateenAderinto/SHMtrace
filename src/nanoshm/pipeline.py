@@ -21,7 +21,13 @@ import statistics
 from dataclasses import replace
 
 from . import __version__, metrics
-from .align import align_reads, build_index, trim_messy_ends
+from .align import (
+    align_reads,
+    build_index,
+    diagnostic_sites,
+    drop_contaminant_alleles,
+    trim_messy_ends,
+)
 from .config import Params, load_preset, to_dict
 from .io_utils import read_fasta, read_fastq
 from .phasing import partition
@@ -49,6 +55,11 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
                                                       p.minimap2_preset)
     aligned = [a for a in align_reads(kept, aligner, target_names, contam_names, p, fates)
                if a.ctg in target_names]
+    if contaminants and p.contaminant_min_alleles > 0:
+        sites = diagnostic_sites(reference, contaminants, p.minimap2_preset)
+        aligned, n_drop = drop_contaminant_alleles(aligned, sites, p.contaminant_min_alleles,
+                                                   p.contaminant_germline_frac, fates)
+        s_pre["dropped_contaminant_alleles"] = n_drop
     if p.platform == "sanger" and p.sanger_clean_window:
         # cut each clone back to where its sequence is clean (Params docs)
         trimmed = [trim_messy_ends(a, ref_seq, p.sanger_clean_window,

@@ -9,6 +9,7 @@ per-reference-position aligned pairs needed for pileup-based variant calling.
 """
 from __future__ import annotations
 
+import functools
 import os
 import tempfile
 from dataclasses import dataclass, field
@@ -42,6 +43,76 @@ class AlignedRead:
     # where the alignment starts in `seq`, so the unaligned 5' sequence (for
     # J꜀4, the V(D)J junction) can be read back
     q_st: int = 0
+
+
+def diagnostic_sites(reference: str, contaminant_fastas: list[str],
+                     preset: str = "map-ont") -> dict[int, set[str]]:
+    """Positions (0-based, on the reference) where a contaminant differs from it,
+    with the contaminant's base(s) there. Only aligned columns; indels are left out.
+
+    These identify a read from a contaminant or paralogue that the competitive
+    alignment kept: one longer than the contaminant record (it scores higher on
+    the full-length reference), or a PCR chimera with a contaminant stretch.
+    """
+    return dict(_diagnostic_sites(reference, tuple(contaminant_fastas or ()), preset))
+
+
+@functools.lru_cache(maxsize=16)
+def _diagnostic_sites(reference: str, contaminant_fastas: tuple, preset: str):
+    ref = read_fasta(reference)[0][1].upper()
+    aligner = mp.Aligner(seq=ref, preset=preset)
+    sites: dict[int, set[str]] = {}
+    for f in contaminant_fastas:
+        for _name, con in read_fasta(f):
+            con = con.upper()
+            for h in aligner.map(con):
+                if not h.is_primary:
+                    continue
+                q = con if h.strand == 1 else _revcomp(con)
+                rp, qp = h.r_st, (h.q_st if h.strand == 1 else len(con) - h.q_en)
+                for length, op in h.cigar:
+                    if op in (0, 7, 8):
+                        for k in range(length):
+                            b = q[qp + k]
+                            if b in "ACGT" and b != ref[rp + k]:
+                                sites.setdefault(rp + k, set()).add(b)
+                        rp += length
+                        qp += length
+                    elif op == 1:
+                        qp += length
+                    elif op in (2, 3):
+                        rp += length
+    return tuple((k, frozenset(v)) for k, v in sorted(sites.items()))
+
+
+def drop_contaminant_alleles(aligned: list, sites: dict, min_alleles: int,
+                             germline_frac: float = 0.2, fates: dict | None = None):
+    """Drop reads carrying `min_alleles` or more contaminant bases at diagnostic sites.
+
+    A site where `germline_frac` or more of this sample's reads carry the
+    contaminant's base is a germline difference the sample shares with the
+    contaminant, not evidence, and is left out. Returns (kept, dropped count).
+    """
+    if not sites or min_alleles <= 0:
+        return aligned, 0
+    cov: dict[int, int] = {}
+    car: dict[int, int] = {}
+    for r in aligned:
+        for rp, b, _q in r.pairs:
+            if rp in sites:
+                cov[rp] = cov.get(rp, 0) + 1
+                car[rp] = car.get(rp, 0) + (b in sites[rp])
+    use = {s: v for s, v in sites.items() if cov.get(s) and car.get(s, 0) / cov[s] < germline_frac}
+    kept, dropped = [], 0
+    for r in aligned:
+        hits = sum(1 for rp, b, _q in r.pairs if rp in use and b in use[rp])
+        if hits >= min_alleles:
+            dropped += 1
+            if fates is not None:
+                fates[r.qname] = {"fate": "contaminant alleles", "alleles": hits}
+            continue
+        kept.append(r)
+    return kept, dropped
 
 
 def build_index(target_fastas: list[str], contaminant_fastas: list[str],
