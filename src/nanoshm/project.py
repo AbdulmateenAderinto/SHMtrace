@@ -154,6 +154,31 @@ def corrected_spectrum(counts, base_sites: dict, n_files: int) -> dict:
     return out
 
 
+def sanger_germline(reads_by_sample: dict, ref: str, lo: int, hi: int, p) -> set:
+    """Germline differences from the reference, measured over a Sanger project's clones.
+
+    A sample of fewer than `sanger_germline_min_clones` clones cannot tell a
+    germline difference (carried by every clone of the mouse) from a mutation,
+    so its own germline rule is off. The other mice of the same strain can: a
+    change carried by at least `germline_freq_threshold` of all the project's
+    clones covering the position, among at least that many clones, is germline.
+    Without this, one clone from an Aicda-/- mouse reported the strain's five
+    germline differences in J꜀4 as five mutations.
+    """
+    from collections import Counter
+    depth, alts = Counter(), Counter()
+    for aligned in reads_by_sample.values():
+        for a in aligned:
+            for pos, base, _q in a.pairs:
+                if lo <= pos <= hi and base in "ACGT":
+                    depth[pos] += 1
+                    if base != ref[pos].upper():
+                        alts[(pos, base)] += 1
+    return {(pos, b) for (pos, b), k in alts.items()
+            if depth[pos] >= p.sanger_germline_min_clones
+            and k / depth[pos] >= p.germline_freq_threshold}
+
+
 def coverage_dips(depth: list, start: int, frac: float = 0.5, min_run: int = 10) -> str:
     """A warning naming stretches covered by under `frac` of the median depth.
 
@@ -322,6 +347,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
     nulls: dict = {}
     per_sample, details = [], {}
+    project_germline = None           # Sanger: germline seen across all clones
     # single-read mutations need controls and one shared depth
     single_q = p.single_read_min_quality if (not sanger and depth is not None) else None
     tallies: dict = {}
@@ -364,8 +390,12 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                     fit.qscale = qscale
                 nulls[peers] = fit
             null = nulls[peers]
+        few = sanger and len(b["reads"][name]) < p.sanger_germline_min_clones
+        if few and project_germline is None:
+            project_germline = sanger_germline(b["reads"], ref, lo, hi, p)
         res = pipeline.analyse(b["reads"][name], reference, p, b["stats"][name],
-                               null_rates=null, depth=depth)
+                               null_rates=null, depth=depth,
+                               germline=project_germline if few else None)
         if want_browse:
             progress(0.15 + 0.75 * i / len(samples), f"recording the alignment of {name}")
             fates: dict = {}

@@ -374,3 +374,30 @@ def test_pacbio_hifi_like_reads(amplicon):
     called = {(v.pos, v.alt) for v in res["variants"]}
     expected = {(pos + 1, alts[pos]) for pos in planted}
     assert expected <= called and len(called - expected) <= 1
+
+
+def test_a_one_clone_sanger_sample_borrows_the_projects_germline(sanger_case, tmp_path):
+    # one clone cannot tell its germline differences from mutations; the other
+    # mice in the project can. On the real J꜀4 clones a single Aicda-/- clone
+    # reported the strain's five germline differences as five mutations.
+    from nanoshm import project
+    d, ref, planted, germ = sanger_case
+    many = tmp_path / "many.fasta"
+    many.write_text("".join(f">{n}\n{mutate(ref, {**s, **germ})[25:670]}\n"
+                            for n, s in planted.items()))
+    one = tmp_path / "one.fasta"
+    one.write_text(f">solo\n{mutate(ref, {**germ, 500: alt_of(ref[500])})[25:670]}\n")
+    proj = {"name": "g", "region": "generic_amplicon", "platform": "sanger",
+            "reference": str(d / "ref.fasta"), "contaminants": [],
+            "overrides": {"min_align_len": 200},
+            "samples": [{"name": "many", "path": str(many), "group": "A"},
+                        {"name": "one", "path": str(one), "group": "B"}]}
+    res = project.run_project(proj)
+    called = {(v.pos, v.alt) for v in res["_details"]["one"]["variants"]}
+    assert called == {(501, alt_of(ref[500]))}
+    assert (301, germ[300]) not in called
+    row = next(s for s in res["samples"] if s["sample"] == "one")
+    assert "germline difference(s) removed using the project's other clones" in row["warnings"]
+    # the well-sampled mouse is untouched
+    many_called = {(v.pos, v.alt) for v in res["_details"]["many"]["variants"]}
+    assert many_called == {(p0 + 1, a) for s in planted.values() for p0, a in s.items()}
