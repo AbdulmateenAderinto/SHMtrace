@@ -15,9 +15,9 @@ The deposited nanopore libraries contain none of it; all 497 reads are kept in e
 
 ## Which clones are which
 
-Confirmed by Abdulmateen on 11 October 2026. The Sanger W2, W3 and W4 mice are nanopore WT2, WT3 and WT4. A1–A3 are the *Aicda*-/- mice. K1–K4 (also labelled `MKLN_KO`) are MKLN knockouts, which keep AID and have no nanopore libraries. The `jh6-` clones are another amplicon and are left out. The two `w1` clones could not be matched to a mouse and are left out.
+Confirmed by Abdulmateen on 11 October 2026. The Sanger W2, W3 and W4 mice are nanopore WT2, WT3 and WT4. A1–A3 are the *Aicda*-/- mice. K1–K4 (also labelled `MKLN_KO`) are MKLN knockouts, which keep AID and have no nanopore libraries. The `jh6-` clones are another amplicon and are left out. Of the three `w1`-labelled clones, none duplicates another clone (each is 1–2 differences from its nearest wild-type clone). `w1-jh4` sits in the WT2 folder and is counted as WT2. `w1.1extra` and `w12extra` sit only in the W3 folder, which also holds clones from other mice, so they are left out. Sanger A1, A2 and A3 are nanopore KO1, KO2 and KO3.
 
-After the paralogue and contaminant are removed: WT2 20 clones, WT3 34, WT4 18, A1 4, A2 5, A3 1, MKLN K2 11, K3 23, K4 34.
+After the paralogue and contaminant are removed: WT2 21 clones, WT3 34, WT4 18, A1 4, A2 5, A3 1, MKLN K2 11, K3 23, K4 34.
 
 ## Trimming the messy ends
 
@@ -31,7 +31,7 @@ Sanger mode (every substitution in a clean, trimmed clone is a mutation, Q20 on 
 
 | Mouse | Sanger clones | Sanger unique mutations | Sanger mutations / 10³ bp | Nanopore mutations / 10³ bp | Nanopore combined density × 10⁻⁵ |
 |---|---:|---:|---:|---:|---:|
-| WT2 | 20 | 66 | 7.8 | 1.7 | 74.9 |
+| WT2 | 21 | 67 | 7.5 | 1.7 | 74.9 |
 | WT3 | 34 | 290 | 28.2 | 21.3 | 138.1 |
 | WT4 | 18 | 77 | 8.8 | 4.8 | 26.0 |
 | *Aicda*-/- A1 (nanopore KO1) | 4 | 0 | 0 | 0.0 | 0.5 |
@@ -40,7 +40,7 @@ Sanger mode (every substitution in a clean, trimmed clone is a mutation, Q20 on 
 | MKLN-/- K2, K3, K4 | 11, 23, 34 | 18, 13, 30 | 4.6, 1.4, 2.3 | – | – |
 
 - **AID dependence agrees.** Wild types rank the same on both platforms (WT3 well above WT2 and WT4). The *Aicda*-/- Sanger clones carry 1 mutation in A1 and A2's 9 clones. A3 is a single clone with 5 mutations, too little to read anything from. As the manuscript says, ~10 Sanger clones put the knockout background below the detection floor, while nanopore at ~500 reads measures it.
-- **The substitution spectrum agrees.** Pooled across the three wild types (433 Sanger unique mutations):
+- **The substitution spectrum agrees.** Pooled across the three wild types (433 Sanger unique mutations, before `w1-jh4` was added to WT2):
 
   | Nanopore mode | Unique mutations, Pearson r | Recurrence-weighted, Pearson r | Mean absolute difference per class |
   |---|---:|---:|---:|
@@ -58,5 +58,5 @@ Indels as a share of mutations: Sanger WT3 4.5% (13 of 290), nanopore WT3 3.0%.
 
 ## What this needs next
 
-- More *Aicda*-/- Sanger clones, if more exist. 10 clones across three mice is too few to calibrate the Sanger background.
+- Few *Aicda*-/- clones were Sanger-sequenced (10 across three mice). They are kept as the Sanger control, but they cannot calibrate a Sanger background; the nanopore knockouts do that.
 - Raw `.ab1` traces would give real qualities in place of the flat Q30. That matters less now that clones are trimmed to their clean part.
