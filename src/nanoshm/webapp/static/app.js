@@ -247,6 +247,7 @@ async function runProject() {
     over.analysis_window = [+m[1], +m[2]];
   }
   if ($("maxp").value.trim()) over.max_pvalue = +$("maxp").value;
+  if ($("call-indels").checked) over.exclude_indels = false;
 
   const project = {
     name: $("proj-name").value || "nanoshm project",
@@ -679,6 +680,7 @@ const TABLES = {
   samples: ["Samples", r => r.samples],
   groups: ["Groups and statistics", r => r.groups],
   variants: ["Every mutation", r => r.variants],
+  indels: ["Insertions and deletions", r => r.indels || []],
   positional: ["Mutations per position", r => r.positional],
   mutation_load: ["Mutations per read", r => Object.entries(r.mutation_load).flatMap(([s, h]) =>
     Object.entries(h).map(([k, n]) => ({ sample: s, mutations_per_read: +k, reads: n }))
@@ -717,7 +719,8 @@ function renderTable() {
   const rows = currentRows();
   const thead = $("table").tHead, tbody = $("table").tBodies[0];
   if (!rows.length) { thead.innerHTML = ""; tbody.innerHTML = "<tr><td class=muted>No rows.</td></tr>"; return; }
-  const cols = Object.keys(rows[0]);
+  // every column any row has: a control without peers lacks the estimates
+  const cols = [...new Set(rows.flatMap(r => Object.keys(r)))];
   thead.innerHTML = "<tr>" + cols.map(c =>
     `<th onclick="sortBy('${c}')" class="${typeof rows[0][c] === "number" ? "num" : ""}">${esc(c.replace(/_/g, " "))}${S.sort === c ? (S.sortDir > 0 ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr>";
   tbody.innerHTML = rows.slice(0, 3000).map(r => "<tr>" + cols.map(c => {
@@ -734,6 +737,7 @@ function renderTable() {
 function sortBy(c) { S.sortDir = S.sort === c ? -S.sortDir : 1; S.sort = c; renderTable(); }
 function downloadCurrentTable() {
   const map = { samples: "samples.csv", groups: "groups.csv", variants: "variants.csv",
+    indels: "indels.csv",
     positional: "positional_frequency.csv", spectrum: "spectrum.csv",
     mutation_load: "mutation_load.csv" };
   dl(map[$("table-pick").value]);
@@ -752,6 +756,7 @@ const FIGURES = [
 ];
 function buildExport() {
   $("export-tables").innerHTML = ["samples.csv", "groups.csv", "variants.csv",
+    ...((S.result.indels || []).length ? ["indels.csv"] : []),
     "positional_frequency.csv", "spectrum.csv", "mutation_load.csv"]
     .map(f => `<button class="btn small" onclick="dl('${f}')">${f}</button>`).join("");
   $("export-figs").innerHTML = FIGURES.map(([f, label]) => `

@@ -20,6 +20,8 @@ SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "single_read_observed", "single_read_background", "single_read_estimate",
                   "single_read_density_x1e5", "single_read_density_ci_low",
                   "single_read_density_ci_high",
+                  "indels_called", "insertions", "deletions", "frameshift_indels",
+                  "indel_density_x1e5",
                   "mutation_frequency_x1e3", "mutated_reads_pct",
                   "mean_mutations_per_read", "pct_GC", "pct_transitions",
                   "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",
@@ -56,6 +58,7 @@ def tables(res: dict) -> dict[str, str]:
         "samples.csv": _rows_csv(res["samples"], SAMPLE_COLUMNS),
         "groups.csv": _rows_csv(res["groups"]),
         "variants.csv": _rows_csv(res["variants"], VARIANT_COLUMNS),
+        **({"indels.csv": _rows_csv(res["indels"])} if res.get("indels") else {}),
         "spectrum.csv": _rows_csv(spec_rows),
         "positional_frequency.csv": _rows_csv(res["positional"]),
         "mutation_load.csv": _rows_csv(load_rows),
@@ -71,6 +74,8 @@ def workbook(res: dict) -> bytes:
               "Groups": (res["groups"], None),
               "Variants": (res["variants"], VARIANT_COLUMNS),
               "Positional": (res["positional"], None)}
+    if res.get("indels"):
+        sheets["Indels"] = (res["indels"], None)
     spec_rows = [{"group": g, "substitution": k, "count": v}
                  for g, c in res["spectrum_group"].items() for k, v in sorted(c.items())]
     sheets["Spectrum"] = (spec_rows, None)
