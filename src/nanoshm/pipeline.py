@@ -21,7 +21,7 @@ import statistics
 from dataclasses import replace
 
 from . import __version__, metrics
-from .align import align_reads, build_index
+from .align import align_reads, build_index, trim_messy_ends
 from .config import Params, load_preset, to_dict
 from .io_utils import read_fasta, read_fastq
 from .phasing import partition
@@ -44,6 +44,12 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
                                                       p.minimap2_preset)
     aligned = [a for a in align_reads(kept, aligner, target_names, contam_names, p)
                if a.ctg in target_names]
+    if p.platform == "sanger" and p.sanger_clean_window:
+        # cut each clone back to where its sequence is clean (Params docs)
+        trimmed = [trim_messy_ends(a, ref_seq, p.sanger_clean_window,
+                                   p.sanger_clean_max_mismatch) for a in aligned]
+        s_pre["clones_without_clean_stretch"] = sum(t is None for t in trimmed)
+        aligned = [t for t in trimmed if t is not None]
     s_pre["aligned_before_phasing"] = len(aligned)
     # Remove a co-occurring minor haplotype before depth standardisation, so the
     # retained depth is all target population. Phasing before downsampling also

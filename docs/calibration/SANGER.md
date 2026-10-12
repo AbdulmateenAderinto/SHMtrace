@@ -1,12 +1,11 @@
 # Sanger clones against nanopore, same animals
 
-*11 October 2026. Sanger: the lab's J꜀4 clone set ("JH4 MKLN sanger sequencing data", Benchling GenBank exports, 762 files). Nanopore: the six bundled J꜀4 libraries (run DHJGKB). The Sanger PCRs were separate reactions from the nanopore ones, so clone-level identity is not expected. MKLN animals have no nanopore libraries and are left out.*
+*11 October 2026. Sanger: the lab's J꜀4 clone set ("JH4 MKLN sanger sequencing data", Benchling GenBank exports, 762 files). Nanopore: the six bundled J꜀4 libraries (run DHJGKB). The Sanger PCRs were separate reactions from the nanopore ones, so clone-level identity is not expected. MKLN knockouts have no nanopore libraries; they are shown for reference only.*
 
 ## Preparing the clones
 
 - nanoshm now reads GenBank files (`.gb`, `.gbk`) directly. Each record is one read with flat Q30 qualities. IUPAC ambiguity codes are kept, so they are never counted as mutations.
 - The 762 files hold 407 distinct clone records. The per-animal folders mix animals (the W2 folder holds w3 clones, and K3 holds JH4K1 clones), and folder `24` is the union of all of them. Clones were therefore assigned by name: `w2`/`wt2` → WT2, `jhextra-w3` → WT3, `JH4K1` → KO1, `k2` → KO2, and so on. A re-sequenced clone keeps its longest read.
-- Matched animals and clones: WT2 20, WT3 38, WT4 28, KO1 25, KO2 32, KO3 25, KO4 35.
 
 ## A paralogue in the J꜀4 amplicon
 
@@ -14,33 +13,50 @@
 
 The deposited nanopore libraries contain none of it; all 497 reads are kept in each. Raw nanopore reads do contain it. In the FAM72A runs it is 0–41% of a library (CGQZ98 K2 41%, K32XSR W2 38%). Left in, it read as heavily mutated J꜀4: K32XSR W2's mutation frequency came out at 54.6 × 10⁻³ against 10.5 × 10⁻³ once it is removed.
 
+## Which clones are which
+
+Confirmed by Abdulmateen on 11 October 2026. The Sanger W2, W3 and W4 mice are nanopore WT2, WT3 and WT4. A1–A3 are the *Aicda*-/- mice. K1–K4 (also labelled `MKLN_KO`) are MKLN knockouts, which keep AID and have no nanopore libraries. The `jh6-` clones are another amplicon and are left out. The two `w1` clones could not be matched to a mouse and are left out.
+
+After the paralogue and contaminant are removed: WT2 20 clones, WT3 34, WT4 18, A1 4, A2 5, A3 1, MKLN K2 11, K3 23, K4 34.
+
+## Trimming the messy ends
+
+Sanger reads are messy for their first and last stretch, and these exports carry no qualities to trim by. The manual practice is to align the clones and cut each one back to where it cleans up. nanoshm now does the same for the Sanger platform (`sanger_clean_window`, `sanger_clean_max_mismatch`). After alignment each clone is cut back, from each end, to the first run of 20 reference bases with no ambiguity code, no indel and at most one mismatch. Mutations inside the clean part are kept.
+
+On these 150 clones the clean part starts at reference 50–75 and ends at 650–675, about where the insert meets the primers. That lies outside the 529-bp comparison window (101–629), which is why the manuscript chose that window. Inside the window, trimming changed only a handful of calls.
+
 ## Comparison
 
-Sanger mode (every substitution in a clone is a mutation, Q20 on flat Q30 input), with both contaminants removed. Nanopore in the recommended mode at 497 reads.
+Sanger mode (every substitution in a clean, trimmed clone is a mutation, Q20 on flat Q30 input), with both contaminants removed. Nanopore in the recommended mode at 497 reads.
 
-| Animal | Sanger clones | Sanger mutations / 10³ bp | Nanopore mutations / 10³ bp | Nanopore combined density × 10⁻⁵ |
-|---|---:|---:|---:|---:|
-| WT2 | 20 | 7.8 | 1.7 | 74.9 |
-| WT3 | 34 | 29.1 | 21.3 | 138.1 |
-| WT4 | 18 | 8.8 | 4.8 | 26.0 |
-| KO1 | 15 | 3.4 | 0.0 | 0.5 |
-| KO2 | 11 | 4.6 | 0.1 | 1.1 |
-| KO3 | 23 | 1.4 | 0.02 | 0.4 |
-| KO4 | 34 | 2.3 | – | – |
+| Mouse | Sanger clones | Sanger unique mutations | Sanger mutations / 10³ bp | Nanopore mutations / 10³ bp | Nanopore combined density × 10⁻⁵ |
+|---|---:|---:|---:|---:|---:|
+| WT2 | 20 | 66 | 7.8 | 1.7 | 74.9 |
+| WT3 | 34 | 290 | 28.2 | 21.3 | 138.1 |
+| WT4 | 18 | 77 | 8.8 | 4.8 | 26.0 |
+| *Aicda*-/- A1 (nanopore KO1) | 4 | 0 | 0 | 0.0 | 0.5 |
+| *Aicda*-/- A2 (KO2) | 5 | 1 | 0.4 | 0.1 | 1.1 |
+| *Aicda*-/- A3 (KO3) | 1 | 5 | 9.5 | 0.02 | 0.4 |
+| MKLN-/- K2, K3, K4 | 11, 23, 34 | 18, 13, 30 | 4.6, 1.4, 2.3 | – | – |
 
-The clone counts are after the paralogue and contaminant are removed: KO2 drops from 31 to 11.
+- **AID dependence agrees.** Wild types rank the same on both platforms (WT3 well above WT2 and WT4). The *Aicda*-/- Sanger clones carry 1 mutation in A1 and A2's 9 clones. A3 is a single clone with 5 mutations, too little to read anything from. As the manuscript says, ~10 Sanger clones put the knockout background below the detection floor, while nanopore at ~500 reads measures it.
+- **The substitution spectrum agrees.** Pooled across the three wild types (433 Sanger unique mutations):
 
-- **The ranking agrees.** WT3 is the most mutated animal on both platforms, and WT2 and WT4 sit well below it.
-- **The substitution spectrum agrees.** Pooled across the three wild types (445 Sanger and 548 nanopore unique mutations), the 12-class spectra correlate with Pearson r = 0.91 (Spearman 0.84). WT3 alone gives 0.92. WT2 and WT4 alone give r ≈ 0.45, with 66 and 77 Sanger mutations, too few for a 12-class spectrum.
-- **The Sanger knockout background is about 50 times nanopore's**: 1.4–4.6 against 0.02–0.13 × 10⁻³. These GenBank exports carry no qualities, so poor bases at the end of a read cannot be trimmed. Mismatches in knockout clones are enriched in the last 100 bases of the read (57 of 142), at reference positions 125–175. Some recur at wild-type hotspots (143, 160, 165 and 166, mostly G>A and C>T). That pattern suggests some wild-type material in the knockout clone preparations, not sequencing error alone. Worth checking at the bench.
+  | Nanopore mode | Unique mutations, Pearson r | Recurrence-weighted, Pearson r | Mean absolute difference per class |
+  |---|---:|---:|---:|
+  | geneious (the manuscript's rule) | 0.947 | 0.962 | 1.3–1.4 points |
+  | recommended | 0.918 | 0.963 | 1.4–1.5 points |
+
+  The manuscript reports r = 0.97 and 1.4 points from Geneious with 515 Sanger mutations. The small gap is consistent with a slightly different clone set.
+- **The MKLN knockouts are mutated** (1.4–4.6 × 10⁻³, with G:C mutations at WRC/GYW hotspots 40–79% of the time), as expected for an AID-proficient line. An earlier version of this page read them as AID-null controls and took their hotspot mutations for carry-over. That was wrong.
 
 ## Indels
 
-Sanger finds indels in all three wild types. WT3 has 13, including deletions of 22, 60 and 89 bp and a 26-bp insertion. WT2 has 3 and WT4 has 1. The knockouts have 0–2, mostly 1-bp. Nanopore calls 10 indels in WT3 and none in WT2 or WT4. Sanger counts each indel in a clone, while nanopore calls only indels carried by three or more reads (`INDELS.md`), so the two agree that WT3 is the indel-rich animal. They do not share individual events, as expected from separate PCRs and 34 clones against 497 reads.
+Sanger finds indels in all three wild types. WT3 has 13, including deletions of 22, 60 and 89 bp and a 26-bp insertion. WT2 has 3 and WT4 has 1. The *Aicda*-/- clones have none; the MKLN knockouts have 0–2, mostly 1-bp. Nanopore calls 10 indels in WT3 and none in WT2 or WT4. Sanger counts each indel in a clone, while nanopore calls only indels carried by three or more reads (`INDELS.md`), so the two agree that WT3 is the indel-rich animal. They do not share individual events, as expected from separate PCRs and 34 clones against 497 reads.
 
-Indels as a share of mutations: Sanger WT3 4.3%, nanopore WT3 3.0%.
+Indels as a share of mutations: Sanger WT3 4.5% (13 of 290), nanopore WT3 3.0%.
 
 ## What this needs next
 
-- Raw `.ab1` traces for these clones would give real qualities. Clone ends could then be trimmed, which would probably remove most of the Sanger knockout background.
-- Whether the knockout clone sets carry some wild-type material. The recurrent hotspot mutations in the knockouts are the thing to check.
+- More *Aicda*-/- Sanger clones, if more exist. 10 clones across three mice is too few to calibrate the Sanger background.
+- Raw `.ab1` traces would give real qualities in place of the flat Q30. That matters less now that clones are trimmed to their clean part.

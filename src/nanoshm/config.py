@@ -105,6 +105,14 @@ class Params:
     # covered by at least this many clones; with fewer clones in the whole
     # sample it is switched off and a note says so.
     sanger_germline_min_clones: int = 4
+    # The first and last stretch of a Sanger read is messy (ambiguity codes,
+    # spurious indels and mismatches), and a GenBank or FASTA export carries no
+    # qualities to trim it by. After alignment each clone is cut back, from
+    # each end, to the first run of this many reference bases with no ambiguity
+    # code, no indel and at most sanger_clean_max_mismatch mismatches; what lies
+    # outside is dropped. 0 turns it off.
+    sanger_clean_window: int = 20
+    sanger_clean_max_mismatch: int = 1
 
     # ---- multiple testing ---------------------------------------------------
     # The caller tests (analysed positions x 3 alt bases) hypotheses per sample,
