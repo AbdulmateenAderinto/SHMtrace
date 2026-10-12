@@ -762,6 +762,8 @@ const FIGURES = [
 // Detail and diagnostics. Each is drawn only when the run carries what it
 // needs, so the Export tab asks the server which ones exist.
 const DIAGNOSTIC_FIGURES = [
+  ["coverage", "Coverage along the amplicon"],
+  ["spectrum_corrected", "Spectrum, corrected for base composition"],
   ["saturation", "Saturation (is the depth enough?)"],
   ["combined_density", "Combined density with 95% intervals"],
   ["single_read_excess", "Single-read excess over controls"],
@@ -778,6 +780,7 @@ const DIAGNOSTIC_FIGURES = [
 function buildExport() {
   $("export-tables").innerHTML = ["samples.csv", "groups.csv", "variants.csv",
     ...((S.result.indels || []).length ? ["indels.csv"] : []),
+    ...(S.result.coverage && Object.keys(S.result.coverage).length ? ["coverage.csv"] : []),
     "positional_frequency.csv", "spectrum.csv", "mutation_load.csv"]
     .map(f => `<button class="btn small" onclick="dl('${f}')">${f}</button>`).join("");
   const avail = new Set(S.result.available_figures || FIGURES.map(([f]) => f));

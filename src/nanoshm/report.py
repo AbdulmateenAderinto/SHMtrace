@@ -45,11 +45,16 @@ def _rows_csv(rows: list[dict], columns: list[str] | None = None) -> str:
 def tables(res: dict) -> dict[str, str]:
     """Every table as CSV text, keyed by file name."""
     spec_rows = []
+    corr = res.get("spectrum_corrected_group") or {}
     for g, c in res["spectrum_group"].items():
         tot = sum(c.values()) or 1
-        for k, v in sorted(c.items()):
+        keys = sorted(set(c) | set(corr.get(g, {})))
+        for k in keys:
+            v = c.get(k, 0)
             spec_rows.append({"group": g, "substitution": k, "count": v,
-                              "percent": round(100 * v / tot, 2)})
+                              "percent": round(100 * v / tot, 2),
+                              # per site of the from-base, per animal (SHMTool)
+                              "per_site_per_sample": (corr.get(g) or {}).get(k)})
     load_rows = []
     for s, hist in res["mutation_load"].items():
         for k in sorted(hist, key=int):
@@ -62,6 +67,10 @@ def tables(res: dict) -> dict[str, str]:
         "spectrum.csv": _rows_csv(spec_rows),
         "positional_frequency.csv": _rows_csv(res["positional"]),
         "mutation_load.csv": _rows_csv(load_rows),
+        **({"coverage.csv": _rows_csv(
+            [{"sample": n, "pos": c["start"] + i, "depth": d}
+             for n, c in (res.get("coverage") or {}).items()
+             for i, d in enumerate(c["depth"])])} if res.get("coverage") else {}),
     }
 
 

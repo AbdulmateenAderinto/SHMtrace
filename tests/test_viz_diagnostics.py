@@ -71,3 +71,33 @@ def test_public_lists_the_figures_without_drawing_them(jh4, monkeypatch):
 def test_svg_and_pdf_come_out_too(jh4):
     assert vd.quality_histogram(jh4, "svg").lstrip().startswith(b"<?xml")
     assert vd.volcano(jh4, "pdf").startswith(b"%PDF")
+
+
+def test_corrected_spectrum_uses_shmtool_denominator():
+    from collections import Counter
+    from nanoshm.project import corrected_spectrum
+    # 6 C>T over 3 animals in a window with 20 C: 6 / (20 x 3)
+    out = corrected_spectrum(Counter({"C>T": 6}), {"A": 10, "C": 20, "G": 5, "T": 0}, 3)
+    assert out["C>T"] == 0.1
+    assert out["A>G"] == 0.0
+    assert out["T>C"] is None          # no T in the window: undefined, not zero
+    assert len(out) == 12
+
+
+def test_coverage_dips_name_the_low_stretch_only():
+    from nanoshm.project import coverage_dips
+    flat = [500] * 200
+    assert coverage_dips(flat, 101) == ""
+    dip = [500] * 80 + [100] * 30 + [500] * 90
+    msg = coverage_dips(dip, 101)
+    assert "181-210" in msg and "500" in msg
+    # a dip shorter than the minimum run is a single bad column, not a stretch
+    assert coverage_dips([500] * 100 + [10] * 3 + [500] * 100, 1) == ""
+
+
+def test_project_reports_coverage_and_corrected_spectrum(jh4):
+    assert set(jh4["coverage"]) == {"WT", "KO"}
+    c = jh4["coverage"]["WT"]
+    assert c["start"] == 101 and len(c["depth"]) == 529
+    assert sum(jh4["base_composition"].values()) == 529
+    assert "C>T" in jh4["spectrum_corrected_group"]["WT"]

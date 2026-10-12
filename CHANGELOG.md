@@ -7,6 +7,23 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Coverage along the amplicon.** Every sample's per-position read depth is
+  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
+  positions below half the sample's median depth is named in its warnings.
+  Density divides by analysed positions times mean depth, so it assumes even
+  coverage; this is where to see whether that holds.
+
+### Fixed
+- **Base-composition correction in projects.** `nanoshm-compare` already
+  divided each substitution class by the sites of its from-base (SHMTool's
+  L = sites × files); the project path reported raw counts only, so the two
+  entry points gave differently normalised spectra. Projects now report
+  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
+  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
+  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
+  understate C→T relative to G→A.
+
+### Added (continued)
 - **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
   opt-in with "Keep the read alignment"). Every input read is drawn in its
   aligned place against the reference, banded by what became of it — analysed,
@@ -90,6 +107,23 @@ this project uses [semantic versioning](https://semver.org/).
   peers no longer hides the other samples' estimates.
 
 ### Added
+- **Coverage along the amplicon.** Every sample's per-position read depth is
+  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
+  positions below half the sample's median depth is named in its warnings.
+  Density divides by analysed positions times mean depth, so it assumes even
+  coverage; this is where to see whether that holds.
+
+### Fixed
+- **Base-composition correction in projects.** `nanoshm-compare` already
+  divided each substitution class by the sites of its from-base (SHMTool's
+  L = sites × files); the project path reported raw counts only, so the two
+  entry points gave differently normalised spectra. Projects now report
+  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
+  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
+  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
+  understate C→T relative to G→A.
+
+### Added (continued)
 - **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
   opt-in with "Keep the read alignment"). Every input read is drawn in its
   aligned place against the reference, banded by what became of it — analysed,
@@ -181,6 +215,23 @@ this project uses [semantic versioning](https://semver.org/).
   assembly, restored to sequenced orientation.
 
 ### Added
+- **Coverage along the amplicon.** Every sample's per-position read depth is
+  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
+  positions below half the sample's median depth is named in its warnings.
+  Density divides by analysed positions times mean depth, so it assumes even
+  coverage; this is where to see whether that holds.
+
+### Fixed
+- **Base-composition correction in projects.** `nanoshm-compare` already
+  divided each substitution class by the sites of its from-base (SHMTool's
+  L = sites × files); the project path reported raw counts only, so the two
+  entry points gave differently normalised spectra. Projects now report
+  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
+  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
+  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
+  understate C→T relative to G→A.
+
+### Added (continued)
 - **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
   opt-in with "Keep the read alignment"). Every input read is drawn in its
   aligned place against the reference, banded by what became of it — analysed,
@@ -242,6 +293,23 @@ this project uses [semantic versioning](https://semver.org/).
 - `summary.json` records `nanoshm_version`.
 
 ### Added
+- **Coverage along the amplicon.** Every sample's per-position read depth is
+  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
+  positions below half the sample's median depth is named in its warnings.
+  Density divides by analysed positions times mean depth, so it assumes even
+  coverage; this is where to see whether that holds.
+
+### Fixed
+- **Base-composition correction in projects.** `nanoshm-compare` already
+  divided each substitution class by the sites of its from-base (SHMTool's
+  L = sites × files); the project path reported raw counts only, so the two
+  entry points gave differently normalised spectra. Projects now report
+  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
+  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
+  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
+  understate C→T relative to G→A.
+
+### Added (continued)
 - **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
   opt-in with "Keep the read alignment"). Every input read is drawn in its
   aligned place against the reference, banded by what became of it — analysed,
@@ -305,6 +373,23 @@ this project uses [semantic versioning](https://semver.org/).
   no background and costs ~15% of signal.
 
 ### Added
+- **Coverage along the amplicon.** Every sample's per-position read depth is
+  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
+  positions below half the sample's median depth is named in its warnings.
+  Density divides by analysed positions times mean depth, so it assumes even
+  coverage; this is where to see whether that holds.
+
+### Fixed
+- **Base-composition correction in projects.** `nanoshm-compare` already
+  divided each substitution class by the sites of its from-base (SHMTool's
+  L = sites × files); the project path reported raw counts only, so the two
+  entry points gave differently normalised spectra. Projects now report
+  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
+  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
+  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
+  understate C→T relative to G→A.
+
+### Added (continued)
 - **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
   opt-in with "Keep the read alignment"). Every input read is drawn in its
   aligned place against the reference, banded by what became of it — analysed,
