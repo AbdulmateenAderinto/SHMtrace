@@ -103,6 +103,13 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
     wa = sum(1 for v in vs if v.ref in "AT" and (
         motifs.is_site("WA", ref, v.pos - 1) or motifs.is_site("TW", ref, v.pos - 1)))
     at = len(vs) - gc
+    # calls packed into a few bases are a localised artefact, not SHM: real
+    # co-occurring blocks share reads and are removed by phasing instead
+    clusters = metrics.positional_clusters(vs, bp)
+    cluster_notes = [
+        f"{c['calls']} calls fall in {c['end'] - c['start'] + 1} bp at "
+        f"{c['start']}-{c['end']} (p = {c['p_adjusted']:.1e}); check the spectrum "
+        "there before counting them as mutations" for c in clusters]
     return {
         "sample": name, "group": group, "control": control,
         "reads": nreads,
@@ -116,12 +123,17 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "mean_mutations_per_read": round(total_mut / nreads, 4) if nreads else None,
         "pct_GC": round(100 * gc / len(vs), 1) if vs else None,
         "pct_transitions": round(100 * ts / len(vs), 1) if vs else None,
+        # C>T and G>A as a share of all calls: what AID gives when the uracil
+        # is left unrepaired, and a quick check that calls look like AID's
+        "pct_CT_GA": round(100 * sum(1 for v in vs if (v.ref, v.alt) in (("C", "T"), ("G", "A"))) / len(vs), 1) if vs else None,
         "pct_GC_in_WRC_GYW": round(100 * hot / gc, 1) if gc else None,
         "pct_AT_in_WA_TW": round(100 * wa / at, 1) if at else None,
         "analysed_bp": bp,
         "model_used": s["calling"].get("error_model", ""),
+        "clustered_calls": sum(c["calls"] for c in clusters),
         "warnings": "; ".join(list(s.get("warnings") or [])
-                              + list(s["calling"].get("notes") or [])),
+                              + list(s["calling"].get("notes") or [])
+                              + cluster_notes),
     }
 
 
