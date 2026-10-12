@@ -1,6 +1,14 @@
 # Illumina: J꜀4 in an independent study
 
-*11 October 2026. Data: [PRJNA973112](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA973112) (GEO GSM7360896–913), germinal-centre B cells from NP-CGG-immunised mice, day 14. Illumina NovaSeq 2×151. 7 wild type, 7 LDHA-KO and 4 *Aicda*-/- mice. All 72 FASTQ files checked against ENA's MD5.*
+*11–12 October 2026. Data: [PRJNA973112](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA973112) / GEO [GSE232658](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE232658), published as [PMID 37365386](https://pubmed.ncbi.nlm.nih.gov/37365386/). Splenic germinal-centre B cells, Illumina NovaSeq 2×151. All 72 FASTQ files checked against ENA's MD5.*
+
+Genotypes, from the GEO sample records:
+
+| Group | Genotype | n |
+|---|---|---:|
+| Wild type | `Ldha(+/+) Aicda(Cre/+)` | 7 |
+| LDHA-KO | `Ldha(fl/fl) Aicda(Cre/+)` — LDHA deleted by AID-Cre, so **in activated B cells** | 7 |
+| *Aicda*-/- | `AID(Cre/Cre)` — homozygous Cre knock-in, AID-null | 4 |
 
 ## What this amplicon covers
 
@@ -24,12 +32,20 @@ Mutation frequency (mutations per base sequenced) and the share of mutated reads
 | LDHA-KO | 7 | 1.50 (0.00–2.21) | 9.0% |
 | *Aicda*-/- | 4 | 0.10 (0.00–0.20) | 0.6% |
 
-- Wild type against *Aicda*-/-: about 18-fold, Welch on log values P = 0.015 (P = 0.013 for reads mutated).
-- LDHA-KO against *Aicda*-/-: P = 0.034.
-- The *Aicda*-/- mice carry 0–4 calls each in 20,000 reads.
-- G:C mutations in wild type fall at WRC/GYW hotspots 47–71% of the time.
+| Comparison | Welch on log values | Mann-Whitney |
+|---|---:|---:|
+| Wild type vs *Aicda*-/- | **P = 0.016** | **P = 0.006** |
+| LDHA-KO vs *Aicda*-/- | **P = 0.034** | P = 0.058 |
+| Wild type vs LDHA-KO | P = 0.57 | P = 0.90 |
 
-The quality-calibrated model, chosen on nanopore J꜀4, separates AID-active from AID-null mice on Illumina reads from another laboratory, another amplicon design and another part of the locus.
+**nanoshm reproduces both of the study's findings, positive and negative.**
+
+- **AID dependence is recovered.** Wild type is about 18-fold above *Aicda*-/-, which carry 0–4 calls each in 20,000 reads. G:C mutations in wild type fall at WRC/GYW hotspots 47–71% of the time. The quality-calibrated model, chosen on nanopore J꜀4, therefore separates AID-active from AID-null mice on Illumina reads from another laboratory, another amplicon design and another part of the locus.
+- **No LDHA effect, which is what the paper reports.** Here LDHA is deleted by AID-Cre, that is in *activated* B cells, and the paper concludes that deleting it at that stage has "only minimal effects on the GC reaction and in the generation of high-affinity antibodies". nanoshm sees no difference in J꜀4 mutation (P = 0.57), while still separating both genotypes from the AID-null control. A method that manufactured differences would not behave this way.
+
+Caveat on the negative result: with 70 bp, 20,000 undeduplicated reads per mouse and n = 7, this run can exclude only a large LDHA effect, not a small one. It agrees with the paper; it does not independently establish the absence of an effect.
+
+No sample in this dataset triggered the positional-clustering flag.
 
 **LDHA-KO mouse KO4 has no calls, and that is correct.** Only 2.3% of its reads carry any Q30 mismatch in the window, against 16% for LDHA-KO3 and 27% for wild-type 2. It looks like an AID-null library, so the cause is probably the sample (few germinal-centre B cells, for instance), not the caller.
 
