@@ -39,6 +39,8 @@ from .config import Params
 from .io_utils import read_fasta
 
 BASES = ("A", "C", "G", "T")
+# how many supporting reads error_model="qcal" tests per candidate (see _qcal_pvalue)
+QCAL_MAX_TESTS = 100
 
 
 @dataclass
@@ -436,7 +438,13 @@ def _qcal_pvalue(rpos, refbase, alt, alt_quals, s_depth, null, p) -> float:
         return 1.0
     quals.sort(reverse=True)
     best = 1.0
-    for j, (qj, _s) in enumerate(quals, start=1):
+    # Only the highest-quality supporting reads are worth testing. Testing every
+    # one costs O(k^2) and at amplicon depth k reaches the thousands; the j-th
+    # test needs j miscalls at quality >= q_j, which past the first hundred is
+    # already impossible under any control rate. Truncating can only raise the
+    # p-value (fewer minima to take), never lower it, and the Bonferroni factor
+    # below stays the full count.
+    for j, (qj, _s) in enumerate(quals[:QCAL_MAX_TESTS], start=1):
         lam = 0.0
         for s in (1, -1):
             n = s_depth.get((rpos, s), 0)
