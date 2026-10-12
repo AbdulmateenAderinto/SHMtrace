@@ -23,6 +23,17 @@ D = json.load(open(HERE / "included.json"))
 SANGER = Path.home() / "Nanoshm/sanger_ab1_by_mouse"
 
 
+import sys
+MANUSCRIPT = "--manuscript" in sys.argv      # nanopore row as published (Geneious calls)
+# bases each clone read in the window, from the corrected calls, so densities match Figure 2
+_cj = Path(__file__).resolve().parent / "manuscript_corrected/sanger_calls/corrected_sanger.json"
+BASES_READ = {}
+if _cj.exists():
+    _c = json.load(open(_cj))
+    BASES_READ = {"WT2": _c["Wt 2"]["bases"], "WT3": _c["Wt 3"]["bases"], "WT4": _c["Wt 4"]["bases"],
+                  "A1": _c["Aicda−/− 1"]["bases"], "A2": _c["Aicda−/− 2"]["bases"], "A3": _c["Aicda−/− 3"]["bases"]}
+
+
 def refresh_now() -> None:
     """The 'now' side, from the organised set's manifest and the comparison's stats.
 
@@ -39,10 +50,11 @@ def refresh_now() -> None:
         rel = sum(1 for r in man if r["mouse"] == f and r["status"] == "relabelled")
         n = st["sequences"][f"sanger:{m}"]
         u = st["unique_mutations"][f"sanger:{m}"]
+        bases = BASES_READ.get(m)
         D["now"][m] = {"composition": {"own traces": kept, "relabelled traces": rel,
                                        "GenBank-only": n - kept - rel},
                        "clones_counted": n, "unique_mutations": u,
-                       "density_x1e5": round(1e5 * max(u, 1) / (n * 529), 1)}
+                       "density_x1e5": round(1e5 * max(u, 1) / (bases or n * 529), 1)}
     json.dump(D, open(HERE / "included.json", "w"), indent=1)
 
 
@@ -170,7 +182,8 @@ rows = [("", "Wt", "Aicda⁻/⁻", "Fold", "P")]
 for key, lab in (("manuscript", "Sanger, manuscript"), ("now", "Sanger, now")):
     gw, gk, f, p = group(key)
     rows.append((lab, f"{gw:.0f}", f"{gk:.0f}", f"{f:.0f}×", f"{p:.4f}" if p >= .001 else f"{p:.1e}"))
-rows.append(("Nanopore (unchanged)", "57", "0.55", "103×", "0.0017"))
+rows.append(("Nanopore (as published)", "59", "1.2", "47×", "0.0037") if MANUSCRIPT
+            else ("Nanopore (unchanged)", "57", "0.55", "103×", "0.0017"))
 for i, r in enumerate(rows):
     for j, cell in enumerate(r):
         cx.text([0, .56, .77, .9, 1.06][j], .92 - i * .2, cell, transform=cx.transAxes, fontsize=10,
@@ -183,6 +196,7 @@ cx.text(0, .05, "Geometric means, × 10⁻⁵; Welch's t on log10, three mice pe
         transform=cx.transAxes, fontsize=8.5, color="#444", va="bottom")
 cx.set_title("C   The group comparison", loc="left", fontweight="bold", fontsize=12)
 
+_name = "figS_sanger_inclusion_manuscript" if MANUSCRIPT else "figS_sanger_inclusion"
 for ext in ("png", "pdf", "svg"):
-    fig.savefig(HERE / f"figS_sanger_inclusion.{ext}", bbox_inches="tight")
-print(HERE / "figS_sanger_inclusion.png")
+    fig.savefig(HERE / f"{_name}.{ext}", bbox_inches="tight")
+print(HERE / f"{_name}.png")
