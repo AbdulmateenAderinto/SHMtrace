@@ -7,6 +7,7 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `docs/calibration/quant_accuracy.py` and QUANT_ACCURACY.md: the accuracy of the reported SHM numbers against truth on J꜀4 and N114, over 168 simulated libraries at 125–1,000 reads. `lineage_sim` now scores unique and combined density, takes a depth, and has an N114-like `subclonal` scenario.
 - Sanger pipeline for unseen data (docs/calibration/SANGER_PIPELINE.md):
   - `nanoshm.samplesheet` / `nanoshm-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.
   - `nanoshm.qc`, run on every Sanger project: duplicate files and clones, mutations shared across animals beyond chance, control clones with more mutations than their qualities predict, label mismatches, mutations lost to the germline rule, load outliers, and every clone not analysed with its reason. Flags only; nothing is changed. The flags appear in the app (Tables), the HTML report, `qc_flags.csv` and `excluded.csv`.
@@ -80,6 +81,8 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- Paralogue (Agouti-type) J꜀4 reads longer than the bundled paralogue record, and PCR chimeras, passed the contaminant filter and were called as mutations: 1–4% of every raw J꜀4 library, with 35–54 false calls per simulated 500-read library. The documented allele-level check is now implemented (`contaminant_min_alleles`, default 10; germline sites ignored). The manuscript's pre-sorted 500-read files contain none of these reads.
+- The single-read estimate counted events in every prepared read, not the analysed ones, so a library deeper than the analysis depth overstated the combined density by 1.3–2×. It now counts at the analysed depth, controls included.
 - **A Sanger sample of one to three clones reported germline differences as
   mutations.** Too few clones to apply the germline rule to itself, so it was
   switched off; one Aicda-/- clone reported the strain's five J꜀4 germline

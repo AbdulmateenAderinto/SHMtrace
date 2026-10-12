@@ -45,9 +45,17 @@ class Params:
 
     # ---- competitive contaminant handling ----------------------------------
     # A read is assigned to whichever indexed sequence it aligns best to. Reads
-    # whose best hit is a contaminant are dropped. For near-identical
-    # contaminants an optional allele-level check at diagnostic sites is used.
+    # whose best hit is a contaminant are dropped. Then an allele-level check:
+    # a read carrying contaminant_min_alleles or more of a contaminant's bases at
+    # sites where it differs from the reference is dropped too (a paralogue read
+    # longer than the contaminant record, or a PCR chimera). Sites where at least
+    # contaminant_germline_frac of the sample's reads carry the contaminant base
+    # are shared germline, not evidence. 0 turns the check off. On the J꜀4
+    # deposit, real reads carry 0-7 such bases and paralogue reads and chimeras
+    # 11-62 (docs/calibration/QUANT_ACCURACY.md).
     contaminant_allele_frac: float = 0.5
+    contaminant_min_alleles: int = 10
+    contaminant_germline_frac: float = 0.2
 
     # ---- variant calling ----------------------------------------------------
     analysis_window: tuple[int, int] | None = None  # 1-based inclusive; None = whole ref

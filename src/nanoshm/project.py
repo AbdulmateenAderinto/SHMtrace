@@ -36,6 +36,7 @@ from . import (
 )
 from .config import load_preset
 from .io_utils import read_fasta
+from .reads_filter import downsample
 
 BASES = "ACGT"
 TRANSITIONS = {("A", "G"), ("G", "A"), ("C", "T"), ("T", "C")}
@@ -457,9 +458,13 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             if low:
                 m["warnings"] = "; ".join(x for x in [m["warnings"], low] if x)
         if single_q and peers:
+            # every library at the analysed depth, drawn as analyse() draws it: the
+            # estimate is divided by the analysed reads' bases, so counting events in
+            # a deeper library would inflate it by the ratio of the two
+            pd = replace(p, downsample_to=depth)
             for n in (name, *peers):
                 if n not in tallies:
-                    tallies[n] = singletons.tally(b["reads"][n], ref, lo, hi)
+                    tallies[n] = singletons.tally(downsample(b["reads"][n], pd)[0], ref, lo, hi)
             single_read[name] = singletons.estimate(
                 tallies[name], [tallies[c] for c in peers], single_q,
                 p.germline_freq_threshold, ref,

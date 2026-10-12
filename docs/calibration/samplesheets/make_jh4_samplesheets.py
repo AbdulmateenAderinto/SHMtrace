@@ -5,12 +5,15 @@
 Every trace keeps the mouse it was filed under (GenBank folder; traces with no GenBank
 record by their label), as in the manuscript. Traces the pipeline will drop (noisy,
 paralogue) are listed anyway so the pipeline records why. Two clones never filed with a
-mouse, which carry AID-type mutations under knockout labels, are listed as excluded.
+mouse, which carry AID-type mutations under knockout labels, are listed as excluded. A
+clone whose tube label names another mouse (the WT2/WT3 swap) stays where it was filed, with a
+note saying so: the manuscript keeps the original publication's classification.
 
   jh4_manuscript.csv   Wt2-4 and Aicda-/- 1-3, as analysed in the manuscript
   jh4_with_mkln.csv    the same plus the four MKLN-knockout mice, for the QC checks
 """
 import csv
+import re
 import sys
 from pathlib import Path
 
@@ -40,10 +43,17 @@ def main(manifest):
         exclude = ""
         if (r["order"], r["well"]) in NEVER_FILED:
             exclude = "never filed with a mouse; AID-type mutations under a knockout label"
+        # a tube label naming another mouse: kept where the published analysis filed it
+        toks = set(re.split(r"[^0-9a-z]+", r["original_label"].lower()))
+        named = [m for m, al in ALIASES.items() if m != mouse and toks & set(al.split(";"))]
+        note = ""
+        if named and not toks & set(ALIASES[mouse].split(";")):
+            note = (f"label names {named[0]}; kept with {mouse} as classified in the original "
+                    "publication (author's decision, 12 Oct 2026)")
         out.append({"file": r["original_path"].replace(HOME, "~"), "sample": mouse,
                     "group": (STUDY | MKLN)[mouse], "control": "yes" if mouse.startswith("Aicda") else "no",
                     "order": r["order"], "well": r["well"], "label": r["original_label"],
-                    "exclude": exclude, "aliases": ALIASES[mouse]})
+                    "exclude": exclude, "aliases": ALIASES[mouse], "note": note})
     out.sort(key=lambda x: (x["sample"], x["order"], x["well"]))
     here = Path(__file__).parent
     for name, keep in (("jh4_manuscript.csv", STUDY), ("jh4_with_mkln.csv", STUDY | MKLN)):

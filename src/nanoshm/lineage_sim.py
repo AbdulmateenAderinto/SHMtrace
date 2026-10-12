@@ -69,6 +69,10 @@ SCENARIOS = {
     # lightly mutated, as in a weak or early response
     "low": {"clones": 40, "zipf": 1.0, "dominant": 0.0,
             "trunk": 1.0, "branch": 0.5, "private": 0.1},
+    # a cell line expressing AID (the N114 hybridoma subclones): one parental
+    # sequence, small subclones sharing a mutation or two, most mutations in one read
+    "subclonal": {"clones": 60, "zipf": 0.6, "dominant": 0.0,
+                  "trunk": 0.6, "branch": 0.4, "private": 0.15},
     # nothing planted except clone structure: every call is false
     "null": {"clones": 40, "zipf": 1.0, "dominant": 0.0,
              "trunk": 0.0, "branch": 0.0, "private": 0.0},
@@ -381,6 +385,18 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
         "est_clone_weighted_x1e3": row.get("clone_weighted_frequency_x1e3"),
         "true_clones_in_reads": len(members),
     }
+    # densities: distinct mutations per base sequenced, the manuscript's measure, on
+    # the estimator's own denominator (analysed positions x mean depth)
+    s_call = res["summary"]["calling"]
+    denom = (s_call.get("analysed_positions") or 0) * max(1.0, s_call.get("mean_depth") or 0.0)
+    if denom:
+        out.update({
+            "true_unique_density_x1e5": _r(1e5 * len(truth_set) / denom),
+            "est_unique_density_x1e5": row.get("unique_density_x1e5"),
+            "est_combined_density_x1e5": row.get("combined_density_x1e5"),
+            "true_single_read_mutations": sum(1 for k in support.values() if k == 1),
+            "est_single_read_mutations": row.get("single_read_estimate"),
+        })
     # clone recovery among reads with a junction the clusterer could read
     j0 = (p.junction_ref_start or 0) - 1
     keys = {}
@@ -419,7 +435,7 @@ def _r(x):
 def run_one(control: str, peers: list[str], reference: str, contaminants: list[str],
             region: str, scenario: dict, seed: int, mode: str = "recommended",
             model_path: str | None = None, place_by_model: bool = True,
-            workdir: str | None = None) -> dict:
+            workdir: str | None = None, depth: int | None = None) -> dict:
     """Build one library from `control` and score it, with `peers` as the null."""
     p = project.build_params({"region": region, "mode": mode})
     ref = read_fasta(reference)[0][1]
@@ -438,7 +454,7 @@ def run_one(control: str, peers: list[str], reference: str, contaminants: list[s
         for name, seq, qual in lib:
             fh.write(f"@{name}\n{seq}\n+\n{qual}\n")
     proj = {"name": "sim", "region": region, "mode": mode, "reference": reference,
-            "contaminants": contaminants,
+            "contaminants": contaminants, "depth": depth,
             "samples": [{"name": "SIM", "path": path, "group": "SIM"}]
             + [{"name": f"C{i}", "path": c, "group": "CTRL", "control": True}
                for i, c in enumerate(peers)]}
@@ -451,7 +467,7 @@ def run_one(control: str, peers: list[str], reference: str, contaminants: list[s
     row = next(s for s in out["samples"] if s["sample"] == "SIM")
     res = out["_details"]["SIM"]
     sc = score(res, row, (out.get("clones") or {}).get("SIM"), carried, p, lo, hi)
-    sc.update({"seed": seed, "control": os.path.basename(control), "mode": mode,
+    sc.update({"seed": seed, "control": os.path.basename(control), "mode": mode, "depth": depth,
                "s5f_index": row.get("s5f_index"), "s5f_p": row.get("s5f_p"),
                "lineages": truth["lineages"]})
     return sc
@@ -512,6 +528,9 @@ def summarise(runs: list[dict]) -> list[dict]:
             "est_read_weighted_x1e3": mean("est_read_weighted_x1e3"),
             "true_clone_weighted_x1e3": mean("true_clone_weighted_x1e3"),
             "est_clone_weighted_x1e3": mean("est_clone_weighted_x1e3"),
+            "true_unique_density_x1e5": mean("true_unique_density_x1e5"),
+            "est_unique_density_x1e5": mean("est_unique_density_x1e5"),
+            "est_combined_density_x1e5": mean("est_combined_density_x1e5"),
             "s5f_index": mean("s5f_index"),
             "roc": roc_rows,
         })
