@@ -296,6 +296,9 @@ def _phred_char(q: int) -> str:
     return chr(max(0, min(q, 93)) + 33)
 
 
+_QCHAR = [_phred_char(q) for q in range(94)]
+
+
 def merge_pair(seq1: str, qual1: str, seq2: str, qual2: str, min_overlap: int = 20,
                max_mismatch_rate: float = 0.1, k: int = 12) -> tuple[str, str] | None:
     """Merge one overlapping read pair; None if they do not overlap.
@@ -330,8 +333,14 @@ def merge_pair(seq1: str, qual1: str, seq2: str, qual2: str, min_overlap: int = 
         L = b - a
         if L < min_overlap:
             continue
-        mm = sum(1 for x in range(a, b) if s1[x] != s2[x - o])
-        if mm > max_mismatch_rate * L:
+        limit = max_mismatch_rate * L
+        mm = 0
+        for x, y in zip(s1[a:b], s2[a - o:b - o]):
+            if x != y:
+                mm += 1
+                if mm > limit:
+                    break
+        if mm > limit:
             continue
         score = (L - mm) - 4 * mm
         if best is None or score > best[0]:
@@ -344,20 +353,20 @@ def merge_pair(seq1: str, qual1: str, seq2: str, qual2: str, min_overlap: int = 
     if o > 0:                                   # R1 sequence before R2 starts
         seq.append(s1[:o])
         qual.append(qual1[:o])
-    for x in range(a, b):
-        b1, b2, x1, x2 = s1[x], s2[x - o], q1[x], q2[x - o]
+    qc = _QCHAR
+    for b1, b2, x1, x2 in zip(s1[a:b], s2[a - o:b - o], q1[a:b], q2[a - o:b - o]):
         if b1 == b2:
             seq.append(b1)
-            qual.append(_phred_char(min(x1 + x2, 60)))
+            qual.append(qc[min(x1 + x2, 60)])
         elif x1 == x2:
             seq.append("N")
-            qual.append(_phred_char(2))
+            qual.append(qc[2])
         else:
             seq.append(b1 if x1 > x2 else b2)
-            qual.append(_phred_char(max(2, abs(x1 - x2))))
+            qual.append(qc[min(93, max(2, abs(x1 - x2)))])
     if o + n2 > n1:                             # R2 sequence after R1 ends
         seq.append(s2[b - o:])
-        qual.append("".join(_phred_char(q) for q in q2[b - o:]))
+        qual.append(qual2[::-1][b - o:])
     return "".join(seq), "".join(qual)
 
 
@@ -499,11 +508,15 @@ def phred(qual: str) -> list[int]:
     return [ord(c) - 33 for c in qual]
 
 
+_ERR = {chr(q + 33): 10 ** (-q / 10.0) for q in range(94)}
+
+
 def expected_error_rate(qual: str) -> float:
     """Mean per-base error probability = sum(10^(-Q/10)) / length (Q20-eq at 0.01)."""
     if not qual:
         return 1.0
-    return sum(10 ** (-q / 10.0) for q in phred(qual)) / len(qual)
+    err = _ERR
+    return sum(err.get(c) or 10 ** (-(ord(c) - 33) / 10.0) for c in qual) / len(qual)
 
 
 def mott_trim(qual: str, cutoff: float = 0.01) -> tuple[int, int]:
