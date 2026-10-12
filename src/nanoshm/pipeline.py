@@ -30,19 +30,24 @@ from .variants import call_variants
 
 
 def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params,
-                  known_blocks: list | None = None) -> tuple[list, dict]:
+                  known_blocks: list | None = None,
+                  fates: dict | None = None) -> tuple[list, dict]:
     """Filter, align and phase one sample. Returns (aligned reads, read stats).
 
     Split from `analyse` so that a batch can see every sample's usable depth
     before choosing a common depth for all of them.
+
+    Pass `fates` to record what became of every input read, which is what the
+    read browser draws. Reads that survive to the end are not recorded here;
+    the caller knows them already.
     """
     ref_seq = dict(read_fasta(reference))[read_fasta(reference)[0][0]]
     lo, hi = _window(p, ref_seq)
     reads = list(read_fastq(fastq))
-    kept, s_pre = prefilter(reads, p)
+    kept, s_pre = prefilter(reads, p, fates)
     aligner, target_names, contam_names = build_index([reference], contaminants,
                                                       p.minimap2_preset)
-    aligned = [a for a in align_reads(kept, aligner, target_names, contam_names, p)
+    aligned = [a for a in align_reads(kept, aligner, target_names, contam_names, p, fates)
                if a.ctg in target_names]
     if p.platform == "sanger" and p.sanger_clean_window:
         # cut each clone back to where its sequence is clean (Params docs)
@@ -54,8 +59,17 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
     # Remove a co-occurring minor haplotype before depth standardisation, so the
     # retained depth is all target population. Phasing before downsampling also
     # gives the site-detection step the full read set to work with.
+    before = {a.qname for a in aligned} if fates is not None else set()
     aligned, s_phase = partition(aligned, ref_seq, p, lo, hi, known_blocks)
+    if fates is not None:
+        survived = {a.qname for a in aligned}
+        for a in _dropped_by_phasing(before, survived):
+            fates[a] = {"fate": "minor haplotype"}
     return aligned, {**s_pre, **s_phase}
+
+
+def _dropped_by_phasing(before: set, after: set) -> set:
+    return before - after
 
 
 def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = None,

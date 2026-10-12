@@ -8,7 +8,7 @@ from .config import Params
 from .io_utils import expected_error_rate, mott_trim
 
 
-def prefilter(reads, p: Params) -> tuple[list[tuple[str, str, str]], dict]:
+def prefilter(reads, p: Params, fates: dict | None = None) -> tuple[list[tuple[str, str, str]], dict]:
     """Apply the EE-rate and raw-length filters (Step 2 of the pipeline).
 
     Alignment-length is enforced later against the reference; here we only need
@@ -27,13 +27,19 @@ def prefilter(reads, p: Params) -> tuple[list[tuple[str, str, str]], dict]:
                 n_trim += 1
             if b <= a:
                 n_empty += 1
+                if fates is not None:
+                    fates[qname] = {"fate": "no quality segment"}
                 continue
             seq, qual = seq[a:b], qual[a:b]
         if len(seq) > p.max_total_len:
             n_len += 1
+            if fates is not None:
+                fates[qname] = {"fate": "too long"}
             continue
         if expected_error_rate(qual) > p.max_ee_rate:
             n_ee += 1
+            if fates is not None:
+                fates[qname] = {"fate": "low quality"}
             continue
         kept.append((qname, seq, qual))
     stats = {"reads_in": n_in, "dropped_length": n_len, "dropped_ee": n_ee,
