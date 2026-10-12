@@ -1,3 +1,5 @@
+<img src="packaging/icon/icon.svg" alt="SHMtrace" width="96" align="right">
+
 # SHMtrace
 
 Somatic hypermutation measured from amplicon reads, on any platform: Oxford Nanopore, PacBio, Illumina or Sanger clones. Any targeted region works (the J꜀4 intron, V regions, switch regions), and real mutations are told apart from sequencing error using matched AID-deficient or empty-vector controls.
