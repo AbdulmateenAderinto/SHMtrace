@@ -143,6 +143,11 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "pct_GC_in_WRC_GYW": round(100 * hot / gc, 1) if gc else None,
         "pct_AT_in_WA_TW": round(100 * wa / at, 1) if at else None,
         "analysed_bp": bp,
+        # UMI consensus (umi.py): reads in, molecules out
+        **({"umi_reads": s["reads"].get("umi_reads_in"),
+            "umi_molecules": s["reads"].get("umi_molecules"),
+            "umi_median_reads_per_molecule": s["reads"].get("umi_median_reads_per_group")}
+           if "umi_molecules" in (s.get("reads") or {}) else {}),
         # the counts behind the two rates, for count-based tests (replicates.py)
         "mutations_total": total_mut,
         "frequency_bases": nreads * bp,
@@ -529,6 +534,17 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         notes.append("Indels need a control other than the sample itself, so they were "
                      + ("not called." if not controls else
                         "not called for the control. Two or more controls per run is better."))
+    if p.umi != "off":
+        um = [s_ for s_ in per_sample if s_.get("umi_molecules") is not None]
+        if um:
+            notes.append("UMI consensus: " + "; ".join(
+                f"{s_['sample']} {s_['umi_molecules']} molecules from {s_['umi_reads']} reads "
+                f"(median {s_['umi_median_reads_per_molecule']} per molecule)" for s_ in um)
+                + ". Every number counts molecules, not reads. Molecules with fewer than "
+                f"{p.umi_min_reads} reads were dropped; aim for 10 or more (docs/calibration/UMI.md).")
+            if any(s_["umi_molecules"] == 0 for s_ in um):
+                notes.append("A sample gave no UMI molecules: check the UMI position, length "
+                             "and anchors (Advanced, UMI consensus).")
     if depth is not None and any(s["reads"] < depth for s in per_sample):
         notes.append("Some samples have fewer reads than the common depth, and mutation "
                      "density rises with depth, so compare those with care.")
@@ -634,6 +650,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "params": {"region": project["region"], "platform": project.get("platform") or "ont",
                    "mode": project.get("mode") or "recommended", "depth": depth,
                    "error_model": p.error_model, "analysis_window": [lo + 1, hi + 1],
+                   "umi": p.umi,
                    "reference_name": ref_name, "reference_length": len(ref)},
         "samples": per_sample,
         # Sanger: flags for a person to review, and every clone not analysed (qc.py)

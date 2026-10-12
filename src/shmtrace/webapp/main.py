@@ -15,6 +15,10 @@ Endpoints
   GET  /api/result/{id}       the full project result (JSON)
   GET  /api/export/{id}/{what} report.html | tables.xlsx | bundle.zip |
                               <table>.csv | <figure>.png|svg|pdf
+  POST /api/fasta-names       record names of a FASTA (the switch tab's donor picker)
+  POST /api/switch/run        class-switch junctions for several samples; {"job": id}
+  GET  /api/switch/result/{id}  per-sample summaries, comparison and every junction
+  GET  /api/switch/export/{id}/{what}  summary.csv | comparison.csv | junctions.csv
   POST /api/compare           the older two-group comparison (kept)
   POST /api/analyze           the older single-sample endpoint (kept)
 """
@@ -216,6 +220,91 @@ def run(payload: dict):
                         "error": None, "result": None, "project": proj}
     threading.Thread(target=_run_job, args=(job_id, proj), daemon=True).start()
     return {"job": job_id}
+
+
+# ---- class-switch junctions (switch.py) ---------------------------------------
+@app.post("/api/fasta-names")
+def fasta_names(payload: dict):
+    from ..io_utils import read_fasta
+    path = Path(payload.get("path", "")).expanduser()
+    if not path.is_file():
+        raise HTTPException(400, f"no FASTA at {path}")
+    try:
+        recs = read_fasta(str(path))
+    except Exception as e:                      # noqa: BLE001 - shown to the user
+        raise HTTPException(400, f"could not read {path.name}: {e}") from None
+    return {"records": [{"name": n, "length": len(s_)} for n, s_ in recs]}
+
+
+def _run_switch(job_id: str, req: dict):
+    from .. import switch
+    job = JOBS[job_id]
+    try:
+        job["state"] = "running"
+        samples = req["samples"]
+        per, groups, rows = {}, {}, []
+        for i, smp in enumerate(samples):
+            job["progress"] = round(0.05 + 0.9 * i / len(samples), 3)
+            job["message"] = f"finding junctions in {smp['name']}"
+            r = switch.analyse(smp["path"], req["reference"], req.get("donor") or None)
+            per[smp["name"]] = r["summary"] | {"reads": r["reads"]}
+            groups[smp["name"]] = smp.get("group") or smp["name"]
+            for j in r["junctions"]:
+                d = switch.asdict(j)
+                rows.append({"sample": smp["name"], "group": groups[smp["name"]], **d})
+        comp = []
+        cmp_ = req.get("compare") or {}
+        if cmp_.get("case") and cmp_.get("control"):
+            comp = switch.compare_groups(per, groups, cmp_["case"], cmp_["control"])
+        job["result"] = {"samples": per, "groups": groups, "junctions": rows,
+                         "comparison": comp, "reference": req["reference"],
+                         "donor": req.get("donor")}
+        job["state"], job["progress"], job["message"] = "done", 1.0, "finished"
+    except Exception as exc:                    # noqa: BLE001 - reported to the page
+        job["state"], job["error"], job["message"] = "error", f"{type(exc).__name__}: {exc}", "failed"
+
+
+@app.post("/api/switch/run")
+def switch_run(payload: dict):
+    if not payload.get("reference"):
+        raise HTTPException(400, "choose the switch-region reference FASTA")
+    if not payload.get("samples"):
+        raise HTTPException(400, "add at least one sample")
+    job_id = uuid.uuid4().hex[:12]
+    with _LOCK:
+        JOBS[job_id] = {"state": "queued", "progress": 0.0, "message": "queued",
+                        "error": None, "result": None, "project": payload}
+    threading.Thread(target=_run_switch, args=(job_id, payload), daemon=True).start()
+    return {"job": job_id}
+
+
+@app.get("/api/switch/result/{job_id}")
+def switch_result(job_id: str):
+    return JSONResponse(json.loads(json.dumps(_result(job_id), default=str)))
+
+
+@app.get("/api/switch/export/{job_id}/{what}")
+def switch_export(job_id: str, what: str):
+    res = _result(job_id)
+    if what == "junctions.csv":
+        rows = res["junctions"]
+    elif what == "summary.csv":
+        rows = []
+        for n, sm in res["samples"].items():
+            flat = {"sample": n, "group": res["groups"].get(n, n)}
+            for k, v in sm.items():
+                if isinstance(v, dict):
+                    flat.update({f"{k}:{kk}": vv for kk, vv in v.items()})
+                else:
+                    flat[k] = v
+            rows.append(flat)
+    elif what == "comparison.csv":
+        rows = res["comparison"]
+    else:
+        raise HTTPException(404, f"cannot export {what}")
+    cols = list(dict.fromkeys(k for r in rows for k in r)) or ["sample"]
+    return Response(report._rows_csv(rows, cols) or ",".join(cols) + "\n", media_type="text/csv",
+                    headers={"Content-Disposition": f"attachment; filename=switch_{what}"})
 
 
 @app.get("/api/job/{job_id}")

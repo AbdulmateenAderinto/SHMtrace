@@ -2,6 +2,9 @@
 
 *12 October 2026. `shmtrace/switch.py`, `shmtrace-switch`; tests in `tests/test_switch.py`.*
 
+
+**In the app:** the *Switching* tab. Drop the switch-region FASTA, pick the donor, add samples with their groups, and choose two groups to compare. It shows a summary per sample, the group comparison, microhomology and breakpoint figures, and CSV downloads.
+
 ## What it measures
 
 Class-switch recombination joins a break in Sμ to a break in an acceptor switch region and deletes what lies between. A long read across the join aligns in two parts: its 5′ part to Sμ and its 3′ part to the acceptor. For each read the module reports:

@@ -17,6 +17,7 @@
     <button role="tab" id="tab-tables" aria-selected="false" onclick="showTab('tables')" disabled>Tables</button>
     <button role="tab" id="tab-reads" aria-selected="false" onclick="showTab('reads')" disabled>Reads</button>
     <button role="tab" id="tab-export" aria-selected="false" onclick="showTab('export')" disabled>Export</button>
+    <button role="tab" id="tab-switch" aria-selected="false" onclick="showTab('switch')" title="Class-switch junctions">Switching</button>
   </nav>
   <span class="spacer"></span>
   <a class="btn small" href="/classic" title="The older single-sample page">Classic</a>
@@ -61,6 +62,36 @@
           </label>
           <p class="hint">Records where every read aligned and what became of it, so the
             Reads tab can show the pile-up before and after processing.</p>
+          <label for="umi" style="margin-top:12px">UMI consensus</label>
+          <select id="umi" onchange="$('umi-opts').hidden = this.value === 'off'">
+            <option value="off">Off: every read is analysed</option>
+            <option value="flank">UMIs next to the primers</option>
+            <option value="header">UMIs in the read names</option>
+          </select>
+          <p class="hint">With UMIs, the reads of one molecule become one consensus and every
+            number counts molecules. Controls must be UMI libraries too. Aim for 10 or more
+            reads per molecule.</p>
+          <div id="umi-opts" hidden>
+            <div class="row">
+              <div><label for="umi-ends">UMI at</label>
+                <select id="umi-ends">
+                  <option value="both">both ends (dual)</option>
+                  <option value="left">the 5′ end</option>
+                  <option value="right">the 3′ end</option>
+                </select></div>
+              <div><label for="umi-length">UMI length</label>
+                <input type="number" id="umi-length" min="6" max="40" value="18"></div>
+              <div><label for="umi-min">Reads per molecule, at least</label>
+                <input type="number" id="umi-min" min="1" max="50" value="3"></div>
+            </div>
+            <label for="umi-left">5′ anchor: the primer just inside the UMI (blank: the
+              reference's first 20 bases)</label>
+            <input type="text" id="umi-left" placeholder="e.g. AGRGTTYGATYMTGGCTCAG (IUPAC codes allowed)">
+            <label for="umi-right">3′ anchor, as it reads at the reference end (blank: its last 20 bases)</label>
+            <input type="text" id="umi-right" placeholder="reference-forward">
+            <label for="umi-offset">Bases between the UMI and its anchor</label>
+            <input type="number" id="umi-offset" min="0" value="0">
+          </div>
           <label for="drop-model" style="margin-top:10px">AID targeting model (optional)</label>
           <div class="drop" id="drop-model" style="padding:10px">Drop a 5-mer model CSV, or click to choose</div>
           <p class="hint" id="model-name">Exported from your own SHazaM with
@@ -218,6 +249,64 @@
       </div>
       <p class="hint" id="save-msg"></p>
     </div>
+  </div>
+</section>
+<!-- ───────────────────────── switch junctions ───────────────────────── -->
+<section class="page" id="page-switch">
+  <div class="grid two">
+    <div>
+      <div class="card">
+        <h2>Class-switch junctions</h2>
+        <p class="hint">Long reads across a switch join align in two parts: to Sμ, then to an
+          acceptor. For each read: the breakpoints, the microhomology at the join (4 nt or more
+          points to alternative end-joining), inserted bases, and mutations near the join.
+          Reads of one join are counted once as a unique junction. Accuracy on simulated
+          reads is in docs/calibration/SWITCH.md.</p>
+        <label for="sw-drop-ref">Switch-region reference: one FASTA record per region (Sμ and the acceptors)</label>
+        <div class="drop" id="sw-drop-ref" style="padding:12px">Drop the FASTA here, or click to choose</div>
+        <p class="hint" id="sw-ref-name">No reference chosen.</p>
+        <label for="sw-donor">Donor region</label>
+        <select id="sw-donor"><option value="">(choose the reference first)</option></select>
+      </div>
+      <div class="card">
+        <h2>Samples</h2>
+        <div class="drop" id="sw-drop-samples">Drop read files or a folder here, or click to choose<br>
+          <span class="hint">A dropped folder becomes one sample</span></div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn small ghost" id="sw-pick-folder">Choose a folder…</button>
+          <button class="btn small ghost" onclick="swFromSetup()">Use the samples from Set up</button>
+          <button class="btn small ghost" onclick="SW.samples=[];swRender()">Clear</button>
+        </div>
+        <div class="samples" id="sw-samples"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Compare and run</h2>
+        <div class="row">
+          <div><label for="sw-case">Group</label><select id="sw-case"></select></div>
+          <div><label for="sw-control">against</label><select id="sw-control"></select></div>
+        </div>
+        <p class="hint">Animal by animal (Welch and permutation), as in the main analysis.</p>
+        <button class="btn primary" id="sw-run" onclick="swRun()" style="margin-top:8px">Find junctions</button>
+        <div id="sw-status" style="margin-top:12px; display:none">
+          <div class="bar"><i id="sw-bar"></i></div>
+          <p class="status"><span id="sw-msg">starting…</span></p>
+        </div>
+        <div id="sw-error"></div>
+      </div>
+    </div>
+  </div>
+  <div id="sw-results" hidden>
+    <div class="card"><h2>Per sample</h2><div class="table-wrap"><table id="sw-summary"></table></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn small" onclick="swDl('summary.csv')">Summary (.csv)</button>
+        <button class="btn small" onclick="swDl('junctions.csv')">Every junction (.csv)</button>
+        <button class="btn small" onclick="swDl('comparison.csv')">Comparison (.csv)</button>
+      </div></div>
+    <div class="card" id="sw-comp-card"><h2>Group comparison</h2><div class="table-wrap"><table id="sw-comp"></table></div></div>
+    <div class="card"><h2>Microhomology at the join</h2><div id="sw-fig-mh" style="height:320px"></div></div>
+    <div class="card"><h2>Where the joins fall</h2><div id="sw-fig-bp" style="height:320px"></div></div>
   </div>
 </section>
 </main>
