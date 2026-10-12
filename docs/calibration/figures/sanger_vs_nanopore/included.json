@@ -79,9 +79,9 @@
   },
   "WT3": {
    "composition": {
-    "own traces": 19,
+    "own traces": 37,
     "relabelled traces": 2,
-    "GenBank-only": 18
+    "GenBank-only": 0
    },
    "clones_counted": 39,
    "unique_mutations": 303,
@@ -89,13 +89,13 @@
   },
   "WT4": {
    "composition": {
-    "own traces": 13,
+    "own traces": 25,
     "relabelled traces": 0,
-    "GenBank-only": 12
+    "GenBank-only": 1
    },
-   "clones_counted": 25,
+   "clones_counted": 26,
    "unique_mutations": 106,
-   "density_x1e5": 801.5
+   "density_x1e5": 770.7
   },
   "A1": {
    "composition": {

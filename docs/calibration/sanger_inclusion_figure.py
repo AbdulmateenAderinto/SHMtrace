@@ -20,6 +20,33 @@ from scipy import stats  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "figures/sanger_vs_nanopore"
 D = json.load(open(HERE / "included.json"))
+SANGER = Path.home() / "Nanoshm/sanger_ab1_by_mouse"
+
+
+def refresh_now() -> None:
+    """The 'now' side, from the organised set's manifest and the comparison's stats.
+
+    Clones counted = the comparison's analysed Sanger sequences. Traces were filtered
+    when the set was organised, so the GenBank-only clones counted are the rest.
+    """
+    import csv
+    man = list(csv.DictReader(open(SANGER / "manifest.csv")))
+    st = json.load(open(HERE / "recommended/stats.json"))
+    folder = {"WT2": "WT2", "WT3": "WT3", "WT4": "WT4", "A1": "Aicda_A1", "A2": "Aicda_A2",
+              "A3": "Aicda_A3"}
+    for m, f in folder.items():
+        kept = sum(1 for r in man if r["mouse"] == f and r["status"] == "kept")
+        rel = sum(1 for r in man if r["mouse"] == f and r["status"] == "relabelled")
+        n = st["sequences"][f"sanger:{m}"]
+        u = st["unique_mutations"][f"sanger:{m}"]
+        D["now"][m] = {"composition": {"own traces": kept, "relabelled traces": rel,
+                                       "GenBank-only": n - kept - rel},
+                       "clones_counted": n, "unique_mutations": u,
+                       "density_x1e5": round(1e5 * max(u, 1) / (n * 529), 1)}
+    json.dump(D, open(HERE / "included.json", "w"), indent=1)
+
+
+refresh_now()
 MICE = ["WT2", "WT3", "WT4", "A1", "A2", "A3"]
 LABEL = {"WT2": "Wt2", "WT3": "Wt3", "WT4": "Wt4", "A1": "Aicda⁻/⁻ 1", "A2": "Aicda⁻/⁻ 2",
          "A3": "Aicda⁻/⁻ 3"}

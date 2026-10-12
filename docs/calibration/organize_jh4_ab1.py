@@ -117,11 +117,14 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         if (t["order"], t["well"]) in CORRECTIONS:
             mouse, reason = CORRECTIONS[(t["order"], t["well"])]
             status = "excluded" if mouse.startswith("_excluded") else "relabelled"
+        elif by_label.startswith("_excluded"):
+            # the label already says what it is (JH6 amplicon, w1): that is the reason
+            status = "excluded"
+            reason = ("another amplicon (JH6)" if "JH6" in by_label
+                      else "label names no mouse in this study")
         elif key in fates:
             f = fates[key]["fate"]
             mouse, status, reason = fate_dir.get(f, "_excluded/failed_read"), "excluded", f"nanoshm: {f}"
-        elif by_label.startswith("_excluded"):
-            status, reason = "excluded", "label names no mouse in this study"
         tag = by_label.split("/")[-1]
         name = f"{mouse.split('/')[-1] if not mouse.startswith('_excluded') else tag}_{t['order']}-{t['well']}_{t['label']}.ab1"
         dest = out_p / mouse / name
@@ -134,7 +137,9 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
                      "original_path": str(t["path"])})
     if genbank:
         from nanoshm.io_utils import read_fastq
-        stems = {t["path"].stem for t in traces}
+        # Geneious cuts GenBank LOCUS names at 23 characters
+        # ("23-jhextra-w3-2-user_ad" is the trace "23-jhextra-w3-2-user_added")
+        stems = {t["path"].stem for t in traces} | {t["path"].stem[:23] for t in traces}
         recs: dict = {}
         for f in sorted(Path(genbank).glob("*/*.gb")):
             for n, s, _q in read_fastq(str(f)):

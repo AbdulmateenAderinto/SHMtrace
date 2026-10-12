@@ -1,6 +1,6 @@
 # Do Sanger and nanopore agree in the same wild-type mice?
 
-*12 October 2026. Sanger: the lab's J꜀4 clones from their `.ab1` traces, organised by mouse with `organize_jh4_ab1.py`, plus the GenBank records of clones whose traces are not in the trace folder. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`; script: `sanger_vs_nanopore.py`.*
+*12 October 2026. Sanger: the lab's J꜀4 clones from their `.ab1` traces, organised by mouse with `organize_jh4_ab1.py`, plus the GenBank records of the six clones whose traces have not been found. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`; script: `sanger_vs_nanopore.py`.*
 
 ## Answer
 
@@ -31,15 +31,18 @@ WT2's Sanger spectrum rests on 6 mutations, so its per-mouse proportions are noi
 
 ## The Sanger data
 
-The traces are in five sequencing orders (`berrumar_432625`, `434138`, `434141`, `434355`, `434545`; July 2024), 288 files. Each trace stores the order number, not the clone name, so a clone's identity is its file name and its plate well.
+The traces are in seven sequencing orders, 429 files. Two orders were run on 9 January 2024: `414310` (the `jhextra-w3` and `jhextra-w4` clones) and `414309` (mostly JH6-amplicon clones, plus K1 and w1 "extra" clones). The other five were run in July 2024: `432625`, `434138`, `434141`, `434355` and `434545`. Each trace stores the order number, not the clone name, so a clone's identity is its file name and its plate well. Geneious cut the GenBank record names at 23 characters (`23-jhextra-w3-2-user_ad` is the trace `23-jhextra-w3-2-user_added`), which the organiser allows for.
+
+The January traces confirm their GenBank records. All 29 that have one carry exactly the same mutations as their record, and one (`jhextra-w4-10`, 5 mutations) is a clone the GenBank set never had.
 
 | What | Count |
 |---|---:|
-| Traces | 288 |
-| Usable J꜀4 traces | 209 |
-| J꜀4 paralogue or other contaminant | 64 |
-| Failed reads (no or too short an alignment) | 15 |
-| Wild-type and *Aicda*−/− GenBank records with no trace in these orders | 41 (mostly the `jhextra-w3` and `jhextra-w4` batches) |
+| Traces | 429 |
+| Usable J꜀4 traces, wild type, *Aicda*−/− and MKLN | 249 |
+| JH6 amplicon (another target) | 81 |
+| J꜀4 paralogue or other contaminant | 74 |
+| Failed reads (no or too short an alignment) | 24 |
+| Wild-type and *Aicda*−/− GenBank records still without a trace | 6 (`8-w2-jh4`, `9-w3-jh4`, `10-w4-jh4`, `15-a1-jh4`, `16-a2-jh4`, `17-a3-jh4`) |
 
 Clone labels were reused between orders: "w4-2" in three orders is three different colonies (3, 31 and 0 mutations, none shared). Every trace is therefore one colony, identified by order and well.
 
@@ -65,8 +68,8 @@ The organised set (`~/Nanoshm/sanger_ab1_by_mouse`, with `manifest.csv` and `REA
 | Mouse | Traces | GenBank-only clones | Usable J꜀4 clones | Unique mutations |
 |---|---:|---:|---:|---:|
 | WT2 | 34 | 1 | 35 | 6 |
-| WT3 | 21 (2 relabelled) | 20 | 39 | 303 |
-| WT4 | 13 | 17 | 25 | 106 |
+| WT3 | 39 (2 relabelled) | 1, the paralogue | 39 | 303 |
+| WT4 | 25 | 1 | 26 | 106 |
 | *Aicda*−/− A1 | 5 | 1 | 6 | 1 |
 | *Aicda*−/− A2 | 6 | 1 | 7 | 1 |
 | *Aicda*−/− A3 | 0 | 1 | 1 | 0 |
@@ -77,7 +80,7 @@ The organised set (`~/Nanoshm/sanger_ab1_by_mouse`, with `manifest.csv` and `REA
 |---|---|---|---:|---:|
 | ONT, recommended | 56.7 [26–127] × 10⁻⁵ | 0.55 | 103 | 0.0017 |
 | ONT, Geneious rule | 60.7 [26–131] | 1.43 | 42 | 0.0060 |
-| **Sanger** | 337 [32–1469] | ≤ 55 | ≥ 6 | **0.27** |
+| **Sanger** | 332 [32–1469] | ≤ 54 | ≥ 6 | **0.27** |
 | *Manuscript: ONT / Sanger* | *59 / 828* | *1.2 / 20* | *47 / 41* | *0.0037 / 0.0045* |
 
 **With the clones assigned correctly, Sanger alone no longer separates wild type from *Aicda*−/−.** WT2's own clones carry 6 mutations in 35 clones (32 × 10⁻⁵), the knockouts' level. The manuscript's Sanger WT2 was inflated by WT3 and MKLN clones filed under W2, and its knockout denominators by JH6 clones.
@@ -125,6 +128,6 @@ The same folders run in the app. Drop a mouse's folder (or choose it) as one sam
 
 ## Limits
 
-- **Some traces are missing.** 41 wild-type and knockout clones exist only as GenBank records, read at a flat Q30. Their traces (the `jhextra-w3`/`jhextra-w4` orders and a few others) would let their quality be used too.
+- **Six traces are still missing**, the `-jh4` clones listed above, so those clones are read from GenBank at a flat Q30.
 - **The Sanger reads start at J꜀4**, so they carry no V(D)J junction, the strongest identity check. A misfiled clone with few mutations and no relatives in its true mouse cannot be caught; mutation load still catches a misfile between mice as different as WT2 and WT3.
 - **Three mice per group.** The agreement tests are descriptive, as in the manuscript, and the repeated-measures ANOVA assumes sphericity.
