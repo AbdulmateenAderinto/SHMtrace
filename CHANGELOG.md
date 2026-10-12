@@ -28,6 +28,9 @@ this project uses [semantic versioning](https://semver.org/).
   and Sanger alone no longer separates wild type from Aicda-/- (P = 0.27);
   nanopore does (P = 0.0017). The comparison now reads these folders: spectrum
   r = 0.90, positional r = 0.89.
+  With the January 2024 orders added (429 traces), 214 of the 220 wild-type
+  and Aicda-/- clones are read from traces; the jhextra traces carry exactly
+  the mutations their GenBank records do, and every result is unchanged.
 - **Simulated libraries with known clones** (`nanoshm/lineage_sim.py`,
   `nanoshm-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
