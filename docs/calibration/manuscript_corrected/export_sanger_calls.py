@@ -12,11 +12,11 @@ import json
 import sys
 from pathlib import Path
 
-from nanoshm import project
+from shmtrace import project
 
 ROOT = Path(__file__).resolve().parents[3]
-REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
-CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
+REF = str(ROOT / "src/shmtrace/references/mouse_jh4_intron.fasta")
+CON = [str(ROOT / "src/shmtrace/references/mouse_jh4_contaminant.fasta")]
 MICE = {"Wt 2": "WT2", "Wt 3": "WT3", "Wt 4": "WT4",
         "Aicda−/− 1": "Aicda_A1", "Aicda−/− 2": "Aicda_A2", "Aicda−/− 3": "Aicda_A3"}
 

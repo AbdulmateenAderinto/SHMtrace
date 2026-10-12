@@ -1,8 +1,8 @@
 """Single-read mutations estimated against a control background (singletons.py)."""
 import random
 
-from nanoshm import project, singletons
-from nanoshm.align import AlignedRead
+from shmtrace import project, singletons
+from shmtrace.align import AlignedRead
 
 REF = "ACGTTGCAAGCTAGCTAGGATCCATGCATGCAAATTTGGGCCCATATCGCGATCGATCGTAGCTAGCATGCA" * 3
 

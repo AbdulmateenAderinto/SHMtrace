@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from nanoshm import power, replicates
+from shmtrace import power, replicates
 
 N = 262913
 

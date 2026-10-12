@@ -1,10 +1,10 @@
 # Simulated libraries with known clones
 
-*12 October 2026. `nanoshm-simulate-lineages` (`nanoshm/lineage_sim.py`). Backgrounds: the three J꜀4 Aicda-/- libraries, each planted in turn with the other two as the null. One draw per control per scenario; model HH_S5F (see [`TARGETING.md`](TARGETING.md)).*
+*12 October 2026. `shmtrace-simulate-lineages` (`shmtrace/lineage_sim.py`). Backgrounds: the three J꜀4 Aicda-/- libraries, each planted in turn with the other two as the null. One draw per control per scenario; model HH_S5F (see [`TARGETING.md`](TARGETING.md)).*
 
 ## Why
 
-The spike-in test (`nanoshm-validate`) plants mutations at chosen read counts. It cannot test anything that depends on clones: whether the junction finds them, how much an expanded clone biases the read-weighted frequency, and whether the clone-weighted number gets the truth back. No real library has a known clone structure, so this simulation builds one.
+The spike-in test (`shmtrace-validate`) plants mutations at chosen read counts. It cannot test anything that depends on clones: whether the junction finds them, how much an expanded clone biases the read-weighted frequency, and whether the clone-weighted number gets the truth back. No real library has a known clone structure, so this simulation builds one.
 
 ## How a library is built
 
@@ -84,7 +84,7 @@ An index near 1.3, as in the real libraries, is what motif-level AID preference 
 ## Running it
 
 ```bash
-nanoshm-simulate-lineages --region jh4_intron \
+shmtrace-simulate-lineages --region jh4_intron \
   --control KO1.fastq --control KO2.fastq --control KO3.fastq \
   --reference mouse_jh4_intron.fasta --contaminant mouse_jh4_contaminant.fasta \
   --targeting-model HH_S5F.csv --out lineage_sim

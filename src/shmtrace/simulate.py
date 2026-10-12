@@ -221,7 +221,7 @@ def run_validation(control: str, nulls: list[str], reference: str, contaminants:
         sub = rng.sample(reads, min(len(reads), int((depth or len(reads)) * 1.3)))
         sites = choose_sites(ref, lo, hi, n_sites, rng)
         spiked, planted = spike(sub, reference, sites, p, rng)
-        tmp = f"/tmp/nanoshm_spike_{os.getpid()}_{rep}.fastq"
+        tmp = f"/tmp/shmtrace_spike_{os.getpid()}_{rep}.fastq"
         with open(tmp, "w") as fh:
             for name, seq, qual in spiked:
                 fh.write(f"@{name}\n{seq}\n+\n{qual}\n")
@@ -282,7 +282,7 @@ def report_markdown(res: dict) -> str:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Spike-in validation of nanoshm calling profiles")
+    ap = argparse.ArgumentParser(description="Spike-in validation of shmtrace calling profiles")
     ap.add_argument("--control", required=True, help="mutation-free reads to plant mutations in")
     ap.add_argument("--null", action="append", default=[],
                     help="other mutation-free controls for the empirical null (repeatable)")

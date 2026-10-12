@@ -448,7 +448,7 @@ def run_one(control: str, peers: list[str], reference: str, contaminants: list[s
                    model if place_by_model else None, p.junction_length,
                    (p.junction_ref_start or 53) - 1)
     lib, carried = build_library(reads, reference, truth, p, rng)
-    workdir = workdir or tempfile.mkdtemp(prefix="nanoshm_lineage_")
+    workdir = workdir or tempfile.mkdtemp(prefix="shmtrace_lineage_")
     path = os.path.join(workdir, f"sim_{seed}.fastq")
     with open(path, "w") as fh:
         for name, seq, qual in lib:

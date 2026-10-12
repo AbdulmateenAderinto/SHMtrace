@@ -1,9 +1,9 @@
 """Density, spectrum and the G:C bias readout."""
 import pytest
 
-from nanoshm.config import Params
-from nanoshm.metrics import gc_at_summary, spectrum_matrix, unique_variant_density
-from nanoshm.variants import Variant
+from shmtrace.config import Params
+from shmtrace.metrics import gc_at_summary, spectrum_matrix, unique_variant_density
+from shmtrace.variants import Variant
 
 
 def v(ref, alt, reads=1, pos=1):
@@ -56,13 +56,13 @@ def test_gc_fraction_empty_is_zero_not_a_crash():
 
 
 def _v(pos, ref="G", alt="A"):
-    from nanoshm.variants import Variant
+    from shmtrace.variants import Variant
     return Variant(pos, ref, alt, 3, 500, 0.006, 1e-9)
 
 
 def test_scattered_calls_are_not_flagged_as_clustered():
     import random
-    from nanoshm import metrics
+    from shmtrace import metrics
     rng = random.Random(0)
     for _ in range(200):
         vs = [_v(p) for p in rng.sample(range(1, 530), 25)]
@@ -70,7 +70,7 @@ def test_scattered_calls_are_not_flagged_as_clustered():
 
 
 def test_a_tight_run_of_calls_is_flagged():
-    from nanoshm import metrics
+    from shmtrace import metrics
     vs = [_v(p) for p in (164, 164, 165, 166, 166, 171, 171, 171, 172)]
     vs += [_v(p) for p in (30, 70, 110, 200, 215, 240, 260, 300)]
     hits = metrics.positional_clusters(vs, 529)
@@ -80,7 +80,7 @@ def test_a_tight_run_of_calls_is_flagged():
 
 
 def test_two_alts_at_one_position_count_as_two_calls():
-    from nanoshm import metrics
+    from shmtrace import metrics
     one = [_v(100, alt="A"), _v(101), _v(102)]
     two = [_v(100, alt="A"), _v(100, alt="T"), _v(101), _v(102)]
     assert metrics.positional_clusters(one, 529) == []
@@ -88,7 +88,7 @@ def test_two_alts_at_one_position_count_as_two_calls():
 
 
 def test_spectrum_note_counts_only_the_expected_classes():
-    from nanoshm import metrics
+    from shmtrace import metrics
     vs = [_v(10, "C", "T"), _v(20, "G", "A"), _v(30, "G", "C"), _v(40, "A", "T")]
     assert metrics.spectrum_note(vs, ("C>T", "G>A")) == {"calls": 4, "in_expected": 2,
                                                          "fraction": 0.5}

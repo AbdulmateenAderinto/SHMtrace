@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 
-from nanoshm import concordance
+from shmtrace import concordance
 
 A = {"m1": {"G>A": 30, "C>T": 25, "A>G": 20, "T>C": 10, "A>T": 8, "G>C": 7},
      "m2": {"G>A": 40, "C>T": 30, "A>G": 25, "T>C": 12, "A>T": 9, "G>C": 4},

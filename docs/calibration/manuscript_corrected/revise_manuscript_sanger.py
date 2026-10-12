@@ -30,7 +30,7 @@ EDITS = [
      "; CI, confidence interval; TOST, two one-sided tests.", "; CI, confidence interval."),
     ("Sanger reads were processed with the same",
      "Sanger reads were processed with the same position–substitution definition and Geneious p-value threshold.",
-     "Sanger clones were re-analysed from their original .ab1 chromatograms with nanoshm v0.2 in Sanger mode: "
+     "Sanger clones were re-analysed from their original .ab1 chromatograms with shmtrace v0.2 in Sanger mode: "
      "each clone was trimmed to its clean, high-quality core and aligned to the C57BL/6 JH4 reference, and every "
      "substitution with base quality ≥ 20 was counted after removing positions at which ≥ 50% of a mouse's clones "
      "differed from the reference. The same position–substitution definition was used."),
@@ -119,7 +119,7 @@ EDITS = [
     ("Supplementary Figure S2. Individual JH4 intron",
      "Variants were restricted to single-nucleotide substitutions with variant frequency < 50% and Geneious approximate variant p ≤ 0.05.",
      "Calls are single-nucleotide substitutions with base quality ≥ 20 in the quality-trimmed clone, after removing "
-     "positions at which ≥ 50% of a mouse's clones differ from the reference (nanoshm v0.2, Sanger mode), from "
+     "positions at which ≥ 50% of a mouse's clones differ from the reference (shmtrace v0.2, Sanger mode), from "
      "clones re-analysed from the original chromatograms."),
     ("Supplementary Figure S2. Individual JH4 intron",
      " Percentages are not defined for the sample with no passing variants.", ""),
@@ -163,7 +163,7 @@ NEW_FIGS = [
      "mismatches in 16,344 bases inside the window. Either alternative changed the pooled Wt call count by about 3%."),
     ("Supplementary Figure S9. ", SV / "geneious_original/fig3_agreement_position_hotspot.png",
      "Sanger and ONT agree beyond the substitution spectrum. ONT calls use the manuscript's Geneious rule "
-     "(reproduced in nanoshm); calls from the three Wt mice pooled on each platform. (A) Share of distinct calls "
+     "(reproduced in shmtrace); calls from the three Wt mice pooled on each platform. (A) Share of distinct calls "
      "along the 529-bp window in 25-bp bins (Pearson r = 0.86). (B) Share of G:C calls at WRC/GYW and of A:T calls "
      "at WA/TW (bars, mean of mice; points, mice), against the share of such sites in the window (dashed)."),
 ]
@@ -306,7 +306,7 @@ def main(src, out):
             r.font.highlight_color = WD_COLOR_INDEX.YELLOW
         tail = leg
     doc.core_properties.comments = ("Ver17: Sanger results re-analysed from the chromatograms, clones as originally "
-                                    "filed (nanoshm docs/calibration/manuscript_corrected)")
+                                    "filed (shmtrace docs/calibration/manuscript_corrected)")
     doc.save(out)
     print(out)
 

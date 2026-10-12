@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 for s in WT3 KO3; do
-  nanoshm \
+  shmtrace \
     --fastq "examples/${s}_JH4_sub500.fastq" \
     --reference examples/JH4_reference.fasta \
     --contaminant examples/JH4_contaminant.fasta \

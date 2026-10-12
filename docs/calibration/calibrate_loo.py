@@ -1,14 +1,14 @@
 """Leave-one-out calibration of the variant caller against AID-null controls."""
 import sys, math
-sys.path.insert(0,"/sessions/festive-dreamy-davinci/mnt/nanoshm/src")
+sys.path.insert(0,"/sessions/festive-dreamy-davinci/mnt/shmtrace/src")
 import numpy as np
 from collections import defaultdict
-from nanoshm.config import load_preset
-from nanoshm.io_utils import read_fastq, read_fasta
-from nanoshm.reads_filter import prefilter, downsample
-from nanoshm.align import build_index, align_reads
+from shmtrace.config import load_preset
+from shmtrace.io_utils import read_fastq, read_fasta
+from shmtrace.reads_filter import prefilter, downsample
+from shmtrace.align import build_index, align_reads
 
-B="/sessions/festive-dreamy-davinci/mnt/nanoshm/examples_compare"
+B="/sessions/festive-dreamy-davinci/mnt/shmtrace/examples_compare"
 R=f"{B}/JH4_reference.fasta"; C=f"{B}/JH4_contaminant.fasta"
 BASES=("A","C","G","T"); LO,HI=100,628
 p=load_preset("jh4_intron")

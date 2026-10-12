@@ -1,9 +1,9 @@
-"""Strand support of nanoshm calls on the deposited JH4 sub500 FASTQs (mixed orientation)."""
+"""Strand support of shmtrace calls on the deposited JH4 sub500 FASTQs (mixed orientation)."""
 import csv, mappy
 from collections import defaultdict
 from dataclasses import replace
 from scipy.stats import binomtest
-from nanoshm import pipeline, config
+from shmtrace import pipeline, config
 rows=list(csv.DictReader(open("jh4_sheet.csv")))
 REF="deposit_Ver9/02_JH4_ONT/Reference_Sequences/jh4-base.fasta"; CON=["deposit_Ver9/02_JH4_ONT/Reference_Sequences/Contaminant_JH4_ref.fasta"]
 al=mappy.Aligner(REF,preset="map-ont")

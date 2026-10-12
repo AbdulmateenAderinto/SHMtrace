@@ -32,7 +32,7 @@ BLUEL="#2C6FB0"; GREY="#9AA3AD"; SHADE="#DCE7F2"
 #                              sample is placed at its own 1-mutation floor).
 def _dens(counts, denoms, bp=529): return [c/(d*bp)*1e5 for c, d in zip(counts, denoms)]
 ont ={"WT":_dens([161,342,68],[500]*3), "KO":_dens([2,6,3],[500]*3)}
-# CORRECTED SANGER (nanoshm, organised .ab1 traces; see SANGER_VS_NANOPORE.md):
+# CORRECTED SANGER (shmtrace, organised .ab1 traces; see SANGER_VS_NANOPORE.md):
 # unique mutations over the bases each clone read, expressed as full 529-bp clones.
 import json as _json
 from config import DATA_SANGER as _DS

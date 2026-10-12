@@ -9,13 +9,13 @@ and OUT_DIR/manifest.csv records where each came from and why it went where it d
 The mouse is the one the file's label names (w2/wt2 -> WT2, a1 -> Aicda_A1, k3 -> MKLN_K3,
 ...), except where the sequence contradicts it (CORRECTIONS, evidence in
 docs/calibration/SANGER_VS_NANOPORE.md). Traces that are not usable J꜀4 go to
-OUT_DIR/_excluded/<reason>/, decided by nanoshm's own read preparation: the J꜀4 paralogue
+OUT_DIR/_excluded/<reason>/, decided by shmtrace's own read preparation: the J꜀4 paralogue
 or other contaminant, no alignment, or too short an alignment.
 
 GENBANK_DIR (optional) holds the hand-collated GenBank clone exports. A record whose name
 matches no trace is a clone sequenced in an order whose traces are not in SOURCE_DIR; it is
 written to OUT_DIR/<mouse>/genbank_only_<mouse>.fasta (no qualities: read at a flat Q30) so a
-mouse's folder holds all of its clones. nanoshm reads a folder of .ab1 and .fasta files as
+mouse's folder holds all of its clones. shmtrace reads a folder of .ab1 and .fasta files as
 one sample.
 """
 from __future__ import annotations
@@ -28,12 +28,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-from nanoshm import pipeline, project
-from nanoshm.io_utils import parse_abif, read_abif, read_fasta
+from shmtrace import pipeline, project
+from shmtrace.io_utils import parse_abif, read_abif, read_fasta
 
 ROOT = Path(__file__).resolve().parents[2]
-REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
-CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
+REF = str(ROOT / "src/shmtrace/references/mouse_jh4_intron.fasta")
+CON = [str(ROOT / "src/shmtrace/references/mouse_jh4_contaminant.fasta")]
 
 # --original: the classification as the clones were filed (GenBank folders), with no
 # evidence-based moves. Used for the manuscript, which measures nanopore against the Sanger
@@ -121,7 +121,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         label = re.sub(r"-user_added$", "", f.stem)
         traces.append({"path": f, "order": order, "well": well, "date": date, "label": label})
 
-    # nanoshm's own read preparation decides which traces are usable J꜀4
+    # shmtrace's own read preparation decides which traces are usable J꜀4
     p = project.build_params({"region": "jh4_intron", "platform": "sanger"})
     ref = read_fasta(REF)[0][1].upper()
     with tempfile.TemporaryDirectory() as tmp:
@@ -139,7 +139,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
               / 529 for a in aligned}
     muts = {a.qname: sum(1 for pos, b, q in a.pairs if 100 <= pos <= 628 and q >= 20 and b in "ACGT"
                          and b != ref[pos] and (pos, b) not in germ) for a in aligned}
-    # only a trace nanoshm cannot read is excluded: no stretch of good quality (a noisy
+    # only a trace shmtrace cannot read is excluded: no stretch of good quality (a noisy
     # chromatogram), no or too short an alignment, or a chimera. A clean but short trace
     # stays, and counts the bases it reads.
     fate_dir = {"contaminant": "_excluded/paralogue_or_contaminant"}
@@ -181,7 +181,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
             status = "excluded" if mouse.startswith("_excluded") else "relabelled"
         elif key in fates:
             f = fates[key]["fate"]
-            mouse, status, reason = fate_dir.get(f, "_excluded/noisy_or_failed"), "excluded", f"nanoshm: {f}"
+            mouse, status, reason = fate_dir.get(f, "_excluded/noisy_or_failed"), "excluded", f"shmtrace: {f}"
         elif group:
             mouse, status, reason = group[0], "relabelled", group[1]
         elif default.startswith("_excluded"):
@@ -200,7 +200,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
                      "reason": reason,
                      "original_path": str(t["path"])})
     if genbank:
-        from nanoshm.io_utils import read_fastq
+        from shmtrace.io_utils import read_fastq
         # Geneious cuts GenBank LOCUS names at 23 characters
         # ("23-jhextra-w3-2-user_ad" is the trace "23-jhextra-w3-2-user_added")
         stems = {t["path"].stem for t in traces} | {t["path"].stem[:23] for t in traces}

@@ -4,9 +4,9 @@ from dataclasses import replace
 
 import pytest
 
-from nanoshm import umi
-from nanoshm.align import AlignedRead
-from nanoshm.config import Params
+from shmtrace import umi
+from shmtrace.align import AlignedRead
+from shmtrace.config import Params
 
 REF = "ACGTTGCAAGGCTTACCGATGCATGCAAGTCCGATTACGGATCCATGGTACCAGTTCAGGCATGCTAGCTAGGATCCAT" * 3
 
@@ -74,9 +74,9 @@ def test_umi_consensus_end_to_end(examples):
     import os
     import tempfile
 
-    from nanoshm import lineage_sim as L
-    from nanoshm import pipeline, project
-    from nanoshm.io_utils import read_fasta, read_fastq
+    from shmtrace import lineage_sim as L
+    from shmtrace import pipeline, project
+    from shmtrace.io_utils import read_fasta, read_fastq
     d = examples.parent / "examples_compare"
     ref_f, con = str(d / "JH4_reference.fasta"), [str(d / "JH4_contaminant.fasta")]
     p = project.build_params({"region": "jh4_intron"})

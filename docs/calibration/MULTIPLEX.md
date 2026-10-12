@@ -1,6 +1,6 @@
 # Pooled runs and screens
 
-*12 October 2026. `nanoshm/demux.py`, `nanoshm-screen`; tests in `tests/test_demux.py`.*
+*12 October 2026. `shmtrace/demux.py`, `shmtrace-screen`; tests in `tests/test_demux.py`.*
 
 ## Inline barcodes
 
@@ -40,11 +40,11 @@ Errors cost reads, not accuracy: no read went to the wrong sample. Barcode sets 
 
 ## The screen report
 
-`nanoshm-screen project.json -o screen/` compares every condition with the control group using the animal-level tests (`REPLICATES_AND_POWER.md`). Each replicate culture or mouse is one unit. It reports:
+`shmtrace-screen project.json -o screen/` compares every condition with the control group using the animal-level tests (`REPLICATES_AND_POWER.md`). Each replicate culture or mouse is one unit. It reports:
 - the fold change with its 95% CI;
 - the p-value;
 - a Benjamini–Hochberg q-value across the conditions.
 
 Conditions are ranked by q-value. It writes `screen.csv` and a volcano plot (`screen.png`: log2 fold against −log10 q, with conditions past the q cut-off labelled).
 
-Plan replicates with `nanoshm-power`. With between-replicate variation like the J꜀4 mice, a 2-fold change needs many replicates per condition. Cell-line replicates usually vary much less than mice, so a pilot of the control condition is the way to find out.
+Plan replicates with `shmtrace-power`. With between-replicate variation like the J꜀4 mice, a 2-fold change needs many replicates per condition. Cell-line replicates usually vary much less than mice, so a pilot of the control condition is the way to find out.

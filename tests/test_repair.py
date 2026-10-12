@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from nanoshm import repair
+from shmtrace import repair
 
 REF = "AAGCTAGCTGACATTGCAGCTAAGCTTGCAAGCTGCA" * 10
 

@@ -3,8 +3,8 @@ import csv
 
 import pytest
 
-from nanoshm import samplesheet
-from nanoshm.io_utils import read_fastq, write_abif
+from shmtrace import samplesheet
+from shmtrace.io_utils import read_fastq, write_abif
 
 
 def _sheet(path, rows, header=("file", "sample", "group", "control", "order", "well", "label")):
@@ -101,7 +101,7 @@ def test_the_app_loads_a_sheet_and_reports_its_problems(tmp_path, traces):
     pytest.importorskip("httpx")
     from fastapi.testclient import TestClient
 
-    from nanoshm.webapp.main import app
+    from shmtrace.webapp.main import app
     c = TestClient(app)
     good = _sheet(tmp_path / "s.csv", [["traces/a.ab1", "WT1", "WT", "no", "100", "A1", "w1-1"]])
     r = c.post("/api/samplesheet", json={"path": str(good)})

@@ -25,9 +25,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from quant_accuracy import AMPLICONS  # noqa: E402
 
-from nanoshm import lineage_sim as L  # noqa: E402
-from nanoshm import pipeline, project  # noqa: E402
-from nanoshm.io_utils import read_fasta, read_fastq  # noqa: E402
+from shmtrace import lineage_sim as L  # noqa: E402
+from shmtrace import pipeline, project  # noqa: E402
+from shmtrace.io_utils import read_fasta, read_fastq  # noqa: E402
 
 ENDS = {"JH4": "right", "N114": "both"}
 SCEN = {"JH4": ["polyclonal", "low", "null"], "N114": ["subclonal", "low", "null"]}

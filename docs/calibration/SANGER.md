@@ -4,7 +4,7 @@
 
 ## Preparing the clones
 
-- nanoshm now reads GenBank files (`.gb`, `.gbk`) directly. Each record is one read with flat Q30 qualities. IUPAC ambiguity codes are kept, so they are never counted as mutations.
+- SHMtrace now reads GenBank files (`.gb`, `.gbk`) directly. Each record is one read with flat Q30 qualities. IUPAC ambiguity codes are kept, so they are never counted as mutations.
 - The 762 files hold 407 distinct clone records. The per-animal folders mix animals (the W2 folder holds w3 clones, and K3 holds JH4K1 clones), and folder `24` is the union of all of them. Clones were therefore assigned by name: `w2`/`wt2` → WT2, `jhextra-w3` → WT3, `JH4K1` → KO1, `k2` → KO2, and so on. A re-sequenced clone keeps its longest read.
 
 ## A paralogue in the J꜀4 amplicon
@@ -21,7 +21,7 @@ After the paralogue and contaminant are removed: WT2 21 clones, WT3 34, WT4 18, 
 
 ## Trimming the messy ends
 
-Sanger reads are messy for their first and last stretch, and these exports carry no qualities to trim by. The manual practice is to align the clones and cut each one back to where it cleans up. nanoshm now does the same for the Sanger platform (`sanger_clean_window`, `sanger_clean_max_mismatch`). After alignment each clone is cut back, from each end, to the first run of 20 reference bases with no ambiguity code, no indel and at most one mismatch. Mutations inside the clean part are kept.
+Sanger reads are messy for their first and last stretch, and these exports carry no qualities to trim by. The manual practice is to align the clones and cut each one back to where it cleans up. SHMtrace now does the same for the Sanger platform (`sanger_clean_window`, `sanger_clean_max_mismatch`). After alignment each clone is cut back, from each end, to the first run of 20 reference bases with no ambiguity code, no indel and at most one mismatch. Mutations inside the clean part are kept.
 
 On these 150 clones the clean part starts at reference 50–75 and ends at 650–675, about where the insert meets the primers. That lies outside the 529-bp comparison window (101–629), which is why the manuscript chose that window. Inside the window, trimming changed only a handful of calls.
 

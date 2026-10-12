@@ -32,10 +32,10 @@ import numpy as np  # noqa: E402
 from scipy.cluster.hierarchy import dendrogram, linkage  # noqa: E402
 from scipy.spatial.distance import squareform  # noqa: E402
 
-from nanoshm import pipeline, project, samplesheet  # noqa: E402
+from shmtrace import pipeline, project, samplesheet  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-REF = ROOT / "src/nanoshm/references"
+REF = ROOT / "src/shmtrace/references"
 OUT = Path(__file__).parent / "figures/sanger_lineages"
 DEP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Martin Lab/"
                      "Paper #1 - Nanopore sequencing/June 2nd analyses/submission_v4/"

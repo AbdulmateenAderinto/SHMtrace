@@ -6,9 +6,9 @@ from dataclasses import replace
 
 import pytest
 
-from nanoshm import pipeline
-from nanoshm.config import Params
-from nanoshm.io_utils import (
+from shmtrace import pipeline
+from shmtrace.config import Params
+from shmtrace.io_utils import (
     FASTA_DEFAULT_Q,
     find_pairs,
     merge_pair,
@@ -380,7 +380,7 @@ def test_a_one_clone_sanger_sample_borrows_the_projects_germline(sanger_case, tm
     # one clone cannot tell its germline differences from mutations; the other
     # mice in the project can. On the real J꜀4 clones a single Aicda-/- clone
     # reported the strain's five germline differences as five mutations.
-    from nanoshm import project
+    from shmtrace import project
     d, ref, planted, germ = sanger_case
     many = tmp_path / "many.fasta"
     many.write_text("".join(f">{n}\n{mutate(ref, {**s, **germ})[25:670]}\n"

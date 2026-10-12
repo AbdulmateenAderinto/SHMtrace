@@ -24,7 +24,7 @@ Quality scores overstate certainty: taken at face value, `qcal` made 29.5 false 
 
 ## Spike-in validation
 
-`nanoshm-validate` plants known substitutions into reads from a control that is *not* in the null, choosing sites as AID would (WRC/GYW weighted 4×, WA/TW 2×, G:C transitions favoured) and writing each one into 1, 2, 3, 5, 10 or 20 reads with the read's own base quality kept. The caller then runs as normal. 60 sites × 3 draws.
+`shmtrace-validate` plants known substitutions into reads from a control that is *not* in the null, choosing sites as AID would (WRC/GYW weighted 4×, WA/TW 2×, G:C transitions favoured) and writing each one into 1, 2, 3, 5, 10 or 20 reads with the read's own base quality kept. The caller then runs as normal. 60 sites × 3 draws.
 
 **J꜀4** (spiked into Aicda-/- KO1, null from KO2 and KO3):
 
@@ -56,7 +56,7 @@ Caveat: planted bases are idealised. A real mutation's read can carry its own al
 
 ## Benchmark against Geneious (real libraries)
 
-`nanoshm-benchmark` on the deposit at matched depth (J꜀4 498 reads, N114 492 reads, on the reads in Geneious's own BAMs). Each control is called against a null fitted from the *other* controls of its run, so control calls are an honest background estimate. Jaccard is site-level overlap with the Geneious export.
+`shmtrace-benchmark` on the deposit at matched depth (J꜀4 498 reads, N114 492 reads, on the reads in Geneious's own BAMs). Each control is called against a null fitted from the *other* controls of its run, so control calls are an honest background estimate. Jaccard is site-level overlap with the Geneious export.
 
 **J꜀4**
 
@@ -98,9 +98,9 @@ Consequence: the error profile can shift between orders when Plasmidsaurus updat
 ## Reproduce
 
 ```bash
-nanoshm-validate --control KO1.fastq --null KO2.fastq --null KO3.fastq \
+shmtrace-validate --control KO1.fastq --null KO2.fastq --null KO3.fastq \
   --reference jh4-base.fasta --contaminant Contaminant_JH4_ref.fasta --preset jh4_intron \
   --profiles geneious,recommended,qcal,qcal+filter,strand,strand+filter --reps 3 --sites 60 --out val_jh4
-nanoshm-benchmark --sheet jh4_sheet.csv --reference jh4-base.fasta --contaminant Contaminant_JH4_ref.fasta \
+shmtrace-benchmark --sheet jh4_sheet.csv --reference jh4-base.fasta --contaminant Contaminant_JH4_ref.fasta \
   --preset jh4_intron --modes geneious,recommended,qcal,qcal+filter,strand,strand+filter --out bench_jh4
 ```

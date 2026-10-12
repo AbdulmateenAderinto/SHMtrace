@@ -1,7 +1,7 @@
 """Read alignments kept for inspection (browse.py) and the fates that label them."""
 import pytest
 
-from nanoshm import browse, project
+from shmtrace import browse, project
 
 
 @pytest.fixture(scope="module")
@@ -55,9 +55,9 @@ def test_window_filters_by_fate(run):
 
 def test_each_stage_records_why_it_dropped_a_read(tmp_path, examples):
     """A read rejected at any stage is labelled with the stage that rejected it."""
-    from nanoshm import pipeline
-    from nanoshm.io_utils import read_fasta
-    from nanoshm.project import build_params
+    from shmtrace import pipeline
+    from shmtrace.io_utils import read_fasta
+    from shmtrace.project import build_params
     ref = str(examples / "JH4_reference.fasta")
     seq = read_fasta(ref)[0][1]
     good, bad = seq[40:900], seq[40:900]

@@ -230,7 +230,7 @@ def preset_path(name_or_path: str) -> Path:
     if p.suffix in (".yaml", ".yml") and p.exists():
         return p
     stem = p.stem or str(name_or_path)
-    packaged = resources.files("nanoshm.presets") / f"{stem}.yaml"
+    packaged = resources.files("shmtrace.presets") / f"{stem}.yaml"
     if packaged.is_file():
         return Path(str(packaged))
     raise FileNotFoundError(
@@ -240,7 +240,7 @@ def preset_path(name_or_path: str) -> Path:
 
 def available_presets() -> list[str]:
     return sorted(
-        f.name[:-5] for f in resources.files("nanoshm.presets").iterdir()
+        f.name[:-5] for f in resources.files("shmtrace.presets").iterdir()
         if f.name.endswith(".yaml")
     )
 

@@ -242,7 +242,7 @@ def main(argv=None):
     import argparse
     import json
     import os
-    ap = argparse.ArgumentParser(prog="nanoshm-switch", description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser(prog="shmtrace-switch", description=__doc__.split("\n\n")[0])
     ap.add_argument("--reference", required=True, help="FASTA, one record per switch region")
     ap.add_argument("--donor", help="the donor record's name (default: the first)")
     ap.add_argument("--sample", action="append", required=True,

@@ -1,8 +1,8 @@
-# nanoshm quickstart
+# SHMtrace quickstart
 
 From read files to a figure. The full account is in [`USER_GUIDE.md`](USER_GUIDE.md).
 
-1. Open the app (or run `nanoshm-app`). It serves on your own machine only.
+1. Open the app (or run `shmtrace-app`). It serves on your own machine only.
 2. **Set up, box 1.** Pick the **Region** (`jh4_intron`, `n114_vregion`,
    `igh_smu`, `generic_amplicon`, `sanger_clones`), the **platform** (`ont`,
    `pacbio`, `illumina`, `sanger`) and leave the mode on `recommended`, which

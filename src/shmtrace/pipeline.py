@@ -3,7 +3,7 @@
 This is the single entry point the CLI and the web backend both call. It is the
 open-source replacement for the Geneious "assemble + find variants" step.
 
-    python -m nanoshm.pipeline \
+    python -m shmtrace.pipeline \
         --fastq reads.fastq --reference ref.fasta \
         --contaminant contam.fasta --preset presets/jh4_intron.yaml \
         --out results/
@@ -139,7 +139,7 @@ def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = 
     density = metrics.unique_variant_density(
         variants, s_var["analysed_positions"], s_var["mean_depth"], p)
     summary = {
-        "nanoshm_version": __version__,
+        "shmtrace_version": __version__,
         "params": to_dict(p),
         "reads": {**(read_stats or {}), **s_down, **s_align},
         "calling": s_var,
@@ -515,7 +515,7 @@ def main():
             null_model.save_panel(null_rates, args.save_null_panel, preset=p.name,
                                   controls=[os.path.basename(f) for f in args.null],
                                   run=args.null_run_id or null_model.run_token(args.null[0]),
-                                  nanoshm_version=__version__)
+                                  shmtrace_version=__version__)
             print(f"[null] saved panel to {args.save_null_panel}")
     elif args.null_panel:
         from . import null_model

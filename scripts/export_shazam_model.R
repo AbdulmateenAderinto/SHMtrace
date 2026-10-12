@@ -1,9 +1,9 @@
-# Export a SHazaM 5-mer targeting model in the CSV format nanoshm reads.
+# Export a SHazaM 5-mer targeting model in the CSV format shmtrace reads.
 #
 #   Rscript scripts/export_shazam_model.R HH_S5F  HH_S5F.csv
 #   Rscript scripts/export_shazam_model.R MK_RS5NF MK_RS5NF.csv
 #
-# nanoshm does not ship these models: SHazaM is AGPL-3 and nanoshm is MIT, so
+# shmtrace does not ship these models: SHazaM is AGPL-3 and shmtrace is MIT, so
 # the model is written from your own SHazaM installation. Cite Yaari et al.,
 # Front Immunol 2013 (S5F) and the SHazaM package when you use the result.
 args <- commandArgs(trailingOnly = TRUE)

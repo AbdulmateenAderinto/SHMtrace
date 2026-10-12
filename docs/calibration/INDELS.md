@@ -6,7 +6,7 @@
 
 Nanopore reads carry about one indel error each. On J꜀4 the knockouts show 1.05–1.10 per read, 41–46% of them in homopolymers, and about 225 distinct one-read indels per library. Read quality cannot separate a real indel from that.
 
-But the errors are systematic. The same deletion in the same homopolymer recurs at a similar rate in every library. A mutation-free control therefore measures, for each exact indel, how often it appears by error (`nanoshm/indels.py`):
+But the errors are systematic. The same deletion in the same homopolymer recurs at a similar rate in every library. A mutation-free control therefore measures, for each exact indel, how often it appears by error (`shmtrace/indels.py`):
 
 1. Every read's indels are left-aligned. An aligner may place a deletion anywhere along a repeat, and left-aligning gives one representation per event.
 2. Only indels of quality ≥ Q30 are counted, in controls and samples alike. Quality here means the weakest inserted base, or the weaker base flanking a deletion. Nanopore indel errors mostly come with low-quality flanks, while a real indel is read cleanly.

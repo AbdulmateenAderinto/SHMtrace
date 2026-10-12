@@ -7,8 +7,8 @@ import json
 
 import pytest
 
-from nanoshm import pipeline
-from nanoshm.config import load_preset
+from shmtrace import pipeline
+from shmtrace.config import load_preset
 
 pytest.importorskip("mappy", reason="alignment backend not installed")
 

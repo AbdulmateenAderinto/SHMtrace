@@ -1,6 +1,6 @@
 """The desktop app: a local server plus a native window.
 
-`nanoshm-app` starts uvicorn on a free port on localhost only, waits for it,
+`shmtrace-app` starts uvicorn on a free port on localhost only, waits for it,
 and opens a window on it. With no GUI toolkit available it prints the address
 and keeps serving, so the same command works over SSH or in a container.
 """
@@ -52,7 +52,7 @@ def _wait(url: str, timeout: float = 40.0) -> bool:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=f"nanoshm {__version__} desktop app")
+    ap = argparse.ArgumentParser(description=f"SHMtrace {__version__} desktop app")
     ap.add_argument("--port", type=int, default=0, help="0 picks a free port")
     ap.add_argument("--no-window", action="store_true", help="serve only, print the address")
     args = ap.parse_args()
@@ -66,9 +66,9 @@ def main():
     url = f"http://{HOST}:{port}/"
     threading.Thread(target=_serve, args=(port,), daemon=True).start()
     if not _wait(url):
-        print("nanoshm could not start its local server", file=sys.stderr)
+        print("SHMtrace could not start its local server", file=sys.stderr)
         return 1
-    print(f"nanoshm {__version__} is running at {url}", flush=True)
+    print(f"SHMtrace {__version__} is running at {url}", flush=True)
 
     if args.no_window:
         try:
@@ -91,7 +91,7 @@ def main():
     webview.settings["ALLOW_DOWNLOADS"] = True
     # ?desktop=1 tells the page it is the desktop app, so it can offer "save to a
     # folder"; a query survives reloads, and is there before the page's script runs
-    webview.create_window(f"nanoshm {__version__}", url + "?desktop=1", width=1280,
+    webview.create_window(f"SHMtrace {__version__}", url + "?desktop=1", width=1280,
                           height=880, min_size=(900, 640))
     webview.start()
     return 0

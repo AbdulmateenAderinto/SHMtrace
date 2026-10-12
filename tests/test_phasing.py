@@ -1,8 +1,8 @@
 """Minor-haplotype detection: it must fire on co-occurrence, not on frequency."""
 from dataclasses import dataclass
 
-from nanoshm.config import Params
-from nanoshm.phasing import candidate_sites, find_blocks, partition
+from shmtrace.config import Params
+from shmtrace.phasing import candidate_sites, find_blocks, partition
 
 REF = "ACGT" * 50          # 200 bp
 DROP = Params(phase_mode="drop")

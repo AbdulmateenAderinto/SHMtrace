@@ -13,7 +13,7 @@ counts.
 
 ## The method
 
-Stop deciding them one by one, and count them instead (`nanoshm/singletons.py`):
+Stop deciding them one by one, and count them instead (`shmtrace/singletons.py`):
 
 | Quantity | Definition |
 |---|---|

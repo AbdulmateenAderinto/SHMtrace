@@ -8,13 +8,13 @@ import sys
 import tempfile
 from pathlib import Path
 
-from nanoshm import project, simulate
-from nanoshm.io_utils import read_fasta, read_fastq
-from nanoshm.project import build_params
+from shmtrace import project, simulate
+from shmtrace.io_utils import read_fasta, read_fastq
+from shmtrace.project import build_params
 
 ROOT = Path(__file__).resolve().parents[2]
-REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
-CON = str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")
+REF = str(ROOT / "src/shmtrace/references/mouse_jh4_intron.fasta")
+CON = str(ROOT / "src/shmtrace/references/mouse_jh4_contaminant.fasta")
 EX = ROOT / "examples_compare"
 KOS = ["KO1", "KO2", "KO3"]
 NS = [int(x) for x in (sys.argv[1] if len(sys.argv) > 1 else "0,25,50,100").split(",")]

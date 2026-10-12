@@ -180,7 +180,7 @@ def group_spectra(res: dict, group: str) -> list[dict]:
 def main(argv=None):
     import argparse
     import json
-    ap = argparse.ArgumentParser(prog="nanoshm-repair", description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser(prog="shmtrace-repair", description=__doc__.split("\n\n")[0])
     ap.add_argument("result", help="project.json")
     ap.add_argument("--case", required=True, help="group to describe")
     ap.add_argument("--control", help="group to compare it with, animal by animal")

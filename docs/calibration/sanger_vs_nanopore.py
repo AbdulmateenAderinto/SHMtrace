@@ -1,6 +1,6 @@
 """Sanger clones against nanopore reads in the same wild-type mice: do they agree?
 
-Runs both platforms through nanoshm, then draws the manuscript's comparison
+Runs both platforms through shmtrace, then draws the manuscript's comparison
 figures (Figure 2A/B, Figure 3A-E, Supplementary S2/S3) from those calls, plus
 tests the manuscript did not have. Writes figures, stats.json and stats.md.
 
@@ -29,12 +29,12 @@ from matplotlib.colors import LinearSegmentedColormap, to_rgb  # noqa: E402
 from matplotlib.patches import Circle, Patch  # noqa: E402
 from scipy import stats  # noqa: E402
 
-from nanoshm import motifs, project  # noqa: E402
-from nanoshm.io_utils import read_fasta  # noqa: E402
+from shmtrace import motifs, project  # noqa: E402
+from shmtrace.io_utils import read_fasta  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
-CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
+REF = str(ROOT / "src/shmtrace/references/mouse_jh4_intron.fasta")
+CON = [str(ROOT / "src/shmtrace/references/mouse_jh4_contaminant.fasta")]
 EX = ROOT / "examples_compare"
 WT, KO_ONT, KO_SANGER = ["WT2", "WT3", "WT4"], ["KO1", "KO2", "KO3"], ["A1", "A2", "A3"]
 LO, HI = 101, 629                      # the 529-bp comparison window, 1-based
@@ -66,7 +66,7 @@ def sanger_path(sanger_dir: Path, n: str) -> Path | None:
 
 
 def run_platforms(sanger_dir: Path, ont_mode: str) -> dict:
-    """Both platforms through nanoshm. Returns per-sample calls and loads."""
+    """Both platforms through shmtrace. Returns per-sample calls and loads."""
     out = {}
     sp = {"name": "sanger", "region": "jh4_intron", "platform": "sanger", "reference": REF,
           "contaminants": CON,

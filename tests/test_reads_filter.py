@@ -1,6 +1,6 @@
 """The expected-error / length gate and deterministic downsampling."""
-from nanoshm.config import Params
-from nanoshm.reads_filter import downsample, prefilter
+from shmtrace.config import Params
+from shmtrace.reads_filter import downsample, prefilter
 
 Q30 = chr(30 + 33)
 Q10 = chr(10 + 33)

@@ -9,7 +9,7 @@ import pytest
 
 pytest.importorskip("mappy", reason="alignment backend not installed")
 
-from nanoshm import sanger_sim  # noqa: E402
+from shmtrace import sanger_sim  # noqa: E402
 
 
 @pytest.fixture(scope="module")

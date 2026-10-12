@@ -1,4 +1,4 @@
-"""How accurately does nanoshm quantify SHM? Truth-known libraries on both amplicons.
+"""How accurately does shmtrace quantify SHM? Truth-known libraries on both amplicons.
 
     python docs/calibration/quant_accuracy.py --out quant_accuracy [--jobs 8] [--quick]
 
@@ -21,10 +21,10 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
-from nanoshm import lineage_sim
+from shmtrace import lineage_sim
 
 ROOT = Path(__file__).resolve().parents[2]
-REF = ROOT / "src/nanoshm/references"
+REF = ROOT / "src/shmtrace/references"
 DEP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Martin Lab/"
                      "Paper #1 - Nanopore sequencing/June 2nd analyses/submission_v4/"
                      "ONT_SHM_DataDeposit_Ver8_2026-07-30/Raw_Data")

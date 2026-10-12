@@ -7,24 +7,25 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Pooled runs and screens (`demux.py`, MULTIPLEX.md): inline single or dual barcodes split before analysis from a sample sheet's `barcode`/`barcode2` columns (no misassigned reads in simulation at 3% or 8% read error); `nanoshm-screen` ranks conditions against the control with animal-level tests and Benjamini-Hochberg q-values, with a volcano plot.
-- Class-switch junction analysis (`switch.py`, `nanoshm-switch`, SWITCH.md): breakpoints, microhomology, insertions, mutations near the join, ambiguity in repetitive acceptors, internal Sμ deletions, unique junctions, animal-level group comparison. On simulated junction reads at 2% error: all found, breakpoints within MH + 3 bp for 95%, ≥4-nt microhomology classed correctly 97%.
+- **Renamed nanoshm → SHMtrace.** The package is `shmtrace`, commands are `shmtrace`, `shmtrace-sheet`, `shmtrace-power`, ... and the app is SHMtrace.app. `import nanoshm` still works (an alias with a DeprecationWarning); the old `nanoshm-*` commands are gone.
+- Pooled runs and screens (`demux.py`, MULTIPLEX.md): inline single or dual barcodes split before analysis from a sample sheet's `barcode`/`barcode2` columns (no misassigned reads in simulation at 3% or 8% read error); `shmtrace-screen` ranks conditions against the control with animal-level tests and Benjamini-Hochberg q-values, with a volcano plot.
+- Class-switch junction analysis (`switch.py`, `shmtrace-switch`, SWITCH.md): breakpoints, microhomology, insertions, mutations near the join, ambiguity in repetitive acceptors, internal Sμ deletions, unique junctions, animal-level group comparison. On simulated junction reads at 2% error: all found, breakpoints within MH + 3 bp for 95%, ≥4-nt microhomology classed correctly 97%.
 - UMI consensus (`umi.py`; `umi = flank | header`): UMIs read next to an anchor at either or both read ends, or from read names; grouped with error tolerance (directional); one quality-weighted consensus per molecule. Simulated UMI libraries from real reads (`lineage_sim.build_umi_library`, `docs/calibration/umi_sim.py`, UMI.md): 0–0.7 false calls and 0.99–1.00 recall of single-molecule mutations, against 1–7 and 0.77–0.94 read by read.
 - Group tests with the animal as the unit (`replicates.py`, `animal_tests` in every result, `animal_tests.csv`, app table): negative binomial with shared dispersion (bootstrap p), permutation, Welch on log10, fold with 95% CI; pooled-read p shown only as contrast. Calibrated by simulation: 5.0–5.7% false positives at α = 0.05, against 91–94% for pooled reads.
-- `nanoshm-power` (`power.py`): power by simulation from a pilot project's rate, between-animal variation and within-animal clumping, for read-weighted, unique-density or clone-weighted measures.
-- Repair-route indices and spectrum decomposition against reference groups (`repair.py`, `nanoshm-repair`, REPAIR.md).
+- `shmtrace-power` (`power.py`): power by simulation from a pilot project's rate, between-animal variation and within-animal clumping, for read-weighted, unique-density or clone-weighted measures.
+- Repair-route indices and spectrum decomposition against reference groups (`repair.py`, `shmtrace-repair`, REPAIR.md).
 - `docs/calibration/quant_accuracy.py` and QUANT_ACCURACY.md: the accuracy of the reported SHM numbers against truth on J꜀4 and N114, over 168 simulated libraries at 125–1,000 reads. `lineage_sim` now scores unique and combined density, takes a depth, and has an N114-like `subclonal` scenario.
 - Sanger pipeline for unseen data (docs/calibration/SANGER_PIPELINE.md):
-  - `nanoshm.samplesheet` / `nanoshm-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.
-  - `nanoshm.qc`, run on every Sanger project: duplicate files and clones, mutations shared across animals beyond chance, control clones with more mutations than their qualities predict, label mismatches, mutations lost to the germline rule, load outliers, and every clone not analysed with its reason. Flags only; nothing is changed. The flags appear in the app (Tables), the HTML report, `qc_flags.csv` and `excluded.csv`.
-  - `nanoshm.concordance` / `nanoshm-concordance`: the manuscript's two-platform statistics as a tested function; `manuscript_stats.py` now uses it, with unchanged numbers.
-  - `nanoshm.sanger_sim` / `nanoshm-validate-sanger`: simulated Sanger projects with known truth and planted bookkeeping errors. Over 40 projects: recall 99.4%, no germline calls, every planted copy, contaminant and labelled misfiling flagged, and no false flags on 6,018 clean clones.
+  - `shmtrace.samplesheet` / `shmtrace-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.
+  - `shmtrace.qc`, run on every Sanger project: duplicate files and clones, mutations shared across animals beyond chance, control clones with more mutations than their qualities predict, label mismatches, mutations lost to the germline rule, load outliers, and every clone not analysed with its reason. Flags only; nothing is changed. The flags appear in the app (Tables), the HTML report, `qc_flags.csv` and `excluded.csv`.
+  - `shmtrace.concordance` / `shmtrace-concordance`: the manuscript's two-platform statistics as a tested function; `manuscript_stats.py` now uses it, with unchanged numbers.
+  - `shmtrace.sanger_sim` / `shmtrace-validate-sanger`: simulated Sanger projects with known truth and planted bookkeeping errors. Over 40 projects: recall 99.4%, no germline calls, every planted copy, contaminant and labelled misfiling flagged, and no false flags on 6,018 clean clones.
   - The app loads a sample sheet by path. `io_utils.write_abif`. The germline rule now records which positions it removed (`germline_sites`).
   - Tests: `test_samplesheet.py`, `test_concordance.py`, `test_sanger_validation.py`, and `test_real_jh4_sanger.py`, which reproduces the manuscript's Sanger counts from the lab's traces when they are present.
 - `organize_jh4_ab1.py --original`: organise the .ab1 traces exactly as filed in the GenBank folders (no evidence-based moves); `manuscript_corrected/export_sanger_calls.py` exports the Sanger calls the manuscript figures read. Ver17 now uses the original classification, drops the TOST analysis and the inclusion figure; `--original` still drops the two Wt2 GenBank records that are renamed MKLN K4 traces; `sanger_window_figure.py --name`; `sanger_vs_nanopore.py` also writes the two-panel `fig3_agreement_position_hotspot`.
 - **Sanger against nanopore, same mice** (`docs/calibration/sanger_vs_nanopore.py`,
   `SANGER_VS_NANOPORE.md`). Redraws the manuscript's Figure 2A/B, 3A–E and
-  S2/S3 from nanoshm calls on both platforms, plus position, hotspot and
+  S2/S3 from SHMtrace calls on both platforms, plus position, hotspot and
   per-mouse load agreement. Spectrum r = 0.92 (0.94 under the Geneious rule),
   no platform × type interaction (p = 0.39), positional r = 0.90. It also
   found that the manuscript's Geneious Sanger assemblies mix mice (W2 and W3
@@ -46,8 +47,8 @@ this project uses [semantic versioning](https://semver.org/).
   With the January 2024 orders added (429 traces), 214 of the 220 wild-type
   and Aicda-/- clones are read from traces; the jhextra traces carry exactly
   the mutations their GenBank records do, and every result is unchanged.
-- **Simulated libraries with known clones** (`nanoshm/lineage_sim.py`,
-  `nanoshm-simulate-lineages`). Real control reads are dealt into clones with
+- **Simulated libraries with known clones** (`shmtrace/lineage_sim.py`,
+  `shmtrace-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
   sub-branch, private) placed by the 5-mer model, and optionally one expanded
   clone; the library runs end to end and is scored against the truth, with a
@@ -58,7 +59,7 @@ this project uses [semantic versioning](https://semver.org/).
   libraries, while making three times its false calls in an empty one; reported
   as open. Variant calling now records each candidate's position and allele
   (`_candidate_keys`) for such sweeps. See `docs/calibration/LINEAGE_SIM.md`.
-- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
+- **Clones from the V(D)J junction** (`shmtrace/clones.py`; on by default for
   `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
   so reads are grouped by it and each clone counts once. Validated as a
   barcode: reads sharing a junction share their mutations 26× (Wt3) and 324×
@@ -68,7 +69,7 @@ this project uses [semantic versioning](https://semver.org/).
   against *Aicda*-/- from P = 0.0086 to P = 0.0036. New columns, `clones.csv`,
   a clone figure, and a warning when one clone holds half a library. Per
   clone, not per molecule. See `docs/calibration/CLONES.md`.
-- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
+- **AID targeting against a 5-mer model** (`shmtrace/targeting.py`; the project
   key `targeting_model`, or the model drop under Advanced). The targeting index
   is the mean model mutability at called positions over the window mean, with a
   permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
@@ -77,7 +78,7 @@ this project uses [semantic versioning](https://semver.org/).
   flags that artefact by itself. Each call is annotated with its 5-mer's
   relative mutability and substitution probability. Three figures: a
   dose-response by mutability fifth, observed against expected spectrum, and
-  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
+  the model as a hedgehog plot. Nothing here changes the calls. SHMtrace does
   not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
   from your own install. See `docs/calibration/TARGETING.md`.
 - **Coverage along the amplicon.** Every sample's per-position read depth is
@@ -108,7 +109,7 @@ this project uses [semantic versioning](https://semver.org/).
   warning added earlier in this release referenced the row too early and would
   have raised an error on the first library with a real coverage dip; the test
   data had none, so it never fired. Now covered by a regression test.
-- **Base-composition correction in projects.** `nanoshm-compare` already
+- **Base-composition correction in projects.** `shmtrace-compare` already
   divided each substitution class by the sites of its from-base (SHMTool's
   L = sites × files); the project path reported raw counts only, so the two
   entry points gave differently normalised spectra. Projects now report
@@ -118,7 +119,7 @@ this project uses [semantic versioning](https://semver.org/).
   understate C→T relative to G→A.
 
 ### Added (continued)
-- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
+- **A read-alignment browser** (`shmtrace/browse.py`, the app's **Reads** tab,
   opt-in with "Keep the read alignment"). Every input read is drawn in its
   aligned place against the reference, banded by what became of it — analysed,
   not sampled, minor haplotype, too short, chimeric, contaminant, off target,
@@ -130,7 +131,7 @@ this project uses [semantic versioning](https://semver.org/).
   what makes a few thousand of them cheap enough to send to a browser, and the
   API serves one window at a time. Every filtering stage now records why it
   rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
+- **Twelve figures beyond the manuscript's seven** (`shmtrace/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
   per-sample positional maps, the combined density with its intervals);
@@ -161,7 +162,7 @@ this project uses [semantic versioning](https://semver.org/).
   to their pre-cap values.
 
 ### Added
-- **Single-read mutations, estimated in aggregate** (`nanoshm/singletons.py`).
+- **Single-read mutations, estimated in aggregate** (`shmtrace/singletons.py`).
   A mutation in one read cannot be confirmed site by site, so each sample's
   high-quality single-read events are counted and the controls' rate of such
   events is subtracted, corrected for the share of real bases the quality cut
@@ -171,7 +172,7 @@ this project uses [semantic versioning](https://semver.org/).
   one-read mutations, and it brings Wt2 from 55.7 to 74.9 × 10⁻⁵ while the
   knockouts stay at 0.4–1.2. See `docs/calibration/SINGLE_READ.md`.
   `single_read_min_quality` (35; 30 on Illumina; off for Sanger) sets the cut.
-- **Indel calling** (`nanoshm/indels.py`, opt-in with `exclude_indels: false` or
+- **Indel calling** (`shmtrace/indels.py`, opt-in with `exclude_indels: false` or
   the app's Advanced checkbox). Indels are left-aligned, counted at quality
   ≥ Q30, and tested against the controls' rate for that exact indel, calibrated
   by leave-one-control-out and corrected by BH; at least 3 reads are needed.
@@ -207,7 +208,7 @@ this project uses [semantic versioning](https://semver.org/).
   `ALLOW_DOWNLOADS` is set.
 - "Save to a folder" could stay hidden, because the desktop flag was injected
   after the page had read it. The window now opens with `?desktop=1`.
-- `nanoshm-app --port N` with N already in use reported success and opened
+- `shmtrace-app --port N` with N already in use reported success and opened
   whatever else was listening there. It now says the port is taken and exits.
 - The packaged app rebuilt matplotlib's font cache on every launch (about 12 s);
   it now keeps it in the user cache folder.
@@ -215,16 +216,16 @@ this project uses [semantic versioning](https://semver.org/).
 ## Unreleased — the standalone app (11 October 2026)
 
 ### Added
-- **Desktop app.** `nanoshm-app` opens a window with four tabs: set up a project,
+- **Desktop app.** `shmtrace-app` opens a window with four tabs: set up a project,
   read the results, browse the tables, export. Everything runs locally.
-  `packaging/nanoshm.spec` builds a `.app` or `.exe`; see `packaging/BUILD.md`.
-- **Projects.** `nanoshm.project.run_project` analyses many samples at once with
+  `packaging/shmtrace.spec` builds a `.app` or `.exe`; see `packaging/BUILD.md`.
+- **Projects.** `shmtrace.project.run_project` analyses many samples at once with
   groups and controls, one shared depth, one background calibration, and
   per-sample and per-group tables including Welch and Mann-Whitney tests.
 - **Interactive charts** (Plotly) in the app and static figures for export:
   density, mutation frequency, % of reads mutated, substitution spectrum,
   position along the amplicon, mutations per read, hotspot targeting.
-- **Exports.** `nanoshm.report` writes CSV, Excel, PNG/SVG/PDF figures, a
+- **Exports.** `shmtrace.report` writes CSV, Excel, PNG/SVG/PDF figures, a
   self-contained HTML report, and a ZIP of all of it.
 - **More platforms.** Sanger traces (.ab1), Illumina (including paired-end
   merging), PacBio and nanopore, selected with `--platform`.
@@ -236,11 +237,11 @@ this project uses [semantic versioning](https://semver.org/).
 ### Changed (11 October 2026)
 
 - `--mode recommended` is now the quality-calibrated model (`qcal`), chosen on the JH4 and N114 benchmark and spike-ins (`docs/calibration/ERROR_MODELS.md`). The previous default is `--mode v0.1`.
-- `nanoshm-benchmark` fits each control set's null once and runs the qcal calibration only for qcal modes.
+- `shmtrace-benchmark` fits each control set's null once and runs the qcal calibration only for qcal modes.
 
 ### Added (11 October 2026, second round)
 - **`--mode qcal`, quality-calibrated null.** Geneious trusts a high-quality
-  variant base; nanoshm now measures how far to trust it. From the control
+  variant base; SHMtrace now measures how far to trust it. From the control
   reads it learns, per base change and strand, how often a base is miscalled
   with at least a given quality, plus each site's own miscalls, and inflates
   those rates by a factor fitted by testing each control against the others.
@@ -257,14 +258,14 @@ this project uses [semantic versioning](https://semver.org/).
   (LoFreq's test).
 - **Saved background panels**: `--save-null-panel` / `--null-panel` store and
   reuse a fitted null (rates, strand rates, quality tails, calibration, provenance).
-- **`nanoshm-validate`**: plants AID-like mutations at known read counts in
+- **`shmtrace-validate`**: plants AID-like mutations at known read counts in
   real control reads and reports recall by support level and false calls for
   each mode.
-- **BAM/SAM input** (`pip install nanoshm[bam]`): reads straight from a Geneious
+- **BAM/SAM input** (`pip install SHMtrace[bam]`): reads straight from a Geneious
   assembly, restored to sequenced orientation.
 
 ### Fixed (11 October 2026, second round)
-- `nanoshm-compare` pooled unique mutations across files into one set.
+- `shmtrace-compare` pooled unique mutations across files into one set.
   SHMTool counts a mutation once per file, with L = sites x files; counts are
   now summed per file. Added non-unique (every read) tests with L = sites x
   reads and a per-class 2x2 test for all 12 substitutions.
@@ -274,13 +275,13 @@ this project uses [semantic versioning](https://semver.org/).
   the mean quality of the variant bases), uncorrected, no phasing. Reproduces
   the manuscript's Table S1 call counts within 0-11 calls per library. See
   `docs/calibration/GENEIOUS.md`.
-- **`nanoshm-benchmark`**: runs a sample sheet in every mode at one common
+- **`shmtrace-benchmark`**: runs a sample sheet in every mode at one common
   depth, with leave-one-out empirical nulls from the same run, and compares
   against Geneious call counts or (with exports) site by site.
 - **`--rarefaction`**: unique variants and density at several depths with
   repeated draws, since density saturates with depth.
-- `nanoshm.batch`: shared haplotype evidence and a common depth for multi-sample
-  runs; used by `nanoshm-compare` and the benchmark.
+- `shmtrace.batch`: shared haplotype evidence and a common depth for multi-sample
+  runs; used by `shmtrace-compare` and the benchmark.
 - Calling mode and null-control upload in the web UI.
 - `--run-id` / `--null-run-id`; run identity is also read from the MinKNOW
   `runid=` header tag.
@@ -292,9 +293,9 @@ this project uses [semantic versioning](https://semver.org/).
   `phase_mode="auto"` drops a block only if it is also seen in mutation-free
   controls or recurs in another sample, and flags the rest.
   `--phase-mode drop` restores the old behaviour. Bundled WT3: 281 -> 310 calls.
-- `nanoshm-compare` analyses every file at the same depth.
+- `shmtrace-compare` analyses every file at the same depth.
 - A sample below its target depth is now reported in `summary.json` warnings.
-- `summary.json` records `nanoshm_version`.
+- `summary.json` records `shmtrace_version`.
 
 ### Fixed (October 2026)
 - `minimap2_preset` was ignored (hardcoded `map-ont`).
@@ -342,9 +343,9 @@ First packaged release. Extracted from the analysis scripts written alongside
 the manuscript and turned into an installable project.
 
 ### Added
-- `nanoshm` CLI: FASTQ + reference (+ contaminant) to variant table, unique
+- `shmtrace` CLI: FASTQ + reference (+ contaminant) to variant table, unique
   variant density and substitution spectrum.
-- `nanoshm-compare` CLI: case-versus-control comparison in the spirit of
+- `shmtrace-compare` CLI: case-versus-control comparison in the spirit of
   SHMTool (MacCarthy et al., 2009), starting from raw FASTQ.
 - Competitive minimap2 alignment via `mappy`, expected-error read filter,
   amplicon-length gate, deterministic depth downsampling.

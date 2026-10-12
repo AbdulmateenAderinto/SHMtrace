@@ -3,7 +3,7 @@ import math
 
 import pytest
 
-from nanoshm.io_utils import expected_error_rate, phred, read_fasta, read_fastq
+from shmtrace.io_utils import expected_error_rate, phred, read_fasta, read_fastq
 
 
 def test_phred_offset_is_33():
@@ -30,7 +30,7 @@ def test_expected_error_rate_empty_is_worst_case():
 
 def test_q20_is_the_default_threshold_boundary():
     """max_ee_rate=0.01 is documented as Q20-equivalent; hold that link."""
-    from nanoshm.config import Params
+    from shmtrace.config import Params
 
     assert expected_error_rate(chr(20 + 33) * 100) == pytest.approx(Params().max_ee_rate)
 
@@ -60,7 +60,7 @@ def test_bundled_example_reads_are_readable(wt_fastq):
 
 
 def test_genbank_records_are_reads(tmp_path):
-    from nanoshm.io_utils import read_fastq, sniff_format
+    from shmtrace.io_utils import read_fastq, sniff_format
     gb = tmp_path / "clone.gb"
     gb.write_text("LOCUS       w2-1-user_added     24 bp ds-DNA     linear\n"
                   "DEFINITION  .\nFEATURES             Location/Qualifiers\nORIGIN\n"

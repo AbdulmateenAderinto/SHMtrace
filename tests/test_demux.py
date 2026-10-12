@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from nanoshm import demux, samplesheet
+from shmtrace import demux, samplesheet
 
 rng = random.Random(5)
 REF = "".join(rng.choice("ACGT") for _ in range(600))

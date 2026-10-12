@@ -1,5 +1,5 @@
 """AID hotspot / coldspot motif scoring."""
-from nanoshm.motifs import IUPAC, MOTIFS, STRAND_PAIR, is_site, site_counts
+from shmtrace.motifs import IUPAC, MOTIFS, STRAND_PAIR, is_site, site_counts
 
 
 def test_iupac_codes_cover_the_degenerate_alphabet():

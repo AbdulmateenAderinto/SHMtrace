@@ -4,7 +4,7 @@
 
 Reads figures/sanger_vs_nanopore/included.json: the composition of the manuscript's
 Geneious assemblies (every clone classed by the mouse it really comes from, plus paralogue
-sequences counted only in the denominator) and of the organised AB1 set after nanoshm's
+sequences counted only in the denominator) and of the organised AB1 set after shmtrace's
 filters. Writes figS_sanger_inclusion.{png,pdf,svg} next to it.
 """
 import json

@@ -35,7 +35,7 @@ P12=None   # computed below from the matrices (paired t, Šídák over 12 types)
 def m(r): return np.array(r,float)
 def c(M,f,t): return M[IDX[t]][IDX[f]]
 # CORRECTED SANGER per-mouse matrices M[to][from], built from the organised .ab1
-# traces by nanoshm (docs/calibration/SANGER_VS_NANOPORE.md)
+# traces by shmtrace (docs/calibration/SANGER_VS_NANOPORE.md)
 import json as _json
 from config import DATA_SANGER as _DS
 _cs=_json.load(open(os.path.join(_DS,"corrected_sanger.json")))

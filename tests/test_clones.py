@@ -3,8 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from nanoshm import clones, project
-from nanoshm.config import Params
+from shmtrace import clones, project
+from shmtrace.config import Params
 
 J = 52          # 0-based start of the J segment in these synthetic reads
 

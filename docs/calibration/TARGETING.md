@@ -53,7 +53,7 @@ Nothing here changes which mutations are called. The per-call annotation could b
 
 ## Licensing
 
-SHazaM is AGPL-3 and nanoshm is MIT, so nanoshm does not ship SHazaM's models. `scripts/export_shazam_model.R` writes one from your own installation:
+SHazaM is AGPL-3 and SHMtrace is MIT, so SHMtrace does not ship SHazaM's models. `scripts/export_shazam_model.R` writes one from your own installation:
 
 ```bash
 Rscript scripts/export_shazam_model.R HH_S5F HH_S5F.csv

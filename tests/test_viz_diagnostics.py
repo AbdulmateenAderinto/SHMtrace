@@ -1,7 +1,7 @@
 """The diagnostic figures: they draw when the data is there and keep quiet when it is not."""
 import pytest
 
-from nanoshm import project, viz_diagnostics as vd
+from shmtrace import project, viz_diagnostics as vd
 
 PNG = b"\x89PNG"
 
@@ -75,7 +75,7 @@ def test_svg_and_pdf_come_out_too(jh4):
 
 def test_corrected_spectrum_uses_shmtool_denominator():
     from collections import Counter
-    from nanoshm.project import corrected_spectrum
+    from shmtrace.project import corrected_spectrum
     # 6 C>T over 3 animals in a window with 20 C: 6 / (20 x 3)
     out = corrected_spectrum(Counter({"C>T": 6}), {"A": 10, "C": 20, "G": 5, "T": 0}, 3)
     assert out["C>T"] == 0.1
@@ -85,7 +85,7 @@ def test_corrected_spectrum_uses_shmtool_denominator():
 
 
 def test_coverage_dips_name_the_low_stretch_only():
-    from nanoshm.project import coverage_dips
+    from shmtrace.project import coverage_dips
     flat = [500] * 200
     assert coverage_dips(flat, 101) == ""
     dip = [500] * 80 + [100] * 30 + [500] * 90

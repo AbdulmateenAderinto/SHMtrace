@@ -1,5 +1,5 @@
 {
- "command": "nanoshm-validate-sanger --reps 40 --seed 101 -o <dir>",
+ "command": "shmtrace-validate-sanger --reps 40 --seed 101 -o <dir>",
  "summary": {
   "runs": 40,
   "recall_min": 0.8333333333333334,

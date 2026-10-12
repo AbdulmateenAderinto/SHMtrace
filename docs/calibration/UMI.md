@@ -1,10 +1,10 @@
 # UMI consensus: one read per molecule
 
-*12 October 2026. `nanoshm/umi.py`; simulation `docs/calibration/umi_sim.py`, output in `umi_sim/`.*
+*12 October 2026. `shmtrace/umi.py`; simulation `docs/calibration/umi_sim.py`, output in `umi_sim/`.*
 
 ## What it does
 
-A unique molecular identifier (UMI) is a random tag put on each template molecule before PCR, so all reads sharing a UMI are copies of one molecule. With `umi` on, nanoshm:
+A unique molecular identifier (UMI) is a random tag put on each template molecule before PCR, so all reads sharing a UMI are copies of one molecule. With `umi` on, shmtrace:
 
 1. **Reads each read's UMI.**
    - `flank`: the UMI is next to an anchor at a read end. By default the anchor is the first or last 20 reference bases (the primer), found with up to 6 edits. Use `umi_ends` = left, right or both for dual UMIs.

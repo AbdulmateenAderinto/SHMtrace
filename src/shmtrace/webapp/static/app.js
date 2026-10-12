@@ -1,4 +1,4 @@
-/* nanoshm desktop app: set up a project, run it, read the results, export. */
+/* shmtrace desktop app: set up a project, run it, read the results, export. */
 "use strict";
 
 const S = {                       // everything the page knows
@@ -190,7 +190,7 @@ function clearSamples() { S.samples = []; S.sheet = null; $("sheet-msg").innerHT
 
 // A sample sheet names every file's sample, group and control status, and where
 // each clone came from (order, well, label), which the Sanger QC reports with
-// every flag. See nanoshm.samplesheet.
+// every flag. See shmtrace.samplesheet.
 async function loadSheet() {
   const path = $("sheet-path").value.trim();
   if (!path) return;
@@ -283,7 +283,7 @@ async function runProject() {
   const saturation = $("saturation").checked;
 
   const project = {
-    name: $("proj-name").value || "nanoshm project",
+    name: $("proj-name").value || "SHMtrace project",
     region: $("region").value, platform: $("platform").value, mode: $("mode").value,
     reference: S.reference.path,
     contaminants: S.contaminant ? [S.contaminant.path] : [],
@@ -374,7 +374,7 @@ const layoutBase = () => ({
 const CONFIG = {
   displaylogo: false, responsive: true, displayModeBar: "hover",
   modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"],
-  toImageButtonOptions: { scale: 3, filename: "nanoshm" },
+  toImageButtonOptions: { scale: 3, filename: "shmtrace" },
 };
 // a legend above the plot needs room, and the hover toolbar must not sit on it
 const withLegend = (L) => ({

@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from nanoshm import project, targeting as tg
+from shmtrace import project, targeting as tg
 
 
 @pytest.fixture

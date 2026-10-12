@@ -1,7 +1,7 @@
 """Statistics quoted in the manuscript (Ver17), from sanger_calls/corrected_sanger.json and the
 ONT matrices in scripts/figure3_concordance.py. Run from this folder: python manuscript_stats.py
 
-The spectrum statistics come from nanoshm.concordance (pooled Pearson r with Fisher CI, slope,
+The spectrum statistics come from shmtrace.concordance (pooled Pearson r with Fisher CI, slope,
 repeated-measures platform x type interaction, paired t per type with Sidak, G:C Ts/Tv).
 Densities: Welch t on log10, group geometric means with 20,000-resample bootstrap CIs.
 """
@@ -11,7 +11,7 @@ import random
 import numpy as np
 from scipy import stats
 
-from nanoshm import concordance
+from shmtrace import concordance
 
 cs = {k: v for k, v in json.load(open("sanger_calls/corrected_sanger.json")).items() if isinstance(v, dict)}
 src = open("scripts/figure3_concordance.py").read()

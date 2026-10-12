@@ -264,7 +264,7 @@ def report_markdown(c: dict) -> str:
 def main(argv=None):
     import argparse
     import json
-    ap = argparse.ArgumentParser(prog="nanoshm-concordance", description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser(prog="shmtrace-concordance", description=__doc__.split("\n\n")[0])
     ap.add_argument("a", help="project.json of the first measurement (e.g. Sanger)")
     ap.add_argument("b", help="project.json of the second (e.g. ONT)")
     ap.add_argument("--pair", action="append", default=[],

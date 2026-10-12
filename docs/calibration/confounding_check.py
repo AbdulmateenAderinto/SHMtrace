@@ -1,11 +1,11 @@
 import json, statistics as st, random
 from collections import defaultdict
 from dataclasses import replace
-from nanoshm import pipeline, motifs, null_model
-from nanoshm.config import load_preset
-from nanoshm.io_utils import read_fasta, read_fastq, phred
-from nanoshm.align import build_index
-from nanoshm.variants import _geneious_pvalue
+from shmtrace import pipeline, motifs, null_model
+from shmtrace.config import load_preset
+from shmtrace.io_utils import read_fasta, read_fastq, phred
+from shmtrace.align import build_index
+from shmtrace.variants import _geneious_pvalue
 E="examples_compare/"; REF=E+"JH4_reference.fasta"; CON=E+"JH4_contaminant.fasta"
 ref=read_fasta(REF)[0][1]; lo,hi=100,628
 S=["WT2","WT3","WT4","KO1","KO2","KO3"]

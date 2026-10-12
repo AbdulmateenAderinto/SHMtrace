@@ -16,7 +16,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
-from nanoshm import replicates
+from shmtrace import replicates
 
 RATE = 3e-3            # mutations per base, a wild-type-like level
 N_BASES = 262913

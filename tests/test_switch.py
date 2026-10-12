@@ -5,7 +5,7 @@ import pytest
 
 pytest.importorskip("mappy")
 
-from nanoshm import switch  # noqa: E402
+from shmtrace import switch  # noqa: E402
 
 
 def _region(rng, n, motif):

@@ -368,7 +368,7 @@ def draft(folder: str, out: str | None = None) -> str:
 def main(argv=None):
     import argparse
     import json
-    ap = argparse.ArgumentParser(prog="nanoshm-sheet", description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser(prog="shmtrace-sheet", description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("draft", help="write a first sheet for a folder of read files")
     d.add_argument("folder")

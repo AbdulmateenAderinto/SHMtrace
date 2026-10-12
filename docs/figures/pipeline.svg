@@ -33,7 +33,7 @@
   <rect width="1600" height="1960" fill="#fbfaf7"/>
 
   <!-- ============================== header -->
-  <text x="60" y="76" class="t h1">nanoshm: from nanopore reads to somatic hypermutation calls</text>
+  <text x="60" y="76" class="t h1">SHMtrace: from nanopore reads to somatic hypermutation calls</text>
   <text x="60" y="106" class="m sub">The workflow behind the J꜀4 results, step by step: preset <tspan class="t" font-weight="700">jh4_intron</tspan>, mode <tspan class="t" font-weight="700">recommended</tspan>, three wild-type and three <tspan font-style="italic">Aicda</tspan>−/− libraries.</text>
   <text x="60" y="128" class="m sub">Counts in the boxes are from those six libraries, run on 12 October 2026.</text>
 
@@ -465,5 +465,5 @@
     </g>
   </g>
 
-  <text x="60" y="1938" class="m s">nanoshm v0.2 · Martin Lab · Methods and numbers: docs/calibration/ (ERROR_MODELS, CLONES, TARGETING, LINEAGE_SIM).</text>
+  <text x="60" y="1938" class="m s">SHMtrace v0.2 · Martin Lab · Methods and numbers: docs/calibration/ (ERROR_MODELS, CLONES, TARGETING, LINEAGE_SIM).</text>
 </svg>

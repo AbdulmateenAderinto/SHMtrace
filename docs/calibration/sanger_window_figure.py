@@ -14,12 +14,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-from nanoshm import motifs, pipeline, project  # noqa: E402
-from nanoshm.io_utils import read_abif, read_fasta  # noqa: E402
+from shmtrace import motifs, pipeline, project  # noqa: E402
+from shmtrace.io_utils import read_abif, read_fasta  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
-CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
+REF = str(ROOT / "src/shmtrace/references/mouse_jh4_intron.fasta")
+CON = [str(ROOT / "src/shmtrace/references/mouse_jh4_contaminant.fasta")]
 OUT = ROOT / "docs/calibration/figures/sanger_vs_nanopore"
 WT = ("WT2", "WT3", "WT4")
 KO = ("Aicda_A1", "Aicda_A2", "Aicda_A3")

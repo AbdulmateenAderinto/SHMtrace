@@ -15,9 +15,9 @@ Each simulated experiment draws `animals` per group, a case group at `fold` time
 control rate, and applies the test (Welch on log10 rates by default, the manuscript's;
 "permutation" is exact but cannot go below p = 0.1 with 3 vs 3).
 
-    nanoshm-power --pilot project.json --group WT --fold 0.5 --animals 3,4,5,6,8,10 \\
+    shmtrace-power --pilot project.json --group WT --fold 0.5 --animals 3,4,5,6,8,10 \\
         --reads 125,250,500,1000
-    nanoshm-power --rate 0.003 --cv 1.0 --dispersion 6 --bp 529 --fold 2
+    shmtrace-power --rate 0.003 --cv 1.0 --dispersion 6 --bp 529 --fold 2
 """
 from __future__ import annotations
 
@@ -110,7 +110,7 @@ def table(rate, fold, animals_list, reads_list, bp, cv_between, dispersion, **kw
 def main(argv=None):
     import argparse
     import json
-    ap = argparse.ArgumentParser(prog="nanoshm-power", description=__doc__.split("\n\n")[0])
+    ap = argparse.ArgumentParser(prog="shmtrace-power", description=__doc__.split("\n\n")[0])
     ap.add_argument("--pilot", help="project.json from a pilot run")
     ap.add_argument("--group", help="the pilot group to take rate, variation and clumping from")
     ap.add_argument("--metric", default="frequency", choices=tuple(METRICS),

@@ -3,7 +3,7 @@
 *11 October 2026.*
 
 The calibration in [`ERROR_MODELS.md`](ERROR_MODELS.md) was measured on the
-paper's own libraries. Everything below is from data nanoshm had never seen: a
+paper's own libraries. Everything below is from data SHMtrace had never seen: a
 public nanopore SHM deposit from another laboratory, and the AID-variant /
 FAM72A run GHVPDN.
 
@@ -11,7 +11,7 @@ FAM72A run GHVPDN.
 
 ONT PromethION amplicons from the Institut de recherches cliniques de Montréal,
 released 18 August 2026, 115 runs. It is the only public ONT amplicon SHM set
-with matched *Aicda*-/- controls on the loci nanoshm targets. There are no JH4
+with matched *Aicda*-/- controls on the loci SHMtrace targets. There are no JH4
 *Aicda*-/- runs, so the Sμ switch region and the AID off-target *Pim1* were used
 instead. Each run was subsampled to 6,000 reads and analysed at 2,000.
 
@@ -114,7 +114,7 @@ Three things to take from it:
 The Geneious exports for this run cover only about 1,000 to 1,500 of the 3,000
 to 5,000 reads per library, and the read set Geneious used is not recorded, so
 a site-level comparison against those exports is not meaningful here. The
-densities above are from nanoshm reading the FASTQs directly.
+densities above are from SHMtrace reading the FASTQs directly.
 
 **To make this run publishable**, sequence an empty-vector or catalytically dead
 AID library on the same flow cell as the samples. That single addition turns the
@@ -125,17 +125,17 @@ ranking above into calibrated frequencies.
 ```bash
 # public data: one run, then the whole set
 fasterq-dump SRR39285857            # Sμ, LPS, Aicda-/-
-nanoshm-benchmark --sheet sheet_su_lps.csv --reference Igh_Su_consensus.fasta \
+shmtrace-benchmark --sheet sheet_su_lps.csv --reference Igh_Su_consensus.fasta \
   --preset preset_su_lps.yaml --modes geneious,v0.1,recommended,strand --out pub_su_lps
-nanoshm-validate --control Su_LPS_AIDKO_r1.fastq.gz \
+shmtrace-validate --control Su_LPS_AIDKO_r1.fastq.gz \
   --null Su_LPS_AIDKO_r2.fastq.gz --null Su_LPS_AIDKO_r3.fastq.gz \
   --reference Igh_Su_consensus.fasta --preset preset_su_lps.yaml \
   --profiles geneious,v0.1,recommended,strand --depth 2000 --out pubval_su_lps
 
 # GHVPDN
-nanoshm-benchmark --sheet ghvpdn_sheet.csv --reference N114_geneious_655.fasta \
+shmtrace-benchmark --sheet ghvpdn_sheet.csv --reference N114_geneious_655.fasta \
   --preset n114_vregion --modes geneious,recommended --depth 1000 --out ghvpdn1000
 ```
 
 The sheets, the derived references and the per-locus presets are in
-`nanoshm_data/public_PRJNA1481264/`.
+`shmtrace_data/public_PRJNA1481264/`.
