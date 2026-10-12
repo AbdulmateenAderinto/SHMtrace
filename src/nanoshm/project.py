@@ -21,7 +21,7 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import replace
 
-from . import batch, metrics, motifs, null_model, pipeline
+from . import batch, metrics, motifs, null_model, pipeline, singletons
 from .config import load_preset
 from .io_utils import read_fasta
 
@@ -125,9 +125,42 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
     }
 
 
+def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
+    """Add the single-read estimate, and the density it completes, to a sample row.
+
+    combined density = (every per-site call + estimated single-read mutations
+    the test did not call) per base sequenced. The test is reliable for
+    mutations in several reads and cannot see most of those in one; the
+    estimate leaves out what the test called, so nothing is counted twice.
+    """
+    if not est:
+        return
+    s = res["summary"]["calling"]
+    denom = (s.get("analysed_positions") or 0) * max(1.0, s.get("mean_depth") or 0.0)
+    called = len(res["variants"])
+    multi = sum(1 for v in res["variants"] if v.supporting_reads >= 2)
+    f = scale / denom if denom else 0.0
+    m.update({
+        "multi_read_mutations": multi,
+        "single_read_observed": est["observed"],
+        "single_read_background": est["expected"],
+        "single_read_estimate": est["estimate"],
+        "single_read_density_x1e5": round(est["estimate"] * f, 3),
+        "single_read_density_ci_low": round(est["ci_low"] * f, 3),
+        "single_read_density_ci_high": round(est["ci_high"] * f, 3),
+        # a count cannot be negative: below zero the estimate says "none seen"
+        "combined_density_x1e5": round((called + max(0.0, est["estimate"])) * f, 3),
+        "combined_density_ci_low": round((called + max(0.0, est["ci_low"])) * f, 3),
+        "combined_density_ci_high": round((called + max(0.0, est["ci_high"])) * f, 3),
+    })
+
+
 def _slug(s: str) -> str:
     """A group name safe to embed in a column header."""
     return "".join(c if (c.isalnum() or c in "-") else "_" for c in str(s)).strip("_") or "group"
+
+
+CENSORED = ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5")
 
 
 def _censored(rows: list[dict], k: str) -> list[float]:
@@ -142,8 +175,11 @@ def _censored(rows: list[dict], k: str) -> list[float]:
         v = r.get(k)
         if v is None:
             continue
-        if v == 0 and k == "unique_density_x1e5" and r.get("one_event_density_x1e5"):
-            v = r["one_event_density_x1e5"]
+        # the single-read estimate is a difference: it can fall below zero, or
+        # just above it, and anything under one event is indistinguishable from none
+        one = r.get("one_event_density_x1e5")
+        if k in CENSORED and one and v < one:
+            v = one
         out.append(v)
     return out
 
@@ -158,11 +194,11 @@ def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
     for g, rs in groups.items():
         row = {"group": g, "n": len(rs), "control": g == ctrl}
         for k in metric_keys:
-            vals = [r[k] for r in rs if r[k] is not None]
+            vals = [r[k] for r in rs if r.get(k) is not None]
             row[f"{k}_mean"] = round(statistics.mean(vals), 4) if vals else None
             row[f"{k}_sd"] = round(statistics.stdev(vals), 4) if len(vals) > 1 else None
             if ctrl and g != ctrl:
-                cv = [r[k] for r in groups[ctrl] if r[k] is not None]
+                cv = [r[k] for r in groups[ctrl] if r.get(k) is not None]
                 row[f"{k}_p_welch_vs_{_slug(ctrl)}"] = _clean(_welch(vals, cv))
                 row[f"{k}_p_welch_log_vs_{_slug(ctrl)}"] = _clean(
                     _welch_log(_censored(rs, k), _censored(groups[ctrl], k)))
@@ -212,6 +248,10 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
     nulls: dict = {}
     per_sample, details = [], {}
+    # single-read mutations need controls and one shared depth
+    single_q = p.single_read_min_quality if (not sanger and depth is not None) else None
+    tallies: dict = {}
+    single_read: dict = {}
     for i, s in enumerate(samples):
         name = s["name"]
         progress(0.15 + 0.75 * i / len(samples), f"calling {name}")
@@ -229,6 +269,15 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                null_rates=null, depth=depth)
         m = sample_metrics(name, res, ref, lo, hi, s.get("group") or name, name in controls,
                            scale=p.density_scale)
+        if single_q and peers:
+            for n in (name, *peers):
+                if n not in tallies:
+                    tallies[n] = singletons.tally(b["reads"][n], ref, lo, hi)
+            single_read[name] = singletons.estimate(
+                tallies[name], [tallies[c] for c in peers], single_q,
+                p.germline_freq_threshold, ref,
+                called={(v.pos - 1, v.alt) for v in res["variants"]})
+            add_single_read(m, single_read[name], res, p.density_scale)
         m["null_from"] = "+".join(peers) if null is not None else "none"
         per_sample.append(m)
         details[name] = res
@@ -252,7 +301,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         notes.append("Some samples have fewer reads than the common depth, and mutation "
                      "density rises with depth, so compare those with care.")
 
-    keys = ["unique_density_x1e5", "mutation_frequency_x1e3", "mutated_reads_pct",
+    keys = ["unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5",
+            "mutation_frequency_x1e3", "mutated_reads_pct",
             "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_GC_in_WRC_GYW"]
     groups = group_table(per_sample, keys)
 
@@ -311,6 +361,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                    "error_model": p.error_model, "analysis_window": [lo + 1, hi + 1],
                    "reference_name": ref_name, "reference_length": len(ref)},
         "samples": per_sample,
+        # per-sample detail of the single-read estimate (singletons.estimate)
+        "single_read": single_read,
         "groups": groups,
         "notes": notes,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
