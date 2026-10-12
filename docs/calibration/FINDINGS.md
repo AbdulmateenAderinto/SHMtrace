@@ -2,6 +2,14 @@
 
 Run 31 July 2026 on the J꜀4 data. Scripts in this directory reproduce every number.
 
+> **Read this as a record of the July 2026 investigation, not as a description of
+> the caller.** Sections 1–4 below describe the caller *as it was before* this
+> work. Everything they recommend is now implemented and on by default: read
+> phasing (`phase_mode`), Benjamini-Hochberg correction (`multiple_testing`) and
+> the control-fitted null. The default mode changed again in October 2026, to the
+> quality-calibrated model; see [`ERROR_MODELS.md`](ERROR_MODELS.md) for what the
+> caller does today.
+
 **Result: held-out *Aicda*−/− background falls from 9.8 to 1.8 × 10⁻⁵ with no loss of wild-type signal.** The manuscript's fully filtered value is ~1.2 × 10⁻⁵.
 
 > **Implemented 31 July 2026.** All three corrections are now in the caller and on by default. Measured on the *unphased original* FASTQs, which is the harder and more realistic case:
@@ -61,27 +69,27 @@ Running the paper's own phased FASTQs through the current caller confirms the si
 | KO3 unphased | 78 | 56.8 |
 | KO3 phased | 22 | 8.4 |
 
-**Phasing alone accounts for ~7× of the background.** nanoshm has no phasing step; the manuscript pipeline did. Everything below is measured on already-phased reads, so it is additional to this.
+**Phasing alone accounts for ~7× of the background.** nanoshm had no phasing step at the time; the manuscript pipeline did. It has one now. Everything below is measured on already-phased reads, so it is additional to this.
 
-## 2. No multiple-testing correction
+## 2. No multiple-testing correction *(fixed: BH is now the default)*
 
-The caller tests 529 positions × 3 alternative bases = **1,587 hypotheses per sample** at p ≤ 0.05 with no correction. That alone expects ~79 false positives by chance, which is the right order of magnitude for the observed background.
+The caller then tested 529 positions × 3 alternative bases = **1,587 hypotheses per sample** at p ≤ 0.05 with no correction. That alone expects ~79 false positives by chance, which is the right order of magnitude for the observed background.
 
 Benjamini–Hochberg at FDR 5%: background 9.76 → 2.28 × 10⁻⁵, a 4.3× reduction, with wild-type signal essentially unchanged (70.4 → 62.6). This is the single cheapest fix and it needs no control sample.
 
-## 3. The quality-derived null is optimistic
+## 3. The quality-derived null is optimistic *(fixed: a control-fitted null is now the default)*
 
 `λ = Σ 10^(−Q/10)/3` assumes errors are independent across reads. Measured against the *Aicda*−/− data, observed error runs **3.3× higher** than that prediction (0.417% vs 0.125% mean per-alt rate). Nanopore error is context-driven and correlated: the same position errs in many reads at once, so an independence assumption understates λ exactly where it matters.
 
 Replacing it with a per-(position, alt) rate estimated from AID-null controls, shrunk toward a weak prior, and testing candidates with a binomial against that rate: background 2.28 → 1.77 × 10⁻⁵, and wild-type signal is *not* reduced (62.6 → 71.3, since at some positions the empirical rate is lower than the quality-derived one).
 
-## 4. A minimum-read floor is the wrong lever
+## 4. A minimum-read floor is the wrong lever *(kept: `min_variant_reads` is still 1)*
 
 Raising `min_variant_reads` to 3 helps the uncalibrated caller (9.76 → 6.59) but once BH and the empirical null are in place it buys nothing on background (1.77 → 1.77) and costs 15% of the signal (71.3 → 60.8). It is a blunt proxy for the statistics being wrong. Leave it at 1.
 
 ---
 
-## Recommended implementation order
+## Recommended implementation order *(all done; dates in [`../../CHANGELOG.md`](../../CHANGELOG.md))*
 
 1. **Read-phasing / haplotype partition before pileup.** Largest single effect (~7×). Cluster reads by shared variant profile; treat a coherent co-occurring block as a separate population rather than averaging it into one pileup. Needs designing — see Phase 1 in `../ROADMAP.md`.
 2. **Benjamini–Hochberg across all candidate slots.** ~4× further, a few lines, no control sample required. Should be the default.
@@ -91,6 +99,9 @@ Raising `min_variant_reads` to 3 helps the uncalibrated caller (9.76 → 6.59) b
 Steps 2 and 3 together take the held-out background to within ~1.5× of the manuscript value while retaining full wild-type signal. Step 1 is what closes the rest, and it is also what makes the tool safe on unphased input from other labs.
 
 ## Caveats
+
+Later work supersedes parts of this page: [`ERROR_MODELS.md`](ERROR_MODELS.md) (the quality-calibrated default), [`SINGLE_READ.md`](SINGLE_READ.md), [`INDELS.md`](INDELS.md), [`SANGER.md`](SANGER.md), [`ILLUMINA.md`](ILLUMINA.md) and [`ECTOPIC_AID.md`](ECTOPIC_AID.md).
+
 
 - One locus, one chemistry, six mice. The empirical rates are J꜀4-specific; the *approach* transfers, the numbers do not.
 - The residual gap to 1.2 × 10⁻⁵ is not yet explained. Candidates: the manuscript's phasing was more aggressive than what is baked into the bundled examples, and Geneious applies filters that have not been reproduced exactly.
