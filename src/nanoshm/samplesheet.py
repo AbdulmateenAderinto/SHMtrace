@@ -26,6 +26,10 @@ Columns (names are case-insensitive; spaces and dashes count as underscores):
             label written on the tube. Kept with every flag and exclusion.
   exclude   any text here leaves the row out of the analysis, with the text
             recorded as the reason.
+  barcode, barcode2
+            inline barcode(s) of a pooled run: every such row names the same
+            pooled FASTQ in `file`, and the run is split by barcode before the
+            analysis (demux.py). barcode2 is the barcode at the other end.
   aliases   how this sample is written on tube labels, separated by ; (for
             WT3: w3;wt3). Optional; with it, a clone whose label names a
             different sample is flagged (qc.py, label_mismatch).
@@ -48,6 +52,7 @@ from .io_utils import READ_EXTENSIONS, _stem, sniff_format
 
 REQUIRED = ("file", "sample")
 KNOWN = ("file", "sample", "group", "control", "clone_id", "order", "well", "label", "exclude",
+         "barcode", "barcode2",
          "aliases")
 YES = {"yes", "y", "true", "t", "1", "control", "x"}
 NO = {"no", "n", "false", "f", "0", ""}
@@ -73,6 +78,8 @@ class Row:
     well: str = ""
     label: str = ""
     exclude: str = ""
+    barcode: str = ""        # inline barcode(s): the file is a pooled run (demux.py)
+    barcode2: str = ""
     id_given: bool = True
     extra: dict = field(default_factory=dict)
 
@@ -116,10 +123,41 @@ class Sheet:
     def excluded(self) -> list[dict]:
         return [{**r.provenance(), "reason": r.exclude} for r in self.rows if r.exclude]
 
-    def project(self, reference: str, region: str, platform: str = "sanger", **extra) -> dict:
-        """A run_project() dict for this sheet."""
+    def project(self, reference: str, region: str, platform: str = "sanger",
+                demux_dir: str | None = None, left_anchor: str | None = None,
+                right_anchor: str | None = None, demux_options: dict | None = None,
+                **extra) -> dict:
+        """A run_project() dict for this sheet.
+
+        Pooled rows (a `barcode` column) are first demultiplexed (demux.py) into one
+        FASTQ per sample, in `demux_dir` (default: demux_<pooled file> beside the
+        sheet). The barcode sits just outside the primer anchors, by default the
+        first and last 20 reference bases (reference-forward).
+        """
+        samples = self.samples()
+        pooled = [r for r in self.used if r.barcode]
+        if pooled:
+            from collections import defaultdict
+
+            from .demux import demultiplex
+            from .io_utils import read_fasta
+            ref = read_fasta(reference)[0][1].upper()
+            by_file: dict = defaultdict(dict)
+            for r in pooled:
+                by_file[r.file][r.sample] = (r.barcode, r.barcode2 or None)
+            paths, stats = {}, {}
+            for f, smp in by_file.items():
+                out = demux_dir or os.path.join(os.path.dirname(self.path), f"demux_{_stem(f)}")
+                d = demultiplex(f, smp, left_anchor or ref[:20], right_anchor or ref[-20:], out,
+                                **(demux_options or {}))
+                paths.update(d["paths"])
+                stats[os.path.basename(f)] = d["stats"]
+            for s in samples:
+                if s["name"] in paths:
+                    s["path"] = paths[s["name"]]
+            extra.setdefault("demux", stats)
         return {"name": Path(self.path).stem, "reference": reference, "region": region,
-                "platform": platform, "samples": self.samples(),
+                "platform": platform, "samples": samples,
                 "sample_sheet": {"path": self.path, "provenance": self.provenance(),
                                  "aliases": self.aliases(),
                                  "excluded": self.excluded(), "warnings": self.warnings},
@@ -209,6 +247,8 @@ def load(path: str) -> Sheet:
             cid = rec.get("clone_id", "")
             if not cid:
                 cid = f"{order}-{well}" if order and well else _stem(f)
+                if rec.get("barcode"):
+                    cid = f"{sample}-{rec['barcode'].upper()}"
                 given = False
             else:
                 given = True
@@ -218,6 +258,8 @@ def load(path: str) -> Sheet:
                             group=rec.get("group") or sample, control=ctrl_txt in YES,
                             clone_id=cid, order=order, well=well, label=rec.get("label", ""),
                             exclude=rec.get("exclude", ""), id_given=given,
+                            barcode=rec.get("barcode", "").upper(),
+                            barcode2=rec.get("barcode2", "").upper(),
                             extra={k: v for k, v in rec.items()
                                    if (k not in KNOWN or k == "aliases") and k != "_line" and v}))
 
@@ -231,7 +273,21 @@ def load(path: str) -> Sheet:
     by_file: dict[str, Row] = {}
     by_well: dict[tuple, Row] = {}
     by_id: dict[str, Row] = {}
+    pooled_codes: dict[tuple, Row] = {}
     for r in rows:
+        if r.barcode:
+            # a pooled run: one file, many samples, told apart by barcode
+            k = (r.file, r.barcode, r.barcode2)
+            if k in pooled_codes:
+                problems.append(f"line {r.line}: barcode {r.barcode}{'+' + r.barcode2 if r.barcode2 else ''} "
+                                f"is already line {pooled_codes[k].line}'s in this pooled file")
+            pooled_codes.setdefault(k, r)
+            o = by_file.get(r.file)
+            if o is not None and not o.barcode:
+                problems.append(f"line {r.line}: {os.path.basename(r.file)} is listed on line "
+                                f"{o.line} without a barcode")
+            by_file.setdefault(r.file, r)
+            continue
         if r.file in by_file:
             o = by_file[r.file]
             problems.append(f"line {r.line}: {os.path.basename(r.file)} is already listed on "
@@ -261,7 +317,7 @@ def load(path: str) -> Sheet:
     # the same trace under two names: a copy, not a second clone
     by_hash: dict[str, Row] = {}
     for r in rows:
-        if r.exclude:
+        if r.exclude or r.barcode:
             continue
         h = _sha1(r.file)
         if h in by_hash:

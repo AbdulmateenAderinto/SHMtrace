@@ -148,6 +148,17 @@ nanoshm-concordance results/project.json ont/project.json --labels Sanger,ONT
 nanoshm-validate-sanger --reps 10 -o validation/
 ```
 
+### More tools
+
+| Command | What it does | Details |
+|---|---|---|
+| `umi = flank \| header` (setting) | One consensus read per molecule from UMIs | [UMI.md](docs/calibration/UMI.md) |
+| `animal_tests` (in every result) | Group tests with the animal as the unit: negative binomial, permutation, Welch, fold with 95% CI | [REPLICATES_AND_POWER.md](docs/calibration/REPLICATES_AND_POWER.md) |
+| `nanoshm-power` | How many animals and reads a comparison needs, from a pilot | [REPLICATES_AND_POWER.md](docs/calibration/REPLICATES_AND_POWER.md) |
+| `nanoshm-repair` | Repair-route indices (UNG, MSH2/Pol η) and spectrum decomposition | [REPAIR.md](docs/calibration/REPAIR.md) |
+| `nanoshm-switch` | Class-switch junctions: breakpoints, microhomology, insertions | [SWITCH.md](docs/calibration/SWITCH.md) |
+| `barcode` column, `nanoshm-screen` | Pooled runs with inline barcodes; screens ranked by q-value | [MULTIPLEX.md](docs/calibration/MULTIPLEX.md) |
+
 ## Case versus control
 
 `nanoshm-compare` does group comparison in the spirit of SHMTool ([MacCarthy et al., 2009](https://doi.org/10.1016/j.jim.2009.06.005)), but starting from raw FASTQ rather than pre-aligned sequences. Each file is one independent source, for example one mouse.
