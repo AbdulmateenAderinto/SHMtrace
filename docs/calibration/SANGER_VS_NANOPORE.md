@@ -2,6 +2,14 @@
 
 *12 October 2026. Sanger: the lab's J꜀4 clones from their `.ab1` traces, organised by mouse with `organize_jh4_ab1.py`, every clone now read from its trace. Nanopore: the six bundled libraries at 497 reads, in the recommended mode and, for comparison with the manuscript, the Geneious rule. Window 101–629 (529 bp) on both platforms. Figures: `figures/sanger_vs_nanopore/<mode>/`; script: `sanger_vs_nanopore.py`.*
 
+> **What the manuscript uses (12 October 2026).** The author chose to keep every clone with the
+> mouse it was originally filed under, so that the manuscript measures nanopore performance and
+> concordance against the Sanger data as collected. Ver17 uses that set (`--original`; Wt2/3/4 =
+> 41/38/27 clones, 177/230/111 calls; ~41-fold, P = 0.0012; r = 0.96). The evidence-based
+> reassignment below is kept as a record of what the chromatograms and nanopore lineages show:
+> Wt2's own-label clones remain nearly unmutated in every assembly in "WT2 re-analysis", and most
+> of the original Wt2 calls come from clones labelled w3 and from two renamed MKLN K4 records.
+
 ## Answer
 
 **Yes, on everything both platforms can measure.** They agree on:
