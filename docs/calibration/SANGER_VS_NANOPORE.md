@@ -96,6 +96,8 @@ Two independent PCRs and two platforms see one almost unmutated lineage dominati
 
 ## What changed from the manuscript's Sanger numbers
 
+`figures/sanger_vs_nanopore/figS_sanger_inclusion` (from `sanger_inclusion_figure.py`) draws this: what each mouse's Sanger value was built from in the manuscript and now, each mouse's density before and after, and the group comparison.
+
 The manuscript's values come from Geneious assemblies built folder by folder:
 
 | Manuscript assembly | Clones | By clone name |

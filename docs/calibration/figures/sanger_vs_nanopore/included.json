@@ -1,0 +1,131 @@
+{
+ "manuscript": {
+  "WT2": {
+   "composition": {
+    "own": 16,
+    "WT3": 16,
+    "w1": 1,
+    "MKLN": 2,
+    "paralogue (denominator only)": 2
+   },
+   "clones_counted": 37,
+   "unique_mutations": 189,
+   "density_x1e5": 965.6
+  },
+  "WT3": {
+   "composition": {
+    "own": 20,
+    "w1": 2,
+    "WT2": 11,
+    "paralogue (denominator only)": 3
+   },
+   "clones_counted": 36,
+   "unique_mutations": 227,
+   "density_x1e5": 1192.0
+  },
+  "WT4": {
+   "composition": {
+    "own": 23,
+    "MKLN": 1,
+    "paralogue (denominator only)": 14
+   },
+   "clones_counted": 38,
+   "unique_mutations": 99,
+   "density_x1e5": 492.5
+  },
+  "A1": {
+   "composition": {
+    "own": 4,
+    "JH6": 6,
+    "paralogue (denominator only)": 0
+   },
+   "clones_counted": 10,
+   "unique_mutations": 0,
+   "density_x1e5": 18.9
+  },
+  "A2": {
+   "composition": {
+    "own": 6,
+    "JH6": 3,
+    "paralogue (denominator only)": 0
+   },
+   "clones_counted": 9,
+   "unique_mutations": 1,
+   "density_x1e5": 21.0
+  },
+  "A3": {
+   "composition": {
+    "own": 1,
+    "A1": 1,
+    "A2": 1,
+    "JH6": 6,
+    "paralogue (denominator only)": 0
+   },
+   "clones_counted": 9,
+   "unique_mutations": 1,
+   "density_x1e5": 21.0
+  }
+ },
+ "now": {
+  "WT2": {
+   "composition": {
+    "own traces": 34,
+    "relabelled traces": 0,
+    "GenBank-only": 1
+   },
+   "clones_counted": 35,
+   "unique_mutations": 6,
+   "density_x1e5": 32.4
+  },
+  "WT3": {
+   "composition": {
+    "own traces": 19,
+    "relabelled traces": 2,
+    "GenBank-only": 18
+   },
+   "clones_counted": 39,
+   "unique_mutations": 303,
+   "density_x1e5": 1468.7
+  },
+  "WT4": {
+   "composition": {
+    "own traces": 13,
+    "relabelled traces": 0,
+    "GenBank-only": 12
+   },
+   "clones_counted": 25,
+   "unique_mutations": 106,
+   "density_x1e5": 801.5
+  },
+  "A1": {
+   "composition": {
+    "own traces": 5,
+    "relabelled traces": 0,
+    "GenBank-only": 1
+   },
+   "clones_counted": 6,
+   "unique_mutations": 1,
+   "density_x1e5": 31.5
+  },
+  "A2": {
+   "composition": {
+    "own traces": 6,
+    "relabelled traces": 0,
+    "GenBank-only": 1
+   },
+   "clones_counted": 7,
+   "unique_mutations": 1,
+   "density_x1e5": 27.0
+  },
+  "A3": {
+   "composition": {
+    "own traces": 0,
+    "relabelled traces": 0,
+    "GenBank-only": 1
+   },
+   "clones_counted": 1,
+   "unique_mutations": 0,
+   "density_x1e5": 189.0
+  }
+ }
+}
