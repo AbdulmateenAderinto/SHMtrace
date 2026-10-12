@@ -35,6 +35,12 @@ ROOT = Path(__file__).resolve().parents[2]
 REF = str(ROOT / "src/nanoshm/references/mouse_jh4_intron.fasta")
 CON = [str(ROOT / "src/nanoshm/references/mouse_jh4_contaminant.fasta")]
 
+# --original: the classification as the clones were filed (GenBank folders), with no
+# evidence-based moves. Used for the manuscript, which measures nanopore against the Sanger
+# dataset as it was assembled. Only clones that were never filed (no GenBank record) and are
+# contaminants stay excluded.
+ORIGINAL = "--original" in sys.argv
+
 FOLDER_MOUSE = {"W2": "WT2", "W3": "WT3", "W4": "WT4", "A1": "Aicda_A1", "A2": "Aicda_A2",
                 "A3": "Aicda_A3", "K2": "MKLN_K2", "K3": "MKLN_K3", "K4": "MKLN_K4"}
 
@@ -160,9 +166,12 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         fo = folder_of(t["path"].stem)
         default = FOLDER_MOUSE.get(fo, by_label) if fo else by_label
         mouse, status, reason = default, "kept", (f"GenBank folder {fo}" if fo else "label (no GenBank record)")
-        group = GROUP_MOVES.get((fo, by_label))
-        if (t["order"], t["well"]) in CORRECTIONS:
-            mouse, reason = CORRECTIONS[(t["order"], t["well"])]
+        group = None if ORIGINAL else GROUP_MOVES.get((fo, by_label))
+        corr = CORRECTIONS.get((t["order"], t["well"]))
+        if ORIGINAL and corr and not (corr[0].startswith("_excluded") and not fo):
+            corr = None        # the original classification keeps every filed clone where it was filed
+        if corr:
+            mouse, reason = corr
             status = "excluded" if mouse.startswith("_excluded") else "relabelled"
         elif key in fates:
             f = fates[key]["fate"]
@@ -198,7 +207,7 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         for n, s in sorted(recs.items()):
             label = re.sub(r"-user_a\w*$", "", n)
             m = mouse_from_label(label)
-            reason = GENBANK_EXCLUDE.get(n, "")
+            reason = "" if ORIGINAL else GENBANK_EXCLUDE.get(n, "")
             if reason:
                 m = "_excluded/unassigned"
             if m.startswith("_excluded") or not re.match(r"^(WT|Aicda)", m):
@@ -230,4 +239,5 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    main(args[0], args[1], args[2] if len(args) > 2 else None)

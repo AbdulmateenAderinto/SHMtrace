@@ -4,7 +4,7 @@
 
 SOURCE is never modified. Every replaced or added passage is highlighted yellow so it
 can be reviewed in Word. Figures 2, 3 and Supplementary S2 are replaced with the
-regenerated ones (aspect ratio kept); Supplementary Figures S8-S10 are added. Every
+regenerated ones (aspect ratio kept); Supplementary Figures S8-S9 are added. TOST is removed. Every
 edit names the exact text it replaces and the script stops if any is not found.
 """
 import copy
@@ -25,7 +25,9 @@ SV = HERE.parent / "figures/sanger_vs_nanopore"
 EDITS = [
     ("Somatic hypermutation (SHM) diversifies",
      "concordant with matched Sanger data (Pearson r = 0.97)",
-     "concordant with matched Sanger data (Pearson r = 0.94)"),
+     "concordant with matched Sanger data (Pearson r = 0.96)"),
+    ("Abbreviations: SHM, somatic hypermutation",
+     "; CI, confidence interval; TOST, two one-sided tests.", "; CI, confidence interval."),
     ("Sanger reads were processed with the same",
      "Sanger reads were processed with the same position–substitution definition and Geneious p-value threshold.",
      "Sanger clones were re-analysed from their original .ab1 chromatograms with nanoshm v0.2 in Sanger mode: "
@@ -47,146 +49,121 @@ EDITS = [
      "Platform concordance is therefore described principally from paired profiles and percentage-point differences. "
      "Bars in Figure 3B and 3D show each platform's pooled proportion across the three mice with a 95% Wilson "
      "interval, because a mean of per-mouse proportions is dominated by a mouse with few calls."),
+    ("For paired Sanger–ONT spectrum analysis",
+     " Exploratory paired two one-sided tests (TOST) used a prespecified ±5-percentage-point interpretability margin that was not a validated assay-acceptance criterion. Meeting this criterion for individual types does not establish equivalence of the complete spectrum.",
+     ""),
     ("In these samples, Wt mice had markedly higher",
-     "In these samples, Wt mice had markedly higher depth-standardised JH4 unique-variant densities than Aicda−/− mice on both platforms (Figure 2A,B), consistent with the expected AID dependence. The exploratory Welch comparisons were p = 0.0037 for ONT and p = 0.0045 for Sanger. Geometric means were ~830 × 10−5 by Sanger and ~59 × 10−5 by ONT in Wt mice, and ~20 versus ~1.2 × 10−5, respectively, in Aicda−/− controls.",
-     "In these samples, Wt mice had higher depth-standardised JH4 unique-variant densities than Aicda−/− mice on "
-     "both platforms (Figure 2A,B), consistent with the expected AID dependence. The exploratory Welch comparisons "
-     "were p = 0.0037 for ONT (~47-fold) and p = 0.15 for Sanger (~15-fold). Geometric means were ~340 × 10−5 by "
-     "Sanger and ~59 × 10−5 by ONT in Wt mice, and ~23 versus ~1.2 × 10−5, respectively, in Aicda−/− controls. The "
-     "Sanger comparison was limited by Wt2, whose clones were dominated by a single unmutated lineage: 31 of its 36 "
-     "clones carried no call, matching its ONT library, in which one nearly unmutated V(D)J lineage accounted for "
-     "~85% of junction-bearing reads. With 36 clones Sanger sampled few of this mouse's minority mutated lineages, "
-     "and with 10–11 clones per Aicda−/− mouse it could not resolve the background; at 500 reads, ONT separated the "
-     "groups."),
+     "The exploratory Welch comparisons were p = 0.0037 for ONT and p = 0.0045 for Sanger. Geometric means were ~830 × 10−5 by Sanger and ~59 × 10−5 by ONT in Wt mice, and ~20 versus ~1.2 × 10−5, respectively, in Aicda−/− controls.",
+     "The exploratory Welch comparisons were p = 0.0037 for ONT (~47-fold) and p = 0.0012 for Sanger (~41-fold). "
+     "Geometric means were ~940 × 10−5 by Sanger and ~59 × 10−5 by ONT in Wt mice, and ~23 versus ~1.2 × 10−5, "
+     "respectively, in Aicda−/− controls."),
     ("The matched ONT and Sanger JH4 datasets",
      "Pooled twelve-type proportions had a descriptive Pearson r = 0.97 and slope = 1.11.",
-     "Pooled twelve-type proportions had a descriptive Pearson r = 0.94 and slope = 1.03."),
+     "Pooled twelve-type proportions had a descriptive Pearson r = 0.96 and slope = 1.06."),
     ("The matched ONT and Sanger JH4 datasets",
-     "(p = 0.875)", "(p = 0.21)"),
+     "(p = 0.875)", "(p = 0.76)"),
     ("The matched ONT and Sanger JH4 datasets",
-     "(smallest adjusted p = 0.106)", "(smallest adjusted p = 0.45)"),
+     "(smallest adjusted p = 0.106)", "(smallest adjusted p = 0.46)"),
     ("The matched ONT and Sanger JH4 datasets",
-     "5 of 12 types met the per-type criterion and 7 were inconclusive",
-     "1 of 12 types met the per-type criterion and 11 were inconclusive, reflecting the per-mouse variability "
-     "introduced by a mouse with six Sanger calls"),
+     " At the exploratory ±5-percentage-point TOST margin, 5 of 12 types met the per-type criterion and 7 were inconclusive (Supplementary Table S2), which does not establish equivalence of the complete spectrum.",
+     ""),
     ("The matched ONT and Sanger JH4 datasets",
      "G:C transition and transversion proportions were also descriptively similar (Figure 3D).",
      "G:C transition and transversion proportions were also descriptively similar (Figure 3D). The platforms also "
      "agreed on where calls fell along the intron (25-bp bins; Pearson r = 0.89) and on hotspot preference (G:C "
-     "calls at WRC/GYW: Sanger 58%, ONT 55%; A:T calls at WA/TW: 80% and 69%; Supplementary Figure S10)."),
-    ("The present data do not establish the accuracy",
-     "Matched Sanger sequencing evaluates depth-matched apparent-variant yield and aggregate spectrum concordance but does not provide one-to-one truth for ONT-only positions.",
-     "Matched Sanger sequencing evaluates depth-matched apparent-variant yield and aggregate spectrum concordance but "
-     "does not provide one-to-one truth for ONT-only positions. Clone-level sampling also limits Sanger: with ~35 "
-     "clones, a mouse dominated by one unmutated lineage yields few calls, whereas 500 ONT reads still sampled its "
-     "minority mutated lineages."),
+     "calls at WRC/GYW: Sanger 57%, ONT 55%; A:T calls at WA/TW: 71% and 69%; Supplementary Figure S9)."),
     ("This proof-of-concept study shows that Oxford Nanopore",
-     "(Pearson r = 0.97)", "(Pearson r = 0.94)"),
+     "(Pearson r = 0.97)", "(Pearson r = 0.96)"),
     ("Supplementary Table S1. Per-sample sequencing",
      "JH4 densities use 529 analysed bp;",
      "JH4 densities use 529 analysed bp (for Sanger, the bases each clone read within them); Sanger clones were "
-     "curated from the original chromatograms (Supplementary Figure S9);"),
+     "re-analysed from the original chromatograms and kept with the mouse they were originally filed under;"),
+    ("Supplementary Table S2. Exploratory statistical summary",
+     "paired multiplicity-adjusted contrasts, exploratory paired TOST, and a pooled descriptive Pearson correlation",
+     "paired multiplicity-adjusted contrasts, and a pooled descriptive Pearson correlation"),
     ("Group geometric means with descriptive 95%",
-     "Wt Sanger 828 [492–1192];", "Wt Sanger 339 [32–1447];"),
+     "Wt Sanger 828 [492–1192];", "Wt Sanger 939 [833–1183];"),
     ("Group geometric means with descriptive 95%",
      "Aicda−/− Sanger 20 [19–21];", "Aicda−/− Sanger 23 [17–38];"),
     ("Figure 2. Depth-standardised unique-variant density",
      "One Aicda−/− Sanger mouse had zero detected calls and was assigned the one-event scale (18.9 × 10−5) only for log display, summary, and testing. This left-censoring convention reduces the fold difference, but its effects on variance, p-value, and interval width are not guaranteed to be conservative; the Sanger inferential result is therefore descriptive.",
-     "Sanger densities divide distinct calls by the bases each clone read within the window, and Sanger clones were "
-     "curated from the original chromatograms (Supplementary Figure S9); every mouse had at least one call."),
+     "Sanger densities divide distinct calls by the bases each clone read within the window, from clones "
+     "re-analysed from the original chromatograms; every mouse had at least one call."),
     ("Figure 2. Depth-standardised unique-variant density",
-     "~41-fold (Sanger; p = 0.0045)", "~15-fold (Sanger; p = 0.15)"),
+     "~41-fold (Sanger; p = 0.0045)", "~41-fold (Sanger; p = 0.0012)"),
     ("Figure 2. Depth-standardised unique-variant density",
      "Wt Sanger 828 [492–1192], and Aicda−/− Sanger 20 [19–21]",
-     "Wt Sanger 339 [32–1447], and Aicda−/− Sanger 23 [17–38]"),
+     "Wt Sanger 939 [833–1183], and Aicda−/− Sanger 23 [17–38]"),
     ("Figure 3. ONT yields a JH4 substitution spectrum",
-     "(n = 515 Sanger and 571 ONT", "(n = 415 Sanger and 571 ONT"),
+     "(n = 515 Sanger and 571 ONT", "(n = 518 Sanger and 571 ONT"),
     ("Figure 3. ONT yields a JH4 substitution spectrum",
      "bars show mean ± SD and points show mice.",
      "bars show each platform's pooled proportion with a 95% Wilson interval, and points show mice (area "
-     "proportional to the mouse's number of calls; Sanger Wt2's 50% A→T point, from six calls, is drawn at the "
-     "axis top)."),
+     "proportional to the mouse's number of calls)."),
     ("Figure 3. ONT yields a JH4 substitution spectrum",
-     "interaction was p = 0.875", "interaction was p = 0.21"),
+     "interaction was p = 0.875", "interaction was p = 0.76"),
     ("Figure 3. ONT yields a JH4 substitution spectrum",
-     "(Pearson r = 0.97; slope = 1.11;", "(Pearson r = 0.94; slope = 1.03;"),
+     "(Pearson r = 0.97; slope = 1.11;", "(Pearson r = 0.96; slope = 1.06;"),
     ("Figure 3. ONT yields a JH4 substitution spectrum",
      "(D) G:C transition and transversion proportions; adjusted paired p = 0.803 and 0.982.",
-     "(D) G:C transition and transversion proportions (pooled, 95% Wilson intervals); adjusted paired p = 0.16 and "
-     "0.96."),
+     "(D) G:C transition and transversion proportions (pooled, 95% Wilson intervals); adjusted paired p = 0.67 and "
+     "1.00."),
     ("Figure 3. ONT yields a JH4 substitution spectrum",
      "(E) Calls per sequence (Sanger, n = 111; ONT, n = 1,500 reads). Ninety-two Sanger sequences aligned unambiguously to C57BL/6 for spectrum analysis; 19 carrying residual background haplotypes were retained in the sequence denominator and zero-call class but contributed no calls to the pooled spectrum.",
-     "(E) Calls per sequence (Sanger, n = 103 curated clones; ONT, n = 1,500 reads). Agouti-type sequences, which "
-     "carry no SHM once their own background is removed, are excluded from the Sanger set (Supplementary Figure S9)."),
+     "(E) Calls per sequence (Sanger, n = 106 clones; ONT, n = 1,500 reads). Agouti-type sequences, which carry "
+     "no SHM once their own background is removed, are excluded from the Sanger set."),
     ("Supplementary Figure S2. Individual JH4 intron",
-     "(n = 189, 227, and 99 unique variants, respectively)", "(n = 6, 303, and 106 unique variants, respectively)"),
+     "(n = 189, 227, and 99 unique variants, respectively)", "(n = 177, 230, and 111 unique variants, respectively)"),
     ("Supplementary Figure S2. Individual JH4 intron",
      "(B) Aicda−/− mice 1–3 (n = 0, 1, and 1).", "(B) Aicda−/− mice 1–3 (n = 1, 1, and 2)."),
     ("Supplementary Figure S2. Individual JH4 intron",
      "Variants were restricted to single-nucleotide substitutions with variant frequency < 50% and Geneious approximate variant p ≤ 0.05.",
      "Calls are single-nucleotide substitutions with base quality ≥ 20 in the quality-trimmed clone, after removing "
      "positions at which ≥ 50% of a mouse's clones differ from the reference (nanoshm v0.2, Sanger mode), from "
-     "clones curated from the original chromatograms (Supplementary Figure S9)."),
+     "clones re-analysed from the original chromatograms."),
     ("Supplementary Figure S2. Individual JH4 intron",
      " Percentages are not defined for the sample with no passing variants.", ""),
 ]
 
 # (table index, row, column, old, new)
 CELLS = [
-    (0, 4, 1, "36 to 38 (Wt), 9 to 10 (Aicda−/−)", "26 to 41 (Wt), 10 to 11 (Aicda−/−)"),
-    (2, 2, 2, "p = 0.0045 (~41-fold)", "p = 0.15 (~15-fold)"),
-    (2, 4, 2, "r = 0.97 [0.91–0.99]; slope = 1.11", "r = 0.94 [0.80–0.98]; slope = 1.03"),
+    (0, 4, 1, "36 to 38 (Wt), 9 to 10 (Aicda−/−)", "27 to 41 (Wt), 10 to 11 (Aicda−/−)"),
+    (2, 2, 2, "p = 0.0045 (~41-fold)", "p = 0.0012 (~41-fold)"),
+    (2, 4, 2, "r = 0.97 [0.91–0.99]; slope = 1.11", "r = 0.96 [0.85–0.99]; slope = 1.06"),
     (2, 5, 2, "interaction p = 0.875; none significant (minimum adjusted p = 0.106)",
-     "interaction p = 0.21; none significant (minimum adjusted p = 0.45)"),
-    (2, 6, 2, "5/12 met exploratory ±5-point criterion; 7/12 inconclusive (n = 3)",
-     "1/12 met exploratory ±5-point criterion; 11/12 inconclusive (n = 3)"),
-    (2, 7, 2, "Ts adjusted p = 0.803; Tv adjusted p = 0.982", "Ts adjusted p = 0.16; Tv adjusted p = 0.96"),
+     "interaction p = 0.76; none significant (minimum adjusted p = 0.46)"),
+    (2, 7, 2, "Ts adjusted p = 0.803; Tv adjusted p = 0.982", "Ts adjusted p = 0.67; Tv adjusted p = 1.00"),
 ]
+# table rows removed (table index, row, text the row must contain)
+DROP_ROWS = [(2, 6, "TOST")]
 # Supplementary Table S1 Sanger rows: clones, bp, candidates, retained, density (x1e-5)
-S1_ROWS = {"W2": ("36", "529", "6", "6", "32.4"), "W3": ("41", "529", "303", "303", "1447"),
-           "W4": ("26", "529", "106", "106", "828"), "AID1": ("11", "529", "1", "1", "17.3"),
+S1_ROWS = {"W2": ("41", "529", "177", "177", "840"), "W3": ("38", "529", "230", "230", "1183"),
+           "W4": ("27", "529", "111", "111", "833"), "AID1": ("11", "529", "1", "1", "17.3"),
            "AID2": ("10", "529", "1", "1", "19.0"), "AID3": ("10", "529", "2", "2", "37.8")}
 
 NEW_METHODS = (
-    "Sanger clone curation. The 447 chromatograms (eight sequencing orders) were matched to the hand-collated "
-    "GenBank clone records, and each clone was assigned to the mouse of its original GenBank folder. A clone was "
-    "reassigned only on clear sequence evidence. Somatic mutations are not shared between mice, so a clone was "
-    "moved if a single ONT read from another mouse carried ≥ 8 of its mutations, above the maximum (7) shared by "
-    "chance between clones of unrelated mice and ONT reads, or if its whole batch was shown to belong to another "
-    "mouse by mutation load. Sixteen clones filed with Wt2 were reassigned to Wt3 and thirteen filed with Wt3 to "
-    "Wt2; every lineage identified in the Wt3 ONT library and found among the Sanger clones belonged to Wt3-assigned "
-    "clones, and no Wt2 lineage was found among clones assigned elsewhere. Two GenBank records filed as Wt2 were "
-    "renamed copies of MKLN-knockout chromatograms and one Wt4 clone carried a lineage of MKLN-knockout clones; "
-    "these were excluded, as were two clones in Aicda−/− samples carrying AID-type mutations (one identical to a "
-    "Wt3 ONT lineage). Clones labelled \"jh6\", from a second primer set, aligned across the JH4 intron and were "
+    "Sanger clone assignment. The 447 chromatograms (eight sequencing orders) were matched to the hand-collated "
+    "GenBank clone records, and each clone was kept with the mouse under which it was originally filed; no clone "
+    "was reassigned. Clones labelled \"jh6\", from a second primer set, aligned across the JH4 intron and were "
     "included. Sequences matching the Agouti-background JH4-like reference (~12% divergent from C57BL/6) were "
-    "excluded; aligned to that reference with its own background removed, the Wt-derived ones carried no SHM. Only "
-    "chromatograms without a usable high-quality segment or alignment were excluded for quality (Supplementary "
-    "Figure S9).")
+    "excluded; aligned to that reference with its own background removed, they carried no SHM. Chromatograms "
+    "without a usable high-quality segment or alignment were excluded, and two clones never filed with any mouse "
+    "were not used.")
 
 NEW_FIGS = [
-    ("Supplementary Figure S8. ", SV / "figS_sanger_window.png",
+    ("Supplementary Figure S8. ", SV / "figS_sanger_window_original.png",
      "The 529-bp comparison window is the JH4 intron and the region the Sanger clones read cleanly. Top: share of "
      "Wt Sanger clones with a base of quality ≥ 20 at each JH4 reference position. Bottom: distinct Wt calls per "
      "10³ bases read, 25-bp bins. Blue shading, the 529-bp window (positions 101–629); orange, the 27-bp extensions "
      "of two 556-bp alternatives (74–100, the end of the JH4 coding segment; 630–656, where the forward reads fade); "
-     "dashed line, end of the JH4 coding segment (position 104). Sanger background in Aicda−/− clones was 3 "
-     "mismatches in 7,375 bases inside the window. The choice of window changed each mouse's call count by ≤ 3%."),
-    ("Supplementary Figure S9. ", SV / "figS_sanger_inclusion_manuscript.png",
-     "What each mouse's Sanger value was built from in the original analysis and after curation from the "
-     "chromatograms. (A) Sequences counted in each mouse's denominator, coloured by the mouse they derive from "
-     "(original Geneious assemblies) or by their source (now): own-label traces, traces reassigned on sequence "
-     "evidence, and GenBank records. The original Wt2 assembly held 16 Wt2 clones, 16 Wt3 clones and two "
-     "MKLN-knockout records; of its 189 calls, one or two were carried by Wt2's own clones. The Aicda−/− assemblies "
-     "were ~50% JH6-primer clones and the Wt4 denominator included 14 Agouti-type sequences. (B) Each mouse's "
-     "density before and after (grey dashed: no call, shown at one call's worth). (C) The group comparison."),
-    ("Supplementary Figure S10. ", SV / "geneious/fig3_agreement_beyond_spectrum.png",
+     "dashed line, end of the JH4 coding segment (position 104). Sanger background in Aicda−/− clones was 5 "
+     "mismatches in 16,344 bases inside the window. Either alternative changed the pooled Wt call count by ≤ 3%."),
+    ("Supplementary Figure S9. ", SV / "geneious_original/fig3_agreement_beyond_spectrum.png",
      "Sanger and ONT agree beyond the substitution spectrum. ONT calls use the manuscript's Geneious rule "
-     "(reproduced in nanoshm). (A) Spectrum correlation between each mouse's Sanger and ONT profiles; per-mouse "
-     "spectra resting on few calls (Sanger Wt2, six) are uninformative. (B) Share of distinct calls along the "
-     "529-bp window in 25-bp bins (Pearson r = 0.89). (C) Share of G:C calls at WRC/GYW and of A:T calls at WA/TW, "
-     "against the share of such sites in the window (dashed). (D) Mutation load per mouse; open symbols, ONT per "
-     "V(D)J clone."),
+     "(reproduced in nanoshm). (A) Spectrum correlation between each mouse's Sanger and ONT profiles. (B) Share of "
+     "distinct calls along the 529-bp window in 25-bp bins (Pearson r = 0.89). (C) Share of G:C calls at WRC/GYW "
+     "and of A:T calls at WA/TW, against the share of such sites in the window (dashed). (D) Mutation load per "
+     "mouse; open symbols, ONT per V(D)J clone."),
 ]
 
 
@@ -267,6 +244,11 @@ def main(src, out):
         replace_text(find(start), old, new)
     for t, r, c, old, new in CELLS:
         set_cell(doc.tables[t].rows[r].cells[c], old, new)
+    for t, r, must in DROP_ROWS:
+        row = doc.tables[t].rows[r]
+        if must not in "".join(c.text for c in row.cells):
+            raise RuntimeError(f"table {t} row {r} lacks {must!r}")
+        row._tr.getparent().remove(row._tr)
     s1 = doc.tables[1]
     for row in s1.rows:
         key = row.cells[0].text.strip()
@@ -321,8 +303,8 @@ def main(src, out):
         for r in (bold_run, body_run):
             r.font.highlight_color = WD_COLOR_INDEX.YELLOW
         tail = leg
-    doc.core_properties.comments = ("Ver17: Sanger results updated from chromatogram-curated clones "
-                                    "(see docs/calibration/SANGER_VS_NANOPORE.md in nanoshm)")
+    doc.core_properties.comments = ("Ver17: Sanger results re-analysed from the chromatograms, clones as originally "
+                                    "filed (nanoshm docs/calibration/manuscript_corrected)")
     doc.save(out)
     print(out)
 

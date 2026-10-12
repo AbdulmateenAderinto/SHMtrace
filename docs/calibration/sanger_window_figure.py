@@ -39,6 +39,7 @@ def clones(folder: Path, mice, tmp: Path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_ab1_by_mouse"))
+    ap.add_argument("--name", default="figS_sanger_window", help="output file name, without extension")
     a = ap.parse_args()
     import tempfile
     ref = read_fasta(REF)[0][1].upper()
@@ -86,7 +87,7 @@ def main():
              "ko_mismatches_in_window": f"{ko_mm}/{ko_bases}",
              "windows": {f"{lo}-{hi}": window(lo, hi) for lo, hi in ((101, 629), (74, 629), (101, 656))},
              "coverage_at": {x: cov[x - 1] for x in (53, 60, 74, 101, 300, 500, 600, 629, 640, 656, 670)}}
-    json.dump(stats, open(OUT / "window.json", "w"), indent=1)
+    json.dump(stats, open(OUT / f"{a.name}.json", "w"), indent=1)
 
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10.5, "axes.spines.top": False,
                          "savefig.dpi": 300})
@@ -116,7 +117,7 @@ def main():
     ax1.set_title("Where the Sanger clones are readable, and where the mutations are", loc="left",
                   fontweight="bold")
     for ext in ("png", "pdf", "svg"):
-        fig.savefig(OUT / f"figS_sanger_window.{ext}", bbox_inches="tight")
+        fig.savefig(OUT / f"{a.name}.{ext}", bbox_inches="tight")
     print(json.dumps(stats, indent=1))
 
 

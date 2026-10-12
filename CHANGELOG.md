@@ -7,6 +7,7 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `organize_jh4_ab1.py --original`: organise the .ab1 traces exactly as filed in the GenBank folders (no evidence-based moves); `manuscript_corrected/export_sanger_calls.py` exports the Sanger calls the manuscript figures read. Ver17 now uses the original classification, drops the TOST analysis and the inclusion figure; `sanger_window_figure.py --name`.
 - **Sanger against nanopore, same mice** (`docs/calibration/sanger_vs_nanopore.py`,
   `SANGER_VS_NANOPORE.md`). Redraws the manuscript's Figure 2A/B, 3A–E and
   S2/S3 from nanoshm calls on both platforms, plus position, hotspot and
