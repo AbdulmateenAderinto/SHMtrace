@@ -12,10 +12,14 @@ this project uses [semantic versioning](https://semver.org/).
   drives the leave-one-out calibration, where more conservative p-values let it
   settle on a *smaller* inflation factor and so a *more permissive* null. On
   deep data it chose 3.0 where the exact computation gives 20.0, roughly
-  doubling the calls. The cap is gone; the exact test is now fast because the
-  Poisson tails are evaluated in one vectorised call rather than summed term by
-  term, which also removes a catastrophic cancellation in the deep tail.
-  Nanopore results are unchanged throughout.
+  doubling the calls. The cap is gone; the exact test instead evaluates its
+  Poisson tails in one vectorised call rather than summing each term by hand,
+  which also removes a catastrophic cancellation in the deep tail. Measured per
+  candidate: 3,073x faster at 8,967 supporting reads and 104x at 1,000, but
+  about 50x slower at 10, where scipy's call overhead dominates. In practice
+  the nanopore J꜀4 project is unchanged at 26 s, because read preparation and
+  alignment dominate there, and the Illumina J꜀4 numbers are restored exactly
+  to their pre-cap values.
 
 ### Added
 - **Single-read mutations, estimated in aggregate** (`nanoshm/singletons.py`).
