@@ -7,6 +7,14 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Sanger against nanopore, same mice** (`docs/calibration/sanger_vs_nanopore.py`,
+  `SANGER_VS_NANOPORE.md`). Redraws the manuscript's Figure 2A/B, 3A–E and
+  S2/S3 from nanoshm calls on both platforms, plus position, hotspot and
+  per-mouse load agreement. Spectrum r = 0.92 (0.94 under the Geneious rule),
+  no platform × type interaction (p = 0.39), positional r = 0.90. It also
+  found that the manuscript's Geneious Sanger assemblies mix mice (W2 and W3
+  are each two mice) and that the Aicda-/- Sanger denominators are 54% JH6
+  clones.
 - **Simulated libraries with known clones** (`nanoshm/lineage_sim.py`,
   `nanoshm-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
@@ -48,6 +56,11 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **A Sanger sample of one to three clones reported germline differences as
+  mutations.** Too few clones to apply the germline rule to itself, so it was
+  switched off; one Aicda-/- clone reported the strain's five J꜀4 germline
+  differences as five mutations. Such a sample now uses the germline changes
+  measured across the project's other clones.
 - **Clone clustering charged one junction indel as two errors.** The
   junction window's 5' edge is an arbitrary cut, so an indel inside it slides
   a base in at that edge; the distance now leaves that edge free. Found by the
