@@ -1,0 +1,39 @@
+{
+ "clones": 100,
+ "exon_end": 104,
+ "intron_start": 105,
+ "ko_mismatches_in_window": "3/7375",
+ "windows": {
+  "101-629": {
+   "clones_spanning": 86,
+   "of": 100,
+   "unique_mutations": 415,
+   "gc_at_wrc_gyw": "79/153"
+  },
+  "74-629": {
+   "clones_spanning": 86,
+   "of": 100,
+   "unique_mutations": 425,
+   "gc_at_wrc_gyw": "79/159"
+  },
+  "101-656": {
+   "clones_spanning": 77,
+   "of": 100,
+   "unique_mutations": 429,
+   "gc_at_wrc_gyw": "84/158"
+  }
+ },
+ "coverage_at": {
+  "53": 21,
+  "60": 78,
+  "74": 93,
+  "101": 93,
+  "300": 96,
+  "500": 99,
+  "600": 93,
+  "629": 91,
+  "640": 90,
+  "656": 77,
+  "670": 0
+ }
+}

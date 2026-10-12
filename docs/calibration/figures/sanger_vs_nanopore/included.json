@@ -69,9 +69,9 @@
  "now": {
   "WT2": {
    "composition": {
-    "own traces": 34,
+    "own traces": 35,
     "relabelled traces": 0,
-    "GenBank-only": 1
+    "GenBank-only": 0
    },
    "clones_counted": 35,
    "unique_mutations": 6,
@@ -89,9 +89,9 @@
   },
   "WT4": {
    "composition": {
-    "own traces": 25,
+    "own traces": 26,
     "relabelled traces": 0,
-    "GenBank-only": 1
+    "GenBank-only": 0
    },
    "clones_counted": 26,
    "unique_mutations": 106,
@@ -99,9 +99,9 @@
   },
   "A1": {
    "composition": {
-    "own traces": 5,
+    "own traces": 6,
     "relabelled traces": 0,
-    "GenBank-only": 1
+    "GenBank-only": 0
    },
    "clones_counted": 6,
    "unique_mutations": 1,
@@ -109,9 +109,9 @@
   },
   "A2": {
    "composition": {
-    "own traces": 6,
+    "own traces": 7,
     "relabelled traces": 0,
-    "GenBank-only": 1
+    "GenBank-only": 0
    },
    "clones_counted": 7,
    "unique_mutations": 1,
@@ -119,9 +119,9 @@
   },
   "A3": {
    "composition": {
-    "own traces": 0,
+    "own traces": 1,
     "relabelled traces": 0,
-    "GenBank-only": 1
+    "GenBank-only": 0
    },
    "clones_counted": 1,
    "unique_mutations": 0,
