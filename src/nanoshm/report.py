@@ -22,6 +22,8 @@ SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "single_read_density_ci_high",
                   "indels_called", "insertions", "deletions", "frameshift_indels",
                   "indel_density_x1e5", "clustered_calls",
+                  "reads_with_junction", "clones", "largest_clone_pct",
+                  "clone_weighted_frequency_x1e3",
                   "mutation_frequency_x1e3", "mutated_reads_pct",
                   "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_CT_GA", "s5f_index", "s5f_p",
                   "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",
@@ -67,6 +69,11 @@ def tables(res: dict) -> dict[str, str]:
         "spectrum.csv": _rows_csv(spec_rows),
         "positional_frequency.csv": _rows_csv(res["positional"]),
         "mutation_load.csv": _rows_csv(load_rows),
+        **({"clones.csv": _rows_csv(
+            [{"sample": n, "clone": r["clone"], "reads": r["reads"], "junction": r["junction"],
+              "mutations": r["mutations"], "positions": " ".join(map(str, r["positions"]))}
+             for n, c in (res.get("clones") or {}).items() for r in c["rows"]])}
+           if res.get("clones") else {}),
         **({"coverage.csv": _rows_csv(
             [{"sample": n, "pos": c["start"] + i, "depth": d}
              for n, c in (res.get("coverage") or {}).items()

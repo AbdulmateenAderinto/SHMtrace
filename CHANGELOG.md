@@ -7,6 +7,16 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
+  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
+  so reads are grouped by it and each clone counts once. Validated as a
+  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
+  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
+  are one almost unmutated clone, which held Wt2's read-weighted frequency at
+  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
+  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
+  a clone figure, and a warning when one clone holds half a library. Per
+  clone, not per molecule. See `docs/calibration/CLONES.md`.
 - **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
   key `targeting_model`, or the model drop under Advanced). The targeting index
   is the mean model mutability at called positions over the window mean, with a
@@ -26,6 +36,10 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **A sample warning written before the sample's row existed.** The coverage
+  warning added earlier in this release referenced the row too early and would
+  have raised an error on the first library with a real coverage dip; the test
+  data had none, so it never fired. Now covered by a regression test.
 - **Base-composition correction in projects.** `nanoshm-compare` already
   divided each substitution class by the sites of its from-base (SHMTool's
   L = sites × files); the project path reported raw counts only, so the two
@@ -119,6 +133,16 @@ this project uses [semantic versioning](https://semver.org/).
   peers no longer hides the other samples' estimates.
 
 ### Added
+- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
+  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
+  so reads are grouped by it and each clone counts once. Validated as a
+  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
+  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
+  are one almost unmutated clone, which held Wt2's read-weighted frequency at
+  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
+  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
+  a clone figure, and a warning when one clone holds half a library. Per
+  clone, not per molecule. See `docs/calibration/CLONES.md`.
 - **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
   key `targeting_model`, or the model drop under Advanced). The targeting index
   is the mean model mutability at called positions over the window mean, with a
@@ -138,6 +162,10 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **A sample warning written before the sample's row existed.** The coverage
+  warning added earlier in this release referenced the row too early and would
+  have raised an error on the first library with a real coverage dip; the test
+  data had none, so it never fired. Now covered by a regression test.
 - **Base-composition correction in projects.** `nanoshm-compare` already
   divided each substitution class by the sites of its from-base (SHMTool's
   L = sites × files); the project path reported raw counts only, so the two
@@ -239,6 +267,16 @@ this project uses [semantic versioning](https://semver.org/).
   assembly, restored to sequenced orientation.
 
 ### Added
+- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
+  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
+  so reads are grouped by it and each clone counts once. Validated as a
+  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
+  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
+  are one almost unmutated clone, which held Wt2's read-weighted frequency at
+  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
+  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
+  a clone figure, and a warning when one clone holds half a library. Per
+  clone, not per molecule. See `docs/calibration/CLONES.md`.
 - **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
   key `targeting_model`, or the model drop under Advanced). The targeting index
   is the mean model mutability at called positions over the window mean, with a
@@ -258,6 +296,10 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **A sample warning written before the sample's row existed.** The coverage
+  warning added earlier in this release referenced the row too early and would
+  have raised an error on the first library with a real coverage dip; the test
+  data had none, so it never fired. Now covered by a regression test.
 - **Base-composition correction in projects.** `nanoshm-compare` already
   divided each substitution class by the sites of its from-base (SHMTool's
   L = sites × files); the project path reported raw counts only, so the two
@@ -329,6 +371,16 @@ this project uses [semantic versioning](https://semver.org/).
 - `summary.json` records `nanoshm_version`.
 
 ### Added
+- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
+  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
+  so reads are grouped by it and each clone counts once. Validated as a
+  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
+  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
+  are one almost unmutated clone, which held Wt2's read-weighted frequency at
+  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
+  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
+  a clone figure, and a warning when one clone holds half a library. Per
+  clone, not per molecule. See `docs/calibration/CLONES.md`.
 - **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
   key `targeting_model`, or the model drop under Advanced). The targeting index
   is the mean model mutability at called positions over the window mean, with a
@@ -348,6 +400,10 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **A sample warning written before the sample's row existed.** The coverage
+  warning added earlier in this release referenced the row too early and would
+  have raised an error on the first library with a real coverage dip; the test
+  data had none, so it never fired. Now covered by a regression test.
 - **Base-composition correction in projects.** `nanoshm-compare` already
   divided each substitution class by the sites of its from-base (SHMTool's
   L = sites × files); the project path reported raw counts only, so the two
@@ -421,6 +477,16 @@ this project uses [semantic versioning](https://semver.org/).
   no background and costs ~15% of signal.
 
 ### Added
+- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
+  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
+  so reads are grouped by it and each clone counts once. Validated as a
+  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
+  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
+  are one almost unmutated clone, which held Wt2's read-weighted frequency at
+  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
+  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
+  a clone figure, and a warning when one clone holds half a library. Per
+  clone, not per molecule. See `docs/calibration/CLONES.md`.
 - **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
   key `targeting_model`, or the model drop under Advanced). The targeting index
   is the mean model mutability at called positions over the window mean, with a
@@ -440,6 +506,10 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **A sample warning written before the sample's row existed.** The coverage
+  warning added earlier in this release referenced the row too early and would
+  have raised an error on the first library with a real coverage dip; the test
+  data had none, so it never fired. Now covered by a regression test.
 - **Base-composition correction in projects.** `nanoshm-compare` already
   divided each substitution class by the sites of its from-base (SHMTool's
   L = sites × files); the project path reported raw counts only, so the two

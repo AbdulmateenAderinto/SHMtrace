@@ -182,6 +182,16 @@ class Params:
     # floor on support does. See docs/calibration/INDELS.md.
     indel_min_reads: int = 3
 
+    # ---- clones from the V(D)J junction --------------------------------------
+    # When an amplicon starts in the V region, the bases just 5' of the J
+    # segment are the V(D)J junction, unique to each B-cell clone. Reads are
+    # grouped by it (clones.py) so a clone counts once however many reads it
+    # contributes. junction_ref_start is the 1-based reference position where
+    # the J coding segment begins (J꜀4: 53); None turns this off.
+    junction_ref_start: int | None = None
+    junction_length: int = 20
+    junction_max_edits: int = 3
+
     # ---- reporting ----------------------------------------------------------
     density_scale: float = 1e5             # unique-variant density is reported x this
 

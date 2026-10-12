@@ -289,6 +289,59 @@ def mutability_hedgehog(res: dict, fmt: str = "png") -> bytes | None:
     return _save(fig, fmt)
 
 
+# ---- clones from the V(D)J junction ---------------------------------------------
+
+def clone_map(res: dict, fmt: str = "png") -> bytes | None:
+    """Each clone as one dot: how many reads it contributes and how mutated it is.
+
+    Read-weighted numbers let a big clone speak once per read. Here every clone
+    is one dot, so a large unmutated clone (a dot far right, at zero) is seen
+    for what it is: one lineage, not hundreds of unmutated cells. Above each
+    panel, the read-weighted and clone-weighted frequencies, and how much more
+    reads of one clone share their mutations than reads of different clones.
+    """
+    cl = res.get("clones") or {}
+    if not cl:
+        return None
+    groups = _groups_of(res)
+    colour = _group_colour(res)
+    S = {s["sample"]: s for s in res["samples"]}
+    names = [s["sample"] for s in res["samples"] if s["sample"] in cl]
+    ncol = min(3, len(names))
+    nrow = math.ceil(len(names) / ncol)
+    fig, axes = plt.subplots(nrow, ncol, figsize=(4.1 * ncol, 3.3 * nrow), squeeze=False)
+    top_reads = max(r["reads"] for n in names for r in cl[n]["rows"]) or 1
+    top_mut = max((r["mutations"] for n in names for r in cl[n]["rows"]), default=1) or 1
+    for i, n in enumerate(names):
+        ax = axes[i // ncol][i % ncol]
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        rows = cl[n]["rows"]
+        c = colour.get(groups.get(n), MS_BLUE)
+        ax.scatter([r["reads"] for r in rows], [r["mutations"] for r in rows],
+                   s=[14 + 60 * r["reads"] / top_reads for r in rows],
+                   color=c, alpha=0.55, edgecolors="none")
+        ax.set_xscale("log")
+        ax.set_xlim(0.8, top_reads * 1.6)
+        ax.set_ylim(-0.5, top_mut * 1.1 + 0.5)
+        sh = cl[n].get("sharing") or {}
+        rf = S[n].get("mutation_frequency_x1e3")
+        cw = cl[n].get("clone_weighted_frequency_x1e3")
+        sub = (f"{cl[n]['clones']} clones, largest {cl[n]['largest_clone_pct']:.0f}%\n"
+               f"per read {rf} · per clone {cw} (×10⁻³)")
+        if sh.get("within") is not None and sh.get("between"):
+            sub += f"\nshared mutations: {sh['within'] / sh['between']:.0f}× more within a clone"
+        ax.set_title(f"{n}\n{sub}", loc="left", fontsize=7.5)
+        ax.set_xlabel("Reads in the clone", fontsize=8)
+        ax.set_ylabel("Clone's mutations", fontsize=8)
+    for i in range(len(names), nrow * ncol):
+        axes[i // ncol][i % ncol].axis("off")
+    fig.suptitle("Clones from the V(D)J junction: each dot is one clone",
+                 x=0.007, ha="left", fontsize=11)
+    fig.tight_layout()
+    return _save(fig, fmt)
+
+
 # ---- 2. single-read excess ---------------------------------------------------
 
 def single_read_excess(res: dict, fmt: str = "png") -> bytes | None:
@@ -794,6 +847,8 @@ FIGURES = [
      lambda r: bool(r.get("coverage"))),
     ("spectrum_corrected", spectrum_corrected, "Spectrum, base-composition corrected",
      lambda r: bool(r.get("spectrum_corrected_group"))),
+    ("clone_map", clone_map, "Clones from the V(D)J junction",
+     lambda r: bool(r.get("clones"))),
     ("targeting_profile", targeting_profile, "AID targeting along the amplicon",
      lambda r: bool((r.get("targeting") or {}).get("profile"))),
     ("targeting_spectrum", targeting_spectrum, "Spectrum against the targeting model",

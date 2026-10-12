@@ -23,3 +23,7 @@ min_variant_reads: 1
 exclude_indels: true
 end_trim_bp: 0
 density_scale: 100000
+
+# The amplicon starts in the V region, so the bases just 5' of J꜀4 (coding
+# segment from position 53) are the V(D)J junction: a clone barcode.
+junction_ref_start: 53
