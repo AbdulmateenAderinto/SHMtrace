@@ -16,6 +16,10 @@ hiddenimports = (
     collect_submodules("uvicorn")
     + collect_submodules("nanoshm")
     + ["anyio", "h11", "click", "multipart", "openpyxl", "scipy.special.cython_special"]
+    # matplotlib picks its PDF and SVG writers by name at save time, so
+    # PyInstaller cannot see them and the figure exports fail without these
+    + ["matplotlib.backends.backend_agg", "matplotlib.backends.backend_pdf",
+       "matplotlib.backends.backend_svg"]
 )
 
 a = Analysis(

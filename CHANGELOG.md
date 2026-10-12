@@ -6,6 +6,18 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed (Mac app, found by running the built app end to end)
+- SVG and PDF figure exports failed in the packaged app: matplotlib's PDF and
+  SVG backends were not bundled. PNG was unaffected.
+- Downloads did nothing inside the app window: pywebview blocks them unless
+  `ALLOW_DOWNLOADS` is set.
+- "Save to a folder" could stay hidden, because the desktop flag was injected
+  after the page had read it. The window now opens with `?desktop=1`.
+- `nanoshm-app --port N` with N already in use reported success and opened
+  whatever else was listening there. It now says the port is taken and exits.
+- The packaged app rebuilt matplotlib's font cache on every launch (about 12 s);
+  it now keeps it in the user cache folder.
+
 ## Unreleased — the standalone app (11 October 2026)
 
 ### Added
