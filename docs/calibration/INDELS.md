@@ -74,6 +74,7 @@ Wt3 is the most mutated and most clonal library. Its large deletions fit AID-ini
 - **Controls are required**, at least one besides the sample itself. With fewer than two controls, the inflation factor cannot be fitted properly. With exactly two, at Q30, it reaches the top of its grid (50).
 - **1-bp deletions in homopolymers** are the commonest nanopore error and stay mostly undetectable.
 - **Strand.** The bundled example reads are all one strand, so strand balance cannot be checked here. The `plus_reads` and `minus_reads` columns allow it on mixed-strand data.
+- **Checked against a real biological effect since**: HMCES knockout raises SHM deletions, and the caller reproduces that on Illumina data at P = 0.00005 ([`HMCES_INDELS.md`](HMCES_INDELS.md)).
 - **One run, one locus, and a sequencing-only check.** The background is calibrated per run. The planted indels are idealised. Real indels should be checked against Sanger clones of the same samples. That is the next calibration this needs.
 
 ## Reproduce

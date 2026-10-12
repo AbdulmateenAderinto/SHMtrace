@@ -28,6 +28,6 @@
 ## Order of work
 
 1. ~~PRJNA973112 on J꜀4~~ done: `ILLUMINA.md`. Wild type is about 18-fold above *Aicda*-/- (P = 0.015). The amplicon covers 70 bp (J꜀4 segment and start of the intron), not the intron window.
-2. PRJNA820976: indels (HMCES-KO against WT, both against AID-KO), and substitutions in a human V region.
+2. ~~PRJNA820976~~ done: `HMCES_INDELS.md`. HMCES-KO carries 3.5x the indel density of wild type (P = 0.000025), deletions specifically (3.75x against 2.3x for insertions), with AID-null clones at zero.
 3. ~~The lab's matched Sanger clones~~ done: `SANGER.md`.
 4. ~~PRJNA918596~~ done: `ECTOPIC_AID.md`. The CH12F3 *Aicda*-/- clone-120 AID-vs-empty-vector set is the public counterpart of the N114 experiment: AID is about 40-fold over empty vector (P = 0.00017) with a 100% C→T/G→A spectrum, and catalytically inactive R50E makes no calls.
