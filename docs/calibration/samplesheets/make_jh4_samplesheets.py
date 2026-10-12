@@ -24,6 +24,8 @@ FOLDER = {"W2": "WT2", "W3": "WT3", "W4": "WT4", "A1": "Aicda_A1", "A2": "Aicda_
           "A3": "Aicda_A3", "K1": "MKLN_K1", "K2": "MKLN_K2", "K3": "MKLN_K3", "K4": "MKLN_K4"}
 ALIASES = {"WT2": "w2;wt2", "WT3": "w3;wt3", "WT4": "w4;wt4", "Aicda_A1": "a1", "Aicda_A2": "a2",
            "Aicda_A3": "a3", "MKLN_K1": "k1;jh4k1", "MKLN_K2": "k2", "MKLN_K3": "k3", "MKLN_K4": "k4"}
+# w4-9 (filed with WT4) is identical, all 7 mutations over 520 bp, to two MKLN K2 clones; the
+# author removed it from WT4 on 12 Oct 2026, and the manifest now files it with MKLN_K2
 NEVER_FILED = {("432625", "E6"), ("414309", "F7")}
 
 
@@ -33,7 +35,7 @@ def main(manifest):
     for r in rows:
         if not r["original_path"].startswith("/"):
             continue                     # GenBank-only records: no trace
-        if r["status"] == "kept":
+        if r["status"] in ("kept", "relabelled"):
             mouse = r["mouse"]
         else:
             mouse = FOLDER.get(r["genbank_folder"]) or (

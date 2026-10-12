@@ -1,38 +1,38 @@
 {
- "clones": 104,
+ "clones": 103,
  "exon_end": 104,
  "intron_start": 105,
  "ko_mismatches_in_window": "5/16344",
  "windows": {
   "101-629": {
-   "clones_spanning": 90,
-   "of": 104,
-   "unique_mutations": 494,
-   "gc_at_wrc_gyw": "104/183"
+   "clones_spanning": 89,
+   "of": 103,
+   "unique_mutations": 489,
+   "gc_at_wrc_gyw": "101/180"
   },
   "74-629": {
    "clones_spanning": 89,
-   "of": 104,
-   "unique_mutations": 506,
-   "gc_at_wrc_gyw": "104/191"
+   "of": 103,
+   "unique_mutations": 501,
+   "gc_at_wrc_gyw": "101/188"
   },
   "101-656": {
    "clones_spanning": 78,
-   "of": 104,
-   "unique_mutations": 509,
-   "gc_at_wrc_gyw": "109/188"
+   "of": 103,
+   "unique_mutations": 504,
+   "gc_at_wrc_gyw": "106/185"
   }
  },
  "coverage_at": {
   "53": 21,
   "60": 81,
   "74": 96,
-  "101": 97,
-  "300": 100,
-  "500": 103,
-  "600": 97,
-  "629": 95,
-  "640": 94,
+  "101": 96,
+  "300": 99,
+  "500": 102,
+  "600": 96,
+  "629": 94,
+  "640": 93,
   "656": 78,
   "670": 0
  }

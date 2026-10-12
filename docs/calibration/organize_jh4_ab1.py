@@ -59,6 +59,11 @@ GROUP_MOVES = {
 GENBANK_EXCLUDE = {"88-w2-28-user_added": "renamed copy of trace 434355-H11 88-k4-28 (MKLN K4)",
                    "96-w2-36-user_added": "renamed copy of trace 434355-H12 96-k4-36 (MKLN K4)"}
 
+# Corrections applied even with --original: the author removed these from the manuscript's
+# set on sequence identity (12 Oct 2026). w4-9 is identical over 520 bp, 7 mutations, to two
+# MKLN K2 clones, so it cannot be a WT4 clone.
+ORIGINAL_ALSO = {("434141", "A11")}
+
 # (order, well) -> (mouse, reason). Each is a contradiction between label and sequence.
 CORRECTIONS = {
     ("434141", "E8"): ("WT3", "labelled w2-1, but 18 mutations where WT2's other 34 traces carry "
@@ -168,7 +173,8 @@ def main(src: str, out: str, genbank: str | None = None) -> None:
         mouse, status, reason = default, "kept", (f"GenBank folder {fo}" if fo else "label (no GenBank record)")
         group = None if ORIGINAL else GROUP_MOVES.get((fo, by_label))
         corr = CORRECTIONS.get((t["order"], t["well"]))
-        if ORIGINAL and corr and not (corr[0].startswith("_excluded") and not fo):
+        if (ORIGINAL and corr and not (corr[0].startswith("_excluded") and not fo)
+                and (t["order"], t["well"]) not in ORIGINAL_ALSO):
             corr = None        # the original classification keeps every filed clone where it was filed
         if corr:
             mouse, reason = corr
