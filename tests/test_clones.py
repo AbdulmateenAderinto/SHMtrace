@@ -25,6 +25,15 @@ def test_edit_distance_with_a_cap():
     assert clones._edit("AAAAAAAA", "CCCCCCCC", 3) == 4          # stops past the cap
 
 
+def test_an_indel_costs_one_although_the_window_slides():
+    # a deletion inside the read's junction pulls one upstream base (G) in at
+    # the window's 5' edge; that is one sequencing error, not two
+    true = "ACGTACGTAC"
+    read = "G" + "ACGACGTAC"
+    assert clones._edit(read, true, 3) == 1
+    assert clones._edit(true, read, 3) == 1
+
+
 def test_junction_needs_an_alignment_starting_at_j():
     j = "TTACTACGGTAGTAGCTAGG"
     assert clones.junction(read("r", j), J, 20) == j

@@ -63,6 +63,7 @@ nanoshm = "nanoshm.pipeline:main"
 nanoshm-compare = "nanoshm.compare:main"
 nanoshm-benchmark = "nanoshm.benchmark:main"
 nanoshm-validate = "nanoshm.simulate:main"
+nanoshm-simulate-lineages = "nanoshm.lineage_sim:main"
 nanoshm-app = "nanoshm.desktop:main"
 
 [project.urls]

@@ -7,14 +7,26 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Simulated libraries with known clones** (`nanoshm/lineage_sim.py`,
+  `nanoshm-simulate-lineages`). Real control reads are dealt into clones with
+  their own junctions and J trimming, lineage mutations (trunk, branch,
+  sub-branch, private) placed by the 5-mer model, and optionally one expanded
+  clone; the library runs end to end and is scored against the truth, with a
+  threshold-sweep ROC. Clones are recovered at adjusted Rand 0.95–0.97; with
+  one unmutated clone holding 60% of reads, clone-weighting recovers 85% of
+  the true per-clone frequency against 46% read-weighted. It also found that
+  Geneious's ordering edges the recommended model on recall in heavily mutated
+  libraries, while making three times its false calls in an empty one; reported
+  as open. Variant calling now records each candidate's position and allele
+  (`_candidate_keys`) for such sweeps. See `docs/calibration/LINEAGE_SIM.md`.
 - **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
   `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
   so reads are grouped by it and each clone counts once. Validated as a
-  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
-  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
+  barcode: reads sharing a junction share their mutations 26× (Wt3) and 324×
+  (Wt4) more than reads that do not. It found that 85% of Wt2's junction reads
   are one almost unmutated clone, which held Wt2's read-weighted frequency at
-  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
-  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
+  1.74 against 12.00 per clone, and clone-weighting strengthens wild type
+  against *Aicda*-/- from P = 0.0086 to P = 0.0036. New columns, `clones.csv`,
   a clone figure, and a warning when one clone holds half a library. Per
   clone, not per molecule. See `docs/calibration/CLONES.md`.
 - **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
@@ -36,6 +48,15 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- **Clone clustering charged one junction indel as two errors.** The
+  junction window's 5' edge is an arbitrary cut, so an indel inside it slides
+  a base in at that edge; the distance now leaves that edge free. Found by the
+  lineage simulation (adjusted Rand 0.96 → 0.99 at ten times the real indel
+  rate). On the real libraries it merges a few splinter clones; `CLONES.md`
+  carries the re-run numbers.
+- **The CHANGELOG had entries repeated up to five times**, from edits that
+  matched every `### Added` heading rather than the first; rebuilt with each
+  entry once.
 - **A sample warning written before the sample's row existed.** The coverage
   warning added earlier in this release referenced the row too early and would
   have raised an error on the first library with a real coverage dip; the test
@@ -132,77 +153,6 @@ this project uses [semantic versioning](https://semver.org/).
 - The app's Tables tab shows every column any row has, so a control without
   peers no longer hides the other samples' estimates.
 
-### Added
-- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
-  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
-  so reads are grouped by it and each clone counts once. Validated as a
-  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
-  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
-  are one almost unmutated clone, which held Wt2's read-weighted frequency at
-  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
-  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
-  a clone figure, and a warning when one clone holds half a library. Per
-  clone, not per molecule. See `docs/calibration/CLONES.md`.
-- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
-  key `targeting_model`, or the model drop under Advanced). The targeting index
-  is the mean model mutability at called positions over the window mean, with a
-  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
-  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
-  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
-  flags that artefact by itself. Each call is annotated with its 5-mer's
-  relative mutability and substitution probability. Three figures: a
-  dose-response by mutability fifth, observed against expected spectrum, and
-  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
-  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
-  from your own install. See `docs/calibration/TARGETING.md`.
-- **Coverage along the amplicon.** Every sample's per-position read depth is
-  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
-  positions below half the sample's median depth is named in its warnings.
-  Density divides by analysed positions times mean depth, so it assumes even
-  coverage; this is where to see whether that holds.
-
-### Fixed
-- **A sample warning written before the sample's row existed.** The coverage
-  warning added earlier in this release referenced the row too early and would
-  have raised an error on the first library with a real coverage dip; the test
-  data had none, so it never fired. Now covered by a regression test.
-- **Base-composition correction in projects.** `nanoshm-compare` already
-  divided each substitution class by the sites of its from-base (SHMTool's
-  L = sites × files); the project path reported raw counts only, so the two
-  entry points gave differently normalised spectra. Projects now report
-  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
-  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
-  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
-  understate C→T relative to G→A.
-
-### Added (continued)
-- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
-  opt-in with "Keep the read alignment"). Every input read is drawn in its
-  aligned place against the reference, banded by what became of it — analysed,
-  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
-  low quality, too long, unmapped — so a dropped read is still visible where it
-  would have sat. Zoom to base level for the reference letters and each
-  mismatched base, with called positions marked and indels ticked; click a read
-  for its strand, span and every mismatch with its quality. Reads travel as
-  their differences from the reference rather than their sequence, which is
-  what makes a few thousand of them cheap enough to send to a browser, and the
-  API serves one window at a time. Every filtering stage now records why it
-  rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
-  in three groups: detail the project already computed but never drew (the
-  saturation curve, the single-read excess by substitution class, indels,
-  per-sample positional maps, the combined density with its intervals);
-  diagnostics that make the method auditable rather than taken on trust (the
-  base-quality histogram the default model keys on, the read-by-site carriage
-  behind each phasing decision, read attrition per stage, the fitted control
-  background along the amplicon, and the caller's own decision boundary); and
-  biology the tables held but nothing showed (clonal structure, replicate
-  agreement). Each is drawn only when the run carries what it needs. The
-  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
-  To support them the caller now records every tested candidate, the base
-  qualities of matching and mismatching bases, and the per-read carriage of
-  each phasing block; the project records the fitted control background.
-
 ### Fixed (Mac app, found by running the built app end to end)
 - SVG and PDF figure exports failed in the packaged app: matplotlib's PDF and
   SVG backends were not bundled. PNG was unaffected.
@@ -266,77 +216,6 @@ this project uses [semantic versioning](https://semver.org/).
 - **BAM/SAM input** (`pip install nanoshm[bam]`): reads straight from a Geneious
   assembly, restored to sequenced orientation.
 
-### Added
-- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
-  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
-  so reads are grouped by it and each clone counts once. Validated as a
-  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
-  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
-  are one almost unmutated clone, which held Wt2's read-weighted frequency at
-  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
-  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
-  a clone figure, and a warning when one clone holds half a library. Per
-  clone, not per molecule. See `docs/calibration/CLONES.md`.
-- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
-  key `targeting_model`, or the model drop under Advanced). The targeting index
-  is the mean model mutability at called positions over the window mean, with a
-  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
-  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
-  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
-  flags that artefact by itself. Each call is annotated with its 5-mer's
-  relative mutability and substitution probability. Three figures: a
-  dose-response by mutability fifth, observed against expected spectrum, and
-  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
-  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
-  from your own install. See `docs/calibration/TARGETING.md`.
-- **Coverage along the amplicon.** Every sample's per-position read depth is
-  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
-  positions below half the sample's median depth is named in its warnings.
-  Density divides by analysed positions times mean depth, so it assumes even
-  coverage; this is where to see whether that holds.
-
-### Fixed
-- **A sample warning written before the sample's row existed.** The coverage
-  warning added earlier in this release referenced the row too early and would
-  have raised an error on the first library with a real coverage dip; the test
-  data had none, so it never fired. Now covered by a regression test.
-- **Base-composition correction in projects.** `nanoshm-compare` already
-  divided each substitution class by the sites of its from-base (SHMTool's
-  L = sites × files); the project path reported raw counts only, so the two
-  entry points gave differently normalised spectra. Projects now report
-  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
-  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
-  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
-  understate C→T relative to G→A.
-
-### Added (continued)
-- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
-  opt-in with "Keep the read alignment"). Every input read is drawn in its
-  aligned place against the reference, banded by what became of it — analysed,
-  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
-  low quality, too long, unmapped — so a dropped read is still visible where it
-  would have sat. Zoom to base level for the reference letters and each
-  mismatched base, with called positions marked and indels ticked; click a read
-  for its strand, span and every mismatch with its quality. Reads travel as
-  their differences from the reference rather than their sequence, which is
-  what makes a few thousand of them cheap enough to send to a browser, and the
-  API serves one window at a time. Every filtering stage now records why it
-  rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
-  in three groups: detail the project already computed but never drew (the
-  saturation curve, the single-read excess by substitution class, indels,
-  per-sample positional maps, the combined density with its intervals);
-  diagnostics that make the method auditable rather than taken on trust (the
-  base-quality histogram the default model keys on, the read-by-site carriage
-  behind each phasing decision, read attrition per stage, the fitted control
-  background along the amplicon, and the caller's own decision boundary); and
-  biology the tables held but nothing showed (clonal structure, replicate
-  agreement). Each is drawn only when the run carries what it needs. The
-  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
-  To support them the caller now records every tested candidate, the base
-  qualities of matching and mismatching bases, and the per-read carriage of
-  each phasing block; the project records the fitted control background.
-
 ### Fixed (11 October 2026, second round)
 - `nanoshm-compare` pooled unique mutations across files into one set.
   SHMTool counts a mutation once per file, with L = sites x files; counts are
@@ -369,77 +248,6 @@ this project uses [semantic versioning](https://semver.org/).
 - `nanoshm-compare` analyses every file at the same depth.
 - A sample below its target depth is now reported in `summary.json` warnings.
 - `summary.json` records `nanoshm_version`.
-
-### Added
-- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
-  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
-  so reads are grouped by it and each clone counts once. Validated as a
-  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
-  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
-  are one almost unmutated clone, which held Wt2's read-weighted frequency at
-  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
-  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
-  a clone figure, and a warning when one clone holds half a library. Per
-  clone, not per molecule. See `docs/calibration/CLONES.md`.
-- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
-  key `targeting_model`, or the model drop under Advanced). The targeting index
-  is the mean model mutability at called positions over the window mean, with a
-  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
-  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
-  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
-  flags that artefact by itself. Each call is annotated with its 5-mer's
-  relative mutability and substitution probability. Three figures: a
-  dose-response by mutability fifth, observed against expected spectrum, and
-  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
-  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
-  from your own install. See `docs/calibration/TARGETING.md`.
-- **Coverage along the amplicon.** Every sample's per-position read depth is
-  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
-  positions below half the sample's median depth is named in its warnings.
-  Density divides by analysed positions times mean depth, so it assumes even
-  coverage; this is where to see whether that holds.
-
-### Fixed
-- **A sample warning written before the sample's row existed.** The coverage
-  warning added earlier in this release referenced the row too early and would
-  have raised an error on the first library with a real coverage dip; the test
-  data had none, so it never fired. Now covered by a regression test.
-- **Base-composition correction in projects.** `nanoshm-compare` already
-  divided each substitution class by the sites of its from-base (SHMTool's
-  L = sites × files); the project path reported raw counts only, so the two
-  entry points gave differently normalised spectra. Projects now report
-  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
-  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
-  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
-  understate C→T relative to G→A.
-
-### Added (continued)
-- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
-  opt-in with "Keep the read alignment"). Every input read is drawn in its
-  aligned place against the reference, banded by what became of it — analysed,
-  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
-  low quality, too long, unmapped — so a dropped read is still visible where it
-  would have sat. Zoom to base level for the reference letters and each
-  mismatched base, with called positions marked and indels ticked; click a read
-  for its strand, span and every mismatch with its quality. Reads travel as
-  their differences from the reference rather than their sequence, which is
-  what makes a few thousand of them cheap enough to send to a browser, and the
-  API serves one window at a time. Every filtering stage now records why it
-  rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
-  in three groups: detail the project already computed but never drew (the
-  saturation curve, the single-read excess by substitution class, indels,
-  per-sample positional maps, the combined density with its intervals);
-  diagnostics that make the method auditable rather than taken on trust (the
-  base-quality histogram the default model keys on, the read-by-site carriage
-  behind each phasing decision, read attrition per stage, the fitted control
-  background along the amplicon, and the caller's own decision boundary); and
-  biology the tables held but nothing showed (clonal structure, replicate
-  agreement). Each is drawn only when the run carries what it needs. The
-  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
-  To support them the caller now records every tested candidate, the base
-  qualities of matching and mismatching bases, and the per-read carriage of
-  each phasing block; the project records the fitted control background.
 
 ### Fixed (October 2026)
 - `minimap2_preset` was ignored (hardcoded `map-ont`).
@@ -475,77 +283,6 @@ this project uses [semantic versioning](https://semver.org/).
   number submitted to the aligner.
 - `min_variant_reads` stays at 1. Once the statistics are right, raising it buys
   no background and costs ~15% of signal.
-
-### Added
-- **Clones from the V(D)J junction** (`nanoshm/clones.py`; on by default for
-  `jh4_intron`). The bases 5' of J꜀4 are each clone's recombination junction,
-  so reads are grouped by it and each clone counts once. Validated as a
-  barcode: reads sharing a junction share their mutations 22× (Wt3) and 265×
-  (Wt4) more than reads that do not. It found that 84% of Wt2's junction reads
-  are one almost unmutated clone, which held Wt2's read-weighted frequency at
-  1.74 against 10.67 per clone, and clone-weighting strengthens wild type
-  against *Aicda*-/- from P = 0.0086 to P = 0.0033. New columns, `clones.csv`,
-  a clone figure, and a warning when one clone holds half a library. Per
-  clone, not per molecule. See `docs/calibration/CLONES.md`.
-- **AID targeting against a 5-mer model** (`nanoshm/targeting.py`; the project
-  key `targeting_model`, or the model drop under Advanced). The targeting index
-  is the mean model mutability at called positions over the window mean, with a
-  permutation p-value. With SHazaM's HH_S5F, J꜀4 wild-type calls score
-  1.19-1.34 (p ≤ 0.04) and knockout sequencing errors 1.00 (p = 0.47); on CH12
-  real AID scores 2.55 and the R174E/R178E error cluster 0.72, so the index
-  flags that artefact by itself. Each call is annotated with its 5-mer's
-  relative mutability and substitution probability. Three figures: a
-  dose-response by mutability fifth, observed against expected spectrum, and
-  the model as a hedgehog plot. Nothing here changes the calls. nanoshm does
-  not ship SHazaM's AGPL models; `scripts/export_shazam_model.R` exports one
-  from your own install. See `docs/calibration/TARGETING.md`.
-- **Coverage along the amplicon.** Every sample's per-position read depth is
-  kept (`coverage.csv`, a coverage figure), and a stretch of ten or more
-  positions below half the sample's median depth is named in its warnings.
-  Density divides by analysed positions times mean depth, so it assumes even
-  coverage; this is where to see whether that holds.
-
-### Fixed
-- **A sample warning written before the sample's row existed.** The coverage
-  warning added earlier in this release referenced the row too early and would
-  have raised an error on the first library with a real coverage dip; the test
-  data had none, so it never fired. Now covered by a regression test.
-- **Base-composition correction in projects.** `nanoshm-compare` already
-  divided each substitution class by the sites of its from-base (SHMTool's
-  L = sites × files); the project path reported raw counts only, so the two
-  entry points gave differently normalised spectra. Projects now report
-  `spectrum_corrected_group` and `_sample`, the window's `base_composition`, a
-  `per_site_per_sample` column in `spectrum.csv`, and a corrected-spectrum
-  figure. On the J꜀4 window, which holds 82 C against 146 G, raw counts
-  understate C→T relative to G→A.
-
-### Added (continued)
-- **A read-alignment browser** (`nanoshm/browse.py`, the app's **Reads** tab,
-  opt-in with "Keep the read alignment"). Every input read is drawn in its
-  aligned place against the reference, banded by what became of it — analysed,
-  not sampled, minor haplotype, too short, chimeric, contaminant, off target,
-  low quality, too long, unmapped — so a dropped read is still visible where it
-  would have sat. Zoom to base level for the reference letters and each
-  mismatched base, with called positions marked and indels ticked; click a read
-  for its strand, span and every mismatch with its quality. Reads travel as
-  their differences from the reference rather than their sequence, which is
-  what makes a few thousand of them cheap enough to send to a browser, and the
-  API serves one window at a time. Every filtering stage now records why it
-  rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`nanoshm/viz_diagnostics.py`),
-  in three groups: detail the project already computed but never drew (the
-  saturation curve, the single-read excess by substitution class, indels,
-  per-sample positional maps, the combined density with its intervals);
-  diagnostics that make the method auditable rather than taken on trust (the
-  base-quality histogram the default model keys on, the read-by-site carriage
-  behind each phasing decision, read attrition per stage, the fitted control
-  background along the amplicon, and the caller's own decision boundary); and
-  biology the tables held but nothing showed (clonal structure, replicate
-  agreement). Each is drawn only when the run carries what it needs. The
-  saturation curve is opt-in, since it re-calls variants at a ladder of depths.
-  To support them the caller now records every tested candidate, the base
-  qualities of matching and mismatching bases, and the per-read carriage of
-  each phasing block; the project records the fitted control background.
 
 ### Fixed
 - Held-out *Aicda*-/- background: 30.9 -> 1.0 x 10-5 per analysed base on

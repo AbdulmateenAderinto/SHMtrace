@@ -33,18 +33,22 @@ SLACK = 18      # bp either side of the J segment start that an alignment may be
 
 
 def _edit(a: str, b: str, cap: int) -> int:
-    """Levenshtein distance, stopping once it exceeds `cap`."""
-    prev = list(range(len(b) + 1))
-    for i, ca in enumerate(a, 1):
-        cur = [i] + [0] * len(b)
-        best = cur[0]
+    """Edit distance with the 5' edge free, capped at `cap` + 1.
+
+    The window's 5' edge is an arbitrary cut 20 bases from J, so an indel
+    inside it slides one extra base in at that edge. Plain Levenshtein charges
+    that twice (the indel and the slid base); leading gaps cost nothing here,
+    so one indel costs one. On simulated clones with ten times the real indel
+    rate this lifts recovery from adjusted Rand 0.96 to 0.99, and it changes
+    nothing at the real rate (docs/calibration/LINEAGE_SIM.md).
+    """
+    prev = [0] * (len(b) + 1)
+    for ca in a:
+        cur = [0] * (len(b) + 1)
         for j, cb in enumerate(b, 1):
             cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb))
-            best = min(best, cur[j])
-        if best > cap:
-            return cap + 1
         prev = cur
-    return prev[-1]
+    return min(prev[-1], cap + 1)
 
 
 def junction(read, j_start0: int, length: int) -> str | None:

@@ -12,7 +12,7 @@ The LDHA study validated in [`ILLUMINA.md`](ILLUMINA.md) collapsed its reads "ut
 
 On the germline reference those bases are germline sequence, which a rearranged read does not carry. So the aligner starts a rearranged read's alignment at J꜀4 (reference 53), and the unaligned bases before it are the junction. In Wt3, 281 of 497 reads begin aligning at 50–59, with a median 76 bp of unaligned sequence ahead.
 
-`clones.py` takes the 20 bases before the alignment start of every read that begins within 18 bp of J꜀4. It clusters them greedily, most abundant first, joining a junction to a clone centroid within edit distance 3 (centroids, not chains, so near neighbours cannot merge two clones). Each clone's mutations are the called mutations carried by at least half of its reads that cover the position. A clone counts once.
+`clones.py` takes the 20 bases before the alignment start of every read that begins within 18 bp of J꜀4. It clusters them greedily, most abundant first, joining a junction to a clone centroid within edit distance 3 (centroids, not chains, so near neighbours cannot merge two clones). The distance leaves the window's 5' edge free: that edge is an arbitrary cut, and an indel inside the window slides one extra base in there, which plain edit distance would charge as a second error. On simulated libraries with known clones ([`LINEAGE_SIM.md`](LINEAGE_SIM.md)) this recovers the true clones with an adjusted Rand index of 0.97–1.00. Each clone's mutations are the called mutations carried by at least half of its reads that cover the position. A clone counts once.
 
 This gives counts per clone, not per molecule. Two cells of one clone, or two PCR copies of one cell's template, look the same. Nothing short of a UMI separates those. For the question that matters here — is one lineage dominating the library? — the clone is the right unit, and it needs no change to the protocol.
 
@@ -22,32 +22,32 @@ If it is, reads sharing a junction should share their mutations: they inherited 
 
 | Library | Reads with a junction | Clones | Mutation sharing (Jaccard) within a clone | Between clones | Ratio |
 |---|---:|---:|---:|---:|---:|
-| Wt3 | 352 | 41 | 0.510 | 0.024 | **22×** |
-| Wt4 | 258 | 18 | 0.873 | 0.003 | **265×** |
-| Wt2 | 391 | 28 | 0.004 | 0.002 | 2× (see below) |
+| Wt3 | 352 | 37 | 0.495 | 0.019 | **26×** |
+| Wt4 | 258 | 17 | 0.874 | 0.003 | **324×** |
+| Wt2 | 391 | 23 | 0.004 | 0.002 | 2× (see below) |
 
 For Wt3 and Wt4 the junction separates lineages cleanly. The knockouts carry almost no mutations, so there is nothing to share.
 
 ## What it found: Wt2 is one clone, mostly
 
-Wt2's junctions are dominated by one sequence: 322 of 329 reads in its largest cluster carry the identical 20-mer (`TTACTACGGTAGTAGCTAGG`, a D segment joined to J꜀4 through two N bases). Identity at 98% rules out a clustering artefact; sequencing errors would scatter it.
+Wt2's junctions are dominated by one sequence: 322 of the 334 reads in its largest cluster carry the identical 20-mer (`TTACTACGGTAGTAGCTAGG`, a D segment joined to J꜀4 through two N bases). Identity at 98% rules out a clustering artefact; sequencing errors would scatter it.
 
-**That clone is almost unmutated.** 6% of its reads carry any called mutation, against 56% of Wt2's other reads; 0.07 mutations per read against 5.03. It makes up 84% of Wt2's reads with a junction, and it is why Wt2's within-clone sharing looks low: an unmutated clone has nothing to share.
+**That clone is almost unmutated.** 7% of its reads carry any called mutation, against 38% of Wt2's other analysed reads; 0.1 mutations per read against 2.6. It makes up 85% of Wt2's reads with a junction, and it is why Wt2's within-clone sharing looks low: an unmutated clone has nothing to share.
 
-Whether it is a genuinely expanded clone or a PCR jackpot of one cell's template, it is one lineage, and read-weighted numbers count it 330 times.
+Whether it is a genuinely expanded clone or a PCR jackpot of one cell's template, it is one lineage, and read-weighted numbers count it 334 times.
 
 ## Read-weighted against clone-weighted
 
 | Library | Mutations per 10³ bp, per read | Per clone | Largest clone |
 |---|---:|---:|---:|
-| Wt2 | 1.74 | **10.67** | 84% |
-| Wt3 | 21.34 | 24.25 | 21% |
-| Wt4 | 4.78 | 4.62 | 13% |
+| Wt2 | 1.74 | **12.00** | 85% |
+| Wt3 | 21.34 | 24.57 | 24% |
+| Wt4 | 4.78 | 4.67 | 13% |
 | KO1 | 0.00 | 0.00 | 26% |
-| KO2 | 0.13 | 0.17 | 17% |
-| KO3 | 0.02 | 0.06 | 14% |
+| KO2 | 0.13 | 0.20 | 17% |
+| KO3 | 0.02 | 0.07 | 14% |
 
-Wt2 moves sixfold; the libraries without a dominant clone barely move. Wild type against *Aicda*-/-, Welch on log values: **P = 0.0033** clone-weighted against P = 0.0086 read-weighted, because Wt2 is no longer an outlier dragging the wild-type group down.
+Wt2 moves sevenfold; the libraries without a dominant clone barely move. Wild type against *Aicda*-/-, Welch on log values: **P = 0.0036** clone-weighted against P = 0.0086 read-weighted, because Wt2 is no longer an outlier dragging the wild-type group down.
 
 ## What is reported
 
