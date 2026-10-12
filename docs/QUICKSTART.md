@@ -31,7 +31,19 @@ Things to check before believing a number:
 - at least two controls ticked, three if you have them, all from the same
   sequencing run;
 - `pct_GC` well above half and `pct_GC_in_WRC_GYW` high in the mutating group;
-- the control group's density near zero.
+- the control group's density near zero;
+- `clustered_calls` zero. Anything above zero means calls packed into a few
+  bases, which is usually an artefact in that one library rather than
+  hypermutation, and no control can correct for it;
+- the spectrum looks like AID's. If the sample is repair-deficient (UNG or
+  MSH2 knocked out), `pct_CT_GA` should be near 100.
 
 With three samples per group the Mann-Whitney p cannot go below 0.1, so report
 the Welch p and show every sample as a dot.
+
+Two densities are reported. `unique_density_x1e5` counts only what the per-site
+test called, and is the conservative, Geneious-comparable number.
+`combined_density_x1e5` adds an estimate of the mutations carried by a single
+read, which no per-site test can confirm at these depths, and comes with a 95%
+interval. Use the first to compare with published work and the second when you
+want the fullest estimate of mutation load.
