@@ -35,6 +35,15 @@ def test_decoys_are_scaled_to_the_samples_bases():
     assert t == 1e-6 and sum(keep) == 10       # 10 expected false at 0.01: rejected
 
 
+def test_decoys_are_not_scaled_down_for_a_library_below_their_depth():
+    # a shallow library: few bases, many weak candidates; scaled down by its bases
+    # the decoys would predict almost no false calls and every candidate would pass
+    sample = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8] * 5
+    decoys = [([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] * 3, 10000)]
+    keep, t = _control_fdr(sample, decoys, 500, 0.05)
+    assert t is None and not any(keep)
+
+
 def test_no_decoy_calls_and_no_sample_calls():
     assert _control_fdr([], [([0.5], 10)], 10, 0.05) == ([], None)
     keep, t = _control_fdr([0.5, 0.9], [([1e-9, 1e-9], 10)], 10, 0.05)

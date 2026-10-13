@@ -128,7 +128,7 @@ def _control_fdr(pvals: list[float], decoys: list[tuple[list[float], int]], base
     `decoys` holds, for each held-out control, the sorted p-values of its
     candidates when called against the other controls, and its bases in the
     window. Expected false calls at t are the mean, over controls, of their
-    candidates with p <= t, scaled to this sample's bases. The estimate is made
+    candidates with p <= t, scaled up (never down) to this sample's bases. The estimate is made
     at every observed p-value and the largest passing threshold is used, as in
     target-decoy FDR. Returns the keep mask and the threshold (None if no call).
     """
@@ -139,7 +139,10 @@ def _control_fdr(pvals: list[float], decoys: list[tuple[list[float], int]], base
     best = None
     for t in order:
         n_s = bisect_right(s, t)
-        per = [bisect_right(d, t) * (bases / b if b else 0.0) for d, b in decoys]
+        # never scaled down: a library below the decoys' depth has fewer bases but
+        # coarser p values, and scaling the decoys down by its bases let one of
+        # 372 reads keep candidates up to p = 0.8 (CH12F3, R50E)
+        per = [bisect_right(d, t) * (max(1.0, bases / b) if b else 0.0) for d, b in decoys]
         exp_false = max(per) if estimate == "max" else sum(per) / len(per)
         if exp_false <= alpha * n_s:
             best = t
