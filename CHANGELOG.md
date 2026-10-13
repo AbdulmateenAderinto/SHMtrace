@@ -7,6 +7,9 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Control-based FDR: decoy counts are scaled up to a larger library's bases but never down. Scaled
+  down, a library far below the decoys' depth kept candidates up to p = 0.8 (one CH12F3 library of
+  372 reads made 130 calls; now 0). Libraries at the analysis depth are unaffected.
 - **`shmtrace-sheet run` infers the platform from the sheet's files** (`--platform` now defaults to
   inference: .ab1/.abi/.scf/.seq/.gb chromatograms are Sanger, FASTQ/BAM reads or pooled barcoded rows
   are nanopore; FASTA follows the other files and alone stays Sanger) and prints the platform it used. It used to default to Sanger, which analyzed read
