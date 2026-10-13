@@ -155,9 +155,11 @@ class Params:
     # "mean" over controls, or "max" (the noisiest control; guards against a sample
     # that errs more than the average control)
     control_decoy_estimate: str = "mean"
-    # processes for per-library work (parallel.py): 0 = one fewer than the cores, up
-    # to 8; 1 = this process only. Results do not depend on it.
-    jobs: int = 0
+    # processes for per-library work (parallel.py): 1 = this process only (default);
+    # 0 = one fewer than the cores, up to 8. Results do not depend on it. Worker
+    # processes are started by "spawn", so a script that sets jobs != 1 must run its
+    # analysis under `if __name__ == "__main__":` (the shmtrace commands do).
+    jobs: int = 1
     fdr_alpha: float = 0.05                # target false discovery rate
     # Which hypotheses Benjamini-Hochberg counts:
     #   "candidates" only (position, alt) pairs seen in at least one read (the
