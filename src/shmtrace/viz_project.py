@@ -326,7 +326,8 @@ def group_positional(res: dict, fmt: str = "png") -> bytes:
         ax.plot(res["hotspots"], [-0.07 * ymax] * len(res["hotspots"]), "|",
                 color="#AAA", ms=4, zorder=1)
         ax.set_ylim(-0.13 * ymax, 1.1 * ymax)
-        ax.set_ylabel(g, rotation=0, ha="right", va="center", fontweight="bold")
+        # the group's name above its panel, so it never meets the shared y-axis label
+        ax.set_title(g, loc="left", fontsize=10, fontweight="bold", pad=3)
         ax.set_xlim(lo - 2, hi + 2)
         ax.grid(axis="y", color="#EEE", lw=0.8)
         ax.set_axisbelow(True)
@@ -335,7 +336,7 @@ def group_positional(res: dict, fmt: str = "png") -> bytes:
                            "Grey ticks: WRC/GYW hotspots.  "
                            "Faint traces: one sample each.  "
                            "Each panel has its own y scale")
-    fig.text(-0.01, 0.5, "% of reads mutated at that position", rotation=90, va="center")
+    fig.supylabel("% of reads mutated at that position", fontsize=10)
     return _save(fig, fmt)
 
 
