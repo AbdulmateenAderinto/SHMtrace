@@ -28,6 +28,7 @@ Rules (mirrors the Geneious workflow used in the paper):
   * Restricted to analysis_window if given.
 """
 from __future__ import annotations
+from bisect import bisect_right
 
 from collections import defaultdict
 from dataclasses import dataclass
@@ -117,6 +118,34 @@ def _geneious_pvalue(k: int, depth: int, mean_alt_q: float) -> float:
         return 1.0
     e = 10 ** (-mean_alt_q / 10.0)
     return float(binom.sf(k - 1, depth, e))
+
+
+def _control_fdr(pvals: list[float], decoys: list[tuple[list[float], int]], bases: int,
+                 alpha: float, estimate: str = "mean") -> tuple[list[bool], float | None]:
+    """Keep candidates up to the largest p-value threshold t at which the false
+    calls the controls predict are at most `alpha` of the calls.
+
+    `decoys` holds, for each held-out control, the sorted p-values of its
+    candidates when called against the other controls, and its bases in the
+    window. Expected false calls at t are the mean, over controls, of their
+    candidates with p <= t, scaled to this sample's bases. The estimate is made
+    at every observed p-value and the largest passing threshold is used, as in
+    target-decoy FDR. Returns the keep mask and the threshold (None if no call).
+    """
+    if not pvals:
+        return [], None
+    order = sorted(set(pvals))
+    s = sorted(pvals)
+    best = None
+    for t in order:
+        n_s = bisect_right(s, t)
+        per = [bisect_right(d, t) * (bases / b if b else 0.0) for d, b in decoys]
+        exp_false = max(per) if estimate == "max" else sum(per) / len(per)
+        if exp_false <= alpha * n_s:
+            best = t
+    if best is None:
+        return [False] * len(pvals), None
+    return [pv <= best for pv in pvals], best
 
 
 def _benjamini_hochberg(pvals: list[float], alpha: float) -> list[bool]:
@@ -335,9 +364,16 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
                                       ref[max(0, rpos - 2):rpos + 3]))
             pvals.append(pv)
 
+    control_threshold = None
+    decoys = list((getattr(null_rates, "decoys", None) or {}).values()) if null_rates is not None else []
     if model == "sanger":
         keep = [True] * len(pvals)               # quality threshold already applied
-    elif p.multiple_testing == "bh":
+    elif p.multiple_testing == "control" and decoys:
+        win_bases = sum(depth.get(pos, 0) for pos in range(lo, hi + 1))
+        keep, control_threshold = _control_fdr(pvals, decoys, win_bases, p.fdr_alpha,
+                                               p.control_decoy_estimate)
+    elif p.multiple_testing in ("bh", "control"):
+        # "control" without decoys (fewer than two controls): Benjamini-Hochberg
         if p.bh_family == "all":
             # untested (unseen) alternatives have p = 1: they only enlarge m
             pad = max(0, n_hypotheses - len(pvals))
@@ -372,7 +408,10 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         "germline_sites": germline_sites,
         "candidates_tested": len(candidates),
         "hypotheses": n_hypotheses if p.bh_family == "all" else len(candidates),
-        "multiple_testing": "none" if model == "sanger" else p.multiple_testing,
+        "multiple_testing": "none" if model == "sanger" else
+                            ("control" if control_threshold is not None or (p.multiple_testing == "control" and decoys)
+                             else "bh" if p.multiple_testing == "control" else p.multiple_testing),
+        "control_fdr_threshold": control_threshold,
         "error_model": ("sanger_threshold" if model == "sanger"
                         else "geneious" if model == "geneious"
                         else "strand_betabinomial" if model == "strand"

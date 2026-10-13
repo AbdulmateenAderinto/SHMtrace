@@ -30,7 +30,8 @@ OUT = Path(__file__).parent / "out"
 PROFILES = ("recommended", "geneious", "v0.1", "pbinom")
 PROFILES_RUN, WITH_LOFREQ, TAG = list(PROFILES), True, ""
 # extra settings tried on top of a mode: name -> (mode, Params overrides)
-VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"})}
+VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
+            "recommended_max": ("recommended", {"control_decoy_estimate": "max"})}
 
 
 def run(key, reps, n_sites, seed=1):

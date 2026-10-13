@@ -170,6 +170,11 @@ class NullModel(dict):
         # between-library inflation of the quality-calibrated rates, measured by
         # testing each control against the others (calibrate_qscale)
         self.qscale = float(qscale)
+        # control-based FDR (multiple_testing="control"): for each control, the
+        # p-values of its candidates when it was called against the other
+        # controls at the samples' depth, and the bases it had in the window.
+        # {control name: (sorted p-values, bases)}
+        self.decoys: dict = {}
 
     @property
     def has_qcal(self) -> bool:
@@ -270,8 +275,14 @@ QSCALE_GRID = (1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 50.0)
 DEFAULT_QSCALE = 10.0   # used with a single control file; see calibrate_qscale
 
 
+def window_bases(aligned, lo: int, hi: int) -> int:
+    """Bases read inside the window (the denominator the decoy counts are scaled by)."""
+    return sum(1 for r in aligned for rpos, base, _q in r.pairs if base in BASES and lo <= rpos <= hi)
+
+
 def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: Params,
-                     lo: int, hi: int, alpha: float = 0.01) -> tuple[float, dict]:
+                     lo: int, hi: int, alpha: float = 0.01, depth: int | None = None,
+                     names: list[str] | None = None) -> tuple[float, dict]:
     """Inflate the quality-calibrated rates until controls look like controls.
 
     Pooled rates are fitted from some libraries and applied to another, and
@@ -286,7 +297,13 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     folds = []
     for i, test in enumerate(aligned_per_file):
         others = [a for j, a in enumerate(aligned_per_file) if j != i]
+        if depth:
+            # each held-out control at the samples' depth, so its candidates (the
+            # decoys of multiple_testing="control") are what a sample would show
+            from .reads_filter import downsample
+            test = downsample(test, replace(p, downsample_to=depth))[0]
         folds.append((test, fit_aligned(others, ref, p, lo, hi, calibrate=False)[0]))
+    names = list(names) if names else [f"control_{i + 1}" for i in range(len(folds))]
     pp = replace(p, error_model="qcal", multiple_testing="none", max_pvalue=1.0,
                  strand_filter="off", mask_homopolymers=False)
     trace = {}
@@ -294,21 +311,26 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     tmp.write(f">{ref_name}\n{ref}\n")
     tmp.close()
     try:
+        decoys = {}
         for c in QSCALE_GRID:
             m = small = 0
-            for test, null in folds:
+            decoys = {}
+            for name, (test, null) in zip(names, folds, strict=True):
                 null.qscale = c
                 vs, _st = call_variants(test, tmp.name, ref_name, pp, null)
                 m += len(vs)
                 small += sum(v.p_value < alpha for v in vs)
+                decoys[name] = (sorted(v.p_value for v in vs), window_bases(test, lo, hi))
             trace[c] = (small, m)
             if small <= alpha * m:
                 return c, {"qscale_source": "leave-one-control-out",
-                           "qscale_trace": {str(k): v for k, v in trace.items()}}
+                           "qscale_trace": {str(k): v for k, v in trace.items()},
+                           "decoys": decoys}
     finally:
         os.remove(tmp.name)
     return QSCALE_GRID[-1], {"qscale_source": "leave-one-control-out (grid maximum)",
-                             "qscale_trace": {str(k): v for k, v in trace.items()}}
+                             "qscale_trace": {str(k): v for k, v in trace.items()},
+                             "decoys": decoys}
 
 
 def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
@@ -422,7 +444,9 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
                      site_quals={k: v for k, v in site_quals.items() if v},
                      site_depth=site_depth)
     if calibrate:
-        null.qscale, s_cal = calibrate_qscale(aligned_per_file, ref, ref_name, p, lo, hi)
+        null.qscale, s_cal = calibrate_qscale(aligned_per_file, ref, ref_name, p, lo, hi,
+                                              depth=p.downsample_to)
+        null.decoys = s_cal.pop("decoys", {})
         stats.update(s_cal)
         stats["qscale"] = null.qscale
     stats["sites_modelled"] = len(rates)

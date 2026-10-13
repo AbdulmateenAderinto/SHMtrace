@@ -143,7 +143,18 @@ class Params:
     # ~1,587 for the 529 bp JH4 window. Uncorrected p <= 0.05 therefore expects
     # ~79 false calls by chance alone, which dominates the apparent background.
     # See docs/calibration/FINDINGS.md.
-    multiple_testing: str = "bh"           # "bh" (Benjamini-Hochberg) or "none"
+    # "bh" (Benjamini-Hochberg), "none", or "control": the threshold is set where
+    # the false calls predicted from the held-out controls (each control called
+    # against the others at the samples' depth) are at most fdr_alpha of the
+    # calls. BH over candidates assumes their p-values are uniform under the
+    # null, which a test conditioned on seeing the allele does not give; the
+    # controls measure the actual null distribution instead. Falls back to BH
+    # with fewer than two controls. The recommended mode uses it.
+    multiple_testing: str = "bh"
+    # how the false calls expected at a threshold are taken from the decoy controls:
+    # "mean" over controls, or "max" (the noisiest control; guards against a sample
+    # that errs more than the average control)
+    control_decoy_estimate: str = "mean"
     fdr_alpha: float = 0.05                # target false discovery rate
     # Which hypotheses Benjamini-Hochberg counts:
     #   "candidates" only (position, alt) pairs seen in at least one read (the

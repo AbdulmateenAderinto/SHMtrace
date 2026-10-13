@@ -189,7 +189,7 @@ def call(pile: Pileup, null: IndelNull | None, p,
         pvals.append(pv)
     if sanger:
         keep = [True] * len(cands)
-    elif p.multiple_testing == "bh":
+    elif p.multiple_testing in ("bh", "control"):       # decoys are substitution p-values
         keep = _benjamini_hochberg(pvals, p.fdr_alpha)
     else:
         keep = [pv <= p.max_pvalue for pv in pvals]

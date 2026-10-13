@@ -6,6 +6,20 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **The recommended mode now sets its call threshold from the controls** (`multiple_testing="control"`).
+  Benjamini-Hochberg over the candidates seen in a library assumes their p-values are uniform under
+  the null, which a test conditioned on the allele having been seen does not give: on N114 spike-ins
+  the observed FDR reached 0.105. Now each control, called against the other controls at the samples'
+  depth during the leave-one-control-out calibration, is a decoy library, and calls are kept up to the
+  largest threshold at which the false calls the decoys predict (mean over controls, scaled to the
+  sample's bases) are at most 5% of the calls. A control is never its own decoy. Falls back to BH with
+  fewer than two controls. On planted mutations (60 sites x 3 draws x 3 held-out controls): N114 FDR
+  0.105 -> 0.079 (the remainder from one held-out library noisier than its peers), J_H4 0.048, Smu
+  0.055, Pim1 0.035, with recall equal or higher than before. The calibration itself now runs at the
+  samples' depth. `control_decoy_estimate="max"` (the noisiest control) is available but cost J_H4
+  recall heavily. Indels keep BH. Tests: tests/test_control_fdr.py.
+
 ### Added
 - `shmtrace.mutation_tree`: mutation trees of a clone from long reads (mutations carried by the same reads form a node; a node's parent is the smallest node containing its reads; `fit` reports reads consistent with the tree). Figure: `docs/calibration/mutation_tree_figure.py`.
 - Project results record the background calibration (`calibration`: the leave-one-control-out factor and its trace).
