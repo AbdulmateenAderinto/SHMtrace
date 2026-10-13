@@ -84,6 +84,34 @@ def build(read_mutations: dict, min_reads: int = 2, merge: float = 0.9,
             "left_out": sum(1 for c in carriers.values() if len(c) < min_reads)}
 
 
+def four_gamete(read_mutations: dict, min_reads: int = 3, min_haplotype: int = 2) -> dict:
+    """Pairs of mutations that no tree can hold without a repeat (the four-gamete test).
+
+    Two mutations fit one tree only if some combination of carrying them is missing:
+    one nests in the other, or they never meet. When reads carry both, each alone and
+    neither, one mutation must have arisen twice (or a read is a PCR recombinant).
+    Mutations in at least `min_reads` reads are tested; a combination counts as present
+    only when `min_haplotype` reads show it, so a lone sequencing error can't create one.
+    """
+    carriers = defaultdict(set)
+    for r, muts in read_mutations.items():
+        for m in muts:
+            carriers[m].add(r)
+    muts = sorted(m for m, c in carriers.items() if len(c) >= min_reads)
+    reads = set(read_mutations)
+    bad = tested = 0
+    for i, a in enumerate(muts):
+        for b in muts[i + 1:]:
+            A, B = carriers[a], carriers[b]
+            both, a_only, b_only = len(A & B), len(A - B), len(B - A)
+            neither = len(reads) - len(A | B)
+            tested += 1
+            if min(both, a_only, b_only, neither) >= min_haplotype:
+                bad += 1
+    return {"pairs": tested, "incompatible": bad,
+            "incompatible_pct": round(100 * bad / tested, 1) if tested else None, "mutations": len(muts)}
+
+
 def _path(n: Node, by_id: dict) -> list[int]:
     out = [n.id]
     while n.parent is not None:
@@ -135,4 +163,4 @@ def clone_reads(aligned, read_rows: list, variants: list, p, max_edits: int | No
     return dict(sorted(out.items(), key=lambda kv: -len(kv[1])))
 
 
-__all__ = ["Node", "build", "depth", "clone_reads"]
+__all__ = ["Node", "build", "depth", "clone_reads", "four_gamete"]

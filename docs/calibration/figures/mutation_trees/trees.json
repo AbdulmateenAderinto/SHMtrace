@@ -1,4 +1,196 @@
 {
+ "four_gamete": {
+  "jh4": {
+   "WT2:0": {
+    "pairs": 1,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 2
+   },
+   "WT2:1": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 1
+   },
+   "WT3:0": {
+    "pairs": 1128,
+    "incompatible": 10,
+    "incompatible_pct": 0.9,
+    "mutations": 48
+   },
+   "WT3:1": {
+    "pairs": 276,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 24
+   },
+   "WT3:3": {
+    "pairs": 378,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 28
+   },
+   "WT3:2": {
+    "pairs": 1326,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 52
+   },
+   "WT3:17": {
+    "pairs": 136,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 17
+   },
+   "WT3:4": {
+    "pairs": 210,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 21
+   },
+   "WT3:5": {
+    "pairs": 190,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 20
+   },
+   "WT3:6": {
+    "pairs": 3,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 3
+   },
+   "WT3:7": {
+    "pairs": 36,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 9
+   },
+   "WT3:8": {
+    "pairs": 496,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 32
+   },
+   "WT3:9": {
+    "pairs": 210,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 21
+   },
+   "WT3:10": {
+    "pairs": 406,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 29
+   },
+   "WT4:0": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:1": {
+    "pairs": 45,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 10
+   },
+   "WT4:2": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:3": {
+    "pairs": 78,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 13
+   },
+   "WT4:4": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 1
+   },
+   "WT4:5": {
+    "pairs": 1,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 2
+   },
+   "WT4:6": {
+    "pairs": 231,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 22
+   },
+   "WT4:7": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:8": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:9": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:10": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:12": {
+    "pairs": 6,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 4
+   },
+   "WT4:11": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:13": {
+    "pairs": 1,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 2
+   }
+  },
+  "n114": {
+   "C1": {
+    "pairs": 406,
+    "incompatible": 28,
+    "incompatible_pct": 6.9,
+    "mutations": 29
+   },
+   "D3": {
+    "pairs": 325,
+    "incompatible": 4,
+    "incompatible_pct": 1.2,
+    "mutations": 26
+   },
+   "D5": {
+    "pairs": 1596,
+    "incompatible": 110,
+    "incompatible_pct": 6.9,
+    "mutations": 57
+   }
+  }
+ },
  "trees": {
   "WT3:0": [
    {
