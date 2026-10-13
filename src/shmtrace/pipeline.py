@@ -274,7 +274,7 @@ MODES = {
     # falls back to the read-quality test. Chosen on the 2026-10-11 benchmark:
     # Geneious-level WT signal with a quarter of its control background
     # (docs/calibration/ERROR_MODELS.md)
-    "recommended": {"error_model": "qcal"},
+    "recommended": {"error_model": "qcal", "multiple_testing": "control"},
     # the v0.1 default: per-position empirical null (or read quality), BH
     "v0.1": {},
     # the manuscript's rule: Geneious approximate p-value, uncorrected, no phasing

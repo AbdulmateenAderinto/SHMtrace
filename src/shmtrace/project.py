@@ -361,11 +361,14 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # own leave-itself-out null, so a project of N samples calibrates once.
     qscale = None
     calibration: dict = {}
+    decoys: dict = {}
     if p.error_model == "qcal" and not sanger and controls:
         if len(controls) >= 2:
             progress(0.1, "calibrating the background model")
             qscale, calibration = null_model.calibrate_qscale(
-                [b["reads"][c] for c in sorted(controls)], ref, ref_name, p, lo, hi)
+                [b["reads"][c] for c in sorted(controls)], ref, ref_name, p, lo, hi,
+                depth=depth, names=sorted(controls))
+            decoys = calibration.pop("decoys", {})
         else:
             # one control cannot be left out of itself, so the inflation factor
             # cannot be measured; the default is the one calibrated on JH4
@@ -416,6 +419,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                              lo, hi, calibrate=False, ref_name=ref_name)[0]
                 if qscale is not None:
                     fit.qscale = qscale
+                # a control is never its own decoy: only its peers' are used
+                fit.decoys = {c: decoys[c] for c in peers if c in decoys}
                 nulls[peers] = fit
             null = nulls[peers]
         few = sanger and len(b["reads"][name]) < p.sanger_germline_min_clones
