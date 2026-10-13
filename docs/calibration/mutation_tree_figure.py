@@ -24,17 +24,17 @@ ROOT = Path(__file__).resolve().parents[2]
 REF = ROOT / "src/shmtrace/references"
 DEP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Martin Lab/"
                      "Paper #1 - Nanopore sequencing/June 2nd analyses/submission_v4/"
-                     "ONT_SHM_DataDeposit_Ver8_2026-07-30/Raw_Data/02_JH4_ONT/Processed_FASTQ_Depth_Subsets")
+                     "ONT_SHM_DataDeposit_Ver8_2026-07-30/Raw_Data/02_JH4_ONT/Original_FASTQ")   # delivered reads
 LIBS = {"WT2": "DHJGKB_2_Wildtype_2", "WT3": "DHJGKB_3_Wildtype_3", "WT4": "DHJGKB_4_Wildtype_4",
         "KO1": "DHJGKB_5_AID_KO_1", "KO2": "DHJGKB_6_AID_KO_2", "KO3": "DHJGKB_7_AID_KO_3"}
 OUT = Path(__file__).parent / "figures/mutation_trees"
-N114_DIR = DEP.parents[1] / "03_N114_ONT/Processed_FASTQ_Depth_Subsets"
-N114_LIBS = {"C1": ("75K3B3_6_C1_AID_10.06.24_N114", "pMX-Aicda"),
-             "D3": ("75K3B3_7_D3_AID_10.01.24_N114", "pMX-Aicda"),
-             "D5": ("75K3B3_10_D5_AID_6.28.24__N114", "pMX-Aicda"),
-             "C3": ("75K3B3_1_C3_Empty_March_2024_1_N114", "pMX-Empty"),
-             "C4": ("75K3B3_3_C4_Empty_March_2024_N114", "pMX-Empty"),
-             "D1": ("75K3B3_4_D1_Empty_March_2024_N114", "pMX-Empty")}
+N114_DIR = DEP.parents[1] / "03_N114_ONT/Original_FASTQ"
+N114_LIBS = {"C1": ("75K3B3_6_C1_AID_10.06.24", "pMX-Aicda"),
+             "D3": ("75K3B3_7_D3_AID_10.01.24", "pMX-Aicda"),
+             "D5": ("75K3B3_10_D5_AID_6.28.24_", "pMX-Aicda"),
+             "C3": ("75K3B3_1_C3_Empty_March_2024_1", "pMX-Empty"),
+             "C4": ("75K3B3_3_C4_Empty_March_2024", "pMX-Empty"),
+             "D1": ("75K3B3_4_D1_Empty_March_2024", "pMX-Empty")}
 MIN_CLONE_READS = 10
 # mutation classes: AID deaminates C (G on the other strand); A:T mutations come from
 # error-prone repair of the resulting lesion (MMR with polymerase eta)
@@ -113,7 +113,7 @@ def n114_reads():
     """N114 subclones: one fixed V region, so every read of a subclone is one clone."""
     proj = {"name": "N114 mutation trees", "region": "n114_vregion",
             "reference": str(REF / "n114_vregion.fasta"), "contaminants": [], "mode": "recommended",
-            "depth": 500, "samples": [{"name": n, "path": str(N114_DIR / f"{f}_sub500.fastq"), "group": g,
+            "depth": 500, "samples": [{"name": n, "path": str(N114_DIR / f"{f}.fastq"), "group": g,
                                        "control": g == "pMX-Empty"} for n, (f, g) in N114_LIBS.items()]}
     res = project.run_project(proj)
     out = {}
@@ -252,7 +252,7 @@ def main(depth=500):
             "reference": str(REF / "mouse_jh4_intron.fasta"),
             "contaminants": [str(REF / "mouse_jh4_contaminant.fasta")], "mode": "recommended", "depth": depth,
             "overrides": {"analysis_window": [90, 1230]},
-            "samples": [{"name": n, "path": str(DEP / f"{f}_C57BL6_sub{depth}.fastq"),
+            "samples": [{"name": n, "path": str(DEP / f"{f}.fastq"),
                          "group": "Wt" if n.startswith("WT") else "Aicda-/-", "control": n.startswith("KO")}
                         for n, f in LIBS.items()]}
     res = project.run_project(proj)
@@ -311,12 +311,18 @@ def main(depth=500):
         for m, rows in summary.items():
             print(m, rows[:6])
         return
-    wt3_figure(picked["WT3:0"], clone_reads["WT3:0"], ref)
+    wt3_cid, wt3_tree = best["WT3"][1], best["WT3"][2]          # Wt3's most branched clone
+    wt3_figure(wt3_tree, clone_reads[f"WT3:{wt3_cid}"], ref)
     n114, n114_ref = n114_reads()
-    contrast_figure(picked["WT3:0"], clone_reads["WT3:0"], ref, jh4_units, n114, n114_ref)
+    contrast_figure(wt3_tree, clone_reads[f"WT3:{wt3_cid}"], ref, jh4_units, n114, n114_ref)
     four = {"jh4": dict(jh4_units), "n114": {k: mutation_tree.four_gamete(v) for k, v in n114.items()}}
     print("four-gamete", {k: v for k, v in four["n114"].items()},
           {k: v for k, v in four["jh4"].items() if v["pairs"] >= 3})
+    t = wt3_tree
+    print("WT3 tree", wt3_cid, "reads", t["reads"], "nodes", len(t["nodes"]), "fit", t["fit"],
+          "depth", max(mutation_tree.depth(t, n.id) for n in t["nodes"]),
+          "roots", [len(n.mutations) for n in t["nodes"] if n.parent is None],
+          "branch points", sum(len(n.children) > 1 for n in t["nodes"]))
     json.dump({"four_gamete": four, "trees": {k: [{"id": n.id, "parent": n.parent, "reads": len(n.reads),
                               "mutations": [f"{ref[q - 1]}{q}{a}" for q, a in n.mutations]} for n in t["nodes"]]
                          for k, t in picked.items()},

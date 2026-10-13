@@ -78,7 +78,7 @@ function loadApp() {
   { get: (t, k) => (k in t ? t[k] : blob()) });
   ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx; ctx.window.native = blob(); ctx.addEventListener = () => {};
   const code = order.map((f) => `/* ${f} */\n` + fs.readFileSync(path.join(dir, f), 'utf8')).join('\n;\n')
-    + '\n;({ Make, makeGroup, pageSvgString, ICON_MAP })';
+    + '\n;({ Make, makeGroup, pageSvgString, ICON_MAP, state, check: (p) => checkFigure(p) })';
   return { app: vm.runInNewContext(code, ctx, { filename: 'scicanvas-bundle.js' }), ctx };
 }
 
@@ -116,17 +116,47 @@ function check(page) {
   if (bad.length) throw new Error('Cell Press requirements not met:\n  ' + bad.join('\n  '));
 }
 
-function main() {
+// SciCanvas's own Check tab (journal.js checkFigure and every module that extends it: panel overruns,
+// line ends, legends, linked data), run with the Cell Press full-width preset.
+async function sciCheck(app, page) {
+  app.state.doc = { pages: [page], journal: { id: 'cell', widthMM: PRINT_MM, commercial: false, guide: false } };
+  app.state.pageIndex = 0;
+  // images: their pixel width, so the resolution check need not load them (the SHMtrace mark is 1,024 px)
+  const each = (l) => l.forEach((o) => { if (o.type === 'image' && !o.nw) o.nw = 1024; if (o.children) each(o.children); });
+  each(page.objects);
+  const run = () => Promise.race([app.check(page), new Promise((_, no) => setTimeout(() => no(new Error('SciCanvas check timed out')), 20000))]);
+  let res = await run();
+  const byId = new Map(); const walk = (l) => l.forEach((o) => { byId.set(o.id, o); if (o.children) walk(o.children); }); walk(page.objects);
+  const shown = res.issues.filter((x) => x.sev !== 'info');
+  for (const x of res.issues) {
+    const o = x.id && byId.get(x.id);
+    const pt = (e) => (e && e.x != null ? `${Math.round(e.x)},${Math.round(e.y)}` : e && e.id ? `#${(byId.get(e.id) || {}).type || '?'}` : '?');
+    const where = !o ? '' : o.type === 'connector' ? ` [line ${pt(o.from)} -> ${pt(o.to)}]` : ` [${o.type} at ${Math.round(o.x)},${Math.round(o.y)}]`;
+    console.log(`  SciCanvas check ${x.sev}: ${x.kind}: ${x.msg}${where}`);
+  }
+  console.log(`SciCanvas check: ${shown.length} problems, ${res.issues.length - shown.length} notes`);
+  return shown.length;
+}
+
+async function main() {
   const [builderPath, stem] = process.argv.slice(2);
   const { app, ctx } = loadApp();
   // the SHMtrace mark, for builders that place it (LOGO); in the app, paste it as an image instead
   const logo = path.join(__dirname, '..', '..', '..', '..', 'packaging', 'icon', 'icon.svg');
   ctx.LOGO = 'data:image/svg+xml;base64,' + fs.readFileSync(logo).toString('base64');
+  // SHMtrace's read accounting per library (READS.jh4 / READS.n114), from the analysis outputs
+  const figs = path.join(__dirname, '..', '..', 'figures');
+  ctx.READS = {};
+  for (const [k, run] of [['jh4', 'jh4_shmtrace'], ['n114', 'n114_shmtrace']]) {
+    const f = path.join(figs, run, 'table_s1.json');
+    if (fs.existsSync(f)) ctx.READS[k] = JSON.parse(fs.readFileSync(f, 'utf8'));
+  }
   const builder = vm.runInNewContext(`(${fs.readFileSync(builderPath, 'utf8')})`, ctx);
   const page = builder();
   const missing = page.objects.filter((o) => o.type === 'icon' && !app.ICON_MAP[o.iconId]).map((o) => o.iconId);
   if (missing.length) throw new Error(`unknown icons: ${missing.join(', ')}`);
   check(page);
+  await sciCheck(app, page);
   const svg = app.pageSvgString(page);
   fs.writeFileSync(`${stem}.svg`, svg);
   fs.writeFileSync(`${stem}.scifig`, JSON.stringify({ version: 2, pages: [page], uploads: [], assets: [] }));
@@ -151,4 +181,4 @@ svg{display:block;width:${page.width}px;height:${page.height}px}</style>${svg}`)
   console.log(`${stem}: ${page.objects.length} objects; PDF, ${TIFF_DPI}-dpi TIFF, SVG, scifig`);
 }
 
-main();
+main().catch((e) => { console.error(e.message); process.exit(1); });

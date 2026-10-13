@@ -71,8 +71,11 @@ DEPOSIT_NAMES = {"WT2": "DHJGKB_2_Wildtype_2", "WT3": "DHJGKB_3_Wildtype_3", "WT
 
 
 def ont_path(n: str, ont_dir: Path | None) -> Path:
+    """examples_compare/, the deposit's delivered reads (Original_FASTQ/), or its 500-read subsets."""
     if ont_dir is None:
         return EX / f"{n}.fastq"
+    if ont_dir.name == "Original_FASTQ":
+        return ont_dir / f"{DEPOSIT_NAMES[n]}.fastq"
     return ont_dir / f"{DEPOSIT_NAMES[n]}_C57BL6_sub500.fastq"
 
 
@@ -627,8 +630,8 @@ def main():
     # (SANGER_VS_NANOPORE.md, "Which clone belongs to which mouse")
     ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_ab1_by_mouse"))
     ap.add_argument("--ont-dir", default=None,
-                    help="the deposit's Processed_FASTQ_Depth_Subsets folder: use its *_sub500 files "
-                         "(the manuscript's realised inputs) instead of examples_compare/")
+                    help="the deposit's Original_FASTQ folder (delivered reads; the manuscript's input, SHMtrace "
+                         "drawing 500 usable reads) or Processed_FASTQ_Depth_Subsets (the old *_sub500 files)")
     ap.add_argument("--out", default=str(ROOT / "docs/calibration/figures/sanger_vs_nanopore"))
     a = ap.parse_args()
     out = Path(a.out) / (a.ont_mode + a.suffix)

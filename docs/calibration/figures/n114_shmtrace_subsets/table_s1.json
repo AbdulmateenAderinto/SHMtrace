@@ -1,0 +1,44 @@
+{
+ "C1": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 307,
+  "calls": 69
+ },
+ "D3": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 271,
+  "calls": 68
+ },
+ "D5": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 499,
+  "candidates_tested": 393,
+  "calls": 150
+ },
+ "C3": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 206,
+  "calls": 0
+ },
+ "C4": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 494,
+  "candidates_tested": 206,
+  "calls": 0
+ },
+ "D1": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 168,
+  "calls": 1
+ }
+}

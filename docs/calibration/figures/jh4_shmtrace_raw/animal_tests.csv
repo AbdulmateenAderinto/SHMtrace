@@ -1,3 +1,0 @@
-metric,group,control,animals_case,animals_control,rate_case,rate_control,dispersion,fold,fold_is_lower_bound,p_welch_log,fold_geometric,fold_ci,p_permutation,lrt_negbinomial,p_negbinomial,p_pooled_reads
-mutation_frequency,Wt,Aicda-/-,3,3,0.010029,4.7e-05,1.234434,215.081702,False,0.021964,362.82699,"[np.float64(4.994456918376105), np.float64(26357.905729074497)]",0.1,19.258905,0.024,0.0
-unique_density,Wt,Aicda-/-,3,3,0.000791,4e-06,0.31251,208.125789,False,0.001136,173.197844,"[np.float64(31.73711631283619), np.float64(945.1864792510086)]",0.1,59.527295,0.002,0.0

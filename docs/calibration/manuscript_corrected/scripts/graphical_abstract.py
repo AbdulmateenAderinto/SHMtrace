@@ -28,6 +28,32 @@ JH4_SANGER = np.array([_ST["sanger"][k] for k in _ORDER])
 JH4_ONT = np.array([_ST["ont"][k] for k in _ORDER])
 R_SPECTRUM = float(np.corrcoef(JH4_SANGER, JH4_ONT)[0, 1])
 
+# Headline numbers from the SHMtrace results (never typed in): fold differences with a library
+# without calls at its one-event density (a lower bound), recovery at 500 reads, control background
+_CAL = Path(__file__).resolve().parents[2]
+
+
+def _geo(x):
+    return float(10 ** np.mean(np.log10(x)))
+
+
+def _fold(run, case, ctrl):
+    S = {s["sample"]: s for s in _json.load(open(_CAL / f"figures/{run}/project.json"))["samples"]}
+    d = lambda ks: [S[k]["unique_density_x1e5"] or S[k]["one_event_density_x1e5"] for k in ks]  # noqa: E731
+    censored = any(not S[k]["unique_density_x1e5"] for k in ctrl)
+    return _geo(d(case)) / _geo(d(ctrl)), censored, _geo(d(ctrl))
+
+
+def _recovery(assay, case):
+    dd = _json.load(open(_CAL / f"figures/depth_shmtrace/{assay}.json"))
+    return float(np.mean([dd["500"][k]["calls"] / max(dd[x][k]["calls"] for x in dd) for k in case])) * 100
+
+
+JH4_FOLD, JH4_CENS, JH4_BG = _fold("jh4_shmtrace", ["WT2", "WT3", "WT4"], ["KO1", "KO2", "KO3"])
+N114_FOLD, N114_CENS, _ = _fold("n114_shmtrace", ["C1", "D3", "D5"], ["C3", "C4", "D1"])
+JH4_REC = _recovery("jh4", ["WT2", "WT3", "WT4"])
+N114_REC = _recovery("n114", ["C1", "D3", "D5"])
+
 # Okabe-Ito-derived, colour-blind-safe palette.
 INK = "#17212B"
 MUTED = "#687684"
@@ -216,15 +242,16 @@ def main(output_dir: Path):
     # same 36.0–63.5 alignment grid.
     box_widths = [6.25, 6.25, 5.90, 8.05]
     xs = [36.0, 42.60, 49.20, 55.45]
-    titles = ["Align", "Read QC", "Depth", "Call SNVs"]
+    # SHMtrace's own steps, in its order: quality gates, competitive alignment, depth, calling
+    titles = ["Read QC", "Align", "Depth", "Call SNVs"]
     subtitles = [
-        "target-best\ncompetitive\nalignment",
-        "length window\nEE ≤ 0.01/base",
+        "length ≤ max\nEE ≤ 0.01/base",
+        "vs. paralogue;\nchimeras\nremoved",
         "random\n500 reads",
-        "confidence +\nfrequency filters",
+        "tested against\ncontrol errors",
     ]
-    colors = [BLUE_D, GREEN, AMBER, PURPLE]
-    fills = [PALE_BLUE, PALE_GREEN, "#FFF7DD", PALE_PURPLE]
+    colors = [GREEN, BLUE_D, AMBER, PURPLE]
+    fills = [PALE_GREEN, PALE_BLUE, "#FFF7DD", PALE_PURPLE]
     for i, (x, box_w, title, subtitle, color, fill) in enumerate(
             zip(xs, box_widths, titles, subtitles, colors, fills)):
         pipeline_box(ax, x, 13.7, box_w, title, subtitle, color, fill)
@@ -237,8 +264,8 @@ def main(output_dir: Path):
     rounded(ax, 36.0, 11.05, 27.5, 2.0, fc=PALE_PURPLE, ec="#E7BBD4",
             lw=0.75, radius=0.38)
     ax.text(49.75, 12.05,
-            "Retain FDR ≤ 0.05 vs. controls and read frequency < 50%\n"
-            "Count each unique position–substitution once per sample",
+            "SHMtrace: Benjamini–Hochberg FDR ≤ 0.05; sites at ≥ 50% removed\n"
+            "Each position–substitution counted once per sample",
             ha="center", va="center", fontsize=6.45, color=PURPLE,
             fontweight="bold", linespacing=1.08)
 
@@ -272,11 +299,11 @@ def main(output_dir: Path):
                 title="AID dependence", color=GREEN, fill=PALE_GREEN)
     ax.text(84.2, 27.4, r"Mouse $J_{\mathrm{H}4}$", fontsize=8.4,
             fontweight="bold", color=INK, ha="left", va="center")
-    ax.text(95.8, 27.4, "≥108×", fontsize=12.5, fontweight="bold",
+    ax.text(95.8, 27.4, f"{'≥' if JH4_CENS else '~'}{JH4_FOLD:.0f}×", fontsize=12.5, fontweight="bold",
             color=BLUE, ha="right", va="center")
     ax.text(84.2, 24.7, "N114 V region", fontsize=8.4,
             fontweight="bold", color=INK, ha="left", va="center")
-    ax.text(95.8, 24.7, "≥89×", fontsize=12.5, fontweight="bold",
+    ax.text(95.8, 24.7, f"{'≥' if N114_CENS else '~'}{N114_FOLD:.0f}×", fontsize=12.5, fontweight="bold",
             color=GREEN, ha="right", va="center")
     ax.text(84.2, 22.0, "G:C-biased AID signature", fontsize=8.2,
             color=MUTED, ha="left", va="center")
@@ -301,11 +328,11 @@ def main(output_dir: Path):
                 title="Depth + background", color=ORANGE, fill=PALE_ORANGE)
     rounded(ax, 84.0, 12.1, 5.8, 3.2, fc="white", ec=BLUE, lw=0.9, radius=0.35)
     rounded(ax, 90.3, 12.1, 5.8, 3.2, fc="white", ec=GREEN, lw=0.9, radius=0.35)
-    ax.text(86.9, 13.8, "91%", fontsize=12.0, fontweight="bold", color=BLUE,
+    ax.text(86.9, 13.8, f"{JH4_REC:.0f}%", fontsize=12.0, fontweight="bold", color=BLUE,
             ha="center", va="center")
     ax.text(86.9, 12.7, r"$J_{\mathrm{H}4}$", fontsize=7.5, color=MUTED,
             ha="center", va="center")
-    ax.text(93.2, 13.8, "91%", fontsize=12.0, fontweight="bold", color=GREEN,
+    ax.text(93.2, 13.8, f"{N114_REC:.0f}%", fontsize=12.0, fontweight="bold", color=GREEN,
             ha="center", va="center")
     ax.text(93.2, 12.7, "N114", fontsize=7.5, color=MUTED,
             ha="center", va="center")
@@ -313,7 +340,7 @@ def main(output_dir: Path):
             color=INK, ha="center", va="center")
     ax.text(90.0, 9.0, r"$Aicda^{-/-}$ control background", fontsize=7.3,
             color=MUTED, ha="center", va="center")
-    ax.text(90.0, 8.0, r"≈0.55 × 10$^{-5}$ variants/bp", fontsize=7.5,
+    ax.text(90.0, 8.0, rf"≈{JH4_BG:.2f} × 10$^{{-5}}$ variants/bp", fontsize=7.5,
             color=ORANGE, ha="center", va="center", fontweight="bold")
 
     # Cross-column arrows and final message.

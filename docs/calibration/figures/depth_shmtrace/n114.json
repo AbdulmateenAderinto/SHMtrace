@@ -3,23 +3,23 @@
   "C1": {
    "group": "pMX-Aicda",
    "reads": 30,
-   "calls": 2,
+   "calls": 18,
    "analysed_bp": 615,
-   "density": 10.913
+   "density": 99.215
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 30,
-   "calls": 1,
+   "calls": 10,
    "analysed_bp": 615,
-   "density": 5.438
+   "density": 56.07
   },
   "D5": {
    "group": "pMX-Aicda",
-   "reads": 29,
-   "calls": 2,
+   "reads": 30,
+   "calls": 44,
    "analysed_bp": 615,
-   "density": 11.371
+   "density": 244.18
   },
   "C3": {
    "group": "pMX-Empty",
@@ -31,39 +31,39 @@
   "C4": {
    "group": "pMX-Empty",
    "reads": 30,
-   "calls": 0,
+   "calls": 5,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 27.1
   },
   "D1": {
    "group": "pMX-Empty",
    "reads": 30,
-   "calls": 0,
+   "calls": 1,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 5.42
   }
  },
  "60": {
   "C1": {
    "group": "pMX-Aicda",
    "reads": 60,
-   "calls": 8,
+   "calls": 25,
    "analysed_bp": 615,
-   "density": 22.16
+   "density": 69.488
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 60,
-   "calls": 2,
+   "calls": 18,
    "analysed_bp": 615,
-   "density": 5.493
+   "density": 49.946
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 60,
-   "calls": 17,
+   "calls": 60,
    "analysed_bp": 615,
-   "density": 47.011
+   "density": 165.358
   },
   "C3": {
    "group": "pMX-Empty",
@@ -82,32 +82,32 @@
   "D1": {
    "group": "pMX-Empty",
    "reads": 60,
-   "calls": 0,
+   "calls": 2,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 5.456
   }
  },
  "125": {
   "C1": {
    "group": "pMX-Aicda",
    "reads": 125,
-   "calls": 16,
+   "calls": 48,
    "analysed_bp": 615,
-   "density": 21.255
+   "density": 63.506
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 125,
-   "calls": 9,
+   "calls": 33,
    "analysed_bp": 615,
-   "density": 11.802
+   "density": 43.767
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 125,
-   "calls": 80,
+   "calls": 87,
    "analysed_bp": 615,
-   "density": 105.159
+   "density": 115.386
   },
   "C3": {
    "group": "pMX-Empty",
@@ -126,32 +126,32 @@
   "D1": {
    "group": "pMX-Empty",
    "reads": 125,
-   "calls": 2,
+   "calls": 0,
    "analysed_bp": 615,
-   "density": 2.616
+   "density": 0.0
   }
  },
  "250": {
   "C1": {
    "group": "pMX-Aicda",
    "reads": 250,
-   "calls": 32,
+   "calls": 69,
    "analysed_bp": 615,
-   "density": 21.413
+   "density": 45.794
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 250,
-   "calls": 18,
+   "calls": 47,
    "analysed_bp": 615,
-   "density": 11.859
+   "density": 31.066
   },
   "D5": {
    "group": "pMX-Aicda",
-   "reads": 249,
-   "calls": 109,
+   "reads": 250,
+   "calls": 126,
    "analysed_bp": 615,
-   "density": 72.164
+   "density": 83.795
   },
   "C3": {
    "group": "pMX-Empty",
@@ -179,23 +179,23 @@
   "C1": {
    "group": "pMX-Aicda",
    "reads": 500,
-   "calls": 69,
+   "calls": 75,
    "analysed_bp": 615,
-   "density": 22.781
+   "density": 24.924
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 500,
-   "calls": 68,
+   "calls": 59,
    "analysed_bp": 615,
-   "density": 22.492
+   "density": 19.563
   },
   "D5": {
    "group": "pMX-Aicda",
-   "reads": 499,
-   "calls": 150,
+   "reads": 500,
+   "calls": 166,
    "analysed_bp": 615,
-   "density": 49.725
+   "density": 55.13
   },
   "C3": {
    "group": "pMX-Empty",
@@ -206,7 +206,7 @@
   },
   "C4": {
    "group": "pMX-Empty",
-   "reads": 494,
+   "reads": 500,
    "calls": 0,
    "analysed_bp": 615,
    "density": 0.0
@@ -214,32 +214,32 @@
   "D1": {
    "group": "pMX-Empty",
    "reads": 500,
-   "calls": 1,
+   "calls": 0,
    "analysed_bp": 615,
-   "density": 0.328
+   "density": 0.0
   }
  },
  "1000": {
   "C1": {
    "group": "pMX-Aicda",
    "reads": 1000,
-   "calls": 75,
+   "calls": 91,
    "analysed_bp": 615,
-   "density": 12.414
+   "density": 15.113
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 1000,
-   "calls": 58,
+   "calls": 56,
    "analysed_bp": 615,
-   "density": 9.562
+   "density": 9.227
   },
   "D5": {
    "group": "pMX-Aicda",
-   "reads": 999,
-   "calls": 185,
+   "reads": 1000,
+   "calls": 184,
    "analysed_bp": 615,
-   "density": 30.667
+   "density": 30.576
   },
   "C3": {
    "group": "pMX-Empty",
@@ -250,7 +250,7 @@
   },
   "C4": {
    "group": "pMX-Empty",
-   "reads": 990,
+   "reads": 1000,
    "calls": 0,
    "analysed_bp": 615,
    "density": 0.0

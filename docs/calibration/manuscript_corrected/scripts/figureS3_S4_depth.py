@@ -2,8 +2,8 @@
 # =============================================================================
 # figureS3_S4_depth.py  ->  Supplementary Figures S3 and S4
 # -----------------------------------------------------------------------------
-# Down-sampling analysis from SHMtrace calls on the deposited depth subsets
-# (sub30..sub1000; docs/calibration/depth_shmtrace.py) for the JH4 intron (WT/Aicda-/-) and the N114 V
+# Down-sampling analysis: at each depth SHMtrace draws that many usable reads from the
+# delivered reads of every library (docs/calibration/depth_shmtrace.py) for the JH4 intron (WT/Aicda-/-) and the N114 V
 # region (pMX-Aicda / pMX-Empty vector).
 #   S3  A/C  unique variants detected vs depth   (variant discovery)
 #       B/D  mutation density vs depth              (per-read, depth-dependent)
@@ -71,8 +71,7 @@ JH4_SUF="assembled to Jh4 Annotations.csv"; HYB_SUF="assembled to seq_23353 Anno
 
 def series(system):
     """returns (dict grp -> list-over-depth of [per-sample counts], analysed bp).
-    SHMtrace calls per deposited depth subset (docs/calibration/depth_shmtrace.py);
-    previously the Geneious sub30..sub1000 exports."""
+    SHMtrace calls at each depth, drawn from the delivered reads (depth_shmtrace.py)."""
     import json
     name={"JH4":"jh4","HYB":"n114"}[system]
     res=json.load(open(os.path.join(HERE,"..","..","figures","depth_shmtrace",f"{name}.json")))
@@ -133,12 +132,6 @@ fig,axes=plt.subplots(2,2,figsize=(13,9.2))
 plot_depth(axes[0,0],jh4["WT"],BLUE,BLUE_E,"$\\it{Wt}$")
 plot_depth(axes[0,0],jh4["KO"],RED,RED_E,"$\\it{Aicda}^{-/-}$")
 style(axes[0,0],YCOUNT,"$\\mathbfit{J_{H}4}$ intron"); axes[0,0].legend(frameon=False,fontsize=11,**LEGKW)
-# At 30 reads per control the background model cannot be calibrated: the controls
-# themselves receive calls, so this point is not comparable with the others.
-for _a in (axes[0,0],axes[0,1]):
-    _a.axvspan(-0.4,0.4,color="#EEE6E6",zorder=0)
-    _a.text(0,0.04,"30 reads:\ncontrols\nuncalibrated",transform=_a.get_xaxis_transform(),
-            ha="center",va="bottom",fontsize=8,color="#8E2F2C")
 plot_depth(axes[0,1],jh4["WT"],BLUE,BLUE_E,"$\\it{Wt}$",bp=bpJ)
 plot_depth(axes[0,1],jh4["KO"],RED,RED_E,"$\\it{Aicda}^{-/-}$",bp=bpJ)
 style(axes[0,1],YDENS,"$\\mathbfit{J_{H}4}$ intron")
@@ -186,9 +179,6 @@ for ax,(cbd,ttl,leg) in zip(ax2,[(jh4["WT"],"A   $\\mathbfit{J_{H}4}$ intron (wi
     ax.errorbar(x,mean,yerr=sd,fmt='-o',color=BLUE,mfc='white',mec=BLUE_E,mew=1.8,ms=9,lw=2.2,capsize=4,ecolor=BLUE_E,elinewidth=1.6,label=leg,zorder=5)
     ax.axhline(100,color="#9AA3AC",ls=":",lw=1.3,zorder=1)
     ax.axvline(DEPTHS.index(500),color=VLINE,ls="--",lw=1.6,zorder=1)
-    if ttl.startswith("A"):
-        ax.axvspan(-0.4,0.4,color="#EEE6E6",zorder=0)
-        ax.text(0,4,"controls\nuncalibrated",ha="center",va="bottom",fontsize=8.5,color="#8E2F2C")
     p500=mean[DEPTHS.index(500)]
     ax.text(0.55,90,f"{p500:.0f}% recovered\nat 500 reads",color=BLUE_E,fontsize=13,fontweight="bold",ha="left",va="top")
     ax.set_xticks(x); ax.set_xticklabels(DEPTHS); ax.set_xlabel("Reads subsampled")
