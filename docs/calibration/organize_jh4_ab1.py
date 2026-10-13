@@ -61,11 +61,20 @@ GENBANK_EXCLUDE = {"88-w2-28-user_added": "renamed copy of trace 434355-H11 88-k
 
 # Corrections applied even with --original: the author removed these from the manuscript's
 # set on sequence identity (12 Oct 2026). w4-9 is identical over 520 bp, 7 mutations, to two
-# MKLN K2 clones, so it cannot be a WT4 clone.
-ORIGINAL_ALSO = {("434141", "A11")}
+# MKLN K2 clones, so it cannot be a WT4 clone. D11 and F11 (labelled wt3-4 and wt3-6, filed
+# with WT2) belong to a lineage whose 24 founder mutations are in 109 WT3 nanopore reads and in
+# no WT2 or WT4 read, and are identical to WT3 clone 432625-E4: moved to WT3 (author's rule:
+# move when the founders are in that mouse's nanopore reads). C11 (wt3-3) is identical to WT3
+# clone 434141-F9, but its lineage is in no mouse's nanopore reads, so it stays where filed.
+ORIGINAL_ALSO = {("434141", "A11"), ("434138", "D11"), ("434138", "F11")}
 
 # (order, well) -> (mouse, reason). Each is a contradiction between label and sequence.
 CORRECTIONS = {
+    ("434138", "D11"): ("WT3", "labelled wt3-4, filed with WT2; its lineage's 24 founder mutations "
+                               "are in 109 WT3 nanopore reads and no WT2 read; identical to WT3 "
+                               "clone 432625-E4"),
+    ("434138", "F11"): ("WT3", "labelled wt3-6, filed with WT2; same lineage as wt3-4 (founders in "
+                               "109 WT3 nanopore reads, none in WT2); identical to 432625-E4"),
     ("434141", "E8"): ("WT3", "labelled w2-1, but 18 mutations where WT2's other 34 traces carry "
                               "at most 3; sits where w3-1 belongs in the w3 series (G8 w3-3, H8 "
                               "w3-4, A9 w3-5) while w2-1 is already at A7 on this plate"),

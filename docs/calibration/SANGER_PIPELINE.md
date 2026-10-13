@@ -133,11 +133,11 @@ The misfiled clones in your real data shared 10–21 mutations.
 
 | | WT2 | WT3 | WT4 | Aicda⁻/⁻ 1 | Aicda⁻/⁻ 2 | Aicda⁻/⁻ 3 |
 |---|---|---|---|---|---|---|
-| Clones | 39 | 38 | 26 | 11 | 10 | 10 |
-| Unique calls (101–629) | 153 | 230 | 106 | 1 | 1 | 2 |
+| Clones | 37 | 40 | 26 | 11 | 10 | 10 |
+| Unique calls (101–629) | 135 | 230 | 106 | 1 | 1 | 2 |
 
 The test runs where the traces are and is skipped elsewhere. On this sheet the QC reports, without changing anything:
-- **Duplicates (problem):** three clones labelled `wt3-3`, `wt3-4` and `wt3-6`, filed under WT2, are identical to WT3 clones (sharing 10–21 mutations).
+- **Duplicates (problem):** three clones labelled `wt3-3`, `wt3-4` and `wt3-6`, filed under WT2, were identical to WT3 clones (sharing 10–21 mutations). Founder mutations decided: `wt3-4` and `wt3-6` belong to a lineage in 109 WT3 nanopore reads and no WT2 read, so they were moved to WT3 (12 Oct 2026). `wt3-3` is identical to WT3 clone 434141-F9, but its lineage is in no mouse's nanopore reads; it stays in WT2 and is still flagged.
 - **Label mismatches (check):** 14 clones labelled w3 are in WT2, carrying 1–26 mutations. 13 clones labelled w2 are in WT3: 12 carry no mutation and one carries 3. Two Aicda⁻/⁻ clones carry another knockout mouse's label.
 - **Clean controls:** no Aicda⁻/⁻ clone carries more mutations than its qualities explain.
 - **Germline:** the same five germline positions are removed in all six mice, so they are true strain differences, and no lineage was lost to the rule.

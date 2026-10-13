@@ -16,17 +16,20 @@ Corrected Sanger calls: `sanger_calls/` (one Geneious-shaped CSV per mouse, posi
 the .ab1 traces organised with `../organize_jh4_ab1.py --original` (`~/Nanoshm/sanger_ab1_original`):
 every clone stays with the mouse it was filed under in the GenBank folders, as the previous student
 assigned it, except two Wt2 records that are renamed MKLN K4 chromatograms (a provenance error, dropped)
-and Wt4 clone w4-9, identical over 520 bp with all 7 mutations to two MKLN K2 clones (moved to K2). This is the author's decision: the manuscript measures nanopore performance and
+and Wt4 clone w4-9, identical over 520 bp with all 7 mutations to two MKLN K2 clones (moved to K2).
+Wt2-filed clones wt3-4 and wt3-6 (434138-D11, F11) were moved to Wt3: their lineage's 24 founder
+mutations are in 109 Wt3 nanopore reads and no Wt2 read (author's rule, 12 Oct 2026). wt3-3 (C11),
+identical to Wt3 clone 434141-F9 but in no mouse's nanopore reads, stays with Wt2. This is the author's decision: the manuscript measures nanopore performance and
 concordance against the Sanger data as collected, not a re-curation of it. The evidence-based
 reassignment (`~/Nanoshm/sanger_ab1_by_mouse`) is documented in `../SANGER_VS_NANOPORE.md` only.
 
 | Mouse | Clones | Calls | Density (×10⁻⁵) |
 |---|---|---|---|
-| Wt2 / Wt3 / Wt4 | 39 / 38 / 26 | 153 / 230 / 106 | 764 / 1183 / 828 |
+| Wt2 / Wt3 / Wt4 | 37 / 40 / 26 | 135 / 230 / 106 | 712 / 1122 / 828 |
 | Aicda⁻/⁻ 1 / 2 / 3 | 11 / 10 / 10 | 1 / 1 / 2 | 17.3 / 19.0 / 37.8 |
 
-Wt vs Aicda⁻/⁻ ~39-fold (Welch on log10, P = 0.0008); spectrum Pearson r = 0.96, slope 1.04;
-interaction P = 0.80; smallest Šídák P = 0.09; Ts/Tv adjusted P = 0.62 / 0.99.
+Wt vs Aicda⁻/⁻ ~38-fold (Welch on log10, P = 0.0009); spectrum Pearson r = 0.95, slope 1.05;
+interaction P = 0.78; smallest Šídák P = 0.12; Ts/Tv adjusted P = 0.43 / 1.00.
 
 `revise_manuscript_sanger.py` builds Ver17 from Ver16 (Ver16 untouched; edits highlighted
 yellow): new numbers and figures, the TOST analysis removed (Methods, Results, abbreviation,

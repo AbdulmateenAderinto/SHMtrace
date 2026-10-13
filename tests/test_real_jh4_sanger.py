@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SHEET = ROOT / "docs/calibration/samplesheets/jh4_manuscript.csv"
 REF = ROOT / "src/shmtrace/references"
 # mouse: (clones analysed, unique calls in 101-629) as in the manuscript
-EXPECTED = {"WT2": (39, 153), "WT3": (38, 230), "WT4": (26, 106),
+EXPECTED = {"WT2": (37, 135), "WT3": (40, 230), "WT4": (26, 106),
             "Aicda_A1": (11, 1), "Aicda_A2": (10, 1), "Aicda_A3": (10, 2)}
 
 
@@ -47,10 +47,11 @@ def test_manuscript_clone_and_call_counts(result):
 def test_qc_finds_the_known_bookkeeping_problems(result):
     flags = result["qc"]["flags"]
     dup = {f["clone"] for f in flags if f["check"] == "duplicate_clone"}
-    # clones labelled wt3 filed with WT2, identical to WT3 clones
-    assert {"434138-C11", "434138-D11", "434138-F11"} <= dup
+    # wt3-3, filed with WT2, identical to WT3 clone 434141-F9 (wt3-4 and wt3-6 were moved
+    # to WT3 on their founder mutations, so they no longer cross animals)
+    assert "434138-C11" in dup and not {"434138-D11", "434138-F11"} & dup
     mism = [f for f in flags if f["check"] == "label_mismatch"]
-    assert sum(f["sample"] == "WT2" and f["other_sample"] == "WT3" for f in mism) >= 14
+    assert sum(f["sample"] == "WT2" and f["other_sample"] == "WT3" for f in mism) >= 12
     assert sum(f["sample"] == "WT3" and f["other_sample"] == "WT2" for f in mism) >= 13
     # no Aicda-/- clone carries more mutations than its qualities explain
     assert not [f for f in flags if f["check"] == "control_mutations"]
