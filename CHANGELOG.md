@@ -7,6 +7,9 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `shmtrace.mutation_tree`: mutation trees of a clone from long reads (mutations carried by the same reads form a node; a node's parent is the smallest node containing its reads; `fit` reports reads consistent with the tree). Figure: `docs/calibration/mutation_tree_figure.py`.
+- Project results record the background calibration (`calibration`: the leave-one-control-out factor and its trace).
+- Manuscript: J꜀4 ONT re-analysed with SHMtrace (`jh4_shmtrace.py`, also `--full-length` and `--input raw`), depth series (`depth_shmtrace.py`), Ver18 builder and the submission/deposit builder (`manuscript_corrected/`).
 - App: pooled runs from a sample sheet with `barcode` columns are split by barcode when the analysis runs (primer anchors in Set up; a note reports reads assigned per sample), and a **Screen** tab ranks every condition against the control (animal-level tests, BH q-values, volcano, CSV; `/api/screen/{id}`).
 - App: **Repair** tab (repair-route indices per animal, animal-level group comparison, spectrum decomposition against chosen reference groups with 95% intervals; sparse groups and references flagged) and **Power** tab (power table from a group of the current analysis or from given numbers; `/api/repair/{id}`, `/api/power`). Tabs wrap onto a second line on narrow windows.
 - App: **UMI consensus** in Set up → Advanced (UMI position, length, anchors with IUPAC codes, minimum reads per molecule); results report molecules per sample and reads per molecule. **Switching** tab for class-switch junctions: switch-region reference with donor picker, samples and groups, animal-level comparison, per-sample summary, microhomology and breakpoint figures, CSV exports (`/api/switch/*`, `/api/fasta-names`). Header fits narrow windows.
