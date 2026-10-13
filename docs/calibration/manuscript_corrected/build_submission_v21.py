@@ -239,20 +239,28 @@ def build_package():
         sci = stem.parent == SC
         png = stem.parent / f"{stem.name}_preview.png" if sci else stem.with_suffix(".png")
         shutil.copy(png, PKG / f"4_Figures/PNG/{name}.png")
+        source = png.relative_to(REPO)
         if sci:          # line art: SciCanvas's own 1,000-dpi render, and the editable files
             shutil.copy(stem.parent / f"{stem.name}_1000dpi.tif", PKG / f"4_Figures/TIFF/{name}.tif")
             for ext in (".svg", ".scifig"):
                 shutil.copy(stem.with_suffix(ext), PKG / f"4_Figures/Editable_SciCanvas/{name}{ext}")
             dpi = 1000
         else:
+            if round(Image.open(png).info.get("dpi", (600, 600))[0]) < 600 and stem.with_suffix(".pdf").exists():
+                # a 300-dpi preview: render the vector PDF at 600 dpi instead
+                subprocess.run(["pdftoppm", "-r", "600", "-png", "-singlefile", str(stem.with_suffix(".pdf")),
+                                str(PKG / f"4_Figures/PNG/{name}")], check=True)
+                png = PKG / f"4_Figures/PNG/{name}.png"
+                source = f"{stem.with_suffix('.pdf').relative_to(REPO)} (rendered at 600 dpi)"
+                Image.open(png).save(png, dpi=(600, 600))
             im = Image.open(png).convert("RGB")
             im.save(PKG / f"4_Figures/TIFF/{name}.tif", dpi=(600, 600), compression="tiff_lzw")
-            dpi = round(im.info.get("dpi", (600, 600))[0])
+            dpi = 600
         pdf = stem.with_suffix(".pdf")
         if pdf.exists():
             shutil.copy(pdf, PKG / f"4_Figures/Vector_PDF/{name}.pdf")
         w, h = Image.open(png).size
-        rows.append(f"| {name} | `{png.relative_to(REPO)}` | {w} × {h} | {dpi} |")
+        rows.append(f"| {name} | `{source}` | {w} × {h} | {dpi} |")
     (PKG / "4_Figures/README.md").write_text(
         "# Figures\n\nPNG, LZW-compressed TIFF and vector PDF for every figure in Ver21. Figure 1 and "
         "Supplementary Figure S11 are line art drawn in SciCanvas: their TIFFs are 1,000 dpi at 174 mm, and the "
