@@ -20,6 +20,7 @@ from dataclasses import replace
 from . import pipeline
 from .config import Params
 from .io_utils import read_fasta
+from .parallel import pmap
 from .phasing import matches_known, partition
 
 
@@ -33,6 +34,12 @@ def recurring_blocks(blocks_by_sample: dict[str, list], min_shared: int) -> list
             if matches_known(block, others, min_shared) and not matches_known(block, out, min_shared):
                 out.append(block)
     return out
+
+
+def _prepare_one(fq, reference, contaminants, pp, want_fates):
+    f = {} if want_fates else None
+    aligned, st = pipeline.prepare_reads(fq, reference, contaminants, pp, fates=f)
+    return aligned, st, f or {}
 
 
 def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[str],
@@ -57,10 +64,12 @@ def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[st
     detect = replace(p, phase_mode="flag") if auto else p
 
     raw, stats, blocks = {}, {}, {}
-    for name, fq in samples.items():
-        pp = control_params(p) if name in controls else detect
-        f = fates.setdefault(name, {}) if fates is not None else None
-        aligned, st = pipeline.prepare_reads(fq, reference, contaminants, pp, fates=f)
+    # each library is prepared on its own (parallel.py); results come back in order
+    tasks = [(fq, reference, contaminants, control_params(p) if name in controls else detect,
+              fates is not None) for name, fq in samples.items()]
+    for name, (aligned, st, f) in zip(samples, pmap(_prepare_one, tasks, p.jobs), strict=True):
+        if fates is not None:
+            fates.setdefault(name, {}).update(f)
         raw[name], stats[name] = aligned, st
         blocks[name] = [[(pos - 1, alt) for pos, alt in b["sites"]] for b in st.get("blocks", [])]
 

@@ -155,6 +155,9 @@ class Params:
     # "mean" over controls, or "max" (the noisiest control; guards against a sample
     # that errs more than the average control)
     control_decoy_estimate: str = "mean"
+    # processes for per-library work (parallel.py): 0 = one fewer than the cores, up
+    # to 8; 1 = this process only. Results do not depend on it.
+    jobs: int = 0
     fdr_alpha: float = 0.05                # target false discovery rate
     # Which hypotheses Benjamini-Hochberg counts:
     #   "candidates" only (position, alt) pairs seen in at least one read (the

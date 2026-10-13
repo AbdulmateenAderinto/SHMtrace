@@ -325,6 +325,23 @@ def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
     return out
 
 
+def noisy_decoys(decoys: dict, p_at: float = 0.01, fold: float = 5.0, min_calls: int = 5) -> list[str]:
+    """Controls whose held-out candidates at p <= p_at, per base, exceed `fold` times
+    the median of the other controls (and number at least `min_calls`): one such
+    decoy dominates the control-based FDR threshold of every sample."""
+    from bisect import bisect_right
+    rate = {c: (bisect_right(pv, p_at), b) for c, (pv, b) in decoys.items() if b}
+    out = []
+    for c, (n, b) in rate.items():
+        others = sorted(m / bb for k, (m, bb) in rate.items() if k != c)
+        if len(others) < 2 or n < min_calls:
+            continue
+        med = others[len(others) // 2] if len(others) % 2 else (others[len(others) // 2 - 1] + others[len(others) // 2]) / 2
+        if n / b > fold * med:
+            out.append(c)
+    return sorted(out)
+
+
 def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     p = build_params(project)
     reference = project["reference"]
@@ -538,6 +555,13 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      f"by leaving a control out; the default factor "
                      f"({null_model.DEFAULT_QSCALE:g}, measured on JH4) was used instead. "
                      f"Two or more controls per run is better.")
+    noisy = noisy_decoys(decoys)
+    if noisy and p.multiple_testing == "control":
+        notes.append(
+            "Control " + ", ".join(noisy) + " is far noisier than the other controls, and as a decoy it "
+            "raises the false calls expected in every sample, which can suppress real mutations. Check it "
+            "(contamination, a mutated or mislabeled library); if it is not a clean control, analyze it as "
+            "a sample instead.")
     if want_indels and not sanger and len(controls) < 2:
         notes.append("Indels need a control other than the sample itself, so they were "
                      + ("not called." if not controls else
