@@ -55,7 +55,7 @@
   mark(ax + 20 + 0.3 * 200, 458, true); mark(ax + 20 + 0.75 * 200, 458, true);
   [['mutation', 'called', 0.3, MUT], ['error', 'rejected', 0.75, ERR]].forEach(([w, v, f, c]) => { TC(w, ax + 20 + f * 200, 488, { fontSize: SM, color: c }); TC(v, ax + 20 + f * 200, 511, { fontSize: SM, color: c }); });
   lines(['error rate per substitution,', 'strand and base quality,', 'measured in matched AID-null',
-    'libraries from the same run;', 'a call needs support beyond', 'it (BH FDR ≤ 0.05); groups are', 'compared one value per animal'], ax + 378, 346);
+    'libraries from the same run;', 'a call needs support beyond', 'it (FDR ≤ 0.05, set by control', 'decoys); groups are compared', 'one value per animal'], ax + 378, 346);
 
   // ───────── B. Inputs and read preparation ─────────
   panel('B', 'Inputs and read preparation', 720, 10);
@@ -97,7 +97,7 @@
   panel('C', 'Calling and quality checks', 30, cy);
   const csteps = [
     ['Control error model', ['per substitution, strand and', 'base quality; a margin chosen by', 'leave-one-control-out']],
-    ['Test and FDR', ['support against expected errors;', 'Benjamini–Hochberg FDR ≤ 0.05;', 'each control called vs the others']],
+    ['Test and FDR', ['support against expected errors;', 'FDR ≤ 0.05 set by control decoys;', 'each control called vs the others']],
     ['Germline and window', ['sites at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional']],
     ['Automatic checks', ['spectrum (C→T/G→A share),', 'positional clustering, 5-mer', 'targeting index, Sanger', 'bookkeeping flags']],
   ];
@@ -111,7 +111,8 @@
     lines(sub, x + 14, cy + 90);
   });
   ccards.slice(1).forEach((c, k) => LINK(ccards[k], 'e', c, 'w', { headSize: 0.7 }));
-  LINK(prep, 's', ccards[0], 'n', { color: MID, style: 'elbow', headSize: 0.6 });
+  // (no B-to-C connector: an elbow from B crosses the panel C title)
+  // LINK(prep, 's', ccards[0], 'n', { color: MID, style: 'elbow', headSize: 0.6 });
 
   // ───────── D. Outputs ─────────
   const dy = cy + 214;

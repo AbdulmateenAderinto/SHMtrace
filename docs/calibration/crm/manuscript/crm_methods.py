@@ -94,10 +94,16 @@ METHODS = [
           "at quality ≥ q_{j}, given the column depth on each strand and the control rates multiplied by a margin c; "
           "the candidate's p value is the smallest over j, multiplied by k. The margin is chosen by "
           "leave-one-control-out from the grid 1, 2, 3, 5, 10, 20 and 50 as the smallest value at which at most 1% of "
-          "a held-out control's tests reach p < 0.01; it was 5 for every analysis reported. p values are adjusted by "
-          "the Benjamini–Hochberg procedure[@benjamini1995] across positions and alternative alleles and calls kept at "
-          "FDR ≤ 0.05; sites at which 50% or more of reads differ from the reference are removed. Controls are each "
-          "called against the remaining controls. Without controls, SHMtrace falls back to a Poisson-binomial test on "
+          "a held-out control's tests reach p < 0.01; it was {loco_margins} in the analyses reported. Each held-out "
+          "control, downsampled to the samples' analysis depth and called against the other controls, is kept as a "
+          "decoy: its sorted p values and the bases it tested. For a sample with p values P and a threshold t, the "
+          "expected number of false calls is the mean over decoys of the decoy p values ≤ t, scaled by the ratio of "
+          "the sample's tested bases to the decoy's when that exceeds 1 (decoys are never scaled down to a shallower "
+          "library, whose coarser p values they would otherwise under-represent); SHMtrace keeps the largest t at which this is at most 0.05 times "
+          "the number of sample p values ≤ t (target–decoy FDR[@elias2007]). A control is never its own decoy: when a control is called, only "
+          "its peers' decoys are used. With fewer than two controls, or for indels, the Benjamini–Hochberg "
+          "procedure[@benjamini1995] across positions and alternative alleles is used instead. Sites at which 50% or "
+          "more of reads differ from the reference are removed. Without controls, SHMtrace falls back to a Poisson-binomial test on "
           "read qualities. A distinct call is a position–substitution pair counted once per sample; the "
           "distinct-call density is calls per analyzed base × 10^{5}, and the mutation frequency is supporting "
           "reads per base sequenced. The Geneious rule was reproduced as an uncorrected approximate p ≤ 0.05 per "
@@ -172,7 +178,7 @@ LEGENDS = [
      "mutations; SHMtrace measures the error rate of each substitution, strand and quality in AID-null libraries of "
      "the same run and calls only support beyond it. ✓, correct decision; ✕, wrong decision. "
      "(B) Inputs and read preparation. (C) Calling and automatic checks; numbered steps run in order. (D) Outputs. "
-     "BH, Benjamini–Hochberg; FDR, false-discovery rate. See also Figure S1."),
+     "FDR, false-discovery rate. See also Figure S1."),
     ("Figure 2. Planted mutations and simulated lineages calibrate recall and false calls",
      "(A and B) Recall of mutations planted into reads of a held-out AID-null library (J_{H}4, A; N114, B), by the "
      "number of reads carrying each, for SHMtrace, the uncorrected Geneious rule and LoFreq at three settings; 60 "
@@ -198,7 +204,7 @@ LEGENDS = [
      "(A) Distinct calls per 10^{5} bases per mouse (n = 3 per genotype) from Sanger clones (26–40 per wild-type "
      "mouse, re-analyzed from chromatograms) and from nanopore reads (500 per mouse); bars, geometric means; p, Welch "
      "test on log densities; nanopore fold is a lower bound (one control without calls at one event). (B) Pooled "
-     "share of each of 12 substitution types (471 Sanger, 618 nanopore calls, 3 wild-type mice); dashed line, "
+     "share of each of 12 substitution types ({n_sanger} Sanger, {n_ont} nanopore calls, 3 wild-type mice); dashed line, "
      "identity; r, Pearson with 95% CI. (C) Share of calls in 25-bp bins along the 529-bp window. (D) Share of G:C "
      "calls at WRC/GYW and of A:T calls at WA/TW; bars, mean of 3 mice; points, mice; dashed lines, the window's "
      "share of such sites. (E) Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects. "
@@ -216,7 +222,7 @@ LEGENDS = [
      "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
      "in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and R174E/R178E mutants and empty "
      "vector (PRJNA918596; n = 4). (C) Spectrum and targeting of AID and R174E/R178E calls; the mutant's calls cluster "
-     "at positions 164–172. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
+     "at positions {ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
      "(PRJNA820976; n = 6). (E) Error per base of UMI consensus against raw R10 reads by reads per molecule "
      "(rRNA operons[@karst2021]; 103 molecules). See also Table S2."),
 ]

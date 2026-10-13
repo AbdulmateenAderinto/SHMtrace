@@ -14,10 +14,10 @@
     "mutations": 0
    },
    "WT3:0": {
-    "pairs": 1176,
+    "pairs": 1128,
     "incompatible": 7,
     "incompatible_pct": 0.6,
-    "mutations": 49
+    "mutations": 48
    },
    "WT3:1": {
     "pairs": 276,
@@ -26,10 +26,10 @@
     "mutations": 24
    },
    "WT3:3": {
-    "pairs": 378,
+    "pairs": 351,
     "incompatible": 0,
     "incompatible_pct": 0.0,
-    "mutations": 28
+    "mutations": 27
    },
    "WT3:2": {
     "pairs": 351,
@@ -184,22 +184,22 @@
   },
   "n114": {
    "C1": {
-    "pairs": 435,
+    "pairs": 406,
     "incompatible": 33,
-    "incompatible_pct": 7.6,
-    "mutations": 30
+    "incompatible_pct": 8.1,
+    "mutations": 29
    },
    "D3": {
-    "pairs": 171,
-    "incompatible": 2,
-    "incompatible_pct": 1.2,
-    "mutations": 19
+    "pairs": 153,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 18
    },
    "D5": {
-    "pairs": 2080,
-    "incompatible": 104,
-    "incompatible_pct": 5.0,
-    "mutations": 65
+    "pairs": 2016,
+    "incompatible": 102,
+    "incompatible_pct": 5.1,
+    "mutations": 64
    }
   }
  },
@@ -278,19 +278,11 @@
     "parent": null,
     "reads": 2,
     "mutations": [
-     "C170T"
-    ]
-   },
-   {
-    "id": 9,
-    "parent": null,
-    "reads": 2,
-    "mutations": [
      "A172G"
     ]
    },
    {
-    "id": 10,
+    "id": 9,
     "parent": null,
     "reads": 2,
     "mutations": [
@@ -338,7 +330,6 @@
     "parent": 1,
     "reads": 13,
     "mutations": [
-     "G143C",
      "A223G",
      "T258C",
      "C269T",
@@ -509,7 +500,6 @@
     "reads": 10,
     "mutations": [
      "A136T",
-     "G143C",
      "A222G",
      "T508C"
     ]
@@ -587,11 +577,11 @@
    {
     "clone": 0,
     "reads": 323,
-    "nodes": 10,
+    "nodes": 9,
     "max_depth": 14,
     "branch_points": 1,
-    "fit": 0.914,
-    "left_out_single_read": 17
+    "fit": 0.909,
+    "left_out_single_read": 19
    },
    {
     "clone": 1,
@@ -600,7 +590,7 @@
     "max_depth": 0,
     "branch_points": 0,
     "fit": null,
-    "left_out_single_read": 3
+    "left_out_single_read": 4
    }
   ],
   "WT3": [
@@ -611,7 +601,7 @@
     "max_depth": 17,
     "branch_points": 3,
     "fit": 0.696,
-    "left_out_single_read": 12
+    "left_out_single_read": 14
    },
    {
     "clone": 1,
@@ -629,7 +619,7 @@
     "max_depth": 21,
     "branch_points": 1,
     "fit": 0.964,
-    "left_out_single_read": 10
+    "left_out_single_read": 11
    },
    {
     "clone": 2,
@@ -656,7 +646,7 @@
     "max_depth": 10,
     "branch_points": 0,
     "fit": 1.0,
-    "left_out_single_read": 3
+    "left_out_single_read": 4
    },
    {
     "clone": 5,
@@ -665,7 +655,7 @@
     "max_depth": 52,
     "branch_points": 1,
     "fit": 0.267,
-    "left_out_single_read": 4
+    "left_out_single_read": 5
    },
    {
     "clone": 7,
@@ -710,7 +700,7 @@
     "max_depth": 15,
     "branch_points": 1,
     "fit": 1.0,
-    "left_out_single_read": 5
+    "left_out_single_read": 6
    },
    {
     "clone": 9,
@@ -730,7 +720,7 @@
     "max_depth": 0,
     "branch_points": 0,
     "fit": null,
-    "left_out_single_read": 3
+    "left_out_single_read": 2
    },
    {
     "clone": 2,
@@ -766,7 +756,7 @@
     "max_depth": 0,
     "branch_points": 0,
     "fit": null,
-    "left_out_single_read": 1
+    "left_out_single_read": 0
    },
    {
     "clone": 4,
@@ -802,7 +792,7 @@
     "max_depth": 2,
     "branch_points": 0,
     "fit": 1.0,
-    "left_out_single_read": 3
+    "left_out_single_read": 2
    },
    {
     "clone": 9,
@@ -820,7 +810,7 @@
     "max_depth": 0,
     "branch_points": 0,
     "fit": null,
-    "left_out_single_read": 2
+    "left_out_single_read": 1
    },
    {
     "clone": 11,

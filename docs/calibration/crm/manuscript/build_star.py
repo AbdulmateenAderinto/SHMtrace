@@ -13,7 +13,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import crm_methods as M  # noqa: E402
+import crm_numbers  # noqa: E402
 import star_text as S  # noqa: E402
+from build_crm import fill_all  # noqa: E402
 from docbuild import Manuscript, word_count  # noqa: E402
 
 CRM = Path(__file__).resolve().parents[1]
@@ -34,6 +36,10 @@ def steps(m, items, counter):
 def main(outdir):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
+    n = crm_numbers.compute()
+    for k in dir(S):
+        if k.isupper():
+            setattr(S, k, fill_all(getattr(S, k), n))
     assert word_count([("p", S.SUMMARY)]) <= 80, f"summary {word_count([('p', S.SUMMARY)])} words"
     for h in S.HIGHLIGHTS:
         assert len(h.replace("_{H}", "H")) <= 85, f"highlight too long: {h}"

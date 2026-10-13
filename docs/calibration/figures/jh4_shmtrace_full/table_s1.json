@@ -11,7 +11,7 @@
   "usable": 2801,
   "analysed": 500,
   "candidates_tested": 735,
-  "calls": 255
+  "calls": 266
  },
  "WT3": {
   "delivered": 5000,
@@ -25,7 +25,7 @@
   "usable": 2164,
   "analysed": 500,
   "candidates_tested": 860,
-  "calls": 442
+  "calls": 454
  },
  "WT4": {
   "delivered": 4558,
@@ -39,7 +39,7 @@
   "usable": 962,
   "analysed": 500,
   "candidates_tested": 574,
-  "calls": 98
+  "calls": 97
  },
  "KO1": {
   "delivered": 5000,
@@ -53,7 +53,7 @@
   "usable": 1499,
   "analysed": 500,
   "candidates_tested": 461,
-  "calls": 2
+  "calls": 0
  },
  "KO2": {
   "delivered": 5000,
@@ -67,7 +67,7 @@
   "usable": 1168,
   "analysed": 500,
   "candidates_tested": 510,
-  "calls": 3
+  "calls": 1
  },
  "KO3": {
   "delivered": 5000,
@@ -81,6 +81,6 @@
   "usable": 1244,
   "analysed": 500,
   "candidates_tested": 493,
-  "calls": 4
+  "calls": 0
  }
 }

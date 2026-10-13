@@ -68,9 +68,20 @@ def hmces():
                                               "max_total_len": 600, "exclude_indels": False}}
 
 
+def hmces_k3():
+    """Ramos with AID-KO clone 3 analyzed as a sample: it carries non-AID-like mutations, and as a
+    decoy it raises the control-based threshold of every clone (SHMtrace names it in the notes)."""
+    proj = hmces()
+    proj["name"] += ", AIDKO_3 as a sample"
+    for s in proj["samples"]:
+        if s["name"] == "AIDKO_3":
+            s["control"] = False
+    return proj
+
+
 if __name__ == "__main__":
     for key in sys.argv[1:]:
-        proj = {"ldha": ldha, "ch12": ch12, "hmces": hmces}[key]()
+        proj = {"ldha": ldha, "ch12": ch12, "hmces": hmces, "hmces_k3": hmces_k3}[key]()
         res = project.run_project(proj)
         out = OUT / key
         out.mkdir(parents=True, exist_ok=True)

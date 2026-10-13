@@ -75,7 +75,7 @@ def main():
             ax.scatter(max(s[c]["fp"], 0.05), s[c]["recall"], marker=mk, s=16, color=CALLERS[c][1],
                        edgecolor="white", linewidth=0.3, zorder=3)
     ax.set_xscale("log")
-    ax.set_xlim(0.04, 12)
+    ax.set_xlim(0.04, 20)
     ax.set_ylim(-0.03, 1.03)
     ax.set_xlabel("False calls per library (log)")
     ax.set_ylabel("Recall, all planted mutations")
@@ -126,7 +126,7 @@ def main():
     letter(ax, "E", dx=-0.32)
     # F: quantification accuracy against depth
     ax = fig.add_subplot(gs[1, 1])
-    q = json.load(open(CALIB / "quant_accuracy/runs.json")) + json.load(open(DATA / "quant_accuracy_n114/runs.json"))
+    q = json.load(open(DATA / "quant_accuracy_jh4/runs.json")) + json.load(open(DATA / "quant_accuracy_n114/runs.json"))
     metrics = {"read-weighted frequency": ("est_read_weighted_x1e3", "true_read_weighted_x1e3", "#2c5d8a"),
                "unique density": ("est_unique_density_x1e5", "true_unique_density_x1e5", "#a3621b"),
                "combined density": ("est_combined_density_x1e5", "true_unique_density_x1e5", "#1f6f8b")}

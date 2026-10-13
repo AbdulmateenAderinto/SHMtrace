@@ -11,6 +11,7 @@ recovery from out/single_read_spike.json. Journal limits are checked and the bui
 exceeded.
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -18,6 +19,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 import crm_methods as M  # noqa: E402
+import crm_numbers  # noqa: E402
 import crm_text as T  # noqa: E402
 from docbuild import Manuscript, word_count  # noqa: E402
 
@@ -43,18 +45,17 @@ def public_numbers():
     reads = [r["reads"] for r in rec]
     a, b = rng(rec, False), rng(rec, True)
     ga, gb = rng(gen, False), rng(gen, True)
-    n["pim1_deep"] = (f"but with all usable reads ({min(reads):,}–{max(reads):,} per library) SHMtrace called {a[0]}–{a[1]} "
-                      f"mutations in every AID-competent library and {'none' if b[1] == 0 else f'{b[0]}–{b[1]}'} in the "
-                      f"controls, whereas the Geneious rule called {ga[0]}–{ga[1]} and {gb[0]}–{gb[1]}. A weak AID target "
-                      "therefore needs depth, and the control calibration is what keeps the extra depth from adding "
-                      "background (Table S2).")
+    n["pim1_deep"] = (f"and with all usable reads ({min(reads):,}–{max(reads):,} per library) SHMtrace called {a[0]}–{a[1]} "
+                      f"mutations per AID-competent library and {'none' if b[1] == 0 else f'{b[0]}–{b[1]}'} in the "
+                      f"controls, and the Geneious rule {ga[0]}–{ga[1]} and {gb[0]}–{gb[1]}: at a weak AID target, signal stays close "
+                      "to the background even at the full depth available (Table S2).")
     # Illumina J_H4 (Ldha)
     p = json.load(open(OUT / "public/ldha/project.json"))
     f = {g: [s["mutation_frequency_x1e3"] for s in p["samples"] if s["group"] == g] for g in ("WT", "LDHA_KO", "AID_KO")}
     g = {x["group"]: x for x in p["groups"]}
     n["ldha_fold"] = f"{np.mean(f['WT']) / np.mean(f['AID_KO']):.0f}"
     pw = g['WT']['mutation_frequency_x1e3_p_welch_log_vs_AID_KO']
-    n["ldha_p"] = f"{pw:.1e}" if pw < 0.001 else f"{pw:.3f}"
+    n["ldha_p"] = crm_numbers.sci(pw) if pw < 0.001 else f"{pw:.3f}"
     n["ldha_nwt"], n["ldha_nko"] = len(f["WT"]), len(f["AID_KO"])
     from scipy import stats
     n["ldha_p_ko"] = f"{stats.mannwhitneyu(f['WT'], f['LDHA_KO']).pvalue:.2f}"
@@ -80,7 +81,7 @@ def public_numbers():
     ins = {gname: [x["insertions"] for x in p["samples"] if x["group"] == gname] for gname in ("WT", "HMCES_KO")}
     n["hmces_del_fold"] = f"{np.mean(dels['HMCES_KO']) / np.mean(dels['WT']):.1f}"
     n["hmces_ins_fold"] = f"{np.mean(ins['HMCES_KO']) / np.mean(ins['WT']):.1f}"
-    n["hmces_del_p"] = f"{stats.ttest_ind(np.log10(np.array(dels['HMCES_KO']) + 1), np.log10(np.array(dels['WT']) + 1), equal_var=False).pvalue:.1e}"
+    n["hmces_del_p"] = crm_numbers.sci(stats.ttest_ind(np.log10(np.array(dels['HMCES_KO']) + 1), np.log10(np.array(dels['WT']) + 1), equal_var=False).pvalue)
     n["hmces_ko3_gc"] = f"{s['AIDKO_3']['pct_GC']:.0f}"
     return n
 
@@ -88,9 +89,27 @@ def public_numbers():
 def fill(text, n):
     for k, v in n.items():
         text = text.replace("{" + k + "}", str(v))
-    if "{" in text.replace("^{", "").replace("_{", ""):
+    if re.search(r"(?<![\^_])\{[a-z0-9_]+\}", text):
         raise RuntimeError(f"unfilled placeholder in: {text[:80]}")
     return text
+
+
+def fill_all(x, n):
+    """Fill placeholders in a string or any nesting of lists and tuples of strings."""
+    if isinstance(x, str):
+        return fill(x, n)
+    if isinstance(x, (list, tuple)):
+        return type(x)(fill_all(y, n) for y in x)
+    return x
+
+
+def fill_modules(n):
+    for mod in (T, M):
+        for k in dir(mod):
+            if k.isupper():
+                setattr(mod, k, fill_all(getattr(mod, k), n))
+    global STATS, SUPP_FIGS
+    STATS, SUPP_FIGS = fill_all(STATS, n), fill_all(SUPP_FIGS, n)
 
 
 def check_limits():
@@ -107,7 +126,8 @@ def check_limits():
 def main(outdir):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
-    n = public_numbers()
+    n = {**crm_numbers.compute(), **public_numbers()}
+    fill_modules(n)
     sw = check_limits()
     m = Manuscript()
     # ---- title page
@@ -242,18 +262,25 @@ def main(outdir):
 
 STATS = [
     ("J_{H}4, Wt vs *Aicda*^{−/−} (nanopore, distinct-call density)", "Welch t on log_{10}; n = 3 vs 3",
-     "≥ 137-fold; p = 0.0025"),
-    ("J_{H}4, Wt vs *Aicda*^{−/−} (Sanger, distinct-call density)", "Welch t on log_{10}; n = 3 vs 3", "38-fold; p = 0.0009"),
-    ("N114, pMX-*Aicda* vs empty vector", "Welch t on log_{10}; n = 3 vs 3", "≥ 92-fold; p = 0.0048"),
-    ("J_{H}4, full length (positions 90–1,230)", "geometric means", "39 vs 0.51 × 10^{−5}; ~78-fold"),
-    ("Spectrum, Sanger vs nanopore (12 types, 3 Wt mice)", "Pearson r [95% CI]; slope", "r = 0.93 [0.77–0.98]; slope 1.00"),
-    ("Spectrum, per type", "repeated-measures interaction; paired t with Šídák", "interaction p = 0.61; smallest adjusted p = 0.68"),
-    ("Position along the window, Sanger vs nanopore", "Pearson r, 25-bp bins", "r = 0.92"),
-    ("Targeting index, Wt calls (J_{H}4)", "permutation, 2,000 position sets", "1.22–1.36; p ≤ 0.015"),
-    ("Targeting index, *Aicda*^{−/−} mismatch positions", "permutation", "1.00; p = 0.50"),
+     "≥ {ont_fold}-fold; p = {ont_p}"),
+    ("J_{H}4, Wt vs *Aicda*^{−/−} (Sanger, distinct-call density)", "Welch t on log_{10}; n = 3 vs 3",
+     "{sanger_fold}-fold; p = {sanger_p}"),
+    ("N114, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "≥ {sep_n114}-fold"),
+    ("J_{H}4, full length (positions 90–1,230)", "geometric means", "{full_wt} vs {full_ko} × 10^{−5}; ~{full_fold}-fold"),
+    ("Spectrum, Sanger vs nanopore (12 types, 3 Wt mice)", "Pearson r [95% CI]; slope",
+     "r = {r_spec} [{r_spec_ci}]; slope {slope}"),
+    ("Spectrum, per type", "repeated-measures interaction; paired t with Šídák",
+     "interaction p = {interaction_p}; smallest adjusted p = {sidak_min}"),
+    ("Position along the window, Sanger vs nanopore", "Pearson r, 25-bp bins", "r = {r_pos}"),
+    ("Targeting index, Wt calls (J_{H}4)", "permutation, 2,000 position sets", "{s5f_wt}; p ≤ {s5f_wt_p}"),
+    ("Targeting index, *Aicda*^{−/−} mismatch positions", "permutation", "{s5f_ko}; p = {s5f_ko_p}"),
     ("Group tests without a true difference (simulated)", "share with p < 0.05, 300 experiments",
      "pooled reads 0.91–0.94; negative binomial 0.050–0.057; Welch 0.037–0.043"),
-    ("Leave-one-control-out margin", "held-out control tests with p < 0.01", "J_{H}4 4.0% at 1×, 0.9% at 5×; N114 5.6% at 1×, 0.3% at 5×"),
+    ("Leave-one-control-out margin", "held-out control tests with p < 0.01 at the samples' depth",
+     "J_{H}4 {loco_jh4_face}% at 1×, {loco_jh4_final}% at {loco_jh4_margin}×; N114 {loco_n114_face}% at 1×, "
+     "{loco_n114_final}% at {loco_n114_margin}×"),
+    ("Spike-in FDR, control-based vs Benjamini–Hochberg", "observed false/(true + false) calls",
+     "J_{H}4 {sp_jh4_fdr} vs {sp_jh4_bh_fdr}; N114 {sp_n114_fdr} vs {sp_n114_bh_fdr}"),
 ]
 
 SUPP_FIGS = [
@@ -267,7 +294,7 @@ SUPP_FIGS = [
      "Each library was analyzed at 30–1,000 reads (one random draw of usable reads per depth), with controls "
      "calibrated at the same depth. Top, distinct calls and density against depth (geometric mean ± geometric SD, "
      "n = 3 per group). Bottom, calls at each depth relative to each AID-active sample's maximum (mean ± SD); at 500 "
-     "reads, 94% (J_{H}4) and 91% (N114)."),
+     "reads, {depth_jh4_500}% (J_{H}4) and {depth_n114_500}% (N114)."),
     ("Figure S3. N114 V-region results and per-library spectra, related to Figure 3",
      [MC / "Figure4_hybridoma_combined.png", MC / "FigureS6_individual_JH4_ONT_matrices.png",
       MC / "FigureS7_individual_N114_matrices.png"],
@@ -288,7 +315,7 @@ SUPP_FIGS = [
      "simulated UMI libraries built from real control reads (three held-out controls)."),
     ("Figure S6. Full-length spectra and mutation trees in each mouse, related to Figure 5",
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
-     "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = 0.986). "
+     "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
 ]
 

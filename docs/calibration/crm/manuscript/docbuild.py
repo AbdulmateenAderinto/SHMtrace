@@ -24,6 +24,8 @@ MANUAL = {
     "benjamini1995": "Benjamini, Y., and Hochberg, Y. (1995). Controlling the false discovery rate: a practical and "
                      "powerful approach to multiple testing. J. R. Stat. Soc. Series B Stat. Methodol. 57, 289–300. "
                      "10.1111/j.2517-6161.1995.tb02031.x.",
+    "elias2007": "Elias, J.E., and Gygi, S.P. (2007). Target-decoy search strategy for increased confidence in "
+                 "large-scale protein identifications by mass spectrometry. Nat. Methods 4, 207–214. 10.1038/nmeth1019.",
     "hubert1985": "Hubert, L., and Arabie, P. (1985). Comparing partitions. J. Classif. 2, 193–218. 10.1007/BF01908075.",
 }
 PAGE_FIX = {"sanderson2024": "001246"}

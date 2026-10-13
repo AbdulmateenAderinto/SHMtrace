@@ -6,7 +6,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+import crm_numbers  # noqa: E402
 import crm_text as T  # noqa: E402
+from build_crm import fill  # noqa: E402
 import star_text as S  # noqa: E402
 from docbuild import Manuscript  # noqa: E402
 
@@ -23,9 +25,9 @@ CRM_LETTER = [
     "The paper provides the three things the journal asks of a method: the method, a comparison with related "
     "methods, and validation. We compared SHMtrace with LoFreq and with the uncorrected test used in commercial "
     "software on the same reads, using planted mutations, simulated B cell lineages and nanopore libraries of "
-    "four loci from two laboratories. SHMtrace kept the AID-null background at 0–3 calls per assay while keeping the "
-    "wild-type signal, and separated AID-active from AID-null libraries 92- to 137-fold in four of five assays, where the "
-    "alternatives reached 2- to 62-fold. Nanopore and Sanger sequencing of the same mice gave concordant spectra, "
+    "four loci from two laboratories. SHMtrace kept the AID-null background at {ctl_rec} calls per assay while keeping the "
+    "wild-type signal, and separated AID-active from AID-null libraries {sep_lo}- to {sep_hi}-fold in four of five "
+    "assays, where the alternatives reached {lf_lo}- to {gen_hi}-fold. Nanopore and Sanger sequencing of the same mice gave concordant spectra, "
     "and full-length reads added whole-amplicon maps, clones and mutation trees. The same engine reproduced "
     "published findings on three public Illumina datasets, including a negative result and an indel phenotype.",
     "We believe the work will interest immunologists who measure SHM and anyone calling rare variants against "
@@ -53,11 +55,12 @@ STAR_LETTER = [
 
 def main(outdir):
     out = Path(outdir)
+    n = crm_numbers.compute()
     for name, paras in (("CoverLetter_CellReportsMethods.docx", CRM_LETTER),
                         ("CoverLetter_STARProtocols.docx", STAR_LETTER)):
         m = Manuscript(line_numbers=False)
         for p in paras:
-            m.para(p)
+            m.para(fill(p, n))
         m.save(out / name)
         print(out / name)
 

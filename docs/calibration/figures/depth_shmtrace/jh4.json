@@ -3,23 +3,23 @@
   "WT2": {
    "group": "Wt",
    "reads": 30,
-   "calls": 33,
+   "calls": 27,
    "analysed_bp": 529,
-   "density": 208.635
+   "density": 170.701
   },
   "WT3": {
    "group": "Wt",
    "reads": 30,
-   "calls": 169,
+   "calls": 172,
    "analysed_bp": 529,
-   "density": 1124.897
+   "density": 1144.865
   },
   "WT4": {
    "group": "Wt",
    "reads": 30,
-   "calls": 67,
+   "calls": 63,
    "analysed_bp": 529,
-   "density": 427.885
+   "density": 402.34
   },
   "KO1": {
    "group": "Aicda-/-",
@@ -31,39 +31,39 @@
   "KO2": {
    "group": "Aicda-/-",
    "reads": 30,
-   "calls": 3,
+   "calls": 2,
    "analysed_bp": 529,
-   "density": 18.904
+   "density": 12.602
   },
   "KO3": {
    "group": "Aicda-/-",
    "reads": 30,
-   "calls": 3,
+   "calls": 0,
    "analysed_bp": 529,
-   "density": 19.488
+   "density": 0.0
   }
  },
  "60": {
   "WT2": {
    "group": "Wt",
    "reads": 60,
-   "calls": 47,
+   "calls": 46,
    "analysed_bp": 529,
-   "density": 148.325
+   "density": 145.169
   },
   "WT3": {
    "group": "Wt",
    "reads": 60,
-   "calls": 254,
+   "calls": 262,
    "analysed_bp": 529,
-   "density": 832.151
+   "density": 858.361
   },
   "WT4": {
    "group": "Wt",
    "reads": 60,
-   "calls": 73,
+   "calls": 70,
    "analysed_bp": 529,
-   "density": 233.102
+   "density": 223.522
   },
   "KO1": {
    "group": "Aicda-/-",
@@ -91,23 +91,23 @@
   "WT2": {
    "group": "Wt",
    "reads": 125,
-   "calls": 107,
+   "calls": 94,
    "analysed_bp": 529,
-   "density": 162.074
+   "density": 142.383
   },
   "WT3": {
    "group": "Wt",
    "reads": 125,
-   "calls": 312,
+   "calls": 315,
    "analysed_bp": 529,
-   "density": 485.026
+   "density": 489.69
   },
   "WT4": {
    "group": "Wt",
    "reads": 125,
-   "calls": 71,
+   "calls": 68,
    "analysed_bp": 529,
-   "density": 108.501
+   "density": 103.916
   },
   "KO1": {
    "group": "Aicda-/-",
@@ -135,16 +135,16 @@
   "WT2": {
    "group": "Wt",
    "reads": 250,
-   "calls": 142,
+   "calls": 146,
    "analysed_bp": 529,
-   "density": 107.674
+   "density": 110.707
   },
   "WT3": {
    "group": "Wt",
    "reads": 250,
-   "calls": 332,
+   "calls": 338,
    "analysed_bp": 529,
-   "density": 258.165
+   "density": 262.831
   },
   "WT4": {
    "group": "Wt",
@@ -163,32 +163,32 @@
   "KO2": {
    "group": "Aicda-/-",
    "reads": 250,
-   "calls": 2,
+   "calls": 1,
    "analysed_bp": 529,
-   "density": 1.52
+   "density": 0.76
   },
   "KO3": {
    "group": "Aicda-/-",
    "reads": 250,
-   "calls": 1,
+   "calls": 0,
    "analysed_bp": 529,
-   "density": 0.761
+   "density": 0.0
   }
  },
  "500": {
   "WT2": {
    "group": "Wt",
    "reads": 500,
-   "calls": 205,
+   "calls": 221,
    "analysed_bp": 529,
-   "density": 77.691
+   "density": 83.755
   },
   "WT3": {
    "group": "Wt",
    "reads": 500,
-   "calls": 340,
+   "calls": 344,
    "analysed_bp": 529,
-   "density": 131.651
+   "density": 133.2
   },
   "WT4": {
    "group": "Wt",
@@ -214,25 +214,25 @@
   "KO3": {
    "group": "Aicda-/-",
    "reads": 500,
-   "calls": 1,
+   "calls": 0,
    "analysed_bp": 529,
-   "density": 0.38
+   "density": 0.0
   }
  },
  "1000": {
   "WT2": {
    "group": "Wt",
    "reads": 1000,
-   "calls": 247,
+   "calls": 268,
    "analysed_bp": 529,
-   "density": 46.912
+   "density": 50.901
   },
   "WT3": {
    "group": "Wt",
    "reads": 1000,
-   "calls": 338,
+   "calls": 348,
    "analysed_bp": 529,
-   "density": 65.172
+   "density": 67.1
   },
   "WT4": {
    "group": "Wt",
@@ -258,9 +258,9 @@
   "KO3": {
    "group": "Aicda-/-",
    "reads": 1000,
-   "calls": 2,
+   "calls": 0,
    "analysed_bp": 529,
-   "density": 0.38
+   "density": 0.0
   }
  }
 }

@@ -143,8 +143,10 @@ STEPS = [
         "In the application, name the project and click Analyse. From the command line: "
         "`shmtrace-sheet run samplesheet.csv --platform ont --region jh4_intron --reference mouse_jh4_intron.fasta "
         "--contaminant mouse_jh4_contaminant.fasta -o results/`.",
-        "CRITICAL: give `--platform ont` for nanopore reads. Without it, `shmtrace-sheet run` treats the files as "
-        "Sanger clones, and every high-quality difference is counted without a test (troubleshooting, problem 6).",
+        "CRITICAL: check the platform line `shmtrace-sheet run` prints first. Without `--platform`, the platform "
+        "is inferred from the files (reads, nanopore; .ab1 chromatograms, Sanger) and a sheet mixing both is "
+        "refused; give `--platform illumina` for Illumina reads. Reads analyzed as Sanger clones are counted "
+        "without a test (troubleshooting, problem 6).",
         "SHMtrace prepares the reads of each library (length and expected-error gates, competitive alignment "
         "against the paralog, the paralog-allele filter), draws 500 usable reads at random with a fixed seed, "
         "calibrates the background from the controls by leave-one-control-out, calls each library, and compares "
@@ -153,10 +155,11 @@ STEPS = [
     ("Read the report", "Timing: 30 min", [
         "Results tab (Figure 2B): the group comparison with fold and p value, densities per animal, spectra, "
         "positional maps and hotspot use. `report.html` in the output folder holds the same.",
-        "Check the controls first: each control's calls are made against the other controls; expect 0–3 calls "
+        "Check the controls first: each control's calls are made against the other controls; expect {m_ko_range} calls "
         "per control at 500 reads (Figure 3A).",
         "Check the calibration margin (`calibration` in `project.json`): the smallest margin at which at most 1% of "
-        "held-out control tests reach p < 0.01; it was 5× in all our analyses.",
+        "held-out control tests reach p < 0.01; it was {loco_margins_x} in our analyses. The same held-out "
+        "calls set the false-discovery threshold (`control_fdr_threshold` in each sample's calling summary).",
         "Check the read accounting (`qc_waterfall.png`; Figure 3B): reads removed at each step per library.",
         "Read the warnings: a dominant clone, positional clustering of calls, too few reads for the target depth, "
         "or a control with excess mutations each produce a message (troubleshooting).",
@@ -178,8 +181,8 @@ STEPS = [
 ]
 
 EXPECTED = [
-    "With three wild-type and three *Aicda*^{−/−} mice at 500 reads per library, expect about 70–340 distinct calls "
-    "per wild-type library and 0–2 per control, a group difference above 100-fold (Figure 3A), a spectrum with both "
+    "With three wild-type and three *Aicda*^{−/−} mice at 500 reads per library, expect about {m_wt_range} distinct calls "
+    "per wild-type library and {m_ko_range} per control, a group difference of at least {ont_fold}-fold (Figure 3A), a spectrum with both "
     "G:C and A:T mutations and transitions favored (Figure 3C), and calls concentrated in the first 450 bp of the "
     "intron (Figure 3D). Libraries dominated by one clone, which is common in Peyer's patches, carry a low "
     "read-weighted frequency; the clone-weighted frequency corrects it (Figure 4A).",
@@ -219,11 +222,15 @@ TROUBLE = [
      "instead, check the basecalling model and read quality with the provider."),
     ("Problem 2", "An AID-null control carries calls (step 19).",
      "Look at the control's spectrum and calls. Calls that look like AID's (G:C bias, WRC/GYW hotspots) suggest "
-     "contamination or a mislabeled sample; calls with another spectrum suggest a library-specific artifact. In a "
-     "public Ramos dataset, one AID-knockout clone carried 61% G:C calls against 91–94% in mutating clones and "
-     "zero calls in its two siblings. Report the analysis with and without it, and resequence if possible."),
+     "contamination or a mislabeled sample; calls with another spectrum suggest a library-specific artifact. A control far "
+     "noisier than the others also suppresses calls in every sample, because each control serves as a decoy for "
+     "the false-discovery threshold; SHMtrace names such a control in the report's notes. In a public Ramos "
+     "dataset, one AID-knockout clone carried {hmces_ko3_calls} calls, {hmces_ko3_gc}% at G:C, against none in its "
+     "two siblings, and no substitution was called in any wild-type clone until it was analyzed as a sample "
+     "({hmk3_calls} calls per clone, {hmk3_gc}% at G:C). Report the analysis with and without such a control, "
+     "and resequence if possible."),
     ("Problem 3", "One clone dominates a library (step 22 warning).",
-     "Common in Peyer's patches: in one wild-type mouse, a nearly unmutated clone held 81% of reads with a V(D)J "
+     "Common in Peyer's patches: in one wild-type mouse, a nearly unmutated clone held {wt2_largest}% of reads with a V(D)J "
      "junction (Figure 4A). Report the clone-weighted frequency alongside the read-weighted one, and use the "
      "distinct-call density for group comparisons."),
     ("Problem 4", "Calls cluster in a few bases (step 22 warning).",
@@ -235,8 +242,9 @@ TROUBLE = [
      "few control reads the background is poorly calibrated. Analyze all libraries at one depth of at least 500 "
      "usable reads; SHMtrace warns when a library has fewer reads than the target depth (Figure 4C)."),
     ("Problem 6", "Controls show tens of calls each and no calibration margin is reported (step 16).",
-     "The run was analyzed in Sanger mode: `shmtrace-sheet run` was called without `--platform ont`. Run it again "
-     "with `--platform ont`; the report's Data line names the platform used."),
+     "The run was analyzed in Sanger mode, by `--platform sanger` or by an earlier development version of SHMtrace, which "
+     "assumed Sanger when no platform was given. Run it again with `--platform ont` (or without `--platform`, to "
+     "infer it); the report's Data line names the platform used."),
 ]
 
 RESOURCE = [
@@ -277,7 +285,7 @@ LEGENDS = [
     ("Figure 4. Troubleshooting examples",
      "(A) A dominant clone: reads with a V(D)J junction by clone in each wild-type mouse, and the read- against "
      "clone-weighted frequency (problem 3). (B) An error cluster: positions of calls in CH12F3 libraries with "
-     "ectopic AID and with an AID mutant whose calls cluster at 164–172 (problem 4; public data, PRJNA918596). "
+     "ectopic AID and with an AID mutant whose calls cluster at {ch12_cluster} (problem 4; public data, PRJNA918596). "
      "(C) Depth: distinct calls in wild-type and AID-null libraries at 30–1,000 reads (geometric mean ± geometric SD, "
      "n = 3; problem 5)."),
 ]

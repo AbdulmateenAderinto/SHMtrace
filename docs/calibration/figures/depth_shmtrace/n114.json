@@ -3,23 +3,23 @@
   "C1": {
    "group": "pMX-Aicda",
    "reads": 30,
-   "calls": 18,
+   "calls": 13,
    "analysed_bp": 615,
-   "density": 99.215
+   "density": 71.655
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 30,
-   "calls": 10,
+   "calls": 4,
    "analysed_bp": 615,
-   "density": 56.07
+   "density": 22.428
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 30,
-   "calls": 44,
+   "calls": 41,
    "analysed_bp": 615,
-   "density": 244.18
+   "density": 227.531
   },
   "C3": {
    "group": "pMX-Empty",
@@ -31,9 +31,9 @@
   "C4": {
    "group": "pMX-Empty",
    "reads": 30,
-   "calls": 5,
+   "calls": 0,
    "analysed_bp": 615,
-   "density": 27.1
+   "density": 0.0
   },
   "D1": {
    "group": "pMX-Empty",
@@ -47,23 +47,23 @@
   "C1": {
    "group": "pMX-Aicda",
    "reads": 60,
-   "calls": 25,
+   "calls": 22,
    "analysed_bp": 615,
-   "density": 69.488
+   "density": 61.149
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 60,
-   "calls": 18,
+   "calls": 11,
    "analysed_bp": 615,
-   "density": 49.946
+   "density": 30.522
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 60,
-   "calls": 60,
+   "calls": 56,
    "analysed_bp": 615,
-   "density": 165.358
+   "density": 154.334
   },
   "C3": {
    "group": "pMX-Empty",
@@ -82,39 +82,39 @@
   "D1": {
    "group": "pMX-Empty",
    "reads": 60,
-   "calls": 2,
+   "calls": 1,
    "analysed_bp": 615,
-   "density": 5.456
+   "density": 2.728
   }
  },
  "125": {
   "C1": {
    "group": "pMX-Aicda",
    "reads": 125,
-   "calls": 48,
+   "calls": 42,
    "analysed_bp": 615,
-   "density": 63.506
+   "density": 55.568
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 125,
-   "calls": 33,
+   "calls": 24,
    "analysed_bp": 615,
-   "density": 43.767
+   "density": 31.831
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 125,
-   "calls": 87,
+   "calls": 88,
    "analysed_bp": 615,
-   "density": 115.386
+   "density": 116.712
   },
   "C3": {
    "group": "pMX-Empty",
    "reads": 125,
-   "calls": 0,
+   "calls": 1,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 1.302
   },
   "C4": {
    "group": "pMX-Empty",
@@ -135,30 +135,30 @@
   "C1": {
    "group": "pMX-Aicda",
    "reads": 250,
-   "calls": 69,
+   "calls": 56,
    "analysed_bp": 615,
-   "density": 45.794
+   "density": 37.166
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 250,
-   "calls": 47,
+   "calls": 29,
    "analysed_bp": 615,
-   "density": 31.066
+   "density": 19.168
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 250,
-   "calls": 126,
+   "calls": 114,
    "analysed_bp": 615,
-   "density": 83.795
+   "density": 75.814
   },
   "C3": {
    "group": "pMX-Empty",
    "reads": 250,
-   "calls": 0,
+   "calls": 2,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 1.312
   },
   "C4": {
    "group": "pMX-Empty",
@@ -179,30 +179,30 @@
   "C1": {
    "group": "pMX-Aicda",
    "reads": 500,
-   "calls": 75,
+   "calls": 70,
    "analysed_bp": 615,
-   "density": 24.924
+   "density": 23.262
   },
   "D3": {
    "group": "pMX-Aicda",
    "reads": 500,
-   "calls": 59,
+   "calls": 45,
    "analysed_bp": 615,
-   "density": 19.563
+   "density": 14.921
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 500,
-   "calls": 166,
+   "calls": 168,
    "analysed_bp": 615,
-   "density": 55.13
+   "density": 55.795
   },
   "C3": {
    "group": "pMX-Empty",
    "reads": 500,
-   "calls": 0,
+   "calls": 5,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 1.637
   },
   "C4": {
    "group": "pMX-Empty",
@@ -230,16 +230,16 @@
   "D3": {
    "group": "pMX-Aicda",
    "reads": 1000,
-   "calls": 56,
+   "calls": 77,
    "analysed_bp": 615,
-   "density": 9.227
+   "density": 12.688
   },
   "D5": {
    "group": "pMX-Aicda",
    "reads": 1000,
-   "calls": 184,
+   "calls": 209,
    "analysed_bp": 615,
-   "density": 30.576
+   "density": 34.73
   },
   "C3": {
    "group": "pMX-Empty",
@@ -258,9 +258,9 @@
   "D1": {
    "group": "pMX-Empty",
    "reads": 1000,
-   "calls": 0,
+   "calls": 1,
    "analysed_bp": 615,
-   "density": 0.0
+   "density": 0.164
   }
  }
 }

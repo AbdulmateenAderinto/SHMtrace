@@ -42,4 +42,9 @@ python manuscript/build_star.py build                   # protocol
 python manuscript/build_letters.py build                # cover letters
 ```
 
+Every result in both documents is a placeholder (`{key}`) filled by `manuscript/crm_numbers.py` from the
+analysis outputs (`python manuscript/crm_numbers.py` prints them all); the build stops on any unfilled
+placeholder, so text and outputs cannot drift apart. Rerun the analyses with `rerun_A.sh`–`rerun_D.sh`
+(C waits for A), then the figure scripts, then the builds and `manuscript/assemble.py`.
+
 Bracketed items in the text ([to confirm]) are laboratory details only the authors can supply.
