@@ -4,8 +4,10 @@ Results never depend on the number of processes: every task is a pure function
 of its arguments (random draws use fixed seeds), and results come back in the
 order the tasks were given.
 
-`Params.jobs` sets the number of processes: 1 runs everything in this process,
-0 (the default) uses one fewer than the machine's cores, up to 8.
+`Params.jobs` sets the number of processes: 1 (the default) runs everything in
+this process, 0 uses one fewer than the machine's cores, up to 8. Workers are
+started by "spawn", which re-imports the calling script, so a script that asks
+for more than one process must guard its work with `if __name__ == "__main__":`.
 """
 from __future__ import annotations
 

@@ -425,6 +425,8 @@ def main(argv=None):
                    help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont)")
     r.add_argument("--contaminant", action="append", default=[])
     r.add_argument("--mode", default="recommended")
+    r.add_argument("--jobs", type=int, default=0,
+                   help="processes for per-library work: 0 = all but one core (default), 1 = one")
     r.add_argument("-o", "--out", required=True, help="output folder")
     a = ap.parse_args(argv)
     if a.cmd == "draft":
@@ -449,7 +451,8 @@ def main(argv=None):
     except SheetError as e:
         raise SystemExit(str(e)) from None
     print(f"platform: {platform}" + ("" if a.platform else " (inferred from the files)"))
-    proj = sh.project(a.reference, a.region, platform, contaminants=a.contaminant, mode=a.mode)
+    proj = sh.project(a.reference, a.region, platform, contaminants=a.contaminant, mode=a.mode,
+                      overrides={"jobs": a.jobs})
     res = project.run_project(proj, lambda f, m: print(f"{100 * f:3.0f}%  {m}"))
     written = report.write_all(res, a.out)
     with open(os.path.join(a.out, "project.json"), "w") as fh:

@@ -11,8 +11,8 @@ this project uses [semantic versioning](https://semver.org/).
   reads (the recommended model no longer accumulates the expected-error sums of the read-quality model;
   bases outside the window are skipped in the fit): a J_H4 project runs in about half the time, with
   identical results. Reads of each library are prepared, and each control is held out in the
-  calibration, on separate processes (`Params.jobs`, default one fewer than the cores, up to 8; 1 runs
-  everything in one process). Results do not depend on the number of processes.
+  calibration, on separate processes (`Params.jobs`: 1, the default, runs everything in one process; 0 uses
+  one fewer than the cores, up to 8; scripts that ask for more need a `__main__` guard). Results do not depend on the number of processes.
 - A control far noisier than the others (held-out candidates at p <= 0.01 per base more than 5x the
   others' median) is named in the project notes: as a decoy it suppresses calls in every sample.
 - Control-based FDR: decoy counts are scaled up to a larger library's bases but never down. Scaled
