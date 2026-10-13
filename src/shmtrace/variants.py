@@ -263,6 +263,15 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     ref_qual_hist: dict = defaultdict(int)                  # quality -> matching bases
     col_probs = defaultdict(list) if model == "pbinom" else None
     n_clones = 0
+    # The loop below visits every base of every read, so it is written for speed:
+    # each model accumulates only what it reads (the expected-error sums serve the
+    # read-quality and strand models alone), and lookups are hoisted. The values
+    # accumulated are the same, in the same order, as a plain per-base loop.
+    ref_u = ref.upper()
+    want_quals = model in ("qcal", "sanger")
+    want_qsum = model == "geneious"
+    want_err = model not in ("qcal", "sanger", "geneious")
+    want_s_err = model == "strand"
     for r in aligned_reads:
         if r.ctg != target_name:
             continue
@@ -273,26 +282,31 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
                 continue
             counts[rpos][base] += 1
             depth[rpos] += 1
-            if base == ref[rpos].upper() and lo <= rpos <= hi:
-                ref_qual_hist[min(int(q), 60)] += 1
             s_counts[(rpos, base, s)] += 1
             s_depth[(rpos, s)] += 1
-            alt_qsum[rpos][base] += q
-            if base != ref[rpos].upper() and lo <= rpos <= hi:
-                # every mismatching base's quality, whatever the model: this is
-                # what the quality-calibrated test keys on
-                qual_hist[min(int(q), 60)] += 1
-            if model in ("qcal", "sanger") and base != ref[rpos]:
+            if want_qsum:
+                alt_qsum[rpos][base] += q
+            if lo <= rpos <= hi:
+                if base == ref_u[rpos]:
+                    ref_qual_hist[min(int(q), 60)] += 1
+                else:
+                    # every mismatching base's quality, whatever the model: this is
+                    # what the quality-calibrated test keys on
+                    qual_hist[min(int(q), 60)] += 1
+            if want_quals and base != ref[rpos]:
                 alt_quals[(rpos, base, s)].append(q)
-            # per-read chance of an error landing on each of the 3 non-observed
-            # bases ~ (10^(-Q/10))/3; contributes to that alt's false-call rate.
-            e3 = (10 ** (-q / 10.0)) / 3.0
-            if col_probs is not None:
-                col_probs[rpos].append((base, e3))
-            for alt in BASES:
-                if alt != base:
-                    err_lambda[rpos][alt] += e3
-                    s_lambda[(rpos, alt, s)] += e3
+            if want_err or col_probs is not None:
+                # per-read chance of an error landing on each of the 3 non-observed
+                # bases ~ (10^(-Q/10))/3; contributes to that alt's false-call rate.
+                e3 = (10 ** (-q / 10.0)) / 3.0
+                if col_probs is not None:
+                    col_probs[rpos].append((base, e3))
+                if want_err:
+                    for alt in BASES:
+                        if alt != base:
+                            err_lambda[rpos][alt] += e3
+                            if want_s_err:
+                                s_lambda[(rpos, alt, s)] += e3
 
     candidates: list[Variant] = []
     pvals: list[float] = []

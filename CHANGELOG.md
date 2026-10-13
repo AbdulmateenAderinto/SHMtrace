@@ -7,6 +7,14 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- **Faster.** The per-base loops of variant calling and of the control fit do only what the chosen model
+  reads (the recommended model no longer accumulates the expected-error sums of the read-quality model;
+  bases outside the window are skipped in the fit): a J_H4 project runs in about half the time, with
+  identical results. Reads of each library are prepared, and each control is held out in the
+  calibration, on separate processes (`Params.jobs`, default one fewer than the cores, up to 8; 1 runs
+  everything in one process). Results do not depend on the number of processes.
+- A control far noisier than the others (held-out candidates at p <= 0.01 per base more than 5x the
+  others' median) is named in the project notes: as a decoy it suppresses calls in every sample.
 - Control-based FDR: decoy counts are scaled up to a larger library's bases but never down. Scaled
   down, a library far below the decoys' depth kept candidates up to p = 0.8 (one CH12F3 library of
   372 reads made 130 calls; now 0). Libraries at the analysis depth are unaffected.

@@ -68,3 +68,12 @@ def test_project_uses_control_fdr_and_never_a_control_as_its_own_decoy():
     for k in ("KO1", "KO2", "KO3"):
         assert calling[k]["multiple_testing"] == "control"
         assert calling[k]["unique_variants"] <= 5
+
+
+def test_a_control_far_noisier_than_its_peers_is_named():
+    clean = ([0.02, 0.3, 0.6], 100000)
+    dirty = ([1e-6] * 30 + [0.3], 100000)
+    assert project.noisy_decoys({"K1": clean, "K2": clean, "K3": dirty}) == ["K3"]
+    assert project.noisy_decoys({"K1": clean, "K2": clean, "K3": clean}) == []
+    # two controls cannot say which one is the odd one out
+    assert project.noisy_decoys({"K1": clean, "K3": dirty}) == []

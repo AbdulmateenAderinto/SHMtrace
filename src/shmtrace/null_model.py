@@ -280,6 +280,24 @@ def window_bases(aligned, lo: int, hi: int) -> int:
     return sum(1 for r in aligned for rpos, base, _q in r.pairs if base in BASES and lo <= rpos <= hi)
 
 
+def _fold(i, aligned_per_file, ref, p, lo, hi, depth):
+    """Control i held out: its reads (at the samples' depth, so its candidates, the
+    decoys of multiple_testing="control", are what a sample would show) and the null
+    fitted from the other controls."""
+    test = aligned_per_file[i]
+    others = [a for j, a in enumerate(aligned_per_file) if j != i]
+    if depth:
+        from .reads_filter import downsample
+        test = downsample(test, replace(p, downsample_to=depth))[0]
+    return test, fit_aligned(others, ref, p, lo, hi, calibrate=False)[0]
+
+
+def _held_out_pvalues(test, ref_fasta, ref_name, pp, null):
+    from .variants import call_variants
+    vs, _st = call_variants(test, ref_fasta, ref_name, pp, null)
+    return sorted(v.p_value for v in vs)
+
+
 def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: Params,
                      lo: int, hi: int, alpha: float = 0.01, depth: int | None = None,
                      names: list[str] | None = None) -> tuple[float, dict]:
@@ -291,18 +309,11 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     factor in QSCALE_GRID at which no more than `alpha` of its candidates reach
     p < alpha is used. On the JH4 Aicda-/- libraries this lands at 10.
     """
-    from .variants import call_variants
     if len(aligned_per_file) < 2:
         return DEFAULT_QSCALE, {"qscale_source": "default (one control file)"}
-    folds = []
-    for i, test in enumerate(aligned_per_file):
-        others = [a for j, a in enumerate(aligned_per_file) if j != i]
-        if depth:
-            # each held-out control at the samples' depth, so its candidates (the
-            # decoys of multiple_testing="control") are what a sample would show
-            from .reads_filter import downsample
-            test = downsample(test, replace(p, downsample_to=depth))[0]
-        folds.append((test, fit_aligned(others, ref, p, lo, hi, calibrate=False)[0]))
+    from .parallel import pmap
+    folds = pmap(_fold, [(i, aligned_per_file, ref, p, lo, hi, depth) for i in range(len(aligned_per_file))],
+                 p.jobs)
     names = list(names) if names else [f"control_{i + 1}" for i in range(len(folds))]
     pp = replace(p, error_model="qcal", multiple_testing="none", max_pvalue=1.0,
                  strand_filter="off", mask_homopolymers=False)
@@ -312,15 +323,19 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     tmp.close()
     try:
         decoys = {}
+        bases = [window_bases(test, lo, hi) for test, _null in folds]
         for c in QSCALE_GRID:
             m = small = 0
             decoys = {}
-            for name, (test, null) in zip(names, folds, strict=True):
+            for null in (f[1] for f in folds):
                 null.qscale = c
-                vs, _st = call_variants(test, tmp.name, ref_name, pp, null)
-                m += len(vs)
-                small += sum(v.p_value < alpha for v in vs)
-                decoys[name] = (sorted(v.p_value for v in vs), window_bases(test, lo, hi))
+            # each held-out control is called on its own (parallel.py)
+            pvs = pmap(_held_out_pvalues, [(test, tmp.name, ref_name, pp, null) for test, null in folds],
+                       p.jobs)
+            for name, pv, nb in zip(names, pvs, bases, strict=True):
+                m += len(pv)
+                small += sum(x < alpha for x in pv)
+                decoys[name] = (pv, nb)
             trace[c] = (small, m)
             if small <= alpha * m:
                 return c, {"qscale_source": "leave-one-control-out",
@@ -358,15 +373,17 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
         sc: dict = defaultdict(int)
         sd: dict = defaultdict(int)
         quals: dict = defaultdict(list)          # (pos, base, strand) -> qualities
+        ref_u = ref.upper()
         for r in aligned:
             s = getattr(r, "strand", 1)
             for rpos, base, q in r.pairs:
-                if base in BASES:
+                # only the window is read below, so bases outside it are skipped
+                if base in BASES and lo <= rpos <= hi:
                     counts[rpos][base] += 1
                     depth[rpos] += 1
                     sc[(rpos, base, s)] += 1
                     sd[(rpos, s)] += 1
-                    if lo <= rpos <= hi and base != ref[rpos].upper():
+                    if base != ref_u[rpos]:
                         quals[(rpos, base, s)].append(min(QMAX, q))
         this_file: dict = {}
         for pos in range(lo, hi + 1):
