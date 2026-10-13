@@ -7,14 +7,19 @@
 // app's source the way SciCanvas's tests do (test/load-app.js), with one change: text is
 // measured with Helvetica's glyph widths (SciCanvas draws `sans` as Helvetica) instead of the
 // tests' 7-px stub, so centred and right-aligned labels land where the app puts them.
-// Writes <out-stem>.scifig (open it in SciCanvas to edit), <out-stem>.svg (SciCanvas's renderer)
-// and <out-stem>_600dpi.png (Chrome, headless, at 600 dpi for a 174-mm-wide page).
+// Writes <out-stem>.scifig (open it in SciCanvas to edit), <out-stem>.svg (SciCanvas's renderer),
+// <out-stem>.pdf (vector, fonts embedded; Chrome, headless) and <out-stem>_1000dpi.tif (RGB, LZW),
+// and checks the page against Cell Press's figure requirements for production
+// (cell.com/information-for-authors/figure-guidelines): 17.4 cm wide, at most 20 cm tall; Arial;
+// text 6-8 pt; strokes 0.5-1.5 pt; grey fills between 10% and 80%. Any breach stops the build.
 const fs = require('fs'), vm = require('vm'), path = require('path'), os = require('os');
 const { execFileSync } = require('child_process');
 
 const SCI = process.env.SCICANVAS || path.join(os.homedir(), 'SciCanvas');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PRINT_MM = 174;                                  // full-width figure
+const MAX_H_MM = 200;
+const TIFF_DPI = 1000;                                 // Cell Press: line art at least 1,000 dpi
 
 // Helvetica (regular) advance widths, per 1000 em, for ASCII 32-126; Helvetica-Bold is ~6% wider
 const HELV = [278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556,
@@ -77,6 +82,40 @@ function loadApp() {
   return { app: vm.runInNewContext(code, ctx, { filename: 'scicanvas-bundle.js' }), ctx };
 }
 
+// Cell Press production requirements, measured at print size
+function check(page) {
+  const pt = (u) => (u * PRINT_MM / page.width) / 25.4 * 72;          // page units -> points
+  const bad = [];
+  const hMM = page.height * PRINT_MM / page.width;
+  if (hMM > MAX_H_MM + 0.05) bad.push(`height ${hMM.toFixed(1)} mm > ${MAX_H_MM} mm`);
+  const fonts = new Set(); let fmin = 99, fmax = 0, smin = 99, smax = 0;
+  const walk = (list) => list.forEach((o) => {
+    if (o.children) walk(o.children);
+    if (o.type === 'text' || o.label) {
+      const size = pt(o.type === 'text' ? o.fontSize : (o.labelSize || 16));
+      fmin = Math.min(fmin, size); fmax = Math.max(fmax, size);
+      if (o.type === 'text') fonts.add(o.family);
+      if (size < 5.95 || size > 8.05) bad.push(`text ${size.toFixed(2)} pt: ${String(o.text || o.label).slice(0, 30)}`);
+    }
+    const w = o.type === 'connector' ? o.width : (o.stroke && o.stroke !== 'none' ? o.strokeWidth : 0);
+    if (w) {
+      smin = Math.min(smin, pt(w)); smax = Math.max(smax, pt(w));
+      if (pt(w) < 0.495 || pt(w) > 1.505) bad.push(`stroke ${pt(w).toFixed(2)} pt (${o.type})`);
+    }
+    // a pure grey fill (r = g = b, not white) must be 10-80% grey
+    const hex = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(o.fill || '');
+    if (hex && hex[1] === hex[2] && hex[2] === hex[3] && hex[1].toLowerCase() !== 'ff') {
+      const grey = 1 - parseInt(hex[1], 16) / 255;
+      if (grey < 0.1 || grey > 0.8) bad.push(`grey fill ${o.fill} is ${(grey * 100).toFixed(0)}%`);
+    }
+  });
+  walk(page.objects);
+  if ([...fonts].some((x) => x !== 'arial')) bad.push(`fonts other than Arial: ${[...fonts].join(', ')}`);
+  console.log(`Cell Press check: ${PRINT_MM} x ${hMM.toFixed(1)} mm; text ${fmin.toFixed(1)}-${fmax.toFixed(1)} pt; `
+    + `strokes ${smin.toFixed(2)}-${smax.toFixed(2)} pt; fonts ${[...fonts].join(', ')}`);
+  if (bad.length) throw new Error('Cell Press requirements not met:\n  ' + bad.join('\n  '));
+}
+
 function main() {
   const [builderPath, stem] = process.argv.slice(2);
   const { app, ctx } = loadApp();
@@ -87,19 +126,29 @@ function main() {
   const page = builder();
   const missing = page.objects.filter((o) => o.type === 'icon' && !app.ICON_MAP[o.iconId]).map((o) => o.iconId);
   if (missing.length) throw new Error(`unknown icons: ${missing.join(', ')}`);
+  check(page);
   const svg = app.pageSvgString(page);
   fs.writeFileSync(`${stem}.svg`, svg);
   fs.writeFileSync(`${stem}.scifig`, JSON.stringify({ version: 2, pages: [page], uploads: [], assets: [] }));
-  // 600 dpi at the printed width
-  const scale = (PRINT_MM / 25.4 * 600) / page.width;
+  // vector PDF at print size (fonts embedded by Chrome), and a 1,000-dpi TIFF
+  const wMM = PRINT_MM, hMM = page.height * PRINT_MM / page.width;
   const html = `${stem}.render.html`;
+  fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><style>@page{size:${wMM}mm ${hMM}mm;margin:0}
+html,body{margin:0;background:#fff}svg{display:block;width:${wMM}mm;height:${hMM}mm}</style>${svg}`);
+  execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--no-pdf-header-footer',
+    `--print-to-pdf=${path.resolve(stem)}.pdf`, `file://${path.resolve(html)}`], { stdio: 'ignore' });
+  const scale = (wMM / 25.4 * TIFF_DPI) / page.width;
   fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:#fff}
 svg{display:block;width:${page.width}px;height:${page.height}px}</style>${svg}`);
+  const png = `${path.resolve(stem)}_tmp.png`;
   execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
-    `--window-size=${page.width},${page.height}`, `--screenshot=${path.resolve(stem)}_600dpi.png`,
-    `file://${path.resolve(html)}`], { stdio: 'ignore' });
+    `--window-size=${page.width},${Math.ceil(page.height)}`, `--screenshot=${png}`, `file://${path.resolve(html)}`], { stdio: 'ignore' });
   fs.unlinkSync(html);
-  console.log(`${stem}: ${page.objects.length} objects, ${page.width} x ${page.height}; png at ${scale.toFixed(2)}x`);
+  execFileSync('python3', ['-c', `from PIL import Image; im = Image.open(${JSON.stringify(png)}).convert("RGB"); `
+    + `im.save(${JSON.stringify(path.resolve(stem) + '_1000dpi.tif')}, dpi=(${TIFF_DPI}, ${TIFF_DPI}), compression="tiff_lzw"); `
+    + `im.save(${JSON.stringify(path.resolve(stem) + '_preview.png')}, dpi=(300, 300))`]);
+  fs.unlinkSync(png);
+  console.log(`${stem}: ${page.objects.length} objects; PDF, ${TIFF_DPI}-dpi TIFF, SVG, scifig`);
 }
 
 main();
