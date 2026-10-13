@@ -37,6 +37,23 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     report.write_all(res, str(OUT))
     json.dump(project.public(res), open(OUT / "project.json", "w"), default=str)
+    # the calls in the shape of a Geneious annotation export, for the manuscript's figure
+    # scripts (Supplementary S4 reads these; positions are on the 655-nt N114 reference)
+    import csv
+    calls = Path(__file__).parent / "manuscript_corrected/n114_calls"
+    calls.mkdir(exist_ok=True)
+    for name in LIBS:
+        with open(calls / f"{name} SHMtrace Annotations.csv", "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["Name", "Minimum", "Polymorphism Type", "Reference Nucleotide(s)",
+                        "Variant Nucleotide(s)", "Variant Frequency", "Variant P-Value (approximate)",
+                        "Coverage", "Supporting reads"])
+            for v in res["variants"]:
+                if v["sample"] != name:
+                    continue
+                kind = "transition" if v["ref"] + v["alt"] in ("AG", "GA", "CT", "TC") else "transversion"
+                w.writerow([f"{v['ref']}->{v['alt']}", v["pos"], f"SNP ({kind})", v["ref"], v["alt"],
+                            f"{100 * v['frequency']:.2f}%", "0", v["depth"], v["reads"]])
     for s in res["samples"]:
         print(f"{s['sample']:3} {s['group']:10} reads {s['reads']:4} calls {s['unique_mutations']:4} "
               f"unique density {s['unique_density_x1e5']:7.2f}  combined {s.get('combined_density_x1e5') or 0:7.2f}"

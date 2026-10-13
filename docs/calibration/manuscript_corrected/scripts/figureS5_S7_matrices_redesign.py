@@ -378,21 +378,11 @@ def main() -> None:
         ]
     )
 
-    hybridoma = ROOT / "July 10th /Hybridoma"
-    aid = OrderedDict(
-        [
-            ("C1", hybridoma / "75K3B3_6_C1_AID_10.06.24_N114_sub500 assembled to seq_23353 Annotations.csv"),
-            ("D3", hybridoma / "75K3B3_7_D3_AID_10.01.24_N114_sub500 assembled to seq_23353 Annotations.csv"),
-            ("D5", hybridoma / "75K3B3_10_D5_AID_6.28.24__N114_sub500 assembled to seq_23353 Annotations.csv"),
-        ]
-    )
-    empty = OrderedDict(
-        [
-            ("C3", hybridoma / "75K3B3_1_C3_Empty_March_2024_1_N114_sub500 assembled to seq_23353 Annotations.csv"),
-            ("C4", hybridoma / "75K3B3_3_C4_Empty_March_2024_N114_sub500 assembled to seq_23353 Annotations.csv"),
-            ("D1", hybridoma / "75K3B3_4_D1_Empty_March_2024_N114_sub500 assembled to seq_23353 Annotations.csv"),
-        ]
-    )
+    # N114: the SHMtrace re-analysis of the deposited reads (docs/calibration/n114_shmtrace.py);
+    # previously the Geneious sub500 exports in "July 10th /Hybridoma"
+    n114 = Path(__file__).resolve().parent.parent / "n114_calls"
+    aid = OrderedDict([(k, n114 / f"{k} SHMtrace Annotations.csv") for k in ("C1", "D3", "D5")])
+    empty = OrderedDict([(k, n114 / f"{k} SHMtrace Annotations.csv") for k in ("C3", "C4", "D1")])
 
     records = []
     records.extend(

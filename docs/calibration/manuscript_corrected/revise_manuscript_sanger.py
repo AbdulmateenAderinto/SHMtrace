@@ -125,6 +125,82 @@ EDITS = [
      " Percentages are not defined for the sample with no passing variants.", ""),
 ]
 
+# N114: SHMtrace re-analysis of the deposited reads (docs/calibration/n114_shmtrace.py)
+EDITS += [
+    ("Somatic hypermutation (SHM) diversifies",
+     "Assay-specific reference selection, read-level quality control, depth standardisation, and Geneious per-candidate filtering produced an operational set of filtered position–substitution calls.",
+     "Assay-specific reference selection, read-level quality control, depth standardisation, and per-candidate "
+     "filtering (Geneious for JH4; for N114, a quality-calibrated test against the empty-vector controls) produced "
+     "an operational set of filtered position–substitution calls."),
+    ("Somatic hypermutation (SHM) diversifies",
+     "ONT detected an ~18-fold group difference and the expected G:C-biased signature.",
+     "ONT detected at least a 91-fold group difference, with no calls in any empty-vector control, and the "
+     "expected G:C-biased signature."),
+    ("For N114, the 651-nt reference used for preprocessing",
+     " recalculation without this step gave an 18.4-fold rather than 18.1-fold group difference. This sensitivity check does not resolve candidate-level truth.",
+     ""),
+    ("For N114, the 651-nt reference used for preprocessing",
+     "affected at most two calls per pMX-Aicda subclone and none of the empty-vector subclones;",
+     "affected at most two calls per pMX-Aicda subclone and none of the empty-vector subclones."),
+    ("At matched 500-read depth, pMX-Aicda subclones",
+     "At matched 500-read depth, pMX-Aicda subclones had a geometric-mean depth-standardised density of 31 × 10−5 compared with 1.7 × 10−5 in empty-vector controls (~18-fold; exploratory Welch p = 0.0147; Figure 4A).",
+     "At matched 500-read depth, pMX-Aicda subclones had a geometric-mean depth-standardised density of 30 × 10−5, "
+     "whereas no empty-vector control had any call (Figure 4A). With each control placed at its one-event density "
+     "(0.33 × 10−5), the group difference was at least 91-fold (exploratory Welch p = 0.0045)."),
+    ("At matched 500-read depth, pMX-Aicda subclones",
+     "whereas controls had sparse apparent variants (Supplementary Figure S4)",
+     "whereas controls had none (Supplementary Figure S4)"),
+    ("The present data do not establish the accuracy",
+     "The unadjusted Geneious per-candidate threshold also does not control false discovery across the many positions and alternate alleles examined.",
+     "The unadjusted Geneious per-candidate threshold used for JH4 also does not control false discovery across "
+     "the many positions and alternate alleles examined; the N114 calls were made at a false-discovery rate of 0.05."),
+    ("This proof-of-concept study shows that Oxford Nanopore",
+     "and an ~18-fold difference between AID-expressing and empty-vector N114 subclones.",
+     "and at least a 91-fold difference between AID-expressing and empty-vector N114 subclones, with no calls in "
+     "any empty-vector control."),
+    ("Supplementary Table S1. Per-sample sequencing",
+     "N114 densities use positions 21–635 of the 655-nt Geneious reference (615 bp).",
+     "N114 densities use positions 21–635 of the 655-nt Geneious reference (615 bp); N114 candidates are the "
+     "position–substitutions tested and the retained calls those passing SHMtrace's quality-calibrated test at a "
+     "false-discovery rate of 0.05 (Methods), not the Geneious filter."),
+    ("Group geometric means with descriptive 95%",
+     "empty vector 1.7 [0.7–3.3]; pMX-Aicda 31 [23–48].",
+     "empty vector: no calls (below 0.33, the one-event density); pMX-Aicda 30 [19–53]."),
+    ("Figure 4. Filtered apparent variants in the N114 V region",
+     "The exploratory Welch test on log10-transformed densities gave p = 0.0147 and an ~18-fold group difference (31 versus 1.7 × 10−5).",
+     "No empty-vector subclone had any call; each is drawn (open circle) and tested at its one-event density "
+     "(0.33 × 10−5), so the group difference is a lower bound: the exploratory Welch test on log10-transformed "
+     "densities gave p = 0.0045 and at least a 91-fold difference (30 versus < 0.33 × 10−5). Calls were made with "
+     "SHMtrace's quality-calibrated test against the empty-vector controls (Methods)."),
+    ("Figure 4. Filtered apparent variants in the N114 V region",
+     "(B, C) Pooled distinct-call spectra for pMX-Aicda (n = 298) and empty vector (n = 19).",
+     "(B, C) Pooled distinct-call spectra for pMX-Aicda (n = 298) and empty vector (n = 0)."),
+    ("Supplementary Figure S4. Individual N114 V-region",
+     "(n = 80, 71, and 147 unique variants, respectively)", "(n = 79, 58, and 161 unique variants, respectively)"),
+    ("Supplementary Figure S4. Individual N114 V-region",
+     "(n = 2, 7, and 10)", "(n = 0, 0, and 0)"),
+    ("Supplementary Figure S4. Individual N114 V-region",
+     "Variants were restricted to single-nucleotide substitutions with variant frequency < 50% and Geneious approximate variant p ≤ 0.05.",
+     "Calls are single-nucleotide substitutions retained by SHMtrace's quality-calibrated test at a false-discovery "
+     "rate of 0.05, after removing positions at which ≥ 50% of reads differ from the reference (Methods)."),
+    ("Supplementary Figure S5. Recurrence-weighted N114",
+     "(n = 1,475 read-weighted observations); (B) three empty-vector controls (n = 19).",
+     "(n = 1,441 read-weighted observations); (B) three empty-vector controls (n = 0)."),
+]
+
+N114_METHODS = (
+    "N114 variant calling. N114 calls were made with SHMtrace v0.2 from the deposited target-selected reads, at "
+    "500 reads per subclone over positions 21–635. Each candidate position–substitution was tested against the "
+    "sequencing background measured in the empty-vector libraries: the reads supporting it at or above each base "
+    "quality were compared with the number expected from the controls' error rate for that substitution, strand and "
+    "quality, blended with the position's own control rate. Because quality scores overstate certainty, the "
+    "control rates were multiplied by a factor chosen by leave-one-control-out, the smallest at which no more than "
+    "1% of tested positions in a held-out control reached p < 0.01 (here 5; at face value, 69 of 1,225 such tests "
+    "did). Benjamini–Hochberg correction was applied across all positions and alternate alleles at a "
+    "false-discovery rate of 0.05, and each empty-vector library was itself called against a background fitted "
+    "from the other two, never from itself. Positions at which ≥ 50% of reads differed from the reference were "
+    "removed as fixed parental differences.")
+
 # (table index, row, column, old, new)
 CELLS = [
     (0, 4, 1, "36 to 38 (Wt), 9 to 10 (Aicda−/−)", "26 to 40 (Wt), 10 to 11 (Aicda−/−)"),
@@ -132,11 +208,15 @@ CELLS = [
     (2, 4, 2, "r = 0.97 [0.91–0.99]; slope = 1.11", "r = 0.95 [0.82–0.99]; slope = 1.05"),
     (2, 5, 2, "interaction p = 0.875; none significant (minimum adjusted p = 0.106)",
      "interaction p = 0.78; none significant (minimum adjusted p = 0.12)"),
+    (2, 3, 2, "p = 0.0147 (~18-fold)", "p = 0.0045 (≥ 91-fold; controls with no calls at one event)"),
     (2, 7, 2, "Ts adjusted p = 0.803; Tv adjusted p = 0.982", "Ts adjusted p = 0.43; Tv adjusted p = 1.00"),
 ]
 # table rows removed (table index, row, text the row must contain)
 DROP_ROWS = [(2, 6, "TOST")]
 # Supplementary Table S1 Sanger rows: clones, bp, candidates, retained, density (x1e-5)
+# Supplementary Table S1 N114 rows (SHMtrace): candidates tested, calls retained, density
+S1_N114 = {"1_C3": ("206", "0", "0.00"), "3_C4": ("216", "0", "0.00"), "4_D1": ("150", "0", "0.00"),
+           "6_C1": ("270", "79", "26.3"), "7_D3": ("292", "58", "19.1"), "10_D5": ("384", "161", "53.2")}
 S1_ROWS = {"W2": ("37", "529", "135", "135", "712"), "W3": ("40", "529", "230", "230", "1122"),
            "W4": ("26", "529", "106", "106", "828"), "AID1": ("11", "529", "1", "1", "17.3"),
            "AID2": ("10", "529", "1", "1", "19.0"), "AID3": ("10", "529", "2", "2", "37.8")}
@@ -262,6 +342,25 @@ def main(src, out):
                 if cell.text.strip() != val:
                     set_cell(cell, cell.text.strip(), val)
 
+    for row in s1.rows:
+        key = row.cells[0].text.strip()
+        if key in S1_N114 and row.cells[2].text.strip() == "ONT":
+            for col, val in zip((7, 8, 9), S1_N114[key], strict=True):
+                cell = row.cells[col]
+                if cell.text.strip() != val:
+                    set_cell(cell, cell.text.strip(), val)
+
+    # a Methods paragraph on N114 calling, after the N114 reference paragraph
+    from docx.text.paragraph import Paragraph as _P
+    anchor2 = find("For N114, the 651-nt reference used for preprocessing")
+    p2 = copy.deepcopy(anchor2._p)
+    anchor2._p.addnext(p2)
+    np2 = _P(p2, anchor2._parent)
+    for r in list(np2.runs)[1:]:
+        p2.remove(r._r)
+    np2.runs[0].text = N114_METHODS
+    np2.runs[0].font.highlight_color = WD_COLOR_INDEX.YELLOW
+
     # a Methods paragraph on clone curation, after the Sanger processing paragraph
     anchor = find("Sanger clones were re-analysed from their original")
     new_p = copy.deepcopy(anchor._p)
@@ -276,7 +375,10 @@ def main(src, out):
     # regenerated figures
     for start, path in (("Figure 2. Depth-standardised", FIG / "Figure2_JH4_combined.png"),
                         ("Figure 3. ONT yields", FIG / "Figure3_concordance.png"),
-                        ("Supplementary Figure S2. Individual", FIG / "FigureS5_individual_Sanger_matrices.png")):
+                        ("Supplementary Figure S2. Individual", FIG / "FigureS5_individual_Sanger_matrices.png"),
+                        ("Figure 4. Filtered apparent variants", FIG / "Figure4_hybridoma_combined.png"),
+                        ("Supplementary Figure S4. Individual N114", FIG / "FigureS7_individual_N114_matrices.png"),
+                        ("Supplementary Figure S5. Recurrence-weighted", FIG / "FigureS7_recurrence_weighted.png")):
         legend = find(start)
         idx = [p._p for p in doc.paragraphs].index(legend._p)
         img_p = next(doc.paragraphs[k] for k in range(idx - 1, idx - 4, -1)

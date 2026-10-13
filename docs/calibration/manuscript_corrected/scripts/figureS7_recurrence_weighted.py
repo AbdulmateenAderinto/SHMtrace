@@ -22,11 +22,22 @@ SEQ=LinearSegmentedColormap.from_list("seqblue",["#F5F8FC","#C4D8EE","#6FA0CE","
 BASES=["A","T","C","G"]
 def m(r): return np.array(r,float)
 # recurrence-weighted matrices (each unique mutation x supporting reads)
-aid_w=m([[0,2,120,577],[2,0,470,72],[1,0,0,101],[1,1,128,0]])  # n = 1,475
-emp_w=m([[0,0,8,0],[0,0,0,9],[0,0,0,0],[2,0,0,0]])             # n = 19
+# from the SHMtrace re-analysis (docs/calibration/n114_shmtrace.py): each call x its reads
+import json as _json
+from pathlib import Path as _Path
+_RES=_json.load(open(_Path(__file__).resolve().parents[2]/"figures/n114_shmtrace/project.json"))
+_GRP={s["sample"]:s["group"] for s in _RES["samples"]}
+def _weighted(group):
+    M=np.zeros((4,4))
+    for v in _RES["variants"]:
+        if _GRP[v["sample"]]==group and 21<=v["pos"]<=635:
+            M[BASES.index(v["alt"])][BASES.index(v["ref"])]+=v["reads"]
+    return M
+aid_w=_weighted("pMX-Aicda"); emp_w=_weighted("pMX-Empty")
+N_AW,N_EW=int(aid_w.sum()),int(emp_w.sum())
 
 def heat(ax,M,label,n,gvmax,show_from=True):
-    MT=M.T; P=100*MT/MT.sum(); rowpct=100*MT.sum(1)/MT.sum()
+    MT=M.T; tot=MT.sum() or 1.0; P=100*MT/tot; rowpct=100*MT.sum(1)/tot
     for i in range(4):
         for j in range(4):
             x,y=j,3-i
@@ -38,7 +49,7 @@ def heat(ax,M,label,n,gvmax,show_from=True):
             ax.text(x+.5,y+.60,f"{int(MT[i,j])}",ha="center",va="center",color=tc,fontsize=12,fontweight="bold")
             ax.text(x+.5,y+.30,f"{v:.1f}%",ha="center",va="center",color=tc,fontsize=7.5)
     for i in range(4):
-        ax.add_patch(Rectangle((5,3-i),1,1,fc=SEQ(rowpct[i]/max(rowpct)*.6),ec="white",lw=2))
+        ax.add_patch(Rectangle((5,3-i),1,1,fc=SEQ(rowpct[i]/(max(rowpct) or 1)*.6),ec="white",lw=2))
         ax.text(5.5,3-i+.5,f"{rowpct[i]:.1f}",ha="center",va="center",fontsize=10.5,fontweight="bold")
     for j,b in enumerate(BASES): ax.text(j+.5,4.16,b,ha="center",va="bottom",fontsize=11,fontweight="bold")
     ax.text(5.5,4.16,"%",ha="center",va="bottom",fontsize=11,fontweight="bold")
@@ -53,15 +64,15 @@ def heat(ax,M,label,n,gvmax,show_from=True):
 
 # ---- canvas: matrices tightened together with the colour bar as a single row
 #      directly beneath BOTH of them (matches Figures 3A and 4B/C) -------------
-gv=max(100*aid_w.T.max()/aid_w.T.sum(),100*emp_w.T.max()/emp_w.T.sum())
+gv=max(100*aid_w.T.max()/(aid_w.T.sum() or 1),100*emp_w.T.max()/(emp_w.T.sum() or 1))
 fig=plt.figure(figsize=(10.4,5.0))
 # B's x-range is narrower (no 'From' label), so give it a proportionally
 # narrower cell to keep both matrices at exactly the same scale.
 gs=fig.add_gridspec(2,2,height_ratios=[18,1.0],hspace=0.02,wspace=0.02,
                     width_ratios=[8.0,7.35],
                     left=0.045,right=0.985,top=0.92,bottom=0.135)
-axA=fig.add_subplot(gs[0,0]); heat(axA,aid_w,"pMX-$\\it{Aicda}$",1475,gv)
-axB=fig.add_subplot(gs[0,1]); heat(axB,emp_w,"pMX-Empty vector",19,gv,show_from=False)
+axA=fig.add_subplot(gs[0,0]); heat(axA,aid_w,"pMX-$\\it{Aicda}$",N_AW,gv)
+axB=fig.add_subplot(gs[0,1]); heat(axB,emp_w,"pMX-Empty vector",N_EW,gv,show_from=False)
 sm=plt.cm.ScalarMappable(cmap=SEQ,norm=plt.Normalize(0,gv))
 cax=fig.add_subplot(gs[1,:])
 cb=fig.colorbar(sm,cax=cax,orientation="horizontal")
@@ -87,4 +98,4 @@ _p=OUT+"FigureS7_recurrence_weighted.png"
 _im=_Image.open(_p).convert("RGB"); _w,_h=_im.size; _strip=int(_h*0.10)
 _c=_Image.new("RGB",(_w,_h+_strip),"white"); _c.paste(_im,(0,_strip)); _c.save(_p)
 print("top guard added: %dpx"%_strip)
-print("S7 recurrence-weighted written (Aicda n=1,475 | Empty n=19)")
+print(f"S7 recurrence-weighted written (Aicda n={N_AW:,} | Empty n={N_EW})")

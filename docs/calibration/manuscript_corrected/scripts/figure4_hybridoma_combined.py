@@ -8,7 +8,8 @@
 #   C  pMX-Empty pooled UNIQUE-mutation spectrum matrix
 # Square 2x2 layout, panel letters only (no descriptive titles on top of panels),
 # minimal white space. The recurrence-weighted matrices (old Fig 5B) move to the
-# supplement. Values are the audited October C1 / D3 / D5 sub500 exports.
+# supplement. Values: SHMtrace re-analysis of the deposited N114 reads (500 reads per
+# subclone); previously the Geneious sub500 exports.
 # Run:  python figure4_hybridoma_combined.py
 # =============================================================================
 import os, numpy as np, matplotlib as mpl, matplotlib.pyplot as plt
@@ -25,31 +26,57 @@ BLUE=("#6D9AD0","#274B7E"); RED=("#D07A7E","#9A3439"); GRID="#C9C9C9"
 SEQ=LinearSegmentedColormap.from_list("seqblue",["#F5F8FC","#C4D8EE","#6FA0CE","#2F6BA6","#173D63"])
 BASES=["A","T","C","G"]
 
-# ---- panel A data (unique-variant density x10^-5 / bp, 615 bp, ~500 reads) ---
-# Derived from the audited unique-variant counts rather than typed in pre-rounded.
-def _dens(counts, reads=500, bp=615): return [c/(reads*bp)*1e5 for c in counts]
-aicda=_dens([80,71,147])             # C1, D3, D5
-empty=_dens([2,7,10])                # C3, C4, D1
-# ---- panels B/C data: pooled UNIQUE-mutation matrices  M[to][from] ----------
-aid_u=np.array([[0,1,36,77],[2,0,75,41],[1,0,0,29],[1,1,34,0]],float)   # n=298
-emp_u=np.array([[0,0,8,0],[0,0,0,9],[0,0,0,0],[2,0,0,0]],float)         # n=19
+# ---- data: the SHMtrace re-analysis of the deposited N114 reads (500 reads per
+# subclone, recommended quality-calibrated mode; docs/calibration/n114_shmtrace.py) ----
+import json as _json
+from pathlib import Path as _Path
+_RES = _json.load(open(_Path(__file__).resolve().parents[2] / "figures/n114_shmtrace/project.json"))
+_S = {s["sample"]: s for s in _RES["samples"]}
+AID_IDS, EMP_IDS = ["C1", "D3", "D5"], ["C3", "C4", "D1"]
+AID_N = [_S[k]["unique_mutations"] for k in AID_IDS]
+EMP_N = [_S[k]["unique_mutations"] for k in EMP_IDS]
+# a subclone with no calls is drawn (and tested) at its one-event density: the left-
+# censoring convention, so the fold is a lower bound
+def _dens(ids):
+    out, cens = [], []
+    for k in ids:
+        d, one = _S[k]["unique_density_x1e5"], _S[k]["one_event_density_x1e5"]
+        out.append(d if d > 0 else one)
+        cens.append(d <= 0)
+    return out, cens
+aicda, aicda_cens = _dens(AID_IDS)
+empty, empty_cens = _dens(EMP_IDS)
+def _matrix(group):
+    c = _RES["spectrum_group"].get(group, {})
+    M = np.zeros((4, 4))
+    for f in BASES:
+        for t in BASES:
+            if f != t:
+                M[BASES.index(t)][BASES.index(f)] = c.get(f"{f}>{t}", 0)
+    return M
+aid_u = _matrix("pMX-Aicda")     # M[to][from]
+emp_u = _matrix("pMX-Empty")
+N_AID, N_EMP = int(aid_u.sum()), int(emp_u.sum())
 
 def geo(x):
     x=np.asarray(x,float); return 10**np.mean(np.log10(x)),10**np.std(np.log10(x),ddof=1)
 # statistics computed from the data, never typed in by hand
 PVAL=f"{_st.ttest_ind(np.log10(aicda),np.log10(empty),equal_var=False).pvalue:.4f}"
 FOLD=round(geo(aicda)[0]/geo(empty)[0])
+FOLD_TXT=("≥ " if any(empty_cens) else "~")+f"{FOLD}×"
 
 def dotplot(ax):
     rng=np.random.default_rng(4)
-    for i,(d,(fill,edge)) in enumerate([(aicda,BLUE),(empty,RED)]):
+    for i,(d,cens,(fill,edge)) in enumerate([(aicda,aicda_cens,BLUE),(empty,empty_cens,RED)]):
         gm,gs=geo(d)
         ax.plot([i,i],[gm/gs,gm*gs],color=edge,lw=1.6,zorder=3)
         for yy in (gm/gs,gm*gs): ax.plot([i-.07,i+.07],[yy,yy],color=edge,lw=1.6,zorder=3)
         ax.plot([i-.26,i+.26],[gm,gm],color=edge,lw=3.0,zorder=5,solid_capstyle="round")
         xs=i+(rng.random(len(d))-.5)*0.16
-        ax.scatter(xs,d,facecolors=fill,edgecolors=edge,s=62,linewidths=1.5,zorder=6)
-    ax.set_yscale("log"); ax.set_ylim(0.3,150); ax.set_xlim(-0.7,1.7)
+        ax.scatter(xs,d,facecolors=["white" if c else fill for c in cens],edgecolors=edge,s=62,linewidths=1.5,zorder=6)
+    ax.set_yscale("log"); ax.set_ylim(0.1,150); ax.set_xlim(-0.7,1.7)
+    if all(empty_cens):
+        ax.text(1,min(empty)*0.62,"no calls\n(one-event scale)",ha="center",va="top",fontsize=7.5,color="#7A2E33")
     ax.set_xticks([0,1]); ax.set_xticklabels(["pMX-$\\it{Aicda}$","pMX-Empty vector"],rotation=25,ha="right",fontsize=9)
     ax.set_ylabel("Mutation density, N114 V region\n(×10$^{-5}$ mut/bp; 615 bp)",fontsize=9)
     ax.set_axisbelow(True); ax.yaxis.grid(True,linestyle=(0,(5,4)),color=GRID,linewidth=1.1,zorder=0)
@@ -57,10 +84,11 @@ def dotplot(ax):
     ax.spines[["top","right"]].set_visible(False); ax.tick_params(width=1.5,length=5,labelsize=9)
     u1=geo(aicda); u2=geo(empty); upper=max(u1[0]*u1[1],u2[0]*u2[1],max(aicda),max(empty)); yb=upper*1.45
     ax.plot([0,0,1,1],[yb,yb*1.4,yb*1.4,yb],color="black",lw=1.5,zorder=8)
-    ax.text(.5,yb*1.75,f"$P$ = {PVAL} (~{FOLD}×)",ha="center",fontsize=9.5)
+    ax.text(.5,yb*1.75,f"$P$ = {PVAL} ({FOLD_TXT})",ha="center",fontsize=9.5)
 
 def heat(ax,M,label,n,gvmax,show_from=True):
-    MT=M.T; P=100*MT/MT.sum(); rowpct=100*MT.sum(1)/MT.sum()
+    MT=M.T; tot=MT.sum() or 1.0      # a group with no calls: every cell 0
+    P=100*MT/tot; rowpct=100*MT.sum(1)/tot
     for i in range(4):
         for j in range(4):
             x,y=j,3-i
@@ -72,7 +100,7 @@ def heat(ax,M,label,n,gvmax,show_from=True):
             ax.text(x+.5,y+.60,f"{int(MT[i,j])}",ha="center",va="center",color=tc,fontsize=12,fontweight="bold")
             ax.text(x+.5,y+.30,f"{v:.1f}%",ha="center",va="center",color=tc,fontsize=7.5)
     for i in range(4):
-        ax.add_patch(Rectangle((5,3-i),1,1,fc=SEQ(rowpct[i]/max(rowpct)*.6),ec="white",lw=2))
+        ax.add_patch(Rectangle((5,3-i),1,1,fc=SEQ(rowpct[i]/(max(rowpct) or 1)*.6),ec="white",lw=2))
         ax.text(5.5,3-i+.5,f"{rowpct[i]:.1f}",ha="center",va="center",fontsize=10.5,fontweight="bold")
     for j,b in enumerate(BASES): ax.text(j+.5,4.16,b,ha="center",va="bottom",fontsize=11,fontweight="bold")
     ax.text(5.5,4.16,"%",ha="center",va="bottom",fontsize=11,fontweight="bold")
@@ -87,7 +115,7 @@ def heat(ax,M,label,n,gvmax,show_from=True):
 
 # ---- canvas (reviewer request): all three panels on ONE level, A beside B and C
 #      and made smaller; colour bar + note beneath the two matrices -------------
-gv=max(100*aid_u.T.max()/aid_u.T.sum(),100*emp_u.T.max()/emp_u.T.sum())
+gv=max(100*aid_u.T.max()/(aid_u.T.sum() or 1),100*emp_u.T.max()/(emp_u.T.sum() or 1))
 fig=plt.figure(figsize=(13.6,5.2))
 outer=fig.add_gridspec(1,2,width_ratios=[0.52,2.0],wspace=0.13,
                        left=0.05,right=0.985,top=0.93,bottom=0.115)
@@ -99,8 +127,8 @@ axA=fig.add_subplot(outer[0,0]); dotplot(axA)
 # narrower cell to keep both matrices at exactly the same scale.
 gsBC=outer[0,1].subgridspec(2,2,height_ratios=[18,1.0],hspace=0.02,wspace=0.02,
                             width_ratios=[8.0,7.35])
-axB=fig.add_subplot(gsBC[0,0]); heat(axB,aid_u,"pMX-$\\it{Aicda}$",298,gv)
-axC=fig.add_subplot(gsBC[0,1]); heat(axC,emp_u,"pMX-Empty vector",19,gv,show_from=False)
+axB=fig.add_subplot(gsBC[0,0]); heat(axB,aid_u,"pMX-$\\it{Aicda}$",N_AID,gv)
+axC=fig.add_subplot(gsBC[0,1]); heat(axC,emp_u,"pMX-Empty vector",N_EMP,gv,show_from=False)
 sm=plt.cm.ScalarMappable(cmap=SEQ,norm=plt.Normalize(0,gv))
 cax=fig.add_subplot(gsBC[1,:])
 cb=fig.colorbar(sm,cax=cax,orientation="horizontal")
@@ -119,7 +147,8 @@ for _ax,_lab,_dx in [(axA,"A",-0.038),(axB,"B",-0.012),(axC,"C",-0.012)]:
 OUT=OUT_DIR+os.sep
 for ext in ("png","pdf"):
     fig.savefig(OUT+f"Figure4_hybridoma_combined.{ext}",dpi=600,bbox_inches="tight",pad_inches=.04,facecolor="white")
-print("pMX-Aicda GM %.1f | Empty GM %.2f | fold %.0f"%(geo(aicda)[0],geo(empty)[0],geo(aicda)[0]/geo(empty)[0]))
+print("pMX-Aicda GM %.1f | Empty GM %.2f%s | fold %s | P %s | calls %s / %s"%(geo(aicda)[0],geo(empty)[0],
+      " (all at the one-event density)" if all(empty_cens) else "",FOLD_TXT,PVAL,AID_N,EMP_N))
 # Renderers (LibreOffice/Word) shave a few pixels off the top of a wide inline
 # image, which was clipping the bold panel letters. Bake a small white margin
 # into the raster so the letters can never be cropped.

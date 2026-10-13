@@ -38,3 +38,7 @@ Table S2 row and legend), and two new supplementary figures — S8, the 529-bp w
 (`geneious_original/fig3_agreement_position_hotspot`, panels B and C of the four-panel figure). The inclusion/curation figure is not used.
 
 Rebuild: `python ../organize_jh4_ab1.py <ab1 dir> ~/Nanoshm/sanger_ab1_original <genbank dir> --original && python export_sanger_calls.py && cd scripts && python figure2_jh4_combined.py && python figure3_concordance.py && python figureS5_S7_matrices_redesign.py`
+
+## N114 (from 12 October 2026)
+
+Figure 4 and Supplementary S4 and S5 use the SHMtrace re-analysis of the deposited N114 reads (`../n114_shmtrace.py`; calls exported to `n114_calls/` in the shape of Geneious annotation exports for `figureS5_S7_matrices_redesign.py`; `figure4_hybridoma_combined.py` and `figureS7_recurrence_weighted.py` read `../figures/n114_shmtrace/project.json`). pMX-Aicda 79/58/161 calls (Geneious 80/71/147), empty vector 0/0/0 (Geneious 2/7/10); at least 91-fold, Welch p = 0.0045 with the controls at their one-event density. The depth figures S6 and S7 still use the Geneious exports.
