@@ -123,7 +123,27 @@ class Sheet:
     def excluded(self) -> list[dict]:
         return [{**r.provenance(), "reason": r.exclude} for r in self.rows if r.exclude]
 
-    def project(self, reference: str, region: str, platform: str = "sanger",
+    def platform(self) -> str:
+        """The platform the sheet's files imply: "sanger" for chromatograms (.ab1, .abi, .scf,
+        .seq, .gb), "ont" for reads (FASTQ, BAM, or pooled rows with a barcode). FASTA files
+        are neutral (Sanger clones are often exported as FASTA) and follow the other files; a
+        sheet of FASTA files only is Sanger, as before. A sheet mixing chromatograms and reads,
+        or with files of neither kind, raises SheetError."""
+        kinds = {}
+        for r in self.used:
+            kinds.setdefault("ont" if r.barcode else _file_kind(r.file), []).append(r.file)
+        if None in kinds:
+            raise SheetError([f"cannot tell the platform from {os.path.basename(kinds[None][0])!r}; "
+                              "give --platform"])
+        if "sanger" in kinds and "ont" in kinds:
+            raise SheetError(["the sheet mixes Sanger traces and reads (e.g. "
+                              f"{os.path.basename(kinds['sanger'][0])!r} and {os.path.basename(kinds['ont'][0])!r}); "
+                              "split it or give --platform"])
+        if not kinds:
+            raise SheetError(["the sheet has no usable rows"])
+        return "ont" if "ont" in kinds else "sanger"
+
+    def project(self, reference: str, region: str, platform: str | None = None,
                 demux_dir: str | None = None, left_anchor: str | None = None,
                 right_anchor: str | None = None, demux_options: dict | None = None,
                 **extra) -> dict:
@@ -134,6 +154,8 @@ class Sheet:
         sheet). The barcode sits just outside the primer anchors, by default the
         first and last 20 reference bases (reference-forward).
         """
+        if platform is None:
+            platform = self.platform()
         samples = self.samples()
         pooled = [r for r in self.used if r.barcode]
         if pooled:
@@ -162,6 +184,26 @@ class Sheet:
                                  "aliases": self.aliases(),
                                  "excluded": self.excluded(), "warnings": self.warnings},
                 **extra}
+
+
+_SANGER_EXT = (".ab1", ".abi", ".scf", ".seq", ".gb", ".gbk")
+_READ_EXT = (".fastq", ".fq", ".bam")
+_NEUTRAL_EXT = (".fasta", ".fa", ".fna", ".fas")
+
+
+def _file_kind(f: str) -> str | None:
+    name = str(f).lower()
+    for z in (".gz", ".bz2", ".xz"):
+        name = name.removesuffix(z)
+    if "+" in name:                       # paired reads, "R1+R2"
+        name = name.split("+")[0].removesuffix(".gz")
+    if name.endswith(_SANGER_EXT):
+        return "sanger"
+    if name.endswith(_READ_EXT):
+        return "ont"
+    if name.endswith(_NEUTRAL_EXT):
+        return "fasta"
+    return None
 
 
 def _norm(h: str) -> str:
@@ -379,7 +421,8 @@ def main(argv=None):
     r.add_argument("sheet")
     r.add_argument("--reference", required=True)
     r.add_argument("--region", required=True, help="preset name, e.g. jh4_intron")
-    r.add_argument("--platform", default="sanger")
+    r.add_argument("--platform", default=None, choices=("sanger", "ont", "illumina"),
+                   help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont)")
     r.add_argument("--contaminant", action="append", default=[])
     r.add_argument("--mode", default="recommended")
     r.add_argument("-o", "--out", required=True, help="output folder")
@@ -401,7 +444,12 @@ def main(argv=None):
             print(f"excluded {e['clone_id']} ({e['sample']}): {e['reason']}")
         return
     from . import project, report
-    proj = sh.project(a.reference, a.region, a.platform, contaminants=a.contaminant, mode=a.mode)
+    try:
+        platform = a.platform or sh.platform()
+    except SheetError as e:
+        raise SystemExit(str(e)) from None
+    print(f"platform: {platform}" + ("" if a.platform else " (inferred from the files)"))
+    proj = sh.project(a.reference, a.region, platform, contaminants=a.contaminant, mode=a.mode)
     res = project.run_project(proj, lambda f, m: print(f"{100 * f:3.0f}%  {m}"))
     written = report.write_all(res, a.out)
     with open(os.path.join(a.out, "project.json"), "w") as fh:

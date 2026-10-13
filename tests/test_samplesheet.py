@@ -111,3 +111,40 @@ def test_the_app_loads_a_sheet_and_reports_its_problems(tmp_path, traces):
     bad = _sheet(tmp_path / "b.csv", [["traces/none.ab1", "WT1", "WT", "no", "", "", ""]])
     r = c.post("/api/samplesheet", json={"path": str(bad)})
     assert r.status_code == 400 and "file not found" in r.json()["detail"]["problems"][0]
+
+
+def test_the_platform_is_inferred_from_the_files(tmp_path, traces):
+    # a sheet of chromatograms is Sanger, a sheet of reads is nanopore; `run` once
+    # defaulted to Sanger, which tested read libraries with the wrong error model
+    sanger = samplesheet.load(_sheet(tmp_path / "s.csv", [["traces/a.ab1", "WT1", "WT", "no", "", "", ""]]))
+    assert sanger.platform() == "sanger"
+    assert sanger.project("ref.fasta", "jh4_intron")["platform"] == "sanger"
+    reads = tmp_path / "reads"
+    reads.mkdir()
+    for n in ("WT1.fastq", "KO1.fastq.gz"):
+        (reads / n).write_text("@r\nACGT\n+\nIIII\n")
+    ont = samplesheet.load(_sheet(tmp_path / "o.csv", [["reads/WT1.fastq", "WT1", "WT", "no", "", "", ""],
+                                                       ["reads/KO1.fastq.gz", "KO1", "KO", "yes", "", "", ""]]))
+    assert ont.platform() == "ont"
+    assert ont.project("ref.fasta", "jh4_intron")["platform"] == "ont"
+    # FASTA clone sequences follow the other files; alone they are Sanger, as before
+    (reads / "c1.fasta").write_text(">c1\nACGT\n")
+    (traces / "c2.fasta").write_text(">c2\nACGT\n")
+    fa = samplesheet.load(_sheet(tmp_path / "f.csv", [["traces/c2.fasta", "WT1", "WT", "no", "", "", ""]]))
+    assert fa.platform() == "sanger"
+    with_traces = samplesheet.load(_sheet(tmp_path / "t.csv", [["traces/a.ab1", "WT1", "WT", "no", "", "", ""],
+                                                               ["traces/c2.fasta", "WT1", "WT", "no", "", "", ""]]))
+    assert with_traces.platform() == "sanger"
+    # an explicit platform wins
+    assert ont.project("ref.fasta", "jh4_intron", "illumina")["platform"] == "illumina"
+
+
+def test_a_sheet_mixing_traces_and_reads_is_refused(tmp_path, traces):
+    (tmp_path / "WT2.fastq").write_text("@r\nACGT\n+\nIIII\n")
+    mixed = samplesheet.load(_sheet(tmp_path / "m.csv", [["traces/a.ab1", "WT1", "WT", "no", "", "", ""],
+                                                         ["WT2.fastq", "WT2", "WT", "no", "", "", ""]]))
+    with pytest.raises(samplesheet.SheetError, match="mixes"):
+        mixed.platform()
+    with pytest.raises(SystemExit, match="mixes"):
+        samplesheet.main(["run", str(tmp_path / "m.csv"), "--reference", "r.fasta", "--region", "jh4_intron",
+                          "-o", str(tmp_path / "out")])
