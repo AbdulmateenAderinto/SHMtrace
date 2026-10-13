@@ -28,6 +28,9 @@ from lofreq_runner import LOFREQ, lofreq_calls  # noqa: E402
 
 OUT = Path(__file__).parent / "out"
 PROFILES = ("recommended", "geneious", "v0.1", "pbinom")
+PROFILES_RUN, WITH_LOFREQ, TAG = list(PROFILES), True, ""
+# extra settings tried on top of a mode: name -> (mode, Params overrides)
+VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"})}
 
 
 def run(key, reps, n_sites, seed=1):
@@ -56,8 +59,9 @@ def run(key, reps, n_sites, seed=1):
                     fh.write(f"@{n}\n{s}\n+\n{q}\n")
                 tmp = fh.name
             try:
-                for prof in PROFILES:
-                    pp = replace(base, **pipeline.mode_overrides(prof))
+                for prof in PROFILES_RUN:
+                    mode, extra = VARIANTS.get(prof, (prof, {}))
+                    pp = replace(base, **pipeline.mode_overrides(mode), **extra)
                     nr = None
                     if pp.error_model != "geneious":
                         k = (pp.error_model, pp.phase_mode)
@@ -69,7 +73,7 @@ def run(key, reps, n_sites, seed=1):
                     rows.append({"control": ctl, "rep": rep, "caller": prof, "reads": len(res["_aligned"]),
                                  **simulate.evaluate(called, planted)})
                     print(key, ctl, rep, prof, rows[-1]["recall"], rows[-1]["false_calls"], flush=True)
-                    if prof == "recommended":
+                    if prof == "recommended" and WITH_LOFREQ:
                         keep = {a.qname for a in res["_aligned"]}
                         reads = [r for r in spiked if r[0].split()[0] in keep]
                         for lname, extra in LOFREQ.items():
@@ -84,7 +88,7 @@ def run(key, reps, n_sites, seed=1):
                 os.remove(tmp)
     OUT.mkdir(exist_ok=True)
     json.dump({"dataset": key, "reps": reps, "sites": n_sites, "rows": rows},
-              open(OUT / f"spikein_{key}.json", "w"), indent=1, default=str)
+              open(OUT / f"spikein_{key}{TAG}.json", "w"), indent=1, default=str)
 
 
 if __name__ == "__main__":
@@ -92,6 +96,12 @@ if __name__ == "__main__":
     ap.add_argument("datasets", nargs="+")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--sites", type=int, default=60)
+    ap.add_argument("--profiles", default=",".join(PROFILES), help="modes or VARIANTS names")
+    ap.add_argument("--no-lofreq", action="store_true")
+    ap.add_argument("--tag", default="", help="suffix for the output file")
     a = ap.parse_args()
+    PROFILES_RUN = a.profiles.split(",")
+    WITH_LOFREQ = not a.no_lofreq
+    TAG = a.tag
     for k in a.datasets:
         run(k, a.reps, a.sites)

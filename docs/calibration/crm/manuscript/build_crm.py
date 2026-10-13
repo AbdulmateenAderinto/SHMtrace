@@ -53,7 +53,8 @@ def public_numbers():
     f = {g: [s["mutation_frequency_x1e3"] for s in p["samples"] if s["group"] == g] for g in ("WT", "LDHA_KO", "AID_KO")}
     g = {x["group"]: x for x in p["groups"]}
     n["ldha_fold"] = f"{np.mean(f['WT']) / np.mean(f['AID_KO']):.0f}"
-    n["ldha_p"] = f"{g['WT']['mutation_frequency_x1e3_p_welch_log_vs_AID_KO']:.3f}"
+    pw = g['WT']['mutation_frequency_x1e3_p_welch_log_vs_AID_KO']
+    n["ldha_p"] = f"{pw:.1e}" if pw < 0.001 else f"{pw:.3f}"
     n["ldha_nwt"], n["ldha_nko"] = len(f["WT"]), len(f["AID_KO"])
     from scipy import stats
     n["ldha_p_ko"] = f"{stats.mannwhitneyu(f['WT'], f['LDHA_KO']).pvalue:.2f}"

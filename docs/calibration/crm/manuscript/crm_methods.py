@@ -218,7 +218,7 @@ LEGENDS = [
      "vector (PRJNA918596; n = 4). (C) Spectrum and targeting of AID and R174E/R178E calls; the mutant's calls cluster "
      "at positions 164–172. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
      "(PRJNA820976; n = 6). (E) Error per base of UMI consensus against raw R10 reads by reads per molecule "
-     "(rRNA operons[@karst2021]; 103 molecules). See also Figure S7."),
+     "(rRNA operons[@karst2021]; 103 molecules). See also Table S2."),
 ]
 
 TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
@@ -247,7 +247,7 @@ TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Na
                "molecular identifier.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S7 and Tables S1 and S3",
+    "Document S1. Figures S1–S6 and Tables S1 and S3",
     "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

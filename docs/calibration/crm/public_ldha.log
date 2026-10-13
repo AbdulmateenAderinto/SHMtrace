@@ -1,5 +1,24 @@
-sh: line 1:  3881 Terminated: 15          .venv/bin/python docs/calibration/crm/public_illumina.py ldha
+/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/.venv/lib/python3.13/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+ldha AIDKO_1 AID_KO 5000 2 0.1257 0.0 None 0
+ldha AIDKO_2 AID_KO 5000 0 0.0 None None 0
+ldha AIDKO_3 AID_KO 5000 0 0.0 None None 1
+ldha AIDKO_4 AID_KO 5000 1 0.1371 0.0 None 0
+ldha KO1 LDHA_KO 5000 8 1.5086 37.5 None 0
+ldha KO2 LDHA_KO 5000 11 1.6143 9.1 2.2128 0
+ldha KO3 LDHA_KO 5000 16 1.8886 18.8 1.8029 0
+ldha KO4 LDHA_KO 5000 0 0.0 None None 0
+ldha KO5 LDHA_KO 5000 6 0.5914 33.3 None 0
+ldha KO6 LDHA_KO 5000 17 1.7143 29.4 1.7963 0
+ldha KO7 LDHA_KO 5000 15 1.8829 40.0 1.5546 1
+ldha WT1 WT 5000 11 1.2629 36.4 1.8484 0
+ldha WT2 WT 5000 20 3.7543 30.0 1.3148 0
+ldha WT3 WT 5000 16 2.2971 25.0 2.0742 0
+ldha WT4 WT 5000 6 0.8686 0.0 None 0
+ldha WT5 WT 5000 3 0.48 33.3 None 1
+ldha WT6 WT 5000 10 0.7457 10.0 1.8618 0
+ldha WT7 WT 5000 15 1.3057 20.0 1.7598 0
 
-real	307m37.131s
-user	51m10.973s
-sys	222m51.058s
+real	39m28.150s
+user	33m44.071s
+sys	4m16.997s
