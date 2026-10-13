@@ -28,8 +28,8 @@ Rules (mirrors the Geneious workflow used in the paper):
   * Restricted to analysis_window if given.
 """
 from __future__ import annotations
-from bisect import bisect_right
 
+from bisect import bisect_right
 from collections import defaultdict
 from dataclasses import dataclass
 from math import exp, lgamma
@@ -464,6 +464,59 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     # truth can sweep the threshold (lineage_sim.roc)
     stats["_candidate_keys"] = [(v.pos, v.alt, v.p_value) for v in candidates]
     return variants, stats
+
+
+def qcal_pvalues_by_qscale(aligned_reads, target_ref_fasta: str, target_name: str, p: Params,
+                           null_rates, qscales) -> dict:
+    """For each margin in `qscales`, the sorted quality-calibrated p-values of every candidate
+    call_variants would test (error_model "qcal", no multiple testing): what the
+    leave-one-control-out calibration needs. The reads are tallied once and only the
+    p-values are recomputed per margin, so this is call_variants' candidates, many times
+    faster than calling once per margin."""
+    ref = dict(read_fasta(target_ref_fasta))[target_name]
+    reflen = len(ref)
+    minq = p.min_base_quality
+    win = p.analysis_window
+    lo = (win[0] - 1) if win else 0
+    hi = (win[1] - 1) if win else reflen - 1
+    counts = defaultdict(lambda: defaultdict(int))
+    depth = defaultdict(int)
+    s_depth = defaultdict(int)
+    alt_quals = defaultdict(list)
+    for r in aligned_reads:
+        if r.ctg != target_name:
+            continue
+        s = getattr(r, "strand", 1)
+        for rpos, base, q in r.pairs:
+            # the candidate loop below reads the window only
+            if base not in BASES or q < minq or not lo <= rpos <= hi:
+                continue
+            counts[rpos][base] += 1
+            depth[rpos] += 1
+            s_depth[(rpos, s)] += 1
+            if base != ref[rpos]:
+                alt_quals[(rpos, base, s)].append(q)
+    sites = []
+    for rpos in range(lo, hi + 1):
+        d = depth.get(rpos, 0)
+        if d == 0 or rpos < p.end_trim_bp or rpos >= reflen - p.end_trim_bp:
+            continue
+        refbase = ref[rpos].upper()
+        if refbase not in BASES:
+            continue
+        for alt in BASES:
+            if alt == refbase:
+                continue
+            c = counts[rpos].get(alt, 0)
+            if c < p.min_variant_reads or c / d >= p.germline_freq_threshold:
+                continue
+            sites.append((rpos, refbase, alt))
+    out = {}
+    for qs in qscales:
+        null_rates.qscale = qs
+        out[qs] = sorted(_qcal_pvalue(rpos, refbase, alt, alt_quals, s_depth, null_rates, p)
+                         for rpos, refbase, alt in sites)
+    return out
 
 
 def _strand_pvalue(rpos, alt, d, s_counts, s_depth, s_lambda, null, p) -> float:

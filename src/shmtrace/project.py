@@ -37,6 +37,7 @@ from . import (
 )
 from .config import load_preset
 from .io_utils import read_fasta
+from .parallel import pmap
 from .reads_filter import downsample
 
 BASES = "ACGT"
@@ -342,6 +343,78 @@ def noisy_decoys(decoys: dict, p_at: float = 0.01, fold: float = 5.0, min_calls:
     return sorted(out)
 
 
+def _tally(drawn, ref, lo, hi):
+    # every library at the analysed depth, drawn as analyse() draws it (by the caller): the
+    # estimate is divided by the analysed reads' bases, so counting events in a deeper
+    # library would inflate it by the ratio of the two
+    return singletons.tally(drawn, ref, lo, hi)
+
+
+def _call_sample(t: dict) -> dict:
+    """Call one sample: variants, metrics, clones, coverage, single-read estimate, indels.
+    A pure function of `t` (run_project builds it), so samples can run in parallel."""
+    s, p, ref, lo, hi, null = t["s"], t["p"], t["ref"], t["lo"], t["hi"], t["null"]
+    name, peers, sanger, reference = s["name"], t["peers"], t["sanger"], t["reference"]
+    res = pipeline.analyse(t["reads"], reference, p, t["stats"], null_rates=null, depth=t["depth"],
+                           germline=t["germline"])
+    alignment = None
+    if t["browse"]:
+        fates: dict = {}
+        kept, _st = pipeline.prepare_reads(s["path"], reference, t["contaminants"], p,
+                                           known_blocks=t["known_blocks"], fates=fates)
+        analysed = {a.qname for a in res["_aligned"]}
+        for a in kept:
+            if a.qname not in analysed:
+                fates.setdefault(a.qname, {"fate": "not sampled"})
+        alignment = browse.alignment(res["_aligned"], fates, reference, res["variants"])
+    if t["saturation_depths"]:
+        # the whole depth curve, not just the one analysed point. Opt-in:
+        # it re-calls variants at every depth.
+        res["rarefaction"] = pipeline.rarefaction(
+            t["reads"], reference, p, [d for d in t["saturation_depths"] if d <= len(t["reads"])],
+            draws=t["saturation_draws"], null_rates=null)
+    m = sample_metrics(name, res, ref, lo, hi, s.get("group") or name, t["control"], scale=p.density_scale)
+    cl = None if sanger else clones.call_clones(res["_aligned"], res["variants"], p, lo, hi)
+    if cl:
+        m.update({"reads_with_junction": cl["reads_with_junction"], "clones": cl["clones"],
+                  "largest_clone_pct": cl["largest_clone_pct"],
+                  "clone_weighted_frequency_x1e3": cl["clone_weighted_frequency_x1e3"]})
+        if cl["largest_clone_pct"] >= 50:
+            note = (f"one clone holds {cl['largest_clone_pct']:.0f}% of the reads with a "
+                    "junction; read-weighted numbers are dominated by it, so compare "
+                    "clone_weighted_frequency_x1e3")
+            m["warnings"] = "; ".join(x for x in [m["warnings"], note] if x)
+    cov = None
+    dep = res["summary"]["calling"].get("_depth") or []
+    if dep:
+        cov = {"start": lo + 1, "depth": dep}
+        low = coverage_dips(dep, lo + 1)
+        if low:
+            m["warnings"] = "; ".join(x for x in [m["warnings"], low] if x)
+    sr = None
+    if t["tallies"] is not None:
+        sr = singletons.estimate(
+            t["tallies"][name], [t["tallies"][c] for c in peers], t["single_q"], p.germline_freq_threshold, ref,
+            called={(v.pos - 1, v.alt) for v in res["variants"]})
+        add_single_read(m, sr, res, p.density_scale)
+    rows = []
+    if t["indels"]:
+        pile = indels.Pileup(res["_aligned"], ref, lo, hi, t["indel_minq"])
+        called_i, _st = indels.call(pile, t["indel_null"], p, sanger=sanger)
+        add_indels(m, called_i, res, p.density_scale)
+        for v in called_i:
+            rows.append({"sample": name, "group": s.get("group") or name,
+                         "pos": v.pos, "kind": v.kind, "length": v.length,
+                         "bases": v.seq, "reads": v.supporting_reads,
+                         "depth": v.depth, "frequency": round(v.frequency, 6),
+                         "p_value": _clean(v.p_value), "plus_reads": v.plus_reads,
+                         "minus_reads": v.minus_reads, "homopolymer": v.homopolymer,
+                         "frameshift": v.frameshift})
+    m["null_from"] = "+".join(peers) if null is not None else "none"
+    return {"metrics": m, "res": res, "clones": cl, "coverage": cov, "single_read": sr,
+            "indel_rows": rows, "alignment": alignment}
+
+
 def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     p = build_params(project)
     reference = project["reference"]
@@ -379,12 +452,21 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     qscale = None
     calibration: dict = {}
     decoys: dict = {}
+    # the null fitted from each set of peers, once: each sample is judged against its
+    # peers' null, and a control's peers are also its calibration fold
+    nulls: dict = {}
+    peers_of = {s["name"]: tuple(sorted(c for c in controls if c != s["name"])) for s in samples}
+    if p.error_model != "geneious" and not sanger:
+        for pr in sorted({pr for pr in peers_of.values() if pr}):
+            nulls[pr] = null_model.fit_aligned([b["reads"][c] for c in pr], ref, p, lo, hi,
+                                               calibrate=False, ref_name=ref_name)[0]
     if p.error_model == "qcal" and not sanger and controls:
         if len(controls) >= 2:
             progress(0.1, "calibrating the background model")
             qscale, calibration = null_model.calibrate_qscale(
                 [b["reads"][c] for c in sorted(controls)], ref, ref_name, p, lo, hi,
-                depth=depth, names=sorted(controls))
+                depth=depth, names=sorted(controls),
+                fold_nulls=[nulls.get(peers_of[c]) for c in sorted(controls)] if nulls else None)
             decoys = calibration.pop("decoys", {})
         else:
             # one control cannot be left out of itself, so the inflation factor
@@ -393,7 +475,6 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             calibration = {"qscale_source": "default (one control file)"}
         calibration = {"qscale": qscale, **calibration}
 
-    nulls: dict = {}
     per_sample, details = [], {}
     project_germline = None           # Sanger: germline seen across all clones
     # single-read mutations need controls and one shared depth
@@ -425,45 +506,45 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         for c in sorted(controls):
             indel_piles[c] = indels.Pileup(b["reads"][c], ref, lo, hi, indel_minq)
         indel_qscale = indels.calibrate([indel_piles[c] for c in sorted(controls)], ref, p)[0]
-    for i, s in enumerate(samples):
-        name = s["name"]
-        progress(0.15 + 0.75 * i / len(samples), f"calling {name}")
-        null = None
-        peers = tuple(sorted(c for c in controls if c != name))
-        if p.error_model != "geneious" and not sanger and peers:
-            if peers not in nulls:
-                fit = null_model.fit_aligned([b["reads"][c] for c in peers], ref, p,
-                                             lo, hi, calibrate=False, ref_name=ref_name)[0]
-                if qscale is not None:
-                    fit.qscale = qscale
-                # a control is never its own decoy: only its peers' are used
-                fit.decoys = {c: decoys[c] for c in peers if c in decoys}
-                nulls[peers] = fit
-            null = nulls[peers]
+    # Everything samples share (the null fitted from each set of peers, single-read
+    # tallies, indel nulls, the Sanger germline) is built first; each sample is then
+    # called on its own, in this process or on several (parallel.py, Params.jobs).
+    for pr, fit in nulls.items():
+        if qscale is not None:
+            fit.qscale = qscale
+        # a control is never its own decoy: only its peers' are used
+        fit.decoys = {c: decoys[c] for c in pr if c in decoys}
+    if sanger and any(len(b["reads"][s["name"]]) < p.sanger_germline_min_clones for s in samples):
+        project_germline = sanger_germline(b["reads"], ref, lo, hi, p)
+    if single_q:
+        names = sorted({n for s in samples if peers_of[s["name"]] for n in (s["name"], *peers_of[s["name"]])})
+        pd = replace(p, downsample_to=depth)
+        # drawn here, tallied on workers: the analysed depth is all a worker needs to receive
+        tallies = dict(zip(names, pmap(_tally, [(downsample(b["reads"][n], pd)[0], ref, lo, hi) for n in names],
+                                       p.jobs), strict=True))
+    if want_indels and not sanger:
+        for pr in {pr for pr in peers_of.values() if pr}:
+            indel_nulls[pr] = indels.IndelNull([indel_piles[c] for c in pr], ref)
+            indel_nulls[pr].qscale = indel_qscale
+    tasks = []
+    for s in samples:
+        name, peers = s["name"], peers_of[s["name"]]
+        null = nulls.get(peers) if (p.error_model != "geneious" and not sanger and peers) else None
         few = sanger and len(b["reads"][name]) < p.sanger_germline_min_clones
-        if few and project_germline is None:
-            project_germline = sanger_germline(b["reads"], ref, lo, hi, p)
-        res = pipeline.analyse(b["reads"][name], reference, p, b["stats"][name],
-                               null_rates=null, depth=depth,
-                               germline=project_germline if few else None)
-        if want_browse:
-            progress(0.15 + 0.75 * i / len(samples), f"recording the alignment of {name}")
-            fates: dict = {}
-            kept, _st = pipeline.prepare_reads(s["path"], reference, contaminants, p,
-                                               known_blocks=b.get("known_blocks"), fates=fates)
-            analysed = {a.qname for a in res["_aligned"]}
-            for a in kept:
-                if a.qname not in analysed:
-                    fates.setdefault(a.qname, {"fate": "not sampled"})
-            alignments[name] = browse.alignment(res["_aligned"], fates, reference,
-                                                res["variants"])
-        if saturation_depths:
-            # the whole depth curve, not just the one analysed point. Opt-in:
-            # it re-calls variants at every depth.
-            res["rarefaction"] = pipeline.rarefaction(
-                b["reads"][name], reference, p,
-                [d for d in saturation_depths if d <= len(b["reads"][name])],
-                draws=project.get("saturation_draws", 3), null_rates=null)
+        tasks.append(({
+            "s": s, "reads": b["reads"][name], "stats": b["stats"][name], "reference": reference,
+            "contaminants": contaminants, "known_blocks": b.get("known_blocks"), "p": p, "null": null,
+            "depth": depth, "germline": project_germline if few else None, "browse": want_browse,
+            "saturation_depths": saturation_depths, "saturation_draws": project.get("saturation_draws", 3),
+            "ref": ref, "lo": lo, "hi": hi, "control": name in controls, "sanger": sanger, "peers": peers,
+            "tallies": ({n: tallies[n] for n in (name, *peers)} if single_q and peers else None),
+            "single_q": single_q, "indels": want_indels and (sanger or bool(peers)),
+            "indel_null": indel_nulls.get(peers) if not sanger else None, "indel_minq": indel_minq},))
+    progress(0.15, f"calling {len(samples)} samples")
+    done = lambda k: progress(0.15 + 0.75 * k / len(samples), f"called {k} of {len(samples)} samples")  # noqa: E731
+    for s, out in zip(samples, pmap(_call_sample, tasks, p.jobs, done=done), strict=True):
+        name = s["name"]
+        null = tasks[len(per_sample)][0]["null"]
         if null is not None and not control_background:
             # the fitted background a non-control sample is judged against:
             # the highest per-alt error rate at each position (viz_project)
@@ -472,60 +553,17 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                 if lo <= pos0 <= hi:
                     per_pos[pos0 + 1] = max(per_pos.get(pos0 + 1, 0.0), rate)
             control_background.update(per_pos)
-        m = sample_metrics(name, res, ref, lo, hi, s.get("group") or name, name in controls,
-                           scale=p.density_scale)
-        cl = None if sanger else clones.call_clones(res["_aligned"], res["variants"], p, lo, hi)
-        if cl:
-            clone_results[name] = cl
-            m.update({"reads_with_junction": cl["reads_with_junction"],
-                      "clones": cl["clones"],
-                      "largest_clone_pct": cl["largest_clone_pct"],
-                      "clone_weighted_frequency_x1e3": cl["clone_weighted_frequency_x1e3"]})
-            if cl["largest_clone_pct"] >= 50:
-                note = (f"one clone holds {cl['largest_clone_pct']:.0f}% of the reads with a "
-                        "junction; read-weighted numbers are dominated by it, so compare "
-                        "clone_weighted_frequency_x1e3")
-                m["warnings"] = "; ".join(x for x in [m["warnings"], note] if x)
-        dep = res["summary"]["calling"].get("_depth") or []
-        if dep:
-            coverage[name] = {"start": lo + 1, "depth": dep}
-            low = coverage_dips(dep, lo + 1)
-            if low:
-                m["warnings"] = "; ".join(x for x in [m["warnings"], low] if x)
-        if single_q and peers:
-            # every library at the analysed depth, drawn as analyse() draws it: the
-            # estimate is divided by the analysed reads' bases, so counting events in
-            # a deeper library would inflate it by the ratio of the two
-            pd = replace(p, downsample_to=depth)
-            for n in (name, *peers):
-                if n not in tallies:
-                    tallies[n] = singletons.tally(downsample(b["reads"][n], pd)[0], ref, lo, hi)
-            single_read[name] = singletons.estimate(
-                tallies[name], [tallies[c] for c in peers], single_q,
-                p.germline_freq_threshold, ref,
-                called={(v.pos - 1, v.alt) for v in res["variants"]})
-            add_single_read(m, single_read[name], res, p.density_scale)
-        if want_indels and (sanger or peers):
-            pile = indels.Pileup(res["_aligned"], ref, lo, hi, indel_minq)
-            null_i = None
-            if not sanger:
-                if peers not in indel_nulls:
-                    indel_nulls[peers] = indels.IndelNull([indel_piles[c] for c in peers], ref)
-                    indel_nulls[peers].qscale = indel_qscale
-                null_i = indel_nulls[peers]
-            called_i, _st = indels.call(pile, null_i, p, sanger=sanger)
-            add_indels(m, called_i, res, p.density_scale)
-            for v in called_i:
-                indel_rows.append({"sample": name, "group": s.get("group") or name,
-                                   "pos": v.pos, "kind": v.kind, "length": v.length,
-                                   "bases": v.seq, "reads": v.supporting_reads,
-                                   "depth": v.depth, "frequency": round(v.frequency, 6),
-                                   "p_value": _clean(v.p_value), "plus_reads": v.plus_reads,
-                                   "minus_reads": v.minus_reads, "homopolymer": v.homopolymer,
-                                   "frameshift": v.frameshift})
-        m["null_from"] = "+".join(peers) if null is not None else "none"
-        per_sample.append(m)
-        details[name] = res
+        if out["alignment"] is not None:
+            alignments[name] = out["alignment"]
+        if out["clones"]:
+            clone_results[name] = out["clones"]
+        if out["coverage"]:
+            coverage[name] = out["coverage"]
+        if out["single_read"] is not None:
+            single_read[name] = out["single_read"]
+        indel_rows += out["indel_rows"]
+        per_sample.append(out["metrics"])
+        details[name] = out["res"]
 
     progress(0.92, "summarising")
     notes = []
@@ -587,7 +625,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_GC_in_WRC_GYW"]
     groups = group_table(per_sample, keys)
     # count-based tests with the animal as the unit (replicates.py)
-    animal_tests = (replicates.group_tests(per_sample)
+    animal_tests = (replicates.group_tests(per_sample, jobs=p.jobs)
                     if project.get("animal_tests", True) else [])
 
     # spectrum per group (unique mutations, ref>alt counts) and per sample

@@ -7,6 +7,18 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- **Each sample is called on its own process** (`Params.jobs`, `shmtrace-sheet run --jobs`): everything
+  samples share (peer nulls, single-read tallies, indel nulls, Sanger germline) is built first, and the
+  per-sample work (calling, metrics, clones, coverage, single-read estimate, indels) then runs in
+  parallel. The calibration tallies each held-out control once and re-tests it at every margin
+  (`variants.qcal_pvalues_by_qscale`) instead of re-calling it per margin, and reuses the peer nulls as
+  its folds; the bootstrap of the negative-binomial test draws its experiments in order and refits
+  them in parallel; read pairs' overlap search is cached by sequence. Results are identical to the
+  previous version at any number of processes (checked on the J_H4 example and a Ramos Illumina
+  subset); a J_H4 project runs in 8 s instead of 35 s, a deep Illumina subset in 138 s instead of 260 s.
+  Work whose inputs are large read sets (null fits, phasing) stays in the main process, where sending
+  the reads would cost as much as the work. Fixed on the way: with `browse` on, a Sanger project's
+  read fates were overwritten by the last sample's before the bookkeeping checks.
 - **Faster.** The per-base loops of variant calling and of the control fit do only what the chosen model
   reads (the recommended model no longer accumulates the expected-error sums of the read-quality model;
   bases outside the window are skipped in the fit): a J_H4 project runs in about half the time, with

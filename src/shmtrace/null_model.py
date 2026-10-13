@@ -280,7 +280,7 @@ def window_bases(aligned, lo: int, hi: int) -> int:
     return sum(1 for r in aligned for rpos, base, _q in r.pairs if base in BASES and lo <= rpos <= hi)
 
 
-def _fold(i, aligned_per_file, ref, p, lo, hi, depth):
+def _fold(i, aligned_per_file, ref, p, lo, hi, depth, null=None):
     """Control i held out: its reads (at the samples' depth, so its candidates, the
     decoys of multiple_testing="control", are what a sample would show) and the null
     fitted from the other controls."""
@@ -289,18 +289,17 @@ def _fold(i, aligned_per_file, ref, p, lo, hi, depth):
     if depth:
         from .reads_filter import downsample
         test = downsample(test, replace(p, downsample_to=depth))[0]
-    return test, fit_aligned(others, ref, p, lo, hi, calibrate=False)[0]
+    return test, null if null is not None else fit_aligned(others, ref, p, lo, hi, calibrate=False)[0]
 
 
 def _held_out_pvalues(test, ref_fasta, ref_name, pp, null):
-    from .variants import call_variants
-    vs, _st = call_variants(test, ref_fasta, ref_name, pp, null)
-    return sorted(v.p_value for v in vs)
+    from .variants import qcal_pvalues_by_qscale
+    return qcal_pvalues_by_qscale(test, ref_fasta, ref_name, pp, null, QSCALE_GRID)
 
 
 def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: Params,
                      lo: int, hi: int, alpha: float = 0.01, depth: int | None = None,
-                     names: list[str] | None = None) -> tuple[float, dict]:
+                     names: list[str] | None = None, fold_nulls: list | None = None) -> tuple[float, dict]:
     """Inflate the quality-calibrated rates until controls look like controls.
 
     Pooled rates are fitted from some libraries and applied to another, and
@@ -312,8 +311,11 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     if len(aligned_per_file) < 2:
         return DEFAULT_QSCALE, {"qscale_source": "default (one control file)"}
     from .parallel import pmap
-    folds = pmap(_fold, [(i, aligned_per_file, ref, p, lo, hi, depth) for i in range(len(aligned_per_file))],
-                 p.jobs)
+    # the folds are fitted here, not on worker processes: a fit takes seconds, but sending a
+    # deep library's reads to another process costs about as long (fold_nulls, when given,
+    # are the same fits made by the caller and are reused)
+    folds = [_fold(i, aligned_per_file, ref, p, lo, hi, depth,
+                   fold_nulls[i] if fold_nulls is not None else None) for i in range(len(aligned_per_file))]
     names = list(names) if names else [f"control_{i + 1}" for i in range(len(folds))]
     pp = replace(p, error_model="qcal", multiple_testing="none", max_pvalue=1.0,
                  strand_filter="off", mask_homopolymers=False)
@@ -324,14 +326,14 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     try:
         decoys = {}
         bases = [window_bases(test, lo, hi) for test, _null in folds]
+        # each held-out control is tallied once and tested at every margin (on its own
+        # process, parallel.py); the margins are then read in order, as before
+        grids = pmap(_held_out_pvalues, [(test, tmp.name, ref_name, pp, null) for test, null in folds],
+                     p.jobs)
         for c in QSCALE_GRID:
             m = small = 0
             decoys = {}
-            for null in (f[1] for f in folds):
-                null.qscale = c
-            # each held-out control is called on its own (parallel.py)
-            pvs = pmap(_held_out_pvalues, [(test, tmp.name, ref_name, pp, null) for test, null in folds],
-                       p.jobs)
+            pvs = [g[c] for g in grids]
             for name, pv, nb in zip(names, pvs, bases, strict=True):
                 m += len(pv)
                 small += sum(x < alpha for x in pv)

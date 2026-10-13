@@ -42,14 +42,23 @@ MIN_EFFICIENCY = 0.5
 MIN_Q = 20
 
 
+def _list_by_key():
+    # module-level factories, not lambdas, so a Tally can be pickled (parallel.py)
+    return defaultdict(list)
+
+
+def _count_by_key():
+    return defaultdict(int)
+
+
 @dataclass
 class Tally:
     """Per-position counts from one library's aligned reads, inside the window."""
     depth: dict = field(default_factory=lambda: defaultdict(int))
     # pos -> alt -> [(quality, strand)] of every read showing that alt
-    alts: dict = field(default_factory=lambda: defaultdict(lambda: defaultdict(list)))
+    alts: dict = field(default_factory=lambda: defaultdict(_list_by_key))
     # pos -> qualities of the bases matching the reference, as a histogram
-    ref_quals: dict = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
+    ref_quals: dict = field(default_factory=lambda: defaultdict(_count_by_key))
 
 
 def tally(aligned, ref: str, lo: int, hi: int) -> Tally:

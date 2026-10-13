@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import atexit
 import os
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from multiprocessing import get_context
 
 _POOLS: dict[int, ProcessPoolExecutor] = {}
@@ -40,10 +40,19 @@ def _shutdown() -> None:
     _POOLS.clear()
 
 
-def pmap(fn, arg_tuples: list[tuple], jobs: int | None = 1) -> list:
-    """[fn(*args) for args in arg_tuples], on up to `jobs` processes."""
+def pmap(fn, arg_tuples: list[tuple], jobs: int | None = 1, done=None) -> list:
+    """[fn(*args) for args in arg_tuples], on up to `jobs` processes. `done(k)` is called
+    as each of the k tasks finishes (for progress reports)."""
     n = min(resolve(jobs), len(arg_tuples))
     if n <= 1:
-        return [fn(*a) for a in arg_tuples]
+        out = []
+        for a in arg_tuples:
+            out.append(fn(*a))
+            if done:
+                done(len(out))
+        return out
     futures = [_pool(n).submit(fn, *a) for a in arg_tuples]
+    if done:
+        for k, _f in enumerate(as_completed(futures), 1):
+            done(k)
     return [f.result() for f in futures]
