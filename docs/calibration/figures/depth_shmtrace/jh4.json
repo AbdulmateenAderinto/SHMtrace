@@ -1,0 +1,266 @@
+{
+ "30": {
+  "WT2": {
+   "group": "Wt",
+   "reads": 30,
+   "calls": 55,
+   "analysed_bp": 529,
+   "density": 346.566
+  },
+  "WT3": {
+   "group": "Wt",
+   "reads": 30,
+   "calls": 220,
+   "analysed_bp": 529,
+   "density": 1444.024
+  },
+  "WT4": {
+   "group": "Wt",
+   "reads": 30,
+   "calls": 52,
+   "analysed_bp": 529,
+   "density": 327.662
+  },
+  "KO1": {
+   "group": "Aicda-/-",
+   "reads": 30,
+   "calls": 12,
+   "analysed_bp": 529,
+   "density": 76.122
+  },
+  "KO2": {
+   "group": "Aicda-/-",
+   "reads": 30,
+   "calls": 25,
+   "analysed_bp": 529,
+   "density": 158.587
+  },
+  "KO3": {
+   "group": "Aicda-/-",
+   "reads": 30,
+   "calls": 29,
+   "analysed_bp": 529,
+   "density": 183.346
+  }
+ },
+ "60": {
+  "WT2": {
+   "group": "Wt",
+   "reads": 60,
+   "calls": 3,
+   "analysed_bp": 529,
+   "density": 9.468
+  },
+  "WT3": {
+   "group": "Wt",
+   "reads": 60,
+   "calls": 127,
+   "analysed_bp": 529,
+   "density": 400.794
+  },
+  "WT4": {
+   "group": "Wt",
+   "reads": 60,
+   "calls": 19,
+   "analysed_bp": 529,
+   "density": 59.961
+  },
+  "KO1": {
+   "group": "Aicda-/-",
+   "reads": 60,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  },
+  "KO2": {
+   "group": "Aicda-/-",
+   "reads": 60,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  },
+  "KO3": {
+   "group": "Aicda-/-",
+   "reads": 60,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  }
+ },
+ "125": {
+  "WT2": {
+   "group": "Wt",
+   "reads": 125,
+   "calls": 2,
+   "analysed_bp": 529,
+   "density": 3.029
+  },
+  "WT3": {
+   "group": "Wt",
+   "reads": 125,
+   "calls": 218,
+   "analysed_bp": 529,
+   "density": 333.683
+  },
+  "WT4": {
+   "group": "Wt",
+   "reads": 125,
+   "calls": 60,
+   "analysed_bp": 529,
+   "density": 91.691
+  },
+  "KO1": {
+   "group": "Aicda-/-",
+   "reads": 125,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  },
+  "KO2": {
+   "group": "Aicda-/-",
+   "reads": 125,
+   "calls": 1,
+   "analysed_bp": 529,
+   "density": 1.526
+  },
+  "KO3": {
+   "group": "Aicda-/-",
+   "reads": 125,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  }
+ },
+ "250": {
+  "WT2": {
+   "group": "Wt",
+   "reads": 250,
+   "calls": 110,
+   "analysed_bp": 529,
+   "density": 83.51
+  },
+  "WT3": {
+   "group": "Wt",
+   "reads": 250,
+   "calls": 317,
+   "analysed_bp": 529,
+   "density": 243.101
+  },
+  "WT4": {
+   "group": "Wt",
+   "reads": 250,
+   "calls": 71,
+   "analysed_bp": 529,
+   "density": 54.141
+  },
+  "KO1": {
+   "group": "Aicda-/-",
+   "reads": 250,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  },
+  "KO2": {
+   "group": "Aicda-/-",
+   "reads": 249,
+   "calls": 2,
+   "analysed_bp": 529,
+   "density": 1.526
+  },
+  "KO3": {
+   "group": "Aicda-/-",
+   "reads": 250,
+   "calls": 1,
+   "analysed_bp": 529,
+   "density": 0.764
+  }
+ },
+ "500": {
+  "WT2": {
+   "group": "Wt",
+   "reads": 500,
+   "calls": 155,
+   "analysed_bp": 529,
+   "density": 58.813
+  },
+  "WT3": {
+   "group": "Wt",
+   "reads": 500,
+   "calls": 347,
+   "analysed_bp": 529,
+   "density": 133.541
+  },
+  "WT4": {
+   "group": "Wt",
+   "reads": 500,
+   "calls": 69,
+   "analysed_bp": 529,
+   "density": 26.244
+  },
+  "KO1": {
+   "group": "Aicda-/-",
+   "reads": 497,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  },
+  "KO2": {
+   "group": "Aicda-/-",
+   "reads": 500,
+   "calls": 3,
+   "analysed_bp": 529,
+   "density": 1.138
+  },
+  "KO3": {
+   "group": "Aicda-/-",
+   "reads": 498,
+   "calls": 1,
+   "analysed_bp": 529,
+   "density": 0.382
+  }
+ },
+ "1000": {
+  "WT2": {
+   "group": "Wt",
+   "reads": 1000,
+   "calls": 204,
+   "analysed_bp": 529,
+   "density": 38.691
+  },
+  "WT3": {
+   "group": "Wt",
+   "reads": 1000,
+   "calls": 350,
+   "analysed_bp": 529,
+   "density": 67.506
+  },
+  "WT4": {
+   "group": "Wt",
+   "reads": 911,
+   "calls": 70,
+   "analysed_bp": 529,
+   "density": 14.634
+  },
+  "KO1": {
+   "group": "Aicda-/-",
+   "reads": 1000,
+   "calls": 0,
+   "analysed_bp": 529,
+   "density": 0.0
+  },
+  "KO2": {
+   "group": "Aicda-/-",
+   "reads": 999,
+   "calls": 3,
+   "analysed_bp": 529,
+   "density": 0.57
+  },
+  "KO3": {
+   "group": "Aicda-/-",
+   "reads": 998,
+   "calls": 2,
+   "analysed_bp": 529,
+   "density": 0.381
+  }
+ }
+}

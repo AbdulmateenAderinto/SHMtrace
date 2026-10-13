@@ -362,21 +362,11 @@ def main() -> None:
         ]
     )
 
-    jh4 = ROOT / "July 13th JH4"
-    ont_wt = OrderedDict(
-        [
-            ("Wt 2", jh4 / "DHJGKB_2_Wildtype_2_C57BL6_sub500 assembled to Jh4 Annotations.csv"),
-            ("Wt 3", jh4 / "DHJGKB_3_Wildtype_3_C57BL6_sub500 assembled to Jh4 Annotations.csv"),
-            ("Wt 4", jh4 / "DHJGKB_4_Wildtype_4_C57BL6_sub500 assembled to Jh4 Annotations.csv"),
-        ]
-    )
-    ont_ko = OrderedDict(
-        [
-            ("Aicda−/− 1", jh4 / "DHJGKB_5_AID_KO_1_C57BL6_sub500 assembled to Jh4 Annotations.csv"),
-            ("Aicda−/− 2", jh4 / "DHJGKB_6_AID_KO_2_C57BL6_sub500 assembled to Jh4 Annotations.csv"),
-            ("Aicda−/− 3", jh4 / "DHJGKB_7_AID_KO_3_C57BL6_sub500 assembled to Jh4 Annotations.csv"),
-        ]
-    )
+    # JH4 ONT: SHMtrace calls (docs/calibration/jh4_shmtrace.py), 500 reads per mouse;
+    # previously the Geneious sub500 exports in "July 13th JH4"
+    jh4 = Path(__file__).resolve().parent.parent / "jh4_calls"
+    ont_wt = OrderedDict([(f"Wt {i}", jh4 / f"WT{i} SHMtrace Annotations.csv") for i in (2, 3, 4)])
+    ont_ko = OrderedDict([(f"Aicda−/− {i}", jh4 / f"KO{i} SHMtrace Annotations.csv") for i in (1, 2, 3)])
 
     # N114: the SHMtrace re-analysis of the deposited reads (docs/calibration/n114_shmtrace.py);
     # previously the Geneious sub500 exports in "July 10th /Hybridoma"

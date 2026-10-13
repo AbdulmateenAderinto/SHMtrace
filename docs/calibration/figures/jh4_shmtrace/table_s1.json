@@ -1,0 +1,44 @@
+{
+ "WT2": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 422,
+  "calls": 155
+ },
+ "WT3": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 578,
+  "calls": 347
+ },
+ "WT4": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 323,
+  "calls": 69
+ },
+ "KO1": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 497,
+  "candidates_tested": 243,
+  "calls": 0
+ },
+ "KO2": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 500,
+  "candidates_tested": 240,
+  "calls": 3
+ },
+ "KO3": {
+  "reads_in": 500,
+  "passed": 500,
+  "aligned": 498,
+  "candidates_tested": 244,
+  "calls": 1
+ }
+}

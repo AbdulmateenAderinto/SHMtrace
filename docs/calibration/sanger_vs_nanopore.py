@@ -65,7 +65,18 @@ def sanger_path(sanger_dir: Path, n: str) -> Path | None:
     return None
 
 
-def run_platforms(sanger_dir: Path, ont_mode: str) -> dict:
+# the deposit's realised 500-read subsets (--ont-dir), named by library
+DEPOSIT_NAMES = {"WT2": "DHJGKB_2_Wildtype_2", "WT3": "DHJGKB_3_Wildtype_3", "WT4": "DHJGKB_4_Wildtype_4",
+                 "KO1": "DHJGKB_5_AID_KO_1", "KO2": "DHJGKB_6_AID_KO_2", "KO3": "DHJGKB_7_AID_KO_3"}
+
+
+def ont_path(n: str, ont_dir: Path | None) -> Path:
+    if ont_dir is None:
+        return EX / f"{n}.fastq"
+    return ont_dir / f"{DEPOSIT_NAMES[n]}_C57BL6_sub500.fastq"
+
+
+def run_platforms(sanger_dir: Path, ont_mode: str, ont_dir: Path | None = None) -> dict:
     """Both platforms through shmtrace. Returns per-sample calls and loads."""
     out = {}
     sp = {"name": "sanger", "region": "jh4_intron", "platform": "sanger", "reference": REF,
@@ -73,9 +84,9 @@ def run_platforms(sanger_dir: Path, ont_mode: str) -> dict:
           "samples": [{"name": n, "path": str(sanger_path(sanger_dir, n)),
                        "group": "WT" if n in WT else "KO", "control": n not in WT}
                       for n in WT + KO_SANGER]}
-    op = {"name": "ont", "region": "jh4_intron", "mode": ont_mode, "reference": REF,
+    op = {"name": "ont", "region": "jh4_intron", "mode": ont_mode, "reference": REF, "depth": 500,
           "contaminants": CON,
-          "samples": [{"name": n, "path": str(EX / f"{n}.fastq"),
+          "samples": [{"name": n, "path": str(ont_path(n, ont_dir)),
                        "group": "WT" if n in WT else "KO", "control": n not in WT}
                       for n in WT + KO_ONT]}
     for plat, proj in (("sanger", sp), ("ont", op)):
@@ -615,6 +626,9 @@ def main():
     # one folder per mouse, built from the AB1 traces by organize_jh4_ab1.py
     # (SANGER_VS_NANOPORE.md, "Which clone belongs to which mouse")
     ap.add_argument("--sanger-dir", default=str(Path.home() / "Nanoshm/sanger_ab1_by_mouse"))
+    ap.add_argument("--ont-dir", default=None,
+                    help="the deposit's Processed_FASTQ_Depth_Subsets folder: use its *_sub500 files "
+                         "(the manuscript's realised inputs) instead of examples_compare/")
     ap.add_argument("--out", default=str(ROOT / "docs/calibration/figures/sanger_vs_nanopore"))
     a = ap.parse_args()
     out = Path(a.out) / (a.ont_mode + a.suffix)
@@ -623,7 +637,7 @@ def main():
     sd = Path(a.sanger_dir).expanduser()
     # knockout mice with no Sanger clones (A3 has no usable trace) are left out
     KO_SANGER[:] = [n for n in KO_SANGER if sanger_path(sd, n)]
-    D = run_platforms(sd, a.ont_mode)
+    D = run_platforms(sd, a.ont_mode, Path(a.ont_dir).expanduser() if a.ont_dir else None)
     st = {"ont_mode": a.ont_mode,
           "unique_mutations": {f"{p}:{n}": len(d["variants"]) for (p, n), d in D.items()},
           "sequences": {f"{p}:{n}": d["n"] for (p, n), d in D.items()},

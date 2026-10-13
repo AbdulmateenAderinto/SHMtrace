@@ -47,10 +47,21 @@ sanger={k.replace("Wt ","WT"):_mat(v["variants"]) for k,v in _cs.items() if k.st
 _loads=[x for k,v in _cs.items() if k.startswith("Wt") for x in v["loads"]]
 SANGER_PIE=[sum(1 for x in _loads if a<=x<=b) for a,b in ((0,0),(1,3),(4,10),(11,20),(21,10**6))]
 SANGER_N=len(_loads)
-# July13 ONT per-mouse matrices M[to][from]
-ont={"WT2":m([[0,14,2,20],[17,0,15,6],[16,23,0,6],[28,10,4,0]]),
- "WT3":m([[0,26,14,29],[38,0,26,11],[31,51,0,18],[66,19,13,0]]),
- "WT4":m([[0,3,1,6],[5,0,7,2],[4,14,0,6],[10,5,5,0]])}
+# ONT per-mouse matrices M[to][from]: SHMtrace calls in the 529-bp window, 500 reads per
+# mouse (docs/calibration/jh4_shmtrace.py; previously the Geneious July 13 exports)
+from pathlib import Path as _Path
+_JH4=_json.load(open(_Path(__file__).resolve().parents[2]/"figures/jh4_shmtrace/project.json"))
+def _ont_mat(k):
+    M=np.zeros((4,4))
+    for ft,n in _JH4["spectrum_sample"][k].items(): M[IDX[ft[2]]][IDX[ft[0]]]=n
+    return M
+ont={k:_ont_mat(k) for k in ("WT2","WT3","WT4")}
+# per-read called mutations (ONT donut, panel E): the same reads and calls
+_oload={}
+for k in ("WT2","WT3","WT4"):
+    for x,n in _JH4["mutation_load"][k].items(): _oload[int(x)]=_oload.get(int(x),0)+n
+ONT_PIE=[sum(n for x,n in _oload.items() if a<=x<=b) for a,b in ((0,0),(1,3),(4,10),(11,20),(21,10**6))]
+ONT_N=sum(_oload.values())
 S=["WT2","WT3","WT4"]; SM=[sanger[s] for s in S]; OM=[ont[s] for s in S]
 from scipy import stats as _st
 def _fmtp(p): return ">0.9999" if p>0.9999 else f"{p:.4f}"
@@ -248,19 +259,8 @@ def label_colour(fill):
 # plus 19 largely unmutated Agouti-background sequences. The latter contribute
 # to the sequence denominator and the zero-mutation class, but not to the
 # pooled mutation spectrum. Counts are therefore 50, 12, 15, 19, and 15 of 111.
-# Panel E denominators.
-#   Sanger: 111 clones = 37 + 36 + 38 across Wt2-Wt4 (see Supplementary Table S1).
-#   ONT:    1,500 reads = 500 per mouse across Wt2-Wt4. An earlier version of this
-#           script used 1,503, which counted the single ">Jh4" reference record
-#           present in each of the three Geneious alignment exports as if it were a
-#           sequenced read. Those three records carry no mutations, so removing them
-#           affects only the zero-mutation wedge: 766.5/1503 = 51.0% becomes
-#           763.5/1500 = 50.9%. The other four wedges are unchanged.
-# NOTE: these five proportions are hard-coded. They were computed in Geneious in the
-# gapped-alignment coordinate frame and the derivation was not preserved as a script,
-# so they cannot currently be regenerated from the deposited BAM/CSV exports. Rebuild
-# this computation before submission if the panel is challenged.
-for a,vals,N,lab in [(axd[0],SANGER_PIE,SANGER_N,"$\\mathbfit{Wt}$ (Sanger)"),(axd[1],[50.9,16.5,18.6,10.9,3.0],1500,"$\\mathbfit{Wt}$ (ONT)")]:
+# Panel E: Sanger clones (corrected_sanger.json) and ONT reads (SHMtrace per-read calls).
+for a,vals,N,lab in [(axd[0],SANGER_PIE,SANGER_N,"$\\mathbfit{Wt}$ (Sanger)"),(axd[1],ONT_PIE,ONT_N,"$\\mathbfit{Wt}$ (ONT)")]:
     v=np.array(vals,float)
     radius=1.0; width=.58; inner=radius-width
     wed,_=a.pie(v,colors=PIE,startangle=90,counterclock=False,radius=radius,
@@ -309,7 +309,8 @@ OUT=OUT_DIR+os.sep
 for ext in ("png","pdf"):
     fig.savefig(OUT+f"Figure3_concordance.{ext}",dpi=600,
                 bbox_inches="tight",pad_inches=.04,facecolor="white")
-print(f"Fig3 saved. ONT n={int(sum(OM).sum())} r={r:.3f} slope={slope:.2f}")# Renderers (LibreOffice/Word) shave a few pixels off the top of a wide inline
+print(f"Fig3 saved. ONT n={int(sum(OM).sum())} r={r:.3f} slope={slope:.2f} ONT pie {ONT_PIE} of {ONT_N}")
+# Renderers (LibreOffice/Word) shave a few pixels off the top of a wide inline
 # image, which was clipping the bold panel letters. Bake a small white margin
 # into the raster so the letters can never be cropped.
 from PIL import Image as _Image

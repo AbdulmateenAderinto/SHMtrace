@@ -1,5 +1,5 @@
 """Statistics quoted in the manuscript (Ver17), from sanger_calls/corrected_sanger.json and the
-ONT matrices in scripts/figure3_concordance.py. Run from this folder: python manuscript_stats.py
+SHMtrace ONT re-analysis in ../figures/jh4_shmtrace/project.json. Run from this folder: python manuscript_stats.py
 
 The spectrum statistics come from shmtrace.concordance (pooled Pearson r with Fisher CI, slope,
 repeated-measures platform x type interaction, paired t per type with Sidak, G:C Ts/Tv).
@@ -14,16 +14,9 @@ from scipy import stats
 from shmtrace import concordance
 
 cs = {k: v for k, v in json.load(open("sanger_calls/corrected_sanger.json")).items() if isinstance(v, dict)}
-src = open("scripts/figure3_concordance.py").read()
-ns = {"np": np}
-exec('BASES=["A","T","C","G"]; IDX={b:i for i,b in enumerate(BASES)}\ndef m(r): return np.array(r,float)', ns)
-exec(src[src.index('ont={"WT2"'):src.index('S=["WT2"')], ns)
-ont, IDX = ns["ont"], ns["IDX"]
+# ONT: the SHMtrace re-analysis (../figures/jh4_shmtrace/project.json, jh4_shmtrace.py)
+JH4 = json.load(open("../figures/jh4_shmtrace/project.json"))
 S = ["WT2", "WT3", "WT4"]
-
-
-def counts_from_matrix(M):          # rows = to-base, columns = from-base
-    return {f"{f}>{t}": M[IDX[t]][IDX[f]] for f in "ACGT" for t in "ACGT" if f != t}
 
 
 def counts_from_calls(vs):
@@ -34,7 +27,7 @@ def counts_from_calls(vs):
 
 
 sp = concordance.spectrum({k: counts_from_calls(cs[f"Wt {k[2]}"]["variants"]) for k in S},
-                          {k: counts_from_matrix(ont[k]) for k in S})
+                          {k: JH4["spectrum_sample"][k] for k in S})
 pr = sp["paired"]
 print(f"Pearson r {sp['pearson_r']:.5f} [{sp['pearson_ci'][0]:.2f}-{sp['pearson_ci'][1]:.2f}] "
       f"slope {sp['slope']:.2f}; mean|diff| {sp['mean_abs_diff_pp']:.2f} max {sp['max_abs_diff_pp']:.2f}")
@@ -68,3 +61,17 @@ print("pie n", len(loads), [sum(1 for x in loads if a <= x <= b)
                             for a, b in ((0, 0), (1, 3), (4, 10), (11, 20), (21, 10 ** 6))])
 print("Sanger unique pooled", sp["calls_a"], "ONT", sp["calls_b"], "| clones",
       {k: v["clones"] for k, v in cs.items()}, "| effective", {k: round(v["bases"] / 529, 1) for k, v in cs.items()})
+
+
+# ONT densities (SHMtrace; a mouse with no calls at its one-event density, the plots' convention)
+JS = {x["sample"]: x for x in JH4["samples"]}
+od = {k: (JS[k]["unique_density_x1e5"] or JS[k]["one_event_density_x1e5"]) for k in JS}
+owt = [od[k] for k in ("WT2", "WT3", "WT4")]
+oko = [od[k] for k in ("KO1", "KO2", "KO3")]
+print("ONT densities", {k: round(v, 2) for k, v in od.items()}, "calls",
+      {k: JS[k]["unique_mutations"] for k in JS})
+print(f"ONT Wt geo {geo(owt):.0f} {[round(x) for x in ci(owt)]}  KO geo {geo(oko):.2f} "
+      f"{[round(x, 2) for x in ci(oko)]}  fold {geo(owt) / geo(oko):.0f}  "
+      f"P {stats.ttest_ind(np.log10(owt), np.log10(oko), equal_var=False).pvalue:.4f}")
+ab = {t["metric"]: t for t in JH4["animal_tests"]}["unique_density"]
+print("SHMtrace NB test (unique density):", {k: ab[k] for k in ("fold", "p_negbinomial", "p_permutation")})

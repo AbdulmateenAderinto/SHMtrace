@@ -2,8 +2,8 @@
 
     python docs/calibration/n114_shmtrace.py
 
-Six libraries (pMX-Aicda subclones C1, D3, D5; pMX-Empty C3, C4, D1, the controls), all
-reads of each deposited FASTQ, analysed at 500 reads per library (the manuscript's depth)
+Six libraries (pMX-Aicda subclones C1, D3, D5; pMX-Empty C3, C4, D1, the controls): the
+deposit's realised 500-read subsets (*_sub500.fastq) of the target-selected reads, analysed (the manuscript's depth)
 in the recommended (quality-calibrated) mode with the bundled N114 reference. Writes the
 standard project figures and tables to figures/n114_shmtrace/ and prints the comparison
 with the manuscript's Geneious-based numbers (Figure 4: density 30.6 vs 1.69, 18-fold).
@@ -31,12 +31,22 @@ def main():
     proj = {"name": "N114 V region, SHMtrace", "region": "n114_vregion",
             "reference": str(ROOT / "src/shmtrace/references/n114_vregion.fasta"),
             "contaminants": [], "mode": "recommended", "depth": 500,
-            "samples": [{"name": n, "path": str(DEP / f"{f}.fastq"), "group": g,
+            "samples": [{"name": n, "path": str(DEP / f"{f}_sub500.fastq"), "group": g,
                          "control": g == "pMX-Empty"} for n, (f, g) in LIBS.items()]}
     res = project.run_project(proj)
     OUT.mkdir(parents=True, exist_ok=True)
     report.write_all(res, str(OUT))
     json.dump(project.public(res), open(OUT / "project.json", "w"), default=str)
+    # read accounting and candidates tested per library (Supplementary Table S1)
+    acct = {}
+    for name, d in res["_details"].items():
+        sm = d["summary"]
+        acct[name] = {"reads_in": sm["reads"].get("reads_in"), "passed": sm["reads"].get("passed_prefilter"),
+                      "aligned": sm["reads"].get("aligned_to_target"),
+                      "candidates_tested": sm["calling"].get("candidates_tested"),
+                      "calls": sm["calling"].get("unique_variants")}
+    json.dump(acct, open(OUT / "table_s1.json", "w"), indent=1)
+    print(acct)
     # the calls in the shape of a Geneious annotation export, for the manuscript's figure
     # scripts (Supplementary S4 reads these; positions are on the 655-nt N114 reference)
     import csv
