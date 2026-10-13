@@ -1,0 +1,17 @@
+/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/.venv/lib/python3.13/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+hmces AIDKO_1 AID_KO 20000 0 0.0 None None 0
+hmces AIDKO_2 AID_KO 20000 0 0.0 None None 0
+hmces AIDKO_3 AID_KO 20000 33 31.1828 21.2 1.9976 21
+hmces HMCES_1 HMCES_KO 20000 47 7.8969 6.4 1.8528 126
+hmces HMCES_2 HMCES_KO 20000 23 6.4855 8.7 2.3132 80
+hmces HMCES_3 HMCES_KO 20000 36 6.6019 5.6 1.9797 108
+hmces HMCES_4 HMCES_KO 20000 26 6.6784 3.8 2.1859 93
+hmces HMCES_5 HMCES_KO 20000 27 0.3791 11.1 2.5691 125
+hmces HMCES_6 HMCES_KO 20000 25 5.7481 4.0 1.6954 90
+hmces WT_1 WT 20000 46 5.8322 4.3 1.8447 30
+hmces WT_2 WT 20000 52 0.6033 5.8 1.9473 44
+hmces WT_3 WT 20000 50 0.5418 6.0 1.9612 37
+hmces WT_4 WT 20000 48 3.7366 2.1 1.9768 22
+hmces WT_5 WT 20000 52 0.7203 3.8 1.8854 28
+hmces WT_6 WT 20000 40 0.5726 7.5 2.0479 19

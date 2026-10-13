@@ -1,0 +1,18 @@
+/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/.venv/lib/python3.13/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+ch12 AID_r1 AID 5000 6 0.3205 100.0 None 0
+ch12 AID_r2 AID 5000 9 0.2026 100.0 None 0
+ch12 AID_r3 AID 5000 6 0.1459 100.0 None 0
+ch12 AID_r4 AID 5000 5 0.1362 100.0 None 0
+ch12 EV_r1 EV 5000 1 0.0201 0.0 None 0
+ch12 EV_r2 EV 5000 0 0.0 None None 0
+ch12 EV_r3 EV 5000 0 0.0 None None 0
+ch12 EV_r4 EV 5000 0 0.0 None None 0
+ch12 R174ER178E_r1 R174ER178E 1738 17 0.799 5.9 0.717 0
+ch12 R174ER178E_r2 R174ER178E 1807 17 0.754 29.4 0.7596 0
+ch12 R174ER178E_r3 R174ER178E 763 5 0.3606 0.0 None 0
+ch12 R174ER178E_r4 R174ER178E 1431 11 0.5981 18.2 0.6485 0
+ch12 R50E_r1 R50E 5000 0 0.0 None None 0
+ch12 R50E_r2 R50E 3737 0 0.0 None None 0
+ch12 R50E_r3 R50E 372 0 0.0 None None 0
+ch12 R50E_r4 R50E 5000 0 0.0 None None 0

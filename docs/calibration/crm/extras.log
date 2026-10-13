@@ -1,0 +1,22 @@
+/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/.venv/lib/python3.13/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+jh4 WT2 205 1.356 0.0004997501249375312 24 81.4 16.0681 2.7032 8.74 81.003
+jh4 WT3 340 1.3446 0.0004997501249375312 33 19.2 24.9184 22.4499 -9.03 131.651
+jh4 WT4 73 1.2173 0.015492253873063468 16 10.9 5.3166 4.9338 -5.59 27.827
+jh4 KO1 0 None None 16 26.3 0.0 0.0 4.18 1.586
+jh4 KO2 2 None None 16 14.2 0.2363 0.1096 -3.0 0.76
+jh4 KO3 1 None None 27 14.8 0.07 0.0302 -1.17 0.38
+jh4_full WT2 255 1.328 0.0004997501249375312 24 81.4 9.2025 1.5425 20.0 48.377
+jh4_full WT3 442 1.2821 0.0004997501249375312 33 19.2 13.9166 12.6626 -9.33 78.608
+jh4_full WT4 98 1.1645 0.01699150424787606 16 10.9 3.5057 2.9798 -0.99 17.507
+jh4_full KO1 2 None None 16 26.3 0.0 0.0543 -1.79 0.352
+jh4_full KO2 3 None None 16 14.2 0.1096 0.0561 -2.34 0.529
+jh4_full KO3 4 None None 27 14.8 0.1298 0.0351 3.53 1.327
+/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/.venv/lib/python3.13/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+n114 C1 75 2.0765 0.0004997501249375312 None None None 1.3528 16.06 30.261
+n114 D3 59 2.0312 0.0004997501249375312 None None None 0.6309 39.66 32.713
+n114 D5 166 1.7724 0.0004997501249375312 None None None 2.8228 31.6 65.625
+n114 C3 0 None None None None None 0.0 2.63 0.861
+n114 C4 0 None None None None None 0.0 0.64 0.209
+n114 D1 0 None None None None None 0.0 -3.24 0.0

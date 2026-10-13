@@ -82,7 +82,9 @@ function loadApp() {
   return { app: vm.runInNewContext(code, ctx, { filename: 'scicanvas-bundle.js' }), ctx };
 }
 
-// Cell Press production requirements, measured at print size
+// Cell Press production requirements, measured at print size. GA=1 checks a graphical abstract:
+// the same rules, but type up to 18 pt and strokes up to 2.5 pt, as a one-panel summary reads larger.
+const GA = process.env.GA === '1';
 function check(page) {
   const pt = (u) => (u * PRINT_MM / page.width) / 25.4 * 72;          // page units -> points
   const bad = [];
@@ -95,12 +97,12 @@ function check(page) {
       const size = pt(o.type === 'text' ? o.fontSize : (o.labelSize || 16));
       fmin = Math.min(fmin, size); fmax = Math.max(fmax, size);
       if (o.type === 'text') fonts.add(o.family);
-      if (size < 5.95 || size > 8.05) bad.push(`text ${size.toFixed(2)} pt: ${String(o.text || o.label).slice(0, 30)}`);
+      if (size < 5.95 || size > (GA ? 18.05 : 8.05)) bad.push(`text ${size.toFixed(2)} pt: ${String(o.text || o.label).slice(0, 30)}`);
     }
     const w = o.type === 'connector' ? o.width : (o.stroke && o.stroke !== 'none' ? o.strokeWidth : 0);
     if (w) {
       smin = Math.min(smin, pt(w)); smax = Math.max(smax, pt(w));
-      if (pt(w) < 0.495 || pt(w) > 1.505) bad.push(`stroke ${pt(w).toFixed(2)} pt (${o.type})`);
+      if (pt(w) < 0.495 || pt(w) > (GA ? 2.505 : 1.505)) bad.push(`stroke ${pt(w).toFixed(2)} pt (${o.type})`);
     }
     // a pure grey fill (r = g = b, not white) must be 10-80% grey
     const hex = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(o.fill || '');

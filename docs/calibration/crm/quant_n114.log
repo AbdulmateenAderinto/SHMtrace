@@ -1,0 +1,31 @@
+# Quantification accuracy
+
+Estimate / truth, mean of the three held-out controls (1.00 = exact). For the null scenario, the estimates themselves (truth is 0).
+
+| Amplicon | Scenario | Depth | Mode | Mutation frequency | Unique density | Combined density | False calls | Recall, 2+ reads |
+|---|---|---:|---|---:|---:|---:|---:|---:|
+| N114 | low | 125 | geneious | 0.95 | 0.87 | 0.87 | 1.3 | 1.00 |
+| N114 | low | 125 | recommended | 1.04 | 1.11 | 1.11 | 6.3 | 1.00 |
+| N114 | low | 250 | geneious | 0.97 | 0.86 | 0.89 | 2.7 | 0.99 |
+| N114 | low | 250 | recommended | 1.03 | 1.05 | 1.06 | 9.7 | 0.99 |
+| N114 | low | 500 | geneious | 0.96 | 0.74 | 0.91 | 1.7 | 0.98 |
+| N114 | low | 500 | recommended | 1.01 | 0.94 | 0.99 | 9.0 | 1.00 |
+| N114 | low | 1000 | geneious | 0.96 | 0.57 | 0.95 | 3.3 | 0.97 |
+| N114 | low | 1000 | recommended | 0.99 | 0.79 | 0.97 | 8.7 | 0.99 |
+| N114 | null | 125 | geneious | 0.02 (est) | 1.74 (est) | 1.74 (est) | 1.3 | – |
+| N114 | null | 125 | recommended | 0.00 (est) | 0.44 (est) | 1.01 (est) | 0.3 | – |
+| N114 | null | 250 | geneious | 0.02 (est) | 1.74 (est) | 1.74 (est) | 2.7 | – |
+| N114 | null | 250 | recommended | 0.00 (est) | 0.00 (est) | 0.28 (est) | 0.0 | – |
+| N114 | null | 500 | geneious | 0.01 (est) | 0.54 (est) | 0.69 (est) | 1.7 | – |
+| N114 | null | 500 | recommended | 0.00 (est) | 0.00 (est) | 0.36 (est) | 0.0 | – |
+| N114 | null | 1000 | geneious | 0.01 (est) | 0.60 (est) | 0.60 (est) | 3.7 | – |
+| N114 | null | 1000 | recommended | 0.00 (est) | 0.00 (est) | 0.22 (est) | 0.0 | – |
+| N114 | subclonal | 125 | geneious | 0.94 | 0.87 | 0.87 | 1.3 | 1.00 |
+| N114 | subclonal | 125 | recommended | 1.04 | 1.06 | 1.06 | 7.0 | 1.00 |
+| N114 | subclonal | 250 | geneious | 0.96 | 0.86 | 0.89 | 2.3 | 0.98 |
+| N114 | subclonal | 250 | recommended | 1.04 | 1.05 | 1.05 | 10.0 | 0.99 |
+| N114 | subclonal | 500 | geneious | 0.93 | 0.71 | 0.91 | 2.0 | 0.99 |
+| N114 | subclonal | 500 | recommended | 1.01 | 0.93 | 0.99 | 9.3 | 1.00 |
+| N114 | subclonal | 1000 | geneious | 0.93 | 0.55 | 0.94 | 3.7 | 0.94 |
+| N114 | subclonal | 1000 | recommended | 0.99 | 0.76 | 0.94 | 8.3 | 0.99 |
+

@@ -1,0 +1,51 @@
+polyclonal / recommended / DHJGKB_5_AID_KO_1.fastq / rep 0
+polyclonal / recommended / DHJGKB_6_AID_KO_2.fastq / rep 0
+polyclonal / recommended / DHJGKB_7_AID_KO_3.fastq / rep 0
+polyclonal / geneious / DHJGKB_5_AID_KO_1.fastq / rep 0
+polyclonal / geneious / DHJGKB_6_AID_KO_2.fastq / rep 0
+polyclonal / geneious / DHJGKB_7_AID_KO_3.fastq / rep 0
+expanded / recommended / DHJGKB_5_AID_KO_1.fastq / rep 0
+expanded / recommended / DHJGKB_6_AID_KO_2.fastq / rep 0
+expanded / recommended / DHJGKB_7_AID_KO_3.fastq / rep 0
+expanded / geneious / DHJGKB_5_AID_KO_1.fastq / rep 0
+expanded / geneious / DHJGKB_6_AID_KO_2.fastq / rep 0
+expanded / geneious / DHJGKB_7_AID_KO_3.fastq / rep 0
+low / recommended / DHJGKB_5_AID_KO_1.fastq / rep 0
+low / recommended / DHJGKB_6_AID_KO_2.fastq / rep 0
+low / recommended / DHJGKB_7_AID_KO_3.fastq / rep 0
+low / geneious / DHJGKB_5_AID_KO_1.fastq / rep 0
+low / geneious / DHJGKB_6_AID_KO_2.fastq / rep 0
+low / geneious / DHJGKB_7_AID_KO_3.fastq / rep 0
+null / recommended / DHJGKB_5_AID_KO_1.fastq / rep 0
+null / recommended / DHJGKB_6_AID_KO_2.fastq / rep 0
+null / recommended / DHJGKB_7_AID_KO_3.fastq / rep 0
+null / geneious / DHJGKB_5_AID_KO_1.fastq / rep 0
+null / geneious / DHJGKB_6_AID_KO_2.fastq / rep 0
+null / geneious / DHJGKB_7_AID_KO_3.fastq / rep 0
+# Lineage simulation
+
+Recall by the number of analysed reads carrying a planted mutation; false calls are calls never planted.
+
+| Scenario | Mode | Runs | 1 reads | 2 reads | 3-5 reads | 6-10 reads | >10 reads | False calls | FDR |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| polyclonal | recommended | 3 | 0.67 | 0.93 | 0.97 | 0.99 | 0.98 | 7.33 | 0.02 |
+| polyclonal | geneious | 3 | 0.57 | 0.84 | 0.97 | 0.99 | 0.98 | 4.0 | 0.01 |
+| expanded | recommended | 3 | 0.66 | 0.95 | 0.97 | 0.98 | 0.99 | 5.0 | 0.02 |
+| expanded | geneious | 3 | 0.57 | 0.91 | 0.98 | 0.99 | 0.99 | 3.0 | 0.01 |
+| low | recommended | 3 | 0.27 | 0.68 | 0.96 | 0.98 | 0.97 | 1.33 | 0.02 |
+| low | geneious | 3 | 0.55 | 0.68 | 0.96 | 0.98 | 0.97 | 3.67 | 0.04 |
+| null | recommended | 3 | – | – | – | – | – | 1.0 | 1.00 |
+| null | geneious | 3 | – | – | – | – | – | 4.33 | 1.00 |
+
+Clones and frequencies (mutations per 10³ bp), true against estimated.
+
+| Scenario | Mode | Adjusted Rand | Clones found / present | Largest clone % | Read-weighted | Clone-weighted | S5F index |
+|---|---|---:|---:|---:|---:|---:|---:|
+| polyclonal | recommended | 0.97 | 41.0 / 34.3 | 24 / 24 | 13.45 / 13.51 | 13.34 / 13.51 | 1.47 |
+| polyclonal | geneious | 0.97 | 41.0 / 34.3 | 24 / 24 | 13.33 / 13.51 | 13.25 / 13.51 | 1.50 |
+| expanded | recommended | 0.94 | 31.0 / 25.3 | 56 / 59 | 6.04 / 5.99 | 14.24 / 15.47 | 1.49 |
+| expanded | geneious | 0.94 | 31.0 / 25.3 | 56 / 59 | 5.94 / 5.99 | 14.04 / 15.47 | 1.53 |
+| low | recommended | 0.95 | 45.7 / 36.3 | 25 / 26 | 2.31 / 2.46 | 2.53 / 2.40 | 1.60 |
+| low | geneious | 0.95 | 45.7 / 36.3 | 25 / 26 | 2.38 / 2.46 | 2.68 / 2.40 | 1.66 |
+| null | recommended | 0.98 | 41.7 / 36.7 | 25 / 25 | 0.05 / 0.00 | 0.18 / 0.00 | – |
+| null | geneious | 0.98 | 41.7 / 36.7 | 25 / 25 | 0.08 / 0.00 | 0.28 / 0.00 | – |

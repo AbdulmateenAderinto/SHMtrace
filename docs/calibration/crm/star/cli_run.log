@@ -1,0 +1,45 @@
+/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/.venv/lib/python3.13/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+  5%  aligning and filtering reads
+ 10%  calibrating the background model
+ 15%  calling Wt2
+ 28%  calling Wt3
+ 40%  calling Wt4
+ 52%  calling KO1
+ 65%  calling KO2
+ 78%  calling KO3
+ 92%  summarising
+100%  done
+docs/calibration/crm/star/cli_run/samples.csv
+docs/calibration/crm/star/cli_run/groups.csv
+docs/calibration/crm/star/cli_run/variants.csv
+docs/calibration/crm/star/cli_run/spectrum.csv
+docs/calibration/crm/star/cli_run/positional_frequency.csv
+docs/calibration/crm/star/cli_run/mutation_load.csv
+docs/calibration/crm/star/cli_run/clones.csv
+docs/calibration/crm/star/cli_run/animal_tests.csv
+docs/calibration/crm/star/cli_run/coverage.csv
+docs/calibration/crm/star/cli_run/density_by_group.png
+docs/calibration/crm/star/cli_run/mutation_frequency_by_group.png
+docs/calibration/crm/star/cli_run/mutated_reads_by_group.png
+docs/calibration/crm/star/cli_run/substitution_matrix.png
+docs/calibration/crm/star/cli_run/spectrum_by_group.png
+docs/calibration/crm/star/cli_run/positional_map.png
+docs/calibration/crm/star/cli_run/mutation_load.png
+docs/calibration/crm/star/cli_run/hotspot_targeting.png
+docs/calibration/crm/star/cli_run/coverage.png
+docs/calibration/crm/star/cli_run/spectrum_corrected.png
+docs/calibration/crm/star/cli_run/clone_map.png
+docs/calibration/crm/star/cli_run/single_read_excess.png
+docs/calibration/crm/star/cli_run/positional_by_sample.png
+docs/calibration/crm/star/cli_run/combined_density.png
+docs/calibration/crm/star/cli_run/quality_histogram.png
+docs/calibration/crm/star/cli_run/phasing_blocks.png
+docs/calibration/crm/star/cli_run/qc_waterfall.png
+docs/calibration/crm/star/cli_run/control_background.png
+docs/calibration/crm/star/cli_run/clonality.png
+docs/calibration/crm/star/cli_run/volcano.png
+docs/calibration/crm/star/cli_run/replicate_concordance.png
+docs/calibration/crm/star/cli_run/report.html
+docs/calibration/crm/star/cli_run/project.json
+docs/calibration/crm/star/cli_run/tables.xlsx

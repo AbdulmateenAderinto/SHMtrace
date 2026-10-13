@@ -326,6 +326,10 @@ def main(depth=500):
     json.dump({"four_gamete": four, "trees": {k: [{"id": n.id, "parent": n.parent, "reads": len(n.reads),
                               "mutations": [f"{ref[q - 1]}{q}{a}" for q, a in n.mutations]} for n in t["nodes"]]
                          for k, t in picked.items()},
+               "wt3_figure_clone": {"clone": wt3_cid, "reads": t["reads"], "fit": t["fit"],
+                                    "nodes": [{"id": n.id, "parent": n.parent, "reads": len(n.reads),
+                                               "mutations": [f"{ref[q - 1]}{q}{a}" for q, a in n.mutations]}
+                                              for n in t["nodes"]]},
                "clones": summary}, open(OUT / "trees.json", "w"), indent=1)
     for m, rows in summary.items():
         print(m, rows[:5])

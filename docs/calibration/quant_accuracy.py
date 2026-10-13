@@ -3,7 +3,7 @@
     python docs/calibration/quant_accuracy.py --out quant_accuracy [--jobs 8] [--quick]
 
 Libraries are built by lineage_sim from the deposit's own mutation-free controls (J꜀4
-Aicda-/- KO1-3, 5,000 reads each; N114 empty-vector C3, C4, D1, 1,240-1,865 reads),
+Aicda-/- KO1-3, 5,000 reads each; N114 empty-vector C3, C4, D1, the delivered reads),
 each control held out in turn with the other two as the null, and analysed at 125, 250,
 500 and 1,000 reads. For every library the reported numbers are compared with the truth:
 
@@ -36,10 +36,10 @@ AMPLICONS = {
             "scenarios": ["polyclonal", "expanded", "low", "null"]},
     "N114": {"region": "n114_vregion", "reference": str(REF / "n114_vregion.fasta"),
              "contaminants": [],
-             "controls": [str(DEP / f"03_N114_ONT/Processed_FASTQ_Depth_Subsets/{n}.fastq")
-                          for n in ("75K3B3_1_C3_Empty_March_2024_1_N114",
-                                    "75K3B3_3_C4_Empty_March_2024_N114",
-                                    "75K3B3_4_D1_Empty_March_2024_N114")],
+             "controls": [str(DEP / f"03_N114_ONT/Original_FASTQ/{n}.fastq")
+                          for n in ("75K3B3_1_C3_Empty_March_2024_1",
+                                    "75K3B3_3_C4_Empty_March_2024",
+                                    "75K3B3_4_D1_Empty_March_2024")],
              "scenarios": ["subclonal", "low", "null"]},
 }
 DEPTHS = (125, 250, 500, 1000)
