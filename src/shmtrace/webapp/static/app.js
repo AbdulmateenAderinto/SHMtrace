@@ -1317,7 +1317,7 @@ async function scRun() {
   const pts = d.rows.filter(x => x.fold);
   const lb = d.rows.some(x => x.fold_is_lower_bound);
   $("sc-error").innerHTML = lb ? `<div class="msg" style="margin-top:8px">The control group has no mutations,
-    so folds marked ≥ are against half an event over its bases: lower bounds, not estimates.</div>` : "";
+    so folds marked ≥ are against one event per control animal (as the plots show a zero): conservative lower bounds, not estimates.</div>` : "";
   const hit = (x) => x.q != null && x.q < qcut;
   const L = layoutBase(); L.xaxis.title = "log2 fold vs control"; L.yaxis.title = "−log10 q";
   L.shapes = [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: -Math.log10(qcut), y1: -Math.log10(qcut),
