@@ -360,15 +360,18 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # It is measured once, from every control, and reused for each control's
     # own leave-itself-out null, so a project of N samples calibrates once.
     qscale = None
+    calibration: dict = {}
     if p.error_model == "qcal" and not sanger and controls:
         if len(controls) >= 2:
             progress(0.1, "calibrating the background model")
-            qscale = null_model.calibrate_qscale(
-                [b["reads"][c] for c in sorted(controls)], ref, ref_name, p, lo, hi)[0]
+            qscale, calibration = null_model.calibrate_qscale(
+                [b["reads"][c] for c in sorted(controls)], ref, ref_name, p, lo, hi)
         else:
             # one control cannot be left out of itself, so the inflation factor
             # cannot be measured; the default is the one calibrated on JH4
             qscale = null_model.DEFAULT_QSCALE
+            calibration = {"qscale_source": "default (one control file)"}
+        calibration = {"qscale": qscale, **calibration}
 
     nulls: dict = {}
     per_sample, details = [], {}
@@ -678,6 +681,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "positional_sample": pos_sample_rows,
         "variants": variants_rows,
         "mutation_load": load_hist,
+        "calibration": calibration,
         "reference": ref,
         "hotspots": hotspots,
         "group_order": list(dict.fromkeys(gmap[s["name"]] for s in samples)),
