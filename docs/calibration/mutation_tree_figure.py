@@ -160,6 +160,25 @@ def tree_columns(tree):
     return out
 
 
+def wt3_figure(wt3_tree, wt3_reads, jh4_ref):
+    """A: the Wt3 tree; B: its reads x mutations in tree order (the supplement's figure)."""
+    fig = plt.figure(figsize=(13, 12))
+    gs = fig.add_gridspec(2, 1, height_ratios=[1.25, 1], hspace=0.28)
+    axA = fig.add_subplot(gs[0])
+    draw(axA, wt3_tree, jh4_ref, rf"A   $J_{{\mathrm{{H}}}}4$ intron, Wt3 clone · {wt3_tree['reads']} reads · "
+                                 f"{round(100 * wt3_tree['fit'])}% of mutated reads fit one tree")
+    axB = fig.add_subplot(gs[1])
+    read_matrix(axB, wt3_reads, jh4_ref, tree_columns(wt3_tree), "B   Reads of the same clone by mutation, in tree order")
+    axB.set_xticklabels(axB.get_xticklabels(), fontsize=6)
+    handles = [Line2D([], [], color=c, marker="s", ls="", label=lab) for lab, c in CLASS.values()]
+    handles.append(Line2D([], [], marker="o", ls="", mfc="white", mec="#2E3A46", ms=9,
+                          label="node: mutations on one branch; area and number, reads carrying it"))
+    fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=8.5)
+    fig.subplots_adjust(bottom=0.07, top=0.96, left=0.05, right=0.98)
+    for ext in ("png", "pdf"):
+        fig.savefig(OUT / f"mutation_trees_wt3.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+
+
 def contrast_figure(wt3_tree, wt3_reads, jh4_ref, jh4_units, n114, n114_ref):
     """A: the Wt3 tree; B, C: reads x mutations for Wt3 and N114 D5; D: four-gamete test."""
     fig = plt.figure(figsize=(13, 12.5))
@@ -292,6 +311,7 @@ def main(depth=500):
         for m, rows in summary.items():
             print(m, rows[:6])
         return
+    wt3_figure(picked["WT3:0"], clone_reads["WT3:0"], ref)
     n114, n114_ref = n114_reads()
     contrast_figure(picked["WT3:0"], clone_reads["WT3:0"], ref, jh4_units, n114, n114_ref)
     four = {"jh4": dict(jh4_units), "n114": {k: mutation_tree.four_gamete(v) for k, v in n114.items()}}
