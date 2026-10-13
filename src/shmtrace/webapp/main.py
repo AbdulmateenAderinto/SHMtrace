@@ -22,6 +22,8 @@ Endpoints
   POST /api/repair/{id}       repair-route indices per animal, a group comparison and a
                               spectrum decomposition against reference groups
   POST /api/power             power by simulation, from a finished project or given numbers
+  POST /api/screen/{id}       every condition against the control, ranked, with BH q-values
+                              (pooled runs in a sample sheet are split by barcode at /api/run)
   POST /api/compare           the older two-group comparison (kept)
   POST /api/analyze           the older single-sample endpoint (kept)
 """
@@ -198,9 +200,14 @@ def load_samplesheet(payload: dict):
         sh = samplesheet.load(str(path))
     except samplesheet.SheetError as e:
         raise HTTPException(400, {"problems": e.problems}) from None
+    pooled: dict = {}
+    for r in sh.used:
+        if r.barcode:
+            pooled.setdefault(r.file, {})[r.sample] = [r.barcode, r.barcode2 or None]
     return {"samples": sh.samples(), "warnings": sh.warnings, "excluded": sh.excluded(),
+            "pooled": pooled,
             "sheet": {"path": sh.path, "provenance": sh.provenance(), "aliases": sh.aliases(),
-                      "excluded": sh.excluded(), "warnings": sh.warnings}}
+                      "excluded": sh.excluded(), "warnings": sh.warnings, "pooled": pooled}}
 
 
 # ---- running a project -------------------------------------------------------
@@ -212,7 +219,14 @@ def _run_job(job_id: str, proj: dict):
 
     try:
         job["state"] = "running"
+        pooled = (proj.get("sample_sheet") or {}).get("pooled") or {}
+        if pooled:
+            progress(0.02, "splitting the pooled run by barcode")
+            _demultiplex(job_id, proj, pooled)
         res = project.run_project(proj, progress)
+        if proj.get("_demux_notes"):
+            res["notes"] = proj["_demux_notes"] + res.get("notes", [])
+            res["demux"] = proj.get("_demux_stats")
         job["result"] = res
         job["state"] = "done"
         job["progress"] = 1.0
@@ -221,6 +235,31 @@ def _run_job(job_id: str, proj: dict):
         job["state"] = "error"
         job["error"] = f"{type(exc).__name__}: {exc}"
         job["message"] = "failed"
+
+
+def _demultiplex(job_id: str, proj: dict, pooled: dict) -> None:
+    """Split each pooled FASTQ by inline barcode (demux.py) and point its samples at the parts."""
+    from ..demux import demultiplex
+    from ..io_utils import read_fasta
+    ref = read_fasta(proj["reference"])[0][1].upper()
+    opts = proj.get("demux") or {}
+    left = (opts.get("left_anchor") or ref[:20]).upper()
+    right = (opts.get("right_anchor") or ref[-20:]).upper()
+    paths, stats, notes = {}, {}, []
+    for k, (f, samples) in enumerate(pooled.items()):
+        d = demultiplex(f, {n: (b[0], b[1]) for n, b in samples.items()}, left, right,
+                        str(UPLOADS / f"demux_{job_id}_{k}"))
+        paths.update(d["paths"])
+        st = d["stats"]
+        stats[Path(f).name] = st
+        notes.append(f"{Path(f).name} split by barcode: {st['reads'] - st['unassigned']} of "
+                     f"{st['reads']} reads assigned ("
+                     + ", ".join(f"{n} {c}" for n, c in st["per_sample"].items())
+                     + f"); {st['unassigned']} without a clear barcode were left out.")
+    for smp in proj["samples"]:
+        if smp["name"] in paths:
+            smp["path"] = paths[smp["name"]]
+    proj["_demux_notes"], proj["_demux_stats"] = notes, stats
 
 
 @app.post("/api/run")
@@ -390,6 +429,30 @@ def power_table(payload: dict):
                                                           "dispersion": disp, "bp": bp, "fold": fold,
                                                           "metric": metric, "sims": sims},
                                  "rows": rows}))
+
+
+@app.post("/api/screen/{job_id}")
+def screen(job_id: str, payload: dict):
+    from ..demux import screen_table
+    res = _result(job_id)
+    metric = payload.get("metric") or "unique_density"
+    rows = screen_table(res, metric)
+    if not rows:
+        raise HTTPException(400, "no group comparisons: the analysis needs a control group "
+                                 "and at least one other group")
+    return JSONResponse(_finite({"metric": metric, "rows": rows}))
+
+
+@app.get("/api/screen/{job_id}/screen.csv")
+def screen_csv(job_id: str, metric: str = "unique_density"):
+    from ..demux import screen_table
+    rows = [{**{k: v for k, v in r.items() if k != "fold_ci"},
+             "fold_ci_low": (r.get("fold_ci") or [None, None])[0],
+             "fold_ci_high": (r.get("fold_ci") or [None, None])[1]}
+            for r in screen_table(_result(job_id), metric)]
+    cols = ["condition", "control", "animals", "fold", "fold_ci_low", "fold_ci_high", "p", "q"]
+    return Response(report._rows_csv(rows, cols) or ",".join(cols) + "\n", media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=screen.csv"})
 
 
 @app.get("/api/job/{job_id}")
