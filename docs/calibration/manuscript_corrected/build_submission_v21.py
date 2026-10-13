@@ -99,7 +99,7 @@ HIGHLIGHTS = {
     1: "Control-calibrated ONT calling profiles full-length SHM amplicons without cloning",
     2: "Matched biological controls define a Q53-equivalent residual background",
     3: "ONT reproduces the paired Sanger JH4 substitution spectrum (r = 0.93)",
-    4: "500 reads recover 91–94% of the AID-active variants found at 1,000 reads",
+    4: "At 500 reads, variant discovery reaches 91–94% of its maximum in this dataset",
 }
 
 
