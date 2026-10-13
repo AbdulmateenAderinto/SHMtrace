@@ -29,3 +29,23 @@ def test_same_reads_merge_into_one_node():
     reads = {f"r{i}": {(5, "A"), (9, "G")} for i in range(5)}
     t = mutation_tree.build(reads)
     assert len(t["nodes"]) == 1 and t["nodes"][0].mutations == [(5, "A"), (9, "G")]
+
+
+def test_four_gamete_separates_nested_from_recurrent():
+    # nested: B inside A; and C apart from both: no pair shows all four combinations
+    nested = {f"r{i}": set() for i in range(12)}
+    for i in range(8):
+        nested[f"r{i}"].add((1, "A"))
+    for i in range(4):
+        nested[f"r{i}"].add((2, "G"))
+    for i in range(8, 11):
+        nested[f"r{i}"].add((3, "T"))
+    assert mutation_tree.four_gamete(nested)["incompatible"] == 0
+    # recurrent: two mutations combined freely across reads
+    rec = {f"r{i}": set() for i in range(12)}
+    for i in (0, 1, 2, 3, 4, 5):
+        rec[f"r{i}"].add((1, "A"))
+    for i in (3, 4, 5, 6, 7, 8):
+        rec[f"r{i}"].add((2, "G"))
+    fg = mutation_tree.four_gamete(rec)
+    assert fg["incompatible"] == 1 and fg["incompatible_pct"] == 100.0
