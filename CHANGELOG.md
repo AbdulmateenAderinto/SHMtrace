@@ -7,6 +7,7 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- App: pooled runs from a sample sheet with `barcode` columns are split by barcode when the analysis runs (primer anchors in Set up; a note reports reads assigned per sample), and a **Screen** tab ranks every condition against the control (animal-level tests, BH q-values, volcano, CSV; `/api/screen/{id}`).
 - App: **Repair** tab (repair-route indices per animal, animal-level group comparison, spectrum decomposition against chosen reference groups with 95% intervals; sparse groups and references flagged) and **Power** tab (power table from a group of the current analysis or from given numbers; `/api/repair/{id}`, `/api/power`). Tabs wrap onto a second line on narrow windows.
 - App: **UMI consensus** in Set up → Advanced (UMI position, length, anchors with IUPAC codes, minimum reads per molecule); results report molecules per sample and reads per molecule. **Switching** tab for class-switch junctions: switch-region reference with donor picker, samples and groups, animal-level comparison, per-sample summary, microhomology and breakpoint figures, CSV exports (`/api/switch/*`, `/api/fasta-names`). Header fits narrow windows.
 - UMI consensus tested on real nanopore UMI reads (Karst et al. 2021 Zymo rRNA operons, `docs/calibration/umi_karst.py`): raw error 9.5% to 0.17% (57-fold), substitutions about 0.01% from 10 reads per molecule. UMI anchors now accept IUPAC primer codes.
@@ -91,6 +92,7 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- Group tests: an animal with no mutations now counts half an event (continuity correction) instead of a third of the smallest rate among other animals; a fold against a control group with no mutations is reported as a lower bound (`fold_is_lower_bound`), and two groups with none have a fold of 1.
 - The app's result endpoints failed to send a result containing an undefined statistic (NaN, e.g. a test on identical values); such values are now sent as null.
 - Manuscript Sanger set: Wt4 clone w4-9 (434141-A11) moved to MKLN K2 (identical over 520 bp, all 7 mutations, to two K2 clones), applied in `organize_jh4_ab1.py --original` too. Wt4 26 clones, 106 calls; Ver17 rebuilt (~39-fold, P = 0.0008; r = 0.96).
 - Paralogue (Agouti-type) J꜀4 reads longer than the bundled paralogue record, and PCR chimeras, passed the contaminant filter and were called as mutations: 1–4% of every raw J꜀4 library, with 35–54 false calls per simulated 500-read library. The documented allele-level check is now implemented (`contaminant_min_alleles`, default 10; germline sites ignored). The manuscript's pre-sorted 500-read files contain none of these reads.

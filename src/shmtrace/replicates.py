@@ -17,7 +17,7 @@ For a count-based rate (mutations per base sequenced), each animal contributes
                   is a likelihood-ratio test with the p-value by parametric bootstrap
                   (small groups make the chi-square approximation unsafe).
   permutation     exact (or 20,000-draw) permutation of animals between the groups on
-                  log10 rates: no distributional assumption at all; with 3 vs 3 the
+                  log10 rates (an animal with no mutations counts half an event): no distributional assumption at all; with 3 vs 3 the
                   smallest two-sided p is 0.1, which is the honest limit of 6 animals.
   Welch on log10  the manuscript's test.
   fold            the ratio of the groups' fitted rates, and the ratio of geometric
@@ -79,10 +79,9 @@ def fit_nb(groups: list[tuple[list, list]], common: bool = False,
 
 
 def _log_rates(k, n):
-    r = [ki / ni for ki, ni in zip(k, n, strict=True) if ni]
-    pos = [x for x in r if x > 0]
-    floor = (min(pos) / 3) if pos else 1e-9
-    return [math.log10(max(x, floor)) for x in r]
+    """log10 rates; an animal with no mutations counts half an event (continuity
+    correction), so its log is finite and set by its own depth, not by other animals."""
+    return [math.log10(max(ki, 0.5) / ni) for ki, ni in zip(k, n, strict=True) if ni]
 
 
 def permutation_p(a: list[float], b: list[float], max_exact: int = 20000,
@@ -117,7 +116,10 @@ def compare(ctrl: list[tuple[int, int]], case: list[tuple[int, int]], boot: int 
     out: dict = {"animals_case": len(case), "animals_control": len(ctrl)}
     (mx, mc), phi, ll1 = fit_nb([(kx, nx), (kc, nc)])
     out.update(rate_case=mx, rate_control=mc, dispersion=phi,
-               fold=(mx / mc) if mc > 0 else None)
+               fold=(mx / mc) if mc > 0 else (mx / (0.5 / sum(nc)) if mx > 0 else 1.0),
+               # a control group with no mutations at all: the fold is against half an event
+               # over all its bases, so it is a lower bound
+               fold_is_lower_bound=bool(mc <= 0 < mx))
     lc, lx = _log_rates(kc, nc), _log_rates(kx, nx)
     if len(lc) >= 2 and len(lx) >= 2:
         t = stats.ttest_ind(lx, lc, equal_var=False)

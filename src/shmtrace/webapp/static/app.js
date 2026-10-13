@@ -12,7 +12,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;
 
 /* ── tabs ─────────────────────────────────────────────────── */
 function showTab(name) {
-  for (const t of ["setup", "results", "reads", "tables", "export", "switch", "repair", "power"]) {
+  for (const t of ["setup", "results", "reads", "tables", "export", "switch", "repair", "power", "screen"]) {
     $("page-" + t).classList.toggle("active", t === name);
     $("tab-" + t).setAttribute("aria-selected", String(t === name));
   }
@@ -22,7 +22,7 @@ function showTab(name) {
   if (name === "power") pwInit();
 }
 function enableResultTabs(on) {
-  for (const t of ["results", "tables", "export", "repair"]) $("tab-" + t).disabled = !on;
+  for (const t of ["results", "tables", "export", "repair", "screen"]) $("tab-" + t).disabled = !on;
   $("tab-reads").disabled = !(on && S.result && S.result.has_alignments);
 }
 
@@ -212,8 +212,13 @@ async function loadSheet() {
                                     control: s.control, note: `${s.path.length} file(s) from the sheet` }));
   S.sheet = d.sheet;
   const ex = d.excluded.length ? `; ${d.excluded.length} row(s) excluded by the sheet` : "";
+  const pooledFiles = Object.keys(d.pooled || {});
+  $("demux-opts").hidden = !pooledFiles.length;
+  const pooledMsg = pooledFiles.length ? `<div class="msg" style="margin-top:6px">Pooled run: ${pooledFiles.length} file(s) shared by
+    ${Object.values(d.pooled).reduce((n, x) => n + Object.keys(x).length, 0)} samples, told apart by barcode. The reads are
+    split when you run; give the primers next to the barcodes below if they are not the reference ends.</div>` : "";
   $("sheet-msg").innerHTML = `<div class="hint" style="margin-top:6px">${d.samples.length} samples
-    from ${esc(path)}${ex}</div>` + d.warnings.map(w => `<div class="msg" style="margin-top:6px">${esc(w)}</div>`).join("");
+    from ${esc(path)}${ex}</div>` + pooledMsg + d.warnings.map(w => `<div class="msg" style="margin-top:6px">${esc(w)}</div>`).join("");
   renderSamples();
 }
 
@@ -308,6 +313,7 @@ async function runProject() {
     overrides: over,
     samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control })),
     sample_sheet: S.sheet || null,
+    demux: { left_anchor: $("demux-left").value.trim(), right_anchor: $("demux-right").value.trim() },
   };
   $("run-btn").disabled = true;
   $("run-status").style.display = "";
@@ -1291,3 +1297,35 @@ async function pwRun() {
     + animals.map(a => `<tr><td>${a}</td>` + reads.map(r => cell(d.rows.find(x => x.animals_per_group === a && x.reads_per_animal === r).power)).join("") + "</tr>").join("") + "</tbody>";
   $("pw-results").hidden = false;
 }
+
+
+/* ── screen (demux.screen_table) ──────────────────────────── */
+let SC = null;
+async function scRun() {
+  $("sc-error").innerHTML = "";
+  const r = await fetch("/api/screen/" + S.job, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ metric: $("sc-metric").value }) });
+  const d = await r.json();
+  if (!r.ok) return $("sc-error").innerHTML = `<div class="msg err" style="margin-top:8px">${esc(d.detail || "failed")}</div>`;
+  SC = d;
+  const qcut = +$("sc-q").value || 0.1;
+  $("sc-results").hidden = false;
+  swTable($("sc-table"), d.rows.map(x => ({ condition: x.condition, control: x.control, animals: x.animals,
+    fold: x.fold == null ? "" : (x.fold_is_lower_bound ? "≥ " : "") + fmtNum("", x.fold),
+    "fold 95% CI": x.fold_ci ? `${fmtNum("", x.fold_ci[0])}–${fmtNum("", x.fold_ci[1])}` : "",
+    p: x.p, q: x.q, [`q < ${qcut}`]: x.q != null && x.q < qcut ? "yes" : "" })));
+  const pts = d.rows.filter(x => x.fold);
+  const lb = d.rows.some(x => x.fold_is_lower_bound);
+  $("sc-error").innerHTML = lb ? `<div class="msg" style="margin-top:8px">The control group has no mutations,
+    so folds marked ≥ are against half an event over its bases: lower bounds, not estimates.</div>` : "";
+  const hit = (x) => x.q != null && x.q < qcut;
+  const L = layoutBase(); L.xaxis.title = "log2 fold vs control"; L.yaxis.title = "−log10 q";
+  L.shapes = [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: -Math.log10(qcut), y1: -Math.log10(qcut),
+    line: { dash: "dash", color: "#999", width: 1 } }];
+  Plotly.newPlot("sc-fig", [{ type: "scatter", mode: "markers+text",
+    x: pts.map(x => Math.log2(x.fold)), y: pts.map(x => -Math.log10(Math.max(x.q ?? 1, 1e-6))),
+    text: pts.map(x => hit(x) ? x.condition : ""), textposition: "top center",
+    hovertext: pts.map(x => `${x.condition}: ${x.fold.toFixed(2)}-fold, q ${x.q == null ? "–" : x.q.toPrecision(2)}`),
+    hoverinfo: "text", marker: { size: 10, color: pts.map(x => hit(x) ? "#FF6B57" : "#9DB4C0") } }], L, CONFIG);
+}
+function scDl() { if (SC) location.href = `/api/screen/${S.job}/screen.csv?metric=${encodeURIComponent(SC.metric)}`; }

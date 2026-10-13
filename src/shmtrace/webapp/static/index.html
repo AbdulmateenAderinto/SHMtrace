@@ -20,6 +20,7 @@
     <button role="tab" id="tab-switch" aria-selected="false" onclick="showTab('switch')" title="Class-switch junctions">Switching</button>
     <button role="tab" id="tab-repair" aria-selected="false" onclick="showTab('repair')" disabled title="Repair routes from the spectrum">Repair</button>
     <button role="tab" id="tab-power" aria-selected="false" onclick="showTab('power')" title="How many animals and reads">Power</button>
+    <button role="tab" id="tab-screen" aria-selected="false" onclick="showTab('screen')" disabled title="Every condition against the control">Screen</button>
   </nav>
   <span class="spacer"></span>
   <a class="btn small" href="/classic" title="The older single-sample page">Classic</a>
@@ -130,6 +131,12 @@
           <button class="btn small ghost" onclick="loadSheet()">Load sheet</button>
         </div>
         <div id="sheet-msg"></div>
+        <div id="demux-opts" hidden style="margin-top:8px">
+          <label for="demux-left">Primer just inside the 5′ barcode (blank: the reference's first 20 bases)</label>
+          <input type="text" id="demux-left" placeholder="IUPAC codes allowed">
+          <label for="demux-right">Primer just inside the 3′ barcode, as it reads at the reference end (blank: its last 20 bases)</label>
+          <input type="text" id="demux-right" placeholder="reference-forward">
+        </div>
         <div class="row" style="margin:10px 0 4px">
           <button class="btn small ghost" onclick="autoGroup()">Group by name</button>
           <button class="btn small ghost" onclick="markControls()">Controls by name</button>
@@ -392,6 +399,32 @@
     <h2>Power</h2>
     <p class="hint" id="pw-used"></p>
     <div class="table-wrap"><table id="pw-table"></table></div>
+  </div>
+</section>
+<!-- ───────────────────────── screen ───────────────────────── -->
+<section class="page" id="page-screen">
+  <div class="card">
+    <h2>Screen: every condition against the control</h2>
+    <p class="hint">For a screen or a panel of conditions (often one pooled run, split by
+      barcode from the sample sheet). Each condition is compared with the control group with the
+      animal-level tests, each replicate one unit, and ranked by Benjamini–Hochberg q-value
+      across the conditions.</p>
+    <div class="row">
+      <div><label for="sc-metric">Measure</label>
+        <select id="sc-metric">
+          <option value="unique_density">Unique-mutation density</option>
+          <option value="mutation_frequency">Mutation frequency</option>
+        </select></div>
+      <div><label for="sc-q">Label conditions with q below</label>
+        <input type="number" id="sc-q" value="0.1" step="0.01" min="0" max="1"></div>
+    </div>
+    <button class="btn primary" style="margin-top:10px" onclick="scRun()">Rank conditions</button>
+    <div id="sc-error"></div>
+  </div>
+  <div id="sc-results" hidden>
+    <div class="card"><h2>Conditions, best first</h2><div class="table-wrap"><table id="sc-table"></table></div>
+      <div class="row" style="margin-top:8px"><button class="btn small" onclick="scDl()">Download (.csv)</button></div></div>
+    <div class="card"><h2>Volcano</h2><div id="sc-fig" style="height:380px"></div></div>
   </div>
 </section>
 </main>

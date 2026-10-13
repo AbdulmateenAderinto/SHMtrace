@@ -38,6 +38,8 @@ Four samples, 250 reads each, 10-nt barcodes, half the reads reverse-complemente
 
 Errors cost reads, not accuracy: no read went to the wrong sample. Barcode sets should differ by at least 4 edits pairwise; the margin rule relies on that.
 
+**In the app:** load a sample sheet with `barcode` columns (Set up → Samples). The pooled file is split when you press Analyse, and a note reports the reads assigned to each sample.
+
 ## The screen report
 
 `shmtrace-screen project.json -o screen/` compares every condition with the control group using the animal-level tests (`REPLICATES_AND_POWER.md`). Each replicate culture or mouse is one unit. It reports:
@@ -48,3 +50,5 @@ Errors cost reads, not accuracy: no read went to the wrong sample. Barcode sets 
 Conditions are ranked by q-value. It writes `screen.csv` and a volcano plot (`screen.png`: log2 fold against −log10 q, with conditions past the q cut-off labelled).
 
 Plan replicates with `shmtrace-power`. With between-replicate variation like the J꜀4 mice, a 2-fold change needs many replicates per condition. Cell-line replicates usually vary much less than mice, so a pilot of the control condition is the way to find out.
+
+**In the app:** the *Screen* tab, after an analysis. It ranks every condition against the control group, flags folds against a control with no mutations as lower bounds, draws the volcano and downloads the table.

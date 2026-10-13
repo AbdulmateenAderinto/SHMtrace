@@ -86,3 +86,65 @@ def test_screen_ranks_conditions_with_bh_q_values():
 
 def test_bh_matches_the_textbook():
     assert demux.bh([0.01, 0.04, 0.03, 0.005]) == pytest.approx([0.02, 0.04, 0.04, 0.02])
+
+
+def test_the_app_splits_a_pooled_run_and_ranks_a_screen(tmp_path):
+    """Sheet with barcodes -> /api/run splits the pool -> /api/screen ranks the conditions."""
+    pytest.importorskip("fastapi")
+    pytest.importorskip("httpx")
+    pytest.importorskip("mappy")
+    import time
+
+    from fastapi.testclient import TestClient
+
+    from shmtrace.webapp.main import app
+    r = random.Random(8)
+    ref = "".join(r.choice("ACGT") for _ in range(500))
+    (tmp_path / "ref.fa").write_text(f">amp\n{ref}\n")
+    loads = {"EV": 0.0, "up": 3.0}
+    rows, codes = [], {}
+    with open(tmp_path / "pool.fq", "w") as fh:
+        for cond, load in loads.items():
+            for rep in (1, 2, 3):
+                name = f"{cond}_{rep}"
+                codes[name] = "".join(r.choice("ACGT") for _ in range(10))
+                rows.append(["pool.fq", name, cond, "yes" if cond == "EV" else "no", codes[name]])
+                clones = []
+                for _ in range(30):
+                    m = {}
+                    for _ in range(int(r.expovariate(1 / load)) if load else 0):
+                        i = r.randrange(40, 460)
+                        m[i] = r.choice([x for x in "ACGT" if x != ref[i]])
+                    clones.append(m)
+                for k in range(150):
+                    s = list(ref)
+                    for i, a in r.choice(clones).items():
+                        s[i] = a
+                    seq = _noisy(codes[name] + "".join(s), 0.01)
+                    if r.random() < 0.5:
+                        seq = _rc(seq)
+                    fh.write(f"@{name}_{k}\n{seq}\n+\n{'?' * len(seq)}\n")
+    with open(tmp_path / "sheet.csv", "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["file", "sample", "group", "control", "barcode"])
+        w.writerows(rows)
+    c = TestClient(app)
+    sh = c.post("/api/samplesheet", json={"path": str(tmp_path / "sheet.csv")}).json()
+    assert len(next(iter(sh["pooled"].values()))) == 6
+    job = c.post("/api/run", json={"project": {
+        "name": "screen", "region": "generic_amplicon", "reference": str(tmp_path / "ref.fa"),
+        "samples": [{k: s[k] for k in ("name", "path", "group", "control")} for s in sh["samples"]],
+        "sample_sheet": sh["sheet"]}}).json()["job"]
+    for _ in range(600):
+        st = c.get(f"/api/job/{job}").json()
+        if st["state"] in ("done", "error"):
+            break
+        time.sleep(0.2)
+    assert st["state"] == "done", st
+    res = c.get(f"/api/result/{job}").json()
+    assert "split by barcode" in res["notes"][0]
+    assert all(s["reads"] >= 100 for s in res["samples"])
+    sc = c.post(f"/api/screen/{job}", json={"metric": "unique_density"}).json()
+    up = sc["rows"][0]
+    assert up["condition"] == "up" and up["fold"] > 5
+    assert c.get(f"/api/screen/{job}/screen.csv").text.startswith("condition,")
