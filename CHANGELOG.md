@@ -92,6 +92,7 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
+- Manuscript N114 (Figure 4, Supplementary S4 and S5, Tables S1 and S2, Abstract, Methods, Results, Conclusions): now the SHMtrace re-analysis of the deposited reads. pMX-Aicda 79/58/161 calls, geometric mean 30 [19–53] × 10⁻⁵; empty vector 0/0/0 calls; group difference at least 91-fold (Welch p = 0.0045, controls at the one-event density). A Methods paragraph describes the N114 calling. The depth figures (S6, S7) remain Geneious-based.
 - Manuscript Sanger set: Wt2-filed clones wt3-4 and wt3-6 (434138-D11, F11) moved to Wt3, since their lineage's founder mutations are in 109 Wt3 nanopore reads and in no Wt2 read; wt3-3 (C11), whose lineage is in no nanopore library, stays. Ver17 rebuilt: Wt 37/40/26 clones, 135/230/106 calls; ~38-fold, P = 0.0009; r = 0.95.
 - Group tests: an animal with no mutations now counts half an event (continuity correction) instead of a third of the smallest rate among other animals; a fold against a control group with no mutations is reported as a conservative lower bound, against one event per control animal as the plots show a zero (`fold_is_lower_bound`), and two groups with none have a fold of 1.
 - The app's result endpoints failed to send a result containing an undefined statistic (NaN, e.g. a test on identical values); such values are now sent as null.
