@@ -116,9 +116,10 @@ def compare(ctrl: list[tuple[int, int]], case: list[tuple[int, int]], boot: int 
     out: dict = {"animals_case": len(case), "animals_control": len(ctrl)}
     (mx, mc), phi, ll1 = fit_nb([(kx, nx), (kc, nc)])
     out.update(rate_case=mx, rate_control=mc, dispersion=phi,
-               fold=(mx / mc) if mc > 0 else (mx / (0.5 / sum(nc)) if mx > 0 else 1.0),
-               # a control group with no mutations at all: the fold is against half an event
-               # over all its bases, so it is a lower bound
+               fold=(mx / mc) if mc > 0 else (mx / (len(nc) / sum(nc)) if mx > 0 else 1.0),
+               # a control group with no mutations at all: the fold is against one event per
+               # control animal (the one-event density the plots censor a zero to), so it is a
+               # conservative lower bound
                fold_is_lower_bound=bool(mc <= 0 < mx))
     lc, lx = _log_rates(kc, nc), _log_rates(kx, nx)
     if len(lc) >= 2 and len(lx) >= 2:
