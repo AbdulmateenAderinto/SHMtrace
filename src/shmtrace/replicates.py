@@ -108,8 +108,19 @@ def permutation_p(a: list[float], b: list[float], max_exact: int = 20000,
     return float((hits + 1) / (max_exact + 1))
 
 
+def _boot_lrts(sims, nx, nc) -> list[float]:
+    """Likelihood-ratio statistic of each simulated experiment (compare's bootstrap)."""
+    out = []
+    for sim in sims:
+        sx, sc = list(sim[:len(nx)]), list(sim[len(nx):])
+        _r, ph_b, l1 = fit_nb([(sx, nx), (sc, nc)])
+        _r0, _p, l0 = fit_nb([(sx, nx), (sc, nc)], common=True, phi=ph_b)
+        out.append(2 * (l1 - l0))
+    return out
+
+
 def compare(ctrl: list[tuple[int, int]], case: list[tuple[int, int]], boot: int = 499,
-            seed: int = 1) -> dict:
+            seed: int = 1, jobs: int | None = 1) -> dict:
     """Compare two groups of animals, each (k mutations, n bases)."""
     kc, nc = [x[0] for x in ctrl], [x[1] for x in ctrl]
     kx, nx = [x[0] for x in case], [x[1] for x in case]
@@ -143,16 +154,19 @@ def compare(ctrl: list[tuple[int, int]], case: list[tuple[int, int]], boot: int 
         (m0, _), _p0, ll0 = fit_nb([(kx, nx), (kc, nc)], common=True, phi=phi)
         stat = max(0.0, 2 * (ll1 - ll0))
         rng = np.random.default_rng(seed)
-        hits = 0
         allk_n = np.asarray(list(nx) + list(nc), float)
+        # every simulated experiment is drawn first, in order, from the one generator, and
+        # the refits (the slow part) are then spread over processes: same draws, same p
+        sims = []
         for _ in range(boot):
             lam = allk_n * m0
-            sim = rng.negative_binomial(1 / phi, (1 / phi) / ((1 / phi) + lam)) if phi > 1e-10 \
-                else rng.poisson(lam)
-            sx, sc = list(sim[:len(nx)]), list(sim[len(nx):])
-            _r, ph_b, l1 = fit_nb([(sx, nx), (sc, nc)])
-            _r0, _p, l0 = fit_nb([(sx, nx), (sc, nc)], common=True, phi=ph_b)
-            hits += 2 * (l1 - l0) >= stat - 1e-9
+            sims.append(rng.negative_binomial(1 / phi, (1 / phi) / ((1 / phi) + lam)) if phi > 1e-10
+                        else rng.poisson(lam))
+        from .parallel import pmap, resolve
+        nchunk = max(1, min(resolve(jobs), boot))
+        chunks = [sims[i::nchunk] for i in range(nchunk)]
+        lrts = pmap(_boot_lrts, [(c, list(nx), list(nc)) for c in chunks], jobs)
+        hits = sum(lr >= stat - 1e-9 for chunk in lrts for lr in chunk)
         out["lrt_negbinomial"] = stat
         out["p_negbinomial"] = (hits + 1) / (boot + 1)
     # what pooling reads would claim (pseudoreplication), for contrast only
@@ -169,7 +183,7 @@ METRICS = {"mutation_frequency": ("mutations_total", "frequency_bases"),
            "unique_density": ("unique_mutations", "density_bases")}
 
 
-def group_tests(samples: list[dict], boot: int = 499) -> list[dict]:
+def group_tests(samples: list[dict], boot: int = 499, jobs: int | None = 1) -> list[dict]:
     """Every non-control group against the control group, per count-based metric."""
     groups: dict = {}
     for r in samples:
@@ -186,7 +200,7 @@ def group_tests(samples: list[dict], boot: int = 499) -> list[dict]:
             con = [(int(r[kk]), int(r[nk])) for r in groups[ctrl] if r.get(nk)]
             if not case or not con:
                 continue
-            c = compare(con, case, boot=boot)
+            c = compare(con, case, boot=boot, jobs=jobs)
             rows.append({"metric": metric, "group": g, "control": ctrl, **{
                 k: (round(v, 6) if isinstance(v, float) else v) for k, v in c.items()}})
     return rows

@@ -32,6 +32,7 @@ Files of unknown extension are sniffed by content (ABIF magic, '@' FASTQ,
 """
 from __future__ import annotations
 
+import functools
 import gzip
 import os
 import re
@@ -341,12 +342,43 @@ def merge_pair(seq1: str, qual1: str, seq2: str, qual2: str, min_overlap: int = 
     read's start (adapter) is dropped.
     """
     s2 = _revcomp(seq2.upper())
-    q2 = [ord(c) - 33 for c in qual2[::-1]]
     s1 = seq1.upper()
-    q1 = [ord(c) - 33 for c in qual1]
     n1, n2 = len(s1), len(s2)
     if n1 < min_overlap or n2 < min_overlap:
         return None
+    o = _best_offset(s1, s2, min_overlap, max_mismatch_rate, k)
+    if o is None:
+        return None
+    q2 = [ord(c) - 33 for c in qual2[::-1]]
+    q1 = [ord(c) - 33 for c in qual1]
+    a, b = max(0, o), min(n1, o + n2)
+    seq, qual = [], []
+    if o > 0:                                   # R1 sequence before R2 starts
+        seq.append(s1[:o])
+        qual.append(qual1[:o])
+    qc = _QCHAR
+    for b1, b2, x1, x2 in zip(s1[a:b], s2[a - o:b - o], q1[a:b], q2[a - o:b - o]):
+        if b1 == b2:
+            seq.append(b1)
+            qual.append(qc[min(x1 + x2, 60)])
+        elif x1 == x2:
+            seq.append("N")
+            qual.append(qc[2])
+        else:
+            seq.append(b1 if x1 > x2 else b2)
+            qual.append(qc[min(93, max(2, abs(x1 - x2)))])
+    if o + n2 > n1:                             # R2 sequence after R1 ends
+        seq.append(s2[b - o:])
+        qual.append(qual2[::-1][b - o:])
+    return "".join(seq), "".join(qual)
+
+
+@functools.lru_cache(maxsize=200_000)
+def _best_offset(s1: str, s2: str, min_overlap: int, max_mismatch_rate: float, k: int) -> int | None:
+    """Offset of reverse-complemented R2 against R1 with the best overlap (merge_pair).
+    It depends on the sequences alone, and amplicon libraries repeat the same pairs of
+    sequences many times, so it is cached."""
+    n1, n2 = len(s1), len(s2)
     k = min(k, min_overlap)
     index: dict[str, list[int]] = {}
     for i in range(n1 - k + 1):
@@ -373,29 +405,7 @@ def merge_pair(seq1: str, qual1: str, seq2: str, qual2: str, min_overlap: int = 
         score = (L - mm) - 4 * mm
         if best is None or score > best[0]:
             best = (score, o)
-    if best is None:
-        return None
-    o = best[1]
-    a, b = max(0, o), min(n1, o + n2)
-    seq, qual = [], []
-    if o > 0:                                   # R1 sequence before R2 starts
-        seq.append(s1[:o])
-        qual.append(qual1[:o])
-    qc = _QCHAR
-    for b1, b2, x1, x2 in zip(s1[a:b], s2[a - o:b - o], q1[a:b], q2[a - o:b - o]):
-        if b1 == b2:
-            seq.append(b1)
-            qual.append(qc[min(x1 + x2, 60)])
-        elif x1 == x2:
-            seq.append("N")
-            qual.append(qc[2])
-        else:
-            seq.append(b1 if x1 > x2 else b2)
-            qual.append(qc[min(93, max(2, abs(x1 - x2)))])
-    if o + n2 > n1:                             # R2 sequence after R1 ends
-        seq.append(s2[b - o:])
-        qual.append(qual2[::-1][b - o:])
-    return "".join(seq), "".join(qual)
+    return None if best is None else best[1]
 
 
 def merge_pairs(r1_path: str, r2_path: str, min_overlap: int = 20,
@@ -566,8 +576,10 @@ def expected_error_rate(qual: str) -> float:
     """Mean per-base error probability = sum(10^(-Q/10)) / length (Q20-eq at 0.01)."""
     if not qual:
         return 1.0
-    err = _ERR
-    return sum(err.get(c) or 10 ** (-(ord(c) - 33) / 10.0) for c in qual) / len(qual)
+    try:                                        # the same sums, in the same order, faster
+        return sum(map(_ERR.__getitem__, qual)) / len(qual)
+    except KeyError:
+        return sum(_ERR.get(c) or 10 ** (-(ord(c) - 33) / 10.0) for c in qual) / len(qual)
 
 
 def mott_trim(qual: str, cutoff: float = 0.01) -> tuple[int, int]:
