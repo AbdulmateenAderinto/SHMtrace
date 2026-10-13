@@ -9,10 +9,13 @@ DEP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Marti
 PUB = Path.home() / "Nanoshm/public_data"
 IRCM = PUB / "PRJNA1481264"
 
+# N114 reads: ~/Nanoshm/n114_fastq links the delivered libraries; empty-vector subclone C3 is
+# its second library (C3_Empty_March_2024_2), the first being noisier than its peers (CRM paper)
+N114_DIR = Path.home() / "Nanoshm/n114_fastq"
 JH4 = {"WT2": "DHJGKB_2_Wildtype_2", "WT3": "DHJGKB_3_Wildtype_3", "WT4": "DHJGKB_4_Wildtype_4",
        "KO1": "DHJGKB_5_AID_KO_1", "KO2": "DHJGKB_6_AID_KO_2", "KO3": "DHJGKB_7_AID_KO_3"}
 N114 = {"C1": "75K3B3_6_C1_AID_10.06.24", "D3": "75K3B3_7_D3_AID_10.01.24", "D5": "75K3B3_10_D5_AID_6.28.24_",
-        "C3": "75K3B3_1_C3_Empty_March_2024_1", "C4": "75K3B3_3_C4_Empty_March_2024",
+        "C3": "75K3B3_2_C3_Empty_March_2024_2", "C4": "75K3B3_3_C4_Empty_March_2024",
         "D1": "75K3B3_4_D1_Empty_March_2024"}
 
 DATASETS = {
@@ -21,9 +24,21 @@ DATASETS = {
             "samples": {k: {"fastq": str(DEP / "02_JH4_ONT/Original_FASTQ" / f"{v}.fastq"),
                             "control": k.startswith("KO")} for k, v in JH4.items()}},
     "n114": {"preset": "n114_vregion", "reference": str(REF / "n114_vregion.fasta"), "depth": 500,
-             "samples": {k: {"fastq": str(DEP / "03_N114_ONT/Original_FASTQ" / f"{v}.fastq"),
+             "samples": {k: {"fastq": str(N114_DIR / f"{v}.fastq"),
                              "control": k in ("C3", "C4", "D1")} for k, v in N114.items()}},
 }
+
+# N114 sensitivity sets: the second C3 library alone (now the default, so n114_c3b = n114), and all
+# four empty-vector libraries as controls
+HYB = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Martin Lab/Hybridoma manuscript/"
+                     "75K3B3_fastq")
+for _key, _ctl in (("n114_c3b", {"C3_2": "75K3B3_2_C3_Empty_March_2024_2", "C4": N114["C4"], "D1": N114["D1"]}),
+                   ("n114_4ctl", {"C3": "75K3B3_1_C3_Empty_March_2024_1", "C3_2": "75K3B3_2_C3_Empty_March_2024_2", "C4": N114["C4"],
+                                  "D1": N114["D1"]})):
+    _s = {k: {"fastq": str(N114_DIR / f"{N114[k]}.fastq"), "control": False}
+          for k in ("C1", "D3", "D5")}
+    _s.update({k: {"fastq": str(HYB / f"{v}.fastq"), "control": True} for k, v in _ctl.items()})
+    DATASETS[_key] = {**DATASETS["n114"], "samples": _s}
 
 
 def ircm(locus, groups, reference, preset, depth=2000):

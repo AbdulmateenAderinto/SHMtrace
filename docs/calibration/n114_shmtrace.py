@@ -28,17 +28,19 @@ REF = ROOT / "src/shmtrace/references/n114_vregion.fasta"
 DEP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Martin Lab/"
                      "Paper #1 - Nanopore sequencing/June 2nd analyses/submission_v4/"
                      "ONT_SHM_DataDeposit_Ver8_2026-07-30/Raw_Data/03_N114_ONT")
+# N114 reads: ~/Nanoshm/n114_fastq links the delivered libraries; empty-vector subclone C3 is
+# its second library (C3_Empty_March_2024_2), the first being noisier than its peers (CRM paper)
 LIBS = {"C1": ("75K3B3_6_C1_AID_10.06.24", "pMX-Aicda"),
         "D3": ("75K3B3_7_D3_AID_10.01.24", "pMX-Aicda"),
         "D5": ("75K3B3_10_D5_AID_6.28.24_", "pMX-Aicda"),
-        "C3": ("75K3B3_1_C3_Empty_March_2024_1", "pMX-Empty"),
+        "C3": ("75K3B3_2_C3_Empty_March_2024_2", "pMX-Empty"),
         "C4": ("75K3B3_3_C4_Empty_March_2024", "pMX-Empty"),
         "D1": ("75K3B3_4_D1_Empty_March_2024", "pMX-Empty")}
 
 
 def fastq(f, source):
     if source == "delivered":
-        return DEP / "Original_FASTQ" / f"{f}.fastq"
+        return Path.home() / "Nanoshm/n114_fastq" / f"{f}.fastq"
     return DEP / "Processed_FASTQ_Depth_Subsets" / f"{f}_N114_sub500.fastq"
 
 

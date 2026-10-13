@@ -53,7 +53,8 @@ EXPERIMENTAL = [
     ("Cell lines", "N114 hybridoma cells[@martin2002,@martin2002b] were transduced with pMX-*Aicda* or the empty "
                    "vector (both encoding GFP and puromycin resistance), sorted for high GFP and subcloned by limiting "
                    "dilution; three puromycin-resistant subclones per vector were kept for 1 month before DNA "
-                   "collection."),
+                   "collection. Empty-vector subclone C3 was sequenced as two libraries in the same month; the "
+                   "second was analyzed, and the first is reported as a sensitivity analysis (Results)."),
 ]
 
 METHODS = [

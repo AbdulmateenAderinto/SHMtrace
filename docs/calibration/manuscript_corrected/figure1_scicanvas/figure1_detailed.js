@@ -56,7 +56,7 @@
   panel('A', 'Experimental design', 10);
   const l1 = 46, l1h = 236, r1 = l1 + 118;
   card(30, l1, W - 60, l1h);
-  T('{i|J_{H}4} intron · mouse germinal-centre B cells ({i|in vivo})', 46, l1 + 12, { fontSize: HEAD, bold: true, color: JH4 });
+  T('{i|J_{H}4} intron · mouse germinal-center B cells ({i|in vivo})', 46, l1 + 12, { fontSize: HEAD, bold: true, color: JH4 });
   I('s-mouse-c57bl-6-black-realistic', 84, r1 - 34, 70, { flipX: true });
   T('{i|Wt}', 128, r1 - 56, { bold: true, color: CASE }); T('n = 3', 128, r1 - 32, { fontSize: SM, color: MID });
   I('s-mouse-c57bl-6-black-realistic', 84, r1 + 38, 70, { flipX: true });
@@ -114,8 +114,8 @@
   const bh = 210, b0 = by + 36;
   const bc = cards([
     [1, 'Length and quality gates', ['read length ≤ 2,000 bp ({i|J_{H}4}) or', '≤ 900 bp (N114), no minimum;', 'mean expected error ≤ 0.01 per base']],
-    [2, 'Competitive alignment', ['minimap2 against target and', 'paralogue references; chimeras', 'removed; aligned ≥ 800 / 400 bp']],
-    [3, 'Paralogue-allele filter', ['reads carrying ≥ 10 bases specific to', 'the {i|J_{H}4} paralogue are removed', '(no paralogue reference for N114)']],
+    [2, 'Competitive alignment', ['minimap2 against target and', 'paralog references; chimeras', 'removed; aligned ≥ 800 / 400 bp']],
+    [3, 'Paralog-allele filter', ['reads carrying ≥ 10 bases specific to', 'the {i|J_{H}4} paralog are removed', '(no paralog reference for N114)']],
     [4, 'Depth matching', ['random draw of 500 usable reads per', 'library (fixed seed), from 962–2,905', 'usable reads per library']],
   ], b0, bh, JH4);
   let x = bc[0].cx;
@@ -126,7 +126,7 @@
     mark(x + 290, y, ok);
   });
   x = bc[1].cx;
-  [['target', [READ]], ['paralogue', [PARA]], ['chimera', [READ, PARA]]].forEach(([lab, cols], k) => {
+  [['target', [READ]], ['paralog', [PARA]], ['chimera', [READ, PARA]]].forEach(([lab, cols], k) => {
     const y = b0 + 56 + k * 28;
     if (cols.length === 1) read(x + 14, y, 84, cols[0]); else { read(x + 14, y, 44, cols[0]); read(x + 56, y, 42, cols[1]); }
     T(lab, x + 108, y - 10, { fontSize: SM });
@@ -152,9 +152,9 @@
   o.push(Make.image(LOGO, 380, cy - 3, 28, 28));
   const ch = 250, c0 = cy + 36;
   const cc = cards([
-    [5, 'Candidate substitutions', ['every base that differs from the', 'reference in the analysed window;', 'one supporting read suffices']],
-    [6, 'Control error model', ['error rate per substitution, strand and', 'base quality from the AID-null controls;', '5× margin set by leave-one-control-out']],
-    [7, 'Significance and filtering', ['reads supporting each candidate are', 'tested against expected errors;', 'Benjamini–Hochberg FDR ≤ 0.05;', 'sites at ≥ 50% removed (germline)']],
+    [5, 'Candidate substitutions', ['every base that differs from the', 'reference in the analyzed window;', 'one supporting read suffices']],
+    [6, 'Control error model', ['error rate per substitution, strand and', 'base quality from the AID-null controls;', 'margin (5× J_{H}4, 10× N114) set by', 'leave-one-control-out']],
+    [7, 'Significance and filtering', ['reads supporting each candidate are', 'tested against expected errors;', 'FDR ≤ 0.05 set by control decoys;', 'sites at ≥ 50% removed (germline)']],
     [8, 'Animal-level summary', ['distinct calls per base sequenced;', 'spectra, clones and lineage trees;', 'the mouse or subclone is the unit']],
   ], c0, ch, TEAL);
   x = cc[0].cx; let rw = cc[0].cw - 40;
@@ -212,8 +212,8 @@
   const lgx = 460, ly = ey + 6;
   R(lgx, ly, 14, 12, { fill: CASE }); R(lgx + 14, ly, 14, 12, { fill: CTRL }); T('usable', lgx + 36, ly - 5, { fontSize: SM, color: MID });
   R(lgx + 120, ly, 26, 12, { fill: QCG }); T('length / quality', lgx + 154, ly - 5, { fontSize: SM, color: MID });
-  R(lgx + 300, ly, 26, 12, { fill: ALG }); T('alignment / paralogue', lgx + 334, ly - 5, { fontSize: SM, color: MID });
-  SEG(lgx + 540, ly + 6, lgx + 566, ly + 6, 2, INK); T('500 analysed', lgx + 574, ly - 5, { fontSize: SM, color: MID });
+  R(lgx + 300, ly, 26, 12, { fill: ALG }); T('alignment / paralog', lgx + 334, ly - 5, { fontSize: SM, color: MID });
+  SEG(lgx + 540, ly + 6, lgx + 566, ly + 6, 2, INK); T('500 analyzed', lgx + 574, ly - 5, { fontSize: SM, color: MID });
   const split = (a) => [a.usable, a.too_long + a.low_quality, a.not_target + a.chimeric + a.short_alignment + a.paralogue_alleles + a.minor_haplotype];
   const groups = [
     { title: '{i|J_{H}4} (GC B cells)', x: 30, data: READS.jh4, rows: [['{i|Wt} 2', 'WT2', CASE], ['{i|Wt} 3', 'WT3', CASE], ['{i|Wt} 4', 'WT4', CASE], ['{i|Aicda}^{−/−} 1', 'KO1', CTRL], ['{i|Aicda}^{−/−} 2', 'KO2', CTRL], ['{i|Aicda}^{−/−} 3', 'KO3', CTRL]] },

@@ -25,7 +25,7 @@
   "usable": 1064,
   "analysed": 500,
   "candidates_tested": 299,
-  "calls": 45
+  "calls": 49
  },
  "D5": {
   "delivered": 4235,
@@ -39,21 +39,21 @@
   "usable": 1607,
   "analysed": 500,
   "candidates_tested": 402,
-  "calls": 168
+  "calls": 173
  },
  "C3": {
-  "delivered": 2336,
-  "too_long": 857,
-  "low_quality": 355,
-  "not_target": 26,
-  "chimeric": 6,
-  "short_alignment": 42,
+  "delivered": 2810,
+  "too_long": 601,
+  "low_quality": 440,
+  "not_target": 14,
+  "chimeric": 34,
+  "short_alignment": 51,
   "paralogue_alleles": 0,
   "minor_haplotype": 0,
-  "usable": 1050,
+  "usable": 1670,
   "analysed": 500,
-  "candidates_tested": 206,
-  "calls": 5
+  "candidates_tested": 187,
+  "calls": 1
  },
  "C4": {
   "delivered": 3153,

@@ -114,7 +114,7 @@ def compute():
              sp_n114_lfnb=pct(s["n114"]["lofreq_nobaq"]["recall"]),
              sp_n114_gen_recall=pct(s["n114"]["geneious"]["recall"]), sp_n114_gen_fp=f1(s["n114"]["geneious"]["fp"]),
              sp_n114_gen_fdr=f"{s['n114']['geneious']['fdr']:.3f}",
-             sp_n114_bh_fdr=f"{spike('n114_bh', 'recommended')['fdr']:.3f}",
+             sp_n114_bh_fdr=f"{spike('n114', 'recommended_bh')['fdr']:.3f}",
              sp_jh4_bh_fdr=f"{spike('jh4_bh', 'recommended')['fdr']:.3f}")
     for k in ("su_lps", "pim1"):
         r, g = s[k]["recommended"], s[k]["geneious"]
@@ -131,6 +131,21 @@ def compute():
                                 for k in ("su_lps", "pim1")))
     fdrs = [s[k]["recommended"]["fdr"] for k in ("jh4", "su_lps", "pim1")]
     N["sp_fdr_range_3"] = f"{min(fdrs):.3f}–{max(fdrs):.3f}"
+    # ---------------- N114 sensitivity: the first library of empty-vector subclone C3 as a control
+    sen = OUT / "sensitivity_c3_1"
+    rows = [r for r in _load(sen / "spikein_n114.json")["rows"] if r["caller"] == "recommended"]
+    tp, fp_ = sum(r["true_calls"] for r in rows), sum(r["false_calls"] for r in rows)
+    held = [r for r in rows if r["control"] == "C3"]
+    htp, hfp = sum(r["true_calls"] for r in held), sum(r["false_calls"] for r in held)
+    N["c31_bh_fdr"] = f"{spike('n114_bh', 'recommended')['fdr']:.3f}"      # Benjamini-Hochberg, first C3 library
+    N["c31_fdr"] = f"{fp_ / (tp + fp_):.3f}"
+    N["c31_held_fdr"] = f"{hfp / (htp + hfp):.2f}"
+    N["c31_fp"] = f1(fp_ / len(rows))
+    bs = _load(sen / "benchmark_real_n114.json")["rows"]
+    rs = [r for r in bs if r["mode"] == "recommended"]
+    dens = lambda r: r["density_x1e5"] if r["calls"] else 1e5 / r["bases"]   # noqa: E731
+    N["c31_sep"] = f0(geo([dens(r) for r in rs if not r["control"]]) / geo([dens(r) for r in rs if r["control"]]))
+    N["c31_ctl_calls"] = str(sum(r["calls"] for r in rs if r["control"]))
     # ---------------- lineage simulation
     lin = {(x["scenario"], x["mode"]): x for x in _load(OUT / "lineage_sim_jh4/lineage_sim.json")["summary"]}
     N.update(lin_1_rec=pct(lin[("polyclonal", "recommended")]["recall_by_support"]["1"]),

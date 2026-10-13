@@ -29,11 +29,11 @@ ASSAYS = {
                       "KO2": ("DHJGKB_6_AID_KO_2", "Aicda-/-"), "KO3": ("DHJGKB_7_AID_KO_3", "Aicda-/-")},
                 control="Aicda-/-"),
     "n114": dict(region="n114_vregion", reference=REF / "n114_vregion.fasta", contaminants=[],
-                 dir=DEP / "03_N114_ONT/Original_FASTQ",
+                 dir=Path.home() / "Nanoshm/n114_fastq",   # C3 = its second library
                  libs={"C1": ("75K3B3_6_C1_AID_10.06.24", "pMX-Aicda"),
                        "D3": ("75K3B3_7_D3_AID_10.01.24", "pMX-Aicda"),
                        "D5": ("75K3B3_10_D5_AID_6.28.24_", "pMX-Aicda"),
-                       "C3": ("75K3B3_1_C3_Empty_March_2024_1", "pMX-Empty"),
+                       "C3": ("75K3B3_2_C3_Empty_March_2024_2", "pMX-Empty"),
                        "C4": ("75K3B3_3_C4_Empty_March_2024", "pMX-Empty"),
                        "D1": ("75K3B3_4_D1_Empty_March_2024", "pMX-Empty")},
                  control="pMX-Empty"),

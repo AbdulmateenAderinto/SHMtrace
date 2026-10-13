@@ -31,6 +31,7 @@ PROFILES = ("recommended", "geneious", "v0.1", "pbinom")
 PROFILES_RUN, WITH_LOFREQ, TAG = list(PROFILES), True, ""
 # extra settings tried on top of a mode: name -> (mode, Params overrides)
 VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
+            "recommended_bh": ("recommended", {"multiple_testing": "bh"}),
             "recommended_max": ("recommended", {"control_decoy_estimate": "max"})}
 
 
@@ -62,7 +63,7 @@ def run(key, reps, n_sites, seed=1):
             try:
                 for prof in PROFILES_RUN:
                     mode, extra = VARIANTS.get(prof, (prof, {}))
-                    pp = replace(base, **pipeline.mode_overrides(mode), **extra)
+                    pp = replace(base, **{**pipeline.mode_overrides(mode), **extra})
                     nr = None
                     if pp.error_model != "geneious":
                         k = (pp.error_model, pp.phase_mode)

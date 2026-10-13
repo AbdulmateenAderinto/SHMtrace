@@ -28,11 +28,11 @@ DEP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Marti
 LIBS = {"WT2": "DHJGKB_2_Wildtype_2", "WT3": "DHJGKB_3_Wildtype_3", "WT4": "DHJGKB_4_Wildtype_4",
         "KO1": "DHJGKB_5_AID_KO_1", "KO2": "DHJGKB_6_AID_KO_2", "KO3": "DHJGKB_7_AID_KO_3"}
 OUT = Path(__file__).parent / "figures/mutation_trees"
-N114_DIR = DEP.parents[1] / "03_N114_ONT/Original_FASTQ"
+N114_DIR = Path.home() / "Nanoshm/n114_fastq"   # C3 = its second library
 N114_LIBS = {"C1": ("75K3B3_6_C1_AID_10.06.24", "pMX-Aicda"),
              "D3": ("75K3B3_7_D3_AID_10.01.24", "pMX-Aicda"),
              "D5": ("75K3B3_10_D5_AID_6.28.24_", "pMX-Aicda"),
-             "C3": ("75K3B3_1_C3_Empty_March_2024_1", "pMX-Empty"),
+             "C3": ("75K3B3_2_C3_Empty_March_2024_2", "pMX-Empty"),
              "C4": ("75K3B3_3_C4_Empty_March_2024", "pMX-Empty"),
              "D1": ("75K3B3_4_D1_Empty_March_2024", "pMX-Empty")}
 MIN_CLONE_READS = 10

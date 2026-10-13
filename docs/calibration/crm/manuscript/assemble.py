@@ -83,6 +83,8 @@ README_A = f"""# Cell Reports Methods submission ({STAMP})
 
 Before submission: fill the bracketed items ([supplier], [Cat#], [RRID], accessions, DOIs, primer
 sequences), confirm the author list and contacts, and attach the declaration of interests form.
+Add the second library of N114 empty-vector subclone C3 (75K3B3_2_C3_Empty_March_2024_2.fastq, from
+Hybridoma manuscript/75K3B3_fastq) to the data deposit: the N114 analyses use it in place of the first.
 Built by docs/calibration/crm/manuscript/ in the SHMtrace repository (README in docs/calibration/crm/).
 """
 

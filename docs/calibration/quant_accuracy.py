@@ -36,8 +36,8 @@ AMPLICONS = {
             "scenarios": ["polyclonal", "expanded", "low", "null"]},
     "N114": {"region": "n114_vregion", "reference": str(REF / "n114_vregion.fasta"),
              "contaminants": [],
-             "controls": [str(DEP / f"03_N114_ONT/Original_FASTQ/{n}.fastq")
-                          for n in ("75K3B3_1_C3_Empty_March_2024_1",
+             "controls": [str(Path.home() / f"Nanoshm/n114_fastq/{n}.fastq")
+                          for n in ("75K3B3_2_C3_Empty_March_2024_2",
                                     "75K3B3_3_C4_Empty_March_2024",
                                     "75K3B3_4_D1_Empty_March_2024")],
              "scenarios": ["subclonal", "low", "null"]},

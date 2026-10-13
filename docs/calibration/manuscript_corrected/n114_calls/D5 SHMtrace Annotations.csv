@@ -47,6 +47,7 @@ C->T,138,SNP (transition),C,T,0.41%,0,489,2
 G->A,139,SNP (transition),G,A,1.02%,0,488,5
 C->T,140,SNP (transition),C,T,0.20%,0,490,1
 G->A,142,SNP (transition),G,A,0.61%,0,488,3
+G->C,151,SNP (transversion),G,C,0.20%,0,491,1
 G->A,153,SNP (transition),G,A,1.43%,0,491,7
 G->T,153,SNP (transversion),G,T,0.41%,0,491,2
 G->A,159,SNP (transition),G,A,0.20%,0,488,1
@@ -55,6 +56,7 @@ C->G,163,SNP (transversion),C,G,0.20%,0,488,1
 C->T,163,SNP (transition),C,T,0.41%,0,488,2
 G->A,167,SNP (transition),G,A,2.46%,0,488,12
 G->C,167,SNP (transversion),G,C,0.41%,0,488,2
+G->T,167,SNP (transversion),G,T,0.20%,0,488,1
 C->G,168,SNP (transversion),C,G,0.61%,0,490,3
 C->T,168,SNP (transition),C,T,2.24%,0,490,11
 G->A,170,SNP (transition),G,A,0.61%,0,492,3
@@ -69,6 +71,7 @@ C->G,184,SNP (transversion),C,G,0.20%,0,494,1
 C->T,184,SNP (transition),C,T,2.02%,0,494,10
 G->A,189,SNP (transition),G,A,0.40%,0,494,2
 G->C,189,SNP (transversion),G,C,0.20%,0,494,1
+A->T,191,SNP (transversion),A,T,0.20%,0,495,1
 G->A,199,SNP (transition),G,A,1.21%,0,496,6
 G->T,202,SNP (transversion),G,T,0.60%,0,496,3
 C->T,204,SNP (transition),C,T,0.20%,0,495,1
@@ -94,6 +97,7 @@ G->T,257,SNP (transversion),G,T,0.40%,0,496,2
 C->A,264,SNP (transversion),C,A,1.62%,0,495,8
 C->A,276,SNP (transversion),C,A,0.20%,0,493,1
 C->G,276,SNP (transversion),C,G,0.20%,0,493,1
+G->A,281,SNP (transition),G,A,0.20%,0,493,1
 G->A,287,SNP (transition),G,A,0.20%,0,493,1
 C->G,295,SNP (transversion),C,G,0.20%,0,493,1
 G->A,299,SNP (transition),G,A,2.84%,0,493,14
@@ -135,6 +139,7 @@ G->A,367,SNP (transition),G,A,0.41%,0,492,2
 C->T,368,SNP (transition),C,T,0.61%,0,490,3
 G->A,383,SNP (transition),G,A,5.70%,0,491,28
 G->C,383,SNP (transversion),G,C,0.81%,0,491,4
+G->T,383,SNP (transversion),G,T,0.20%,0,491,1
 C->G,384,SNP (transversion),C,G,2.65%,0,491,13
 C->T,384,SNP (transition),C,T,2.85%,0,491,14
 G->T,388,SNP (transversion),G,T,0.61%,0,490,3
