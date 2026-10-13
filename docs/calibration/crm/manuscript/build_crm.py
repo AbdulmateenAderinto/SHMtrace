@@ -280,7 +280,7 @@ STATS = [
      "J_{H}4 {loco_jh4_face}% at 1×, {loco_jh4_final}% at {loco_jh4_margin}×; N114 {loco_n114_face}% at 1×, "
      "{loco_n114_final}% at {loco_n114_margin}×"),
     ("Spike-in FDR, control-based vs Benjamini–Hochberg", "observed false/(true + false) calls",
-     "J_{H}4 {sp_jh4_fdr} vs {sp_jh4_bh_fdr}; N114 {sp_n114_fdr} vs {sp_n114_bh_fdr} (first C3 library: "
+     "J_{H}4 {sp_jh4_fdr} vs {sp_jh4_bh_fdr}; N114 {sp_n114_fdr} vs {sp_n114_bh_fdr} (other C3 library: "
      "{c31_fdr} vs {c31_bh_fdr})"),
 ]
 
