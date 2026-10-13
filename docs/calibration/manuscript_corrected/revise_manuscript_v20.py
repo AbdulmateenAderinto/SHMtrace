@@ -22,8 +22,8 @@ from revise_manuscript_v18 import replace_text, restyle
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "figure1_scicanvas/out"
-OVERVIEW = OUT / "Figure1_overview_600dpi.png"
-DETAILED = OUT / "Figure_workflow_detailed_600dpi.png"
+OVERVIEW = OUT / "Figure1_overview_preview.png"           # 300 dpi in the docx; production files: PDF, 1,000-dpi TIFF
+DETAILED = OUT / "Figure_workflow_detailed_preview.png"
 
 FIG1_LEGEND = (
     "Study overview. (1) Samples. The JH4 downstream intron (1.23 kb) was amplified from Peyer's patch "
@@ -32,9 +32,11 @@ FIG1_LEGEND = (
     "and empty-vector subclones are the AID-null controls. Amplicons are drawn to scale. (2) Sequencing. Full-length "
     "amplicons were sequenced by ONT (R10.4.1, Kit 14, SUP basecalling) without cloning and analysed at 500 reads per "
     "library; JH4 amplicons from the same mice were cloned and Sanger sequenced in separate PCRs as a benchmark. "
-    "(3) Analysis with SHMtrace. Target reads were kept, every substitution was tested against the errors measured "
-    "in the AID-null controls at a false-discovery rate of 0.05, and groups were compared with one value per mouse or "
-    "subclone; Sanger traces were trimmed and substitutions called at base quality ≥ 20. (4) Readouts, with the "
+    "(3) Analysis with SHMtrace. Reads from a related gene copy, joined (chimeric) reads and low-quality reads were "
+    "removed; a change was kept only if it appeared more often than sequencing errors do in the AID-null controls, "
+    "with at most 5% of kept calls expected to be errors; and groups were compared with one value per mouse or "
+    "subclone. Sanger clones took the same steps, keeping only confident base calls. Cases are shown in blue and "
+    "AID-null controls in red, as in Figures 2 and 4. (4) Readouts, with the "
     "figures that show them. The full workflow, with read numbers at each step, is in Supplementary Figure S11. "
     "Drawn in SciCanvas; no generative image model was used.")
 
@@ -49,17 +51,18 @@ S11_LEGEND = (
     "(B) Read preprocessing: (1) reads matching the target better than a competing reference were kept (JH4: "
     "C57BL/6 against Agouti, with a recurrent-contaminant screen; N114: one reference); (2) full-length reads were "
     "kept (JH4 900–2,000 bp, N114 400–900 bp); (3) reads averaging more than 0.01 expected errors per base were "
-    "removed; (4) each library was down-sampled once to 500 reads, and the subsets are deposited. (C) Calling with "
-    "SHMtrace: (5) reads were aligned to the analysis reference and reads carrying ten or more paralogue alleles were "
-    "removed; (6) every substitution in the window was a candidate, one supporting read being enough; (7) the "
-    "background was measured in the AID-null control libraries for each substitution, strand and base quality, "
-    "inflated five-fold by leave-one-control-out calibration, and each control was called against the other two; "
-    "(8) candidates with more supporting reads than the background predicts were kept at a false-discovery rate of "
-    "0.05 (Benjamini–Hochberg), and positions where ≥ 50% of reads differ from the reference were removed; (9) "
-    "results are summarised per animal (distinct calls divided by reads and analysed bases; spectra; clones and "
-    "trees), the animal or subclone being the unit of analysis. (D) Sanger clones take the same route one clone at a "
-    "time: 447 chromatograms from eight sequencing orders were assigned with a sample sheet and quality-control "
-    "flags, trimmed to their clean core, aligned to JH4, and called at base quality ≥ 20. (E) Reads delivered per "
+    "removed; (4) each library was down-sampled once to 500 reads, and the subsets are deposited. (C) Finding "
+    "mutations with SHMtrace: (5) reads were aligned to the reference, and reads matching a related gene copy (ten "
+    "or more of its distinguishing bases) were dropped; (6) every base that differs from the reference was listed, a "
+    "change in one read being enough; (7) how often sequencing errors produce each type of change was measured in "
+    "the AID-null controls, by strand and base-call quality, with a five-fold safety margin set by testing each "
+    "control against the others; (8) changes seen in more reads than errors explain were kept, with at most 5% of "
+    "kept calls expected to be errors (Benjamini–Hochberg false-discovery rate), and changes present in half or "
+    "more of the reads were dropped as inherited rather than somatic; (9) results are summarised per animal "
+    "(distinct mutations per base read, spectra, clones and trees), each mouse or subclone counting once. (D) Sanger "
+    "clones take the same route: 447 chromatograms from eight sequencing orders were assigned to mice with a sample "
+    "sheet and quality-control checks, trimmed of poor-quality ends, aligned to JH4, and called only where the base "
+    "call is at least 99% accurate (Q ≥ 20). Cases are blue and AID-null controls red. (E) Reads delivered per "
     "library (grey) and reads passing steps 1–3 (coloured); dashed line, the 500 reads analysed. Drawn in SciCanvas; "
     "no generative image model was used.")
 
