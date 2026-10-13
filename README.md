@@ -147,7 +147,7 @@ For a Sanger project, a sample sheet names each trace's animal, group and contro
 
 ```bash
 shmtrace-sheet draft traces/ -o samplesheet.csv        # then check and edit every row
-shmtrace-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron -o results/
+shmtrace-sheet run samplesheet.csv --reference ref.fasta --region jh4_intron -o results/   # platform inferred from the files
 shmtrace-concordance results/project.json ont/project.json --labels Sanger,ONT
 shmtrace-validate-sanger --reps 10 -o validation/
 ```

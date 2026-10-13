@@ -7,6 +7,11 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- **`shmtrace-sheet run` infers the platform from the sheet's files** (`--platform` now defaults to
+  inference: .ab1/.abi/.scf/.seq/.gb chromatograms are Sanger, FASTQ/BAM reads or pooled barcoded rows
+  are nanopore; FASTA follows the other files and alone stays Sanger) and prints the platform it used. It used to default to Sanger, which analyzed read
+  libraries without the control-calibrated test (95–120 calls per control on J_H4). A sheet mixing traces
+  and reads is refused. `SampleSheet.project(platform=None)` infers the same way.
 - **The recommended mode now sets its call threshold from the controls** (`multiple_testing="control"`).
   Benjamini-Hochberg over the candidates seen in a library assumes their p-values are uniform under
   the null, which a test conditioned on the allele having been seen does not give: on N114 spike-ins
