@@ -209,7 +209,7 @@ def contrast_figure(wt3_tree, wt3_reads, jh4_ref, jh4_units, n114, n114_ref):
         fig.savefig(OUT / f"mutation_trees_contrast.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
 
 
-def per_mouse_figure(trees, ref):
+def per_mouse_figure(trees, ref, suffix=""):
     """One tree per Wt mouse: its most branched clone, deepest as the tie-break."""
     fig, axes = plt.subplots(3, 1, figsize=(12, 15), gridspec_kw={"height_ratios": [
         max(2, len([n for n in t["nodes"] if not n.children])) for _m, _c, t in trees]})
@@ -224,15 +224,16 @@ def per_mouse_figure(trees, ref):
     fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=8.5)
     fig.subplots_adjust(bottom=0.06, top=0.97, left=0.06, right=0.98, hspace=0.45)
     for ext in ("png", "pdf"):
-        fig.savefig(OUT / f"mutation_trees_by_mouse.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+        fig.savefig(OUT / f"mutation_trees_by_mouse{suffix}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
 
 
-def main():
+def main(depth=500):
+    suffix = "" if depth == 500 else f"_{depth}reads"
     proj = {"name": "JH4 mutation trees", "region": "jh4_intron",
             "reference": str(REF / "mouse_jh4_intron.fasta"),
-            "contaminants": [str(REF / "mouse_jh4_contaminant.fasta")], "mode": "recommended", "depth": 500,
+            "contaminants": [str(REF / "mouse_jh4_contaminant.fasta")], "mode": "recommended", "depth": depth,
             "overrides": {"analysis_window": [90, 1230]},
-            "samples": [{"name": n, "path": str(DEP / f"{f}_C57BL6_sub500.fastq"),
+            "samples": [{"name": n, "path": str(DEP / f"{f}_C57BL6_sub{depth}.fastq"),
                          "group": "Wt" if n.startswith("WT") else "Aicda-/-", "control": n.startswith("KO")}
                         for n, f in LIBS.items()]}
     res = project.run_project(proj)
@@ -276,7 +277,7 @@ def main():
     fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=8)
     fig.subplots_adjust(bottom=0.1, top=0.95, left=0.04, right=0.98)
     for ext in ("png", "pdf"):
-        fig.savefig(OUT / f"mutation_trees.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+        fig.savefig(OUT / f"mutation_trees{suffix}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
     best = {}
     for _bp, _nn, m, cid, t in candidates:
         if not t["nodes"]:
@@ -284,8 +285,13 @@ def main():
         key = (_bp, max(mutation_tree.depth(t, n.id) for n in t["nodes"]))
         if m not in best or key > best[m][0]:
             best[m] = (key, cid, t)
-    per_mouse_figure([(m, best[m][1], best[m][2]) for m in ("WT2", "WT3", "WT4")], ref)
+    per_mouse_figure([(m, best[m][1], best[m][2]) for m in ("WT2", "WT3", "WT4")], ref, suffix)
     print("per mouse", {m: (best[m][1], best[m][0]) for m in best})
+    if depth != 500:          # the other figures stay at the manuscript's depth
+        json.dump(summary, open(OUT / f"clones{suffix}.json", "w"), indent=1)
+        for m, rows in summary.items():
+            print(m, rows[:6])
+        return
     n114, n114_ref = n114_reads()
     contrast_figure(picked["WT3:0"], clone_reads["WT3:0"], ref, jh4_units, n114, n114_ref)
     four = {"jh4": dict(jh4_units), "n114": {k: mutation_tree.four_gamete(v) for k, v in n114.items()}}
@@ -300,5 +306,9 @@ def main():
 
 
 if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--depth", type=int, default=500, choices=(125, 250, 500, 1000),
+                    help="reads per library: the deposit's _subN files (default 500, the manuscript's)")
     pipeline  # imported for its side effects on presets
-    main()
+    main(ap.parse_args().depth)
