@@ -6,6 +6,8 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-14
+
 ### Added
 - **`sensitive` mode**: `recommended` at a false-discovery rate of 0.20. On planted mutations in held-out
   controls, one-read recall rose from 30% to 72% (JH4) and from 58% to 87% (N114), with observed FDRs of
@@ -23,6 +25,12 @@ this project uses [semantic versioning](https://semver.org/).
   reads are pickled as packed arrays; and the controls' error models are fitted in parallel. A 7-library
   Ramos subset at 5,000 reads went from 277 s to about 200 s on 8 cores; most of what remains is
   reading and aligning the reads, which already runs in parallel.
+
+### Fixed
+- **Worker processes no longer outlive the program.** A desktop app quit by the system, or any program
+  killed, left its idle workers running; each worker now exits as soon as its parent is gone, and SIGTERM
+  runs the normal shutdown. One pool of `jobs` workers is shared by every step, instead of one pool per
+  number of tasks.
 
 ## [0.2.0] - 2026-10-13
 
