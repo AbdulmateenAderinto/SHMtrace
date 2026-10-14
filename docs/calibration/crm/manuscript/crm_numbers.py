@@ -371,6 +371,8 @@ def compute():
     N.update(ind_jh4_hp=pct(r["by_kind_ge3"]["del1_hp"]), ind_jh4_ins2=pct(r["by_kind_ge3"]["ins2"]),
              ind_jh4_long=pct(r["by_kind_ge3"]["dellong"]),
              ind_draws=word(_load(OUT / "indel_spike_jh4.json")["draws"]))
+    import shmtrace
+    N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())
     return N
 

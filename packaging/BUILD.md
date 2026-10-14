@@ -28,7 +28,7 @@ The spec gives the app its icon (`packaging/icon/icon.icns`, redrawn with
 PyInstaller, wrap it in a drag-to-Applications disk image:
 
 ```bash
-sh packaging/make_dmg.sh        # writes dist/SHMtrace-0.2.0-arm64.dmg
+sh packaging/make_dmg.sh        # writes dist/SHMtrace-0.2.1-arm64.dmg
 ```
 
 ## What it does at run time
