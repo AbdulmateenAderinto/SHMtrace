@@ -20,9 +20,9 @@
   // 1. inputs and matched controls
   const top = card(30, 30, 940, 250);
   [['s-nanopore-sequencing-strand-through-pore', 'Nanopore', INK], ['s-sanger-chromatogram-trace-only', 'Sanger', SANG],
-   ['s-production-sequencer-novaseq-style', 'Illumina', '#3d5a80']].forEach(([id, lab, c], k) => {
+   ['s-flow-cell-clusters-illumina', 'Illumina', '#3d5a80']].forEach(([id, lab, c], k) => {
     const cx = 130 + k * 190;
-    I(id, cx, 115, k === 2 ? 132 : 96);   // the sequencer is wider than tall: larger box, same visual weight
+    I(id, cx, 115, k === 2 ? 130 : 96);   // the flow cell is much wider than tall: larger box, same visual weight
     TC(lab, cx, 182, { bold: true, color: c, fontSize: SM });
   });
   R(640, 60, 2.4, 190, { fill: OUTL });

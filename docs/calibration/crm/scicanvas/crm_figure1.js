@@ -65,7 +65,7 @@
   const inputs = [
     ['s-nanopore-sequencing-strand-through-pore', 'Nanopore', 'full-length amplicons', INK, 74],
     ['s-sanger-chromatogram-trace-only', 'Sanger', '.ab1 traces + sample sheet', SANG, 74],
-    ['s-production-sequencer-novaseq-style', 'Illumina', 'paired reads, merged', ILL, 100],
+    ['s-flow-cell-clusters-illumina', 'Illumina', 'paired reads, merged', ILL, 104],
     ['s-umi-tagged-pcr-products', 'UMI-tagged', 'one consensus per molecule', TEAL, 96],
   ];
   const iw = (bw - 3 * 12) / 4, inCards = [];
