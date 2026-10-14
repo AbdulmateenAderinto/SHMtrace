@@ -19,6 +19,9 @@ from scipy import stats
 sys.path.insert(0, str(Path(__file__).parent))
 import lab_details  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import indel_spike  # noqa: E402
+
 CRM = Path(__file__).resolve().parents[1]
 OUT = CRM / "out"
 CAL = CRM.parent
@@ -360,6 +363,14 @@ def compute():
         N.update({f"sens_{k}_1": pct(r["by"][1]), f"sens_{k}_fdr": f"{r['fdr']:.2f}",
                   f"sens_{k}_fp": f1(r["fp"])})
         assert r["by"][1] > spike(k, "geneious")["by"][1], "the text says sensitive beats the Geneious rule"
+    # indels planted into held-out nanopore controls (indel_spike.py)
+    for k in ("jh4", "n114"):
+        r = indel_spike.summary(k)
+        N.update({f"ind_{k}_ge3": pct(r["ge3"]), f"ind_{k}_fp": f2(r["fp"]) if r["fp"] else "no"})
+    r = indel_spike.summary("jh4")
+    N.update(ind_jh4_hp=pct(r["by_kind_ge3"]["del1_hp"]), ind_jh4_ins2=pct(r["by_kind_ge3"]["ins2"]),
+             ind_jh4_long=pct(r["by_kind_ge3"]["dellong"]),
+             ind_draws=word(_load(OUT / "indel_spike_jh4.json")["draws"]))
     N.update(lab_details.placeholders())
     return N
 

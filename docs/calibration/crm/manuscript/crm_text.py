@@ -145,6 +145,15 @@ RESULTS = [
           "recalled {sp_su_lps_gen_recall}% and {sp_pim1_gen_recall}% (FDR {sp_su_lps_gen_fdr} and "
           "{sp_pim1_gen_fdr}), and LoFreq recalled {sp_ext_lf_lo}–{sp_ext_lf_hi}% across its three settings, with "
           "an FDR of {sp_ext_lfp_fdr} when made permissive (Figure 2C)."),
+    ("p", "Indels were tested in the same way. Into each AID-null library, we planted ten insertions or deletions "
+          "of 1–40 bp, each carried by 1–20 reads, and called them against an indel error model fitted on the "
+          "other controls ({ind_draws} draws per control). Of the indels carried by three or more reads, "
+          "SHMtrace recalled {ind_jh4_ge3}% on J_{H}4, with {ind_jh4_fp} false calls per library, and "
+          "{ind_n114_ge3}% on N114, with {ind_n114_fp} false calls per library. Indels carried by one or two reads were not "
+          "called, because nanopore reads carry about one indel error each and SHMtrace requires three "
+          "supporting reads. On J_{H}4, single-base deletions in homopolymers were the hardest to recover "
+          "({ind_jh4_hp}%), whereas 2-bp insertions and deletions of 10 bp or more were recovered in "
+          "{ind_jh4_ins2}% and {ind_jh4_long}% of cases."),
     ("p", "Planted single sites cannot test features that depend on clones, so we also simulated B cell lineages "
           "on the J_{H}4 control reads. Each simulated library contained about 40 clones with power-law sizes, "
           "each with its own V(D)J junction and with trunk, branch, and private mutations placed according to the "
@@ -348,7 +357,8 @@ LIMITATIONS = (
     "approaches the background at the depths tested. Our validation used three animals per group, one nanopore "
     "run per assay, and one locus per cell system. The thresholds were chosen on our libraries and applied to "
     "the public datasets without retuning, but a held-out sequencing run of new animals would test them "
-    "further. Indel calling was validated on Illumina reads only, and UMI consensus was validated on rRNA "
+    "further. Indels were validated on planted events in nanopore reads and on one Illumina dataset but not yet on "
+    "nanopore reads of a library with a known indel phenotype, and UMI consensus was validated on rRNA "
     "operons rather than an SHM library. Where UMIs or duplex reads are available, molecule-level consensus is "
     "preferable to calibrating single reads, and SHMtrace supports both approaches.")
 
