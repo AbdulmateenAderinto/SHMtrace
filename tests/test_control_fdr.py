@@ -77,3 +77,14 @@ def test_a_control_far_noisier_than_its_peers_is_named():
     assert project.noisy_decoys({"K1": clean, "K2": clean, "K3": clean}) == []
     # two controls cannot say which one is the odd one out
     assert project.noisy_decoys({"K1": clean, "K3": dirty}) == []
+
+
+def test_a_noisy_control_is_set_aside_as_a_decoy_but_never_leaves_none():
+    clean = ([0.02, 0.3], 100000)
+    dirty = ([1e-6] * 30, 100000)
+    decoys = {"K1": clean, "K2": clean, "K3": dirty}
+    aside = project.noisy_decoys(decoys)
+    assert aside == ["K3"]
+    assert set(project.decoys_for(("K1", "K2", "K3"), decoys, aside)) == {"K1", "K2"}   # a sample
+    assert set(project.decoys_for(("K2", "K3"), decoys, aside)) == {"K2"}               # control K1
+    assert set(project.decoys_for(("K3",), decoys, aside)) == {"K3"}                    # nothing else left

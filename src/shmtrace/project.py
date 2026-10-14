@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 import statistics
+from bisect import bisect_right
 from collections import Counter, defaultdict
 from dataclasses import replace
 
@@ -326,6 +327,13 @@ def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
     return out
 
 
+def decoys_for(peers, decoys: dict, set_aside=()) -> dict:
+    """The decoys a sample is judged with: its peers' (a control is never its own decoy),
+    less any set aside as far noisier than the rest, unless that would leave none."""
+    mine = {c: decoys[c] for c in peers if c in decoys}
+    return {c: v for c, v in mine.items() if c not in set(set_aside)} or mine
+
+
 def noisy_decoys(decoys: dict, p_at: float = 0.01, fold: float = 5.0, min_calls: int = 5) -> list[str]:
     """Controls whose held-out candidates at p <= p_at, per base, exceed `fold` times
     the median of the other controls (and number at least `min_calls`): one such
@@ -509,11 +517,18 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # Everything samples share (the null fitted from each set of peers, single-read
     # tallies, indel nulls, the Sanger germline) is built first; each sample is then
     # called on its own, in this process or on several (parallel.py, Params.jobs).
+    noisy = noisy_decoys(decoys)
+    if decoys:
+        # each control's held-out candidates at p <= 0.01 per 1e5 bases: what noisy_decoys compares
+        calibration["decoy_noise_x1e5"] = {c: round(1e5 * bisect_right(pv, 0.01) / b_, 3) if b_ else None
+                                           for c, (pv, b_) in sorted(decoys.items())}
+    set_aside = set(noisy) if p.exclude_noisy_decoys and p.multiple_testing == "control" else set()
+    if set_aside:
+        calibration["decoys_set_aside"] = sorted(set_aside)
     for pr, fit in nulls.items():
         if qscale is not None:
             fit.qscale = qscale
-        # a control is never its own decoy: only its peers' are used
-        fit.decoys = {c: decoys[c] for c in pr if c in decoys}
+        fit.decoys = decoys_for(pr, decoys, set_aside)
     if sanger and any(len(b["reads"][s["name"]]) < p.sanger_germline_min_clones for s in samples):
         project_germline = sanger_germline(b["reads"], ref, lo, hi, p)
     if single_q:
@@ -593,13 +608,15 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      f"by leaving a control out; the default factor "
                      f"({null_model.DEFAULT_QSCALE:g}, measured on JH4) was used instead. "
                      f"Two or more controls per run is better.")
-    noisy = noisy_decoys(decoys)
     if noisy and p.multiple_testing == "control":
         notes.append(
-            "Control " + ", ".join(noisy) + " is far noisier than the other controls, and as a decoy it "
-            "raises the false calls expected in every sample, which can suppress real mutations. Check it "
-            "(contamination, a mutated or mislabeled library); if it is not a clean control, analyze it as "
-            "a sample instead.")
+            "Control " + ", ".join(noisy) + " is far noisier than the other controls"
+            + (" and was left out of the decoys that set the false-discovery threshold (it still contributes "
+               "to the error model)" if set_aside else
+               ", and as a decoy it raises the false calls expected in every sample, which can suppress real "
+               "mutations")
+            + ". Check it (contamination, a mutated or mislabeled library); if it is not a clean control, "
+            "analyze it as a sample instead.")
     if want_indels and not sanger and len(controls) < 2:
         notes.append("Indels need a control other than the sample itself, so they were "
                      + ("not called." if not controls else

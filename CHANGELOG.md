@@ -7,6 +7,12 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- **A control far noisier than the others is set aside as a decoy** (`Params.exclude_noisy_decoys`, on by
+  default): one contaminated or poor control no longer raises every sample's false-discovery threshold. It
+  still contributes to the error model, and the notes name it; `calibration` reports
+  `decoy_noise_x1e5` per control and `decoys_set_aside`. Needs three or more controls. Of eleven datasets
+  (J_H4, N114, IRCM Smu/Pim1, Ldha, CH12F3, Ramos) it set aside one control, the Ramos AID-KO clone carrying
+  non-AID mutations, whose decoy had suppressed every substitution call; the others are unchanged.
 - **Each sample is called on its own process** (`Params.jobs`, `shmtrace-sheet run --jobs`): everything
   samples share (peer nulls, single-read tallies, indel nulls, Sanger germline) is built first, and the
   per-sample work (calling, metrics, clones, coverage, single-read estimate, indels) then runs in
