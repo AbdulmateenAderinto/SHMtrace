@@ -232,6 +232,14 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
     with open(path, "w") as fh:
         fh.write(html_report(res, fmt="png"))
     written.append(path)
+    from . import airr
+    rows = airr.project_rows(res)
+    if rows:
+        # every analysed read as an AIRR Community Rearrangement table (airr.py)
+        path = os.path.join(out_dir, "airr_rearrangements.tsv")
+        with open(path, "w") as fh:
+            fh.write(airr.write_tsv(rows))
+        written.append(path)
     path = os.path.join(out_dir, "project.json")
     with open(path, "w") as fh:
         json.dump({k: v for k, v in res.items() if k not in ("reference", "_details")},
