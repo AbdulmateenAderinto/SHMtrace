@@ -52,7 +52,7 @@ from .io_utils import READ_EXTENSIONS, _stem, sniff_format
 
 REQUIRED = ("file", "sample")
 KNOWN = ("file", "sample", "group", "control", "clone_id", "order", "well", "label", "exclude",
-         "barcode", "barcode2",
+         "barcode", "barcode2", "germline_vcf",
          "aliases")
 YES = {"yes", "y", "true", "t", "1", "control", "x"}
 NO = {"no", "n", "false", "f", "0", ""}
@@ -80,6 +80,7 @@ class Row:
     exclude: str = ""
     barcode: str = ""        # inline barcode(s): the file is a pooled run (demux.py)
     barcode2: str = ""
+    germline_vcf: str = ""   # this animal's germline variants (germline_vcf.py), resolved
     id_given: bool = True
     extra: dict = field(default_factory=dict)
 
@@ -106,6 +107,8 @@ class Sheet:
             s = out.setdefault(r.sample, {"name": r.sample, "path": [], "group": r.group,
                                           "control": r.control})
             s["path"].append([r.file, r.clone_id])
+            if r.germline_vcf:
+                s["germline_vcf"] = r.germline_vcf
         return list(out.values())
 
     def provenance(self) -> dict[str, dict]:
@@ -281,6 +284,13 @@ def load(path: str) -> Sheet:
             problems.append(f"line {ln}: file not found: {rec.get('file') or '(blank)'}")
             continue
         order, well = rec.get("order", ""), rec.get("well", "").upper()
+        gvcf = rec.get("germline_vcf", "")
+        if gvcf:
+            gvcf = gvcf if os.path.isabs(os.path.expanduser(gvcf)) else str(base / gvcf)
+            gvcf = os.path.abspath(os.path.expanduser(gvcf))
+            if not os.path.isfile(gvcf):
+                problems.append(f"line {ln}: germline_vcf not found: {rec['germline_vcf']}")
+                continue
         for f in files:
             if sniff_format(f) is None:
                 problems.append(f"line {ln}: {os.path.basename(f)} is not a read file "
@@ -301,7 +311,7 @@ def load(path: str) -> Sheet:
                             clone_id=cid, order=order, well=well, label=rec.get("label", ""),
                             exclude=rec.get("exclude", ""), id_given=given,
                             barcode=rec.get("barcode", "").upper(),
-                            barcode2=rec.get("barcode2", "").upper(),
+                            barcode2=rec.get("barcode2", "").upper(), germline_vcf=gvcf,
                             extra={k: v for k, v in rec.items()
                                    if (k not in KNOWN or k == "aliases") and k != "_line" and v}))
 
@@ -428,6 +438,9 @@ def main(argv=None):
     r.add_argument("--jobs", type=int, default=0,
                    help="processes for per-library work: 0 = all but one core (default), 1 = one")
     r.add_argument("-o", "--out", required=True, help="output folder")
+    r.add_argument("--germline-vcf", default=None,
+                   help="germline variants to remove from every sample's calls (a VCF called against the "
+                        "same reference); per-animal VCFs go in the sheet's germline_vcf column")
     a = ap.parse_args(argv)
     if a.cmd == "draft":
         print(draft(a.folder, a.out))
@@ -453,6 +466,8 @@ def main(argv=None):
     print(f"platform: {platform}" + ("" if a.platform else " (inferred from the files)"))
     proj = sh.project(a.reference, a.region, platform, contaminants=a.contaminant, mode=a.mode,
                       overrides={"jobs": a.jobs})
+    if a.germline_vcf:
+        proj["germline_vcf"] = os.path.abspath(a.germline_vcf)
     res = project.run_project(proj, lambda f, m: print(f"{100 * f:3.0f}%  {m}"))
     written = report.write_all(res, a.out)
     with open(os.path.join(a.out, "project.json"), "w") as fh:
