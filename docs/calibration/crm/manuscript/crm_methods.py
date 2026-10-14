@@ -32,7 +32,7 @@ KRT = [
     ("**Recombinant DNA**", "", ""),
     ("pMX-*Aicda* and pMX empty vector (GFP, puromycin resistance)", "Martin laboratory[@feng2021]", "N/A"),
     ("**Software and algorithms**", "", ""),
-    ("SHMtrace v0.2 (command line and desktop application)", "This paper", "[Zenodo DOI]; [GitHub URL]"),
+    ("SHMtrace v0.2.0 (command line and desktop application)", "This paper", "[Zenodo DOI]; [GitHub URL]"),
     ("minimap2 2.30 (mappy 2.31)", "Li[@li2018]", "https://github.com/lh3/minimap2"),
     ("LoFreq 2.1.5", "Wilm et al.[@wilm2012]", "https://github.com/CSB5/lofreq"),
     ("SAMtools 1.24", "Danecek et al.[@danecek2021]", "https://github.com/samtools/samtools"),

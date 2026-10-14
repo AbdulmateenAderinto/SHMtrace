@@ -254,7 +254,7 @@ RESOURCE = [
                           "answered by the technical contact, Abdulmateen Aderinto ([email, to confirm])."),
     ("Materials availability", "This study did not generate new unique reagents."),
     ("Data and code availability", "The nanopore reads, Sanger chromatograms and SHMtrace outputs shown here are "
-     "deposited with the companion article ([accessions, to confirm]). SHMtrace v0.2, its desktop application and "
+     "deposited with the companion article ([accessions, to confirm]). SHMtrace v0.2.0, its desktop application and "
      "documentation are available at [Zenodo DOI and GitHub URL, to confirm]."),
 ]
 ACK = ("We thank the University of Toronto flow cytometry facility and members of the Martin laboratory. "
