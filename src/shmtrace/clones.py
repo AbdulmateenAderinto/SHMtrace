@@ -135,6 +135,8 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
         "clonal_mutation_events": sum(r["mutations"] for r in rows),
         "sharing": sharing(reads, clone_of, called),
         "rows": rows,
+        # read name -> clone; the caller keeps it with the reads (airr.py), not in the summary
+        "clone_of": clone_of,
     }
 
 

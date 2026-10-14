@@ -6,6 +6,14 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **AIRR Community export** (`airr.py`; `airr_rearrangements.tsv` in every project's output): one row per
+  analysed read with all AIRR-required fields. `sequence_alignment` is the read with sequencing error removed
+  (germline everywhere except the mutations SHMtrace called), so Immcantation tools such as SHazaM,
+  BASELINe and dowser count SHMtrace's calls rather than every mismatch; the raw read is in
+  `sequence_alignment_raw`, the junction clone in `clone_id`. On the J_H4 project the raw reads carry
+  44,684 mismatches against germline and the denoised alignments 8,023, exactly the called mutations.
+
 ### Fixed
 - **A control from another sequencing run is now flagged in project mode.** The single-sample CLI already
   warned; project mode did not, because controls arrive as samples marked `control=yes`. Found on a real

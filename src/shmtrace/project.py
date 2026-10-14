@@ -407,6 +407,7 @@ def _call_sample(t: dict) -> dict:
     m = sample_metrics(name, res, ref, lo, hi, s.get("group") or name, t["control"], scale=p.density_scale)
     cl = None if sanger else clones.call_clones(res["_aligned"], res["variants"], p, lo, hi)
     if cl:
+        res["_clone_of"] = cl.pop("clone_of")
         m.update({"reads_with_junction": cl["reads_with_junction"], "clones": cl["clones"],
                   "largest_clone_pct": cl["largest_clone_pct"],
                   "clone_weighted_frequency_x1e3": cl["clone_weighted_frequency_x1e3"]})
