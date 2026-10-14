@@ -6,6 +6,16 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **`sensitive` mode**: `recommended` at a false-discovery rate of 0.20. On planted mutations in held-out
+  controls, one-read recall rose from 30% to 72% (JH4) and from 58% to 87% (N114), with observed FDRs of
+  0.18 and 0.16. On the six JH4 libraries, wild-type calls rose 13-18% and the Aicda-/- background went from
+  2 to 3 calls in total. A note in the results states the mode.
+- **Two controls far apart are flagged** (`project.uneven_control_pair`): with exactly two controls a noisy
+  one cannot be identified, so when one gives more than 5x the other's background candidates per base, both
+  are kept, a note names the noisier one, and `calibration["uneven_control_pair"]` records it.
+- **Processor cores in the app** (Advanced): all but one core by default. Results are identical at any setting.
+
 ## [0.2.0] - 2026-10-13
 
 ### Changed

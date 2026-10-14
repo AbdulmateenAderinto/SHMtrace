@@ -32,7 +32,11 @@ PROFILES_RUN, WITH_LOFREQ, TAG = list(PROFILES), True, ""
 # extra settings tried on top of a mode: name -> (mode, Params overrides)
 VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             "recommended_bh": ("recommended", {"multiple_testing": "bh"}),
-            "recommended_max": ("recommended", {"control_decoy_estimate": "max"})}
+            "recommended_max": ("recommended", {"control_decoy_estimate": "max"}),
+            # candidates for a sensitive mode: a looser control-based FDR, or the calibrated test uncorrected
+            "recommended_fdr10": ("recommended", {"fdr_alpha": 0.10}),
+            "recommended_fdr20": ("recommended", {"fdr_alpha": 0.20}),
+            "qcal_uncorrected": ("recommended", {"multiple_testing": "none"})}
 
 
 def run(key, reps, n_sites, seed=1):

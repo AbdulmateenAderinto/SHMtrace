@@ -109,7 +109,7 @@ def options():
         "references": _bundled_references(),
         "contaminants": _contaminant_references(),
         "platforms": list(getattr(pipeline, "PLATFORMS", ("ont",))),
-        "modes": ["recommended", "geneious", "v0.1", "strand", "pbinom", "qcal+filter",
+        "modes": ["recommended", "sensitive", "geneious", "v0.1", "strand", "pbinom", "qcal+filter",
                   "sanger"],
         "preset_help": {
             "jh4_intron": "Mouse JH4 downstream intron, the neutral polyclonal assay.",
@@ -120,6 +120,8 @@ def options():
         },
         "mode_help": {
             "recommended": "Quality-calibrated against your controls. The default.",
+            "sensitive": "Recommended at a false-discovery rate of 0.20: finds more mutations seen "
+                         "in a single read, but about one call in five is background.",
             "geneious": "Reproduces Geneious's rule (uncorrected p ≤ 0.05).",
             "v0.1": "The previous default: per-position control rates, BH-corrected.",
             "strand": "Strand-aware; each strand tested against its own control rate.",

@@ -186,3 +186,11 @@ def test_mode_overrides_accept_filter_suffix():
     assert mode_overrides("qcal+filter") == {"error_model": "qcal", "strand_filter": "bias"}
     with pytest.raises(ValueError):
         mode_overrides("nonsense")
+
+
+def test_sensitive_mode_is_recommended_at_a_looser_fdr():
+    from shmtrace import pipeline as _pl
+    rec, sens = _pl.mode_overrides("recommended"), _pl.mode_overrides("sensitive")
+    assert sens == {**rec, "fdr_alpha": 0.20}
+    assert _pl.mode_overrides("sensitive", "sanger") == _pl.mode_overrides("recommended", "sanger")
+    assert _pl.mode_overrides("sensitive+filter")["strand_filter"] == "bias"

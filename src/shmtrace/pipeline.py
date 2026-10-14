@@ -275,6 +275,11 @@ MODES = {
     # Geneious-level WT signal with a quarter of its control background
     # (docs/calibration/ERROR_MODELS.md)
     "recommended": {"error_model": "qcal", "multiple_testing": "control"},
+    # recommended at a false-discovery rate of 0.20 instead of 0.05: more of the mutations seen in
+    # one read, at about four times the background. On held-out controls with planted mutations
+    # (docs/calibration/crm/spikein.py, profile recommended_fdr20) one-read recall rose from 30% to
+    # 72% (JH4) and 58% to 87% (N114); the false-call share was 0.18 and 0.16
+    "sensitive": {"error_model": "qcal", "multiple_testing": "control", "fdr_alpha": 0.20},
     # the v0.1 default: per-position empirical null (or read quality), BH
     "v0.1": {},
     # the manuscript's rule: Geneious approximate p-value, uncorrected, no phasing
@@ -369,6 +374,8 @@ def mode_overrides(mode: str | None, platform: str | None = None) -> dict:
 
     "recommended": read-quality or empirical null, BH correction, phasing
                    that only drops blocks seen in controls (the defaults)
+    "sensitive":   recommended at a false-discovery rate of 0.20: more one-read
+                   mutations, about one call in five from the background
     "geneious":    the manuscript's rule: Geneious's approximate p-value,
                    uncorrected at max_pvalue, no phasing
     "qcal", "strand", "pbinom": the corresponding error_model with BH
@@ -379,7 +386,7 @@ def mode_overrides(mode: str | None, platform: str | None = None) -> dict:
     if mode is None:
         return dict(MODES["sanger"]) if sanger else {}
     base, _, extra = mode.partition("+")
-    if sanger and base == "recommended":
+    if sanger and base in ("recommended", "sensitive"):
         base = "sanger"
     if base not in MODES or extra not in ("", "filter"):
         raise ValueError(f"unknown mode {mode!r}; choose from {', '.join(MODES)} "
@@ -445,7 +452,7 @@ def main():
                          "sets the aligner preset and read filters (see README 'Platforms')")
     ap.add_argument("--mode", default="recommended",
                     help="calling profile: recommended (default; = qcal, or sanger under "
-                         "--platform sanger), v0.1, geneious (the manuscript's rule), qcal, "
+                         "--platform sanger), sensitive (recommended at FDR 0.20), v0.1, geneious (the manuscript's rule), qcal, "
                          "strand, pbinom or sanger; add +filter for "
                          "the strand-bias filter, e.g. qcal+filter")
     ap.add_argument("--min-base-quality", type=int,

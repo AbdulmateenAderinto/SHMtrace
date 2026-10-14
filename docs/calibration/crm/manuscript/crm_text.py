@@ -314,7 +314,11 @@ DISCUSSION = [
     "amplicon. In polyclonal simulations, where single-read mutations sit among many true mutations, SHMtrace "
     "recalled {lin_1_rec}% of them and the Geneious rule {lin_1_gen}%, with SHMtrace making more false calls "
     "while staying within the nominal FDR. For mutations confined to a single read, SHMtrace reports an "
-    "aggregate, background-subtracted estimate rather than individual calls.",
+    "aggregate, background-subtracted estimate rather than individual calls. Where individual rare "
+    "mutations matter more than a clean background, a sensitive mode applies the same test at an FDR of 0.20. "
+    "On planted mutations it recalled {sens_jh4_1}% of single-read mutations on J_{H}4 and {sens_n114_1}% on "
+    "N114, more than the Geneious rule, with observed FDRs of {sens_jh4_fdr} and {sens_n114_fdr}, close to "
+    "the nominal level.",
     "Long reads change what an SHM experiment can report. Because the whole amplicon is read at once, the 3′ "
     "decline of mutation is visible without tiling. Because the V(D)J junction identifies clones, an expanded "
     "or jackpotted clone no longer dominates the mutation frequency. In addition, the mutations within a clone "

@@ -630,6 +630,10 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      f"by leaving a control out; the default factor "
                      f"({null_model.DEFAULT_QSCALE:g}, measured on JH4) was used instead. "
                      f"Two or more controls per run is better.")
+    if (project.get("mode") or "").partition("+")[0] == "sensitive" and not sanger:
+        notes.append(f"Sensitive mode: mutations were called at a false-discovery rate of {p.fdr_alpha:g} "
+                     "rather than 0.05, so more single-read mutations are found but about one call in five "
+                     "is expected to be background. State the mode when reporting these results.")
     if noisy and p.multiple_testing == "control":
         notes.append(
             "Control " + ", ".join(noisy) + " is far noisier than the other controls"

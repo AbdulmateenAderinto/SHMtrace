@@ -68,8 +68,8 @@ def pfmt(p):
     return sci(p) if p < 0.001 else (f"{p:.4f}" if p < 0.01 else f"{p:.3f}" if p < 0.1 else f"{p:.2f}")
 
 
-def spike(key, caller):
-    rows = [r for r in _load(OUT / f"spikein_{key}.json")["rows"] if r["caller"] == caller]
+def spike(key, caller, tag=""):
+    rows = [r for r in _load(OUT / f"spikein_{key}{tag}.json")["rows"] if r["caller"] == caller]
     rec = defaultdict(lambda: [0, 0])
     for r in rows:
         for k, (g, n) in r["recall_by_reads"].items():
@@ -354,6 +354,12 @@ def compute():
     N["hmk3_calls"] = f"{min(calls)}–{max(calls)}"
     N["hmk3_gc"] = f"{min(gcs):.0f}–{max(gcs):.0f}" if gcs else "–"
     N["hmces_gc_range"] = f"{min(gc):.0f}–{max(gc):.0f}" if gc else "[no substitution calls; see note]"
+    # sensitive mode (recommended at FDR 0.20), same spike-in design (spikein.py --tag _sensitive)
+    for k in ("jh4", "n114"):
+        r = spike(k, "recommended_fdr20", "_sensitive")
+        N.update({f"sens_{k}_1": pct(r["by"][1]), f"sens_{k}_fdr": f"{r['fdr']:.2f}",
+                  f"sens_{k}_fp": f1(r["fp"])})
+        assert r["by"][1] > spike(k, "geneious")["by"][1], "the text says sensitive beats the Geneious rule"
     N.update(lab_details.placeholders())
     return N
 

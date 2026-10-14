@@ -99,6 +99,7 @@ SHMtrace --fastq WT.fastq --reference ref.fasta --preset jh4_intron \
 |---|---|---|
 | `geneious` | Geneious's approximate p-value, uncorrected, p ≤ 0.05 | Reproducing Geneious numbers |
 | `recommended` (= `qcal`) | Quality-calibrated: the control-measured rate of miscalls *at or above each supporting base's quality*, per substitution and strand, inflated by a factor calibrated on the controls themselves | The default. Without controls it falls back to the read-quality test |
+| `sensitive` | `recommended` at a false-discovery rate of 0.20 instead of 0.05 | Rare mutations matter more than a clean background: on planted mutations, one-read recall rose from 30% to 72% (J꜀4) and 58% to 87% (N114), and about one call in six was background, as the 0.20 rate promises. Report the mode with the results |
 | `v0.1` | Poisson/binomial on a per-position null from controls, BH-corrected | The old default |
 | `strand` | Strand-aware beta-binomial: each strand tested against its own control rate, with overdispersion between libraries, combined by Fisher's method | Errors that show up on one strand |
 | `pbinom` | Exact Poisson-binomial over every read's quality (LoFreq style) | No controls |

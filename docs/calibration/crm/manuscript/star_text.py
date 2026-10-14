@@ -144,6 +144,9 @@ STEPS = [
         "mode (`recommended`). Choose the built-in J_{H}4 reference, which adds the paralog reference "
         "automatically. Then type the path to the sample sheet, click Load sheet, and check that the controls "
         "are ticked.",
+        "Optional: To recover more mutations carried by a single read, choose the `sensitive` mode "
+        "(`--mode sensitive`), which tests at a false-discovery rate of 0.20 instead of 0.05. About one call in "
+        "five is then expected to be background, so state the mode when reporting the results.",
     ]),
     ("Run the analysis", "Timing: 2–10 min", [
         "In the application, name the project and click Analyse. From the command line, run "
