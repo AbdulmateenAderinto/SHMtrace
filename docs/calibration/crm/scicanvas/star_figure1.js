@@ -52,7 +52,7 @@
 
   const bench = row('Bench', 10, BENCH, [
     ['1–4', 'GC B cells', 's-facs-sorter-nozzle-laser-plates-tubes', ['Peyer\'s patches; sort', 'B220^{+}GL7^{+}Fas^{+},', '~10,000 cells per mouse'], '4–5 h'],
-    ['5–6', 'Genomic DNA', 's-microcentrifuge-tube', ['proteinase K lysis;', 'Wt and AID-deficient', 'mice side by side'], '2 h'],
+    ['5–6', 'Genomic DNA', 's-microcentrifuge-tube', ['proteinase K lysis;', 'Wt and AID-null', 'mice side by side'], '2 h'],
     ['7–10', 'J_{H}4 PCR', 's-thermal-cycler-lid-open', ['1.2-kb amplicon,', 'high-fidelity polymerase;', 'gel check, clean-up'], '3 h'],
     ['11–12', 'Sequencing', 's-nanopore-sequencing-strand-through-pore', ['full-length amplicons,', 'R10.4.1 flow cells;', 'FASTQ per library'], '1–2 days'],
   ], 1);

@@ -20,16 +20,16 @@
   // 1. inputs and matched controls
   const top = card(30, 30, 940, 250);
   [['s-nanopore-sequencing-strand-through-pore', 'Nanopore', INK], ['s-sanger-chromatogram-trace-only', 'Sanger', SANG],
-   ['s-short-read-sequencer-illumina-style', 'Illumina', '#3d5a80']].forEach(([id, lab, c], k) => {
+   ['s-production-sequencer-novaseq-style', 'Illumina', '#3d5a80']].forEach(([id, lab, c], k) => {
     const cx = 130 + k * 190;
-    I(id, cx, 115, 96);
+    I(id, cx, 115, k === 2 ? 132 : 96);   // the sequencer is wider than tall: larger box, same visual weight
     TC(lab, cx, 182, { bold: true, color: c, fontSize: SM });
   });
   R(640, 60, 2.4, 190, { fill: OUTL });
   I('s-mouse-c57bl-6-black-realistic', 720, 110, 84, { flipX: true });
   I('s-mouse-c57bl-6-black-realistic', 880, 110, 84, { flipX: true });
   TC('samples', 720, 160, { fontSize: SM, color: CASE, bold: true });
-  TC('AID-deficient', 880, 160, { fontSize: SM, color: CTRL, bold: true });
+  TC('AID-null', 880, 160, { fontSize: SM, color: CTRL, bold: true });
   TC('controls', 880, 192, { fontSize: SM, color: CTRL, bold: true });
   TC('same sequencing run', 800, 232, { fontSize: SM - 3, color: MID });
 
@@ -38,7 +38,7 @@
   o.push(Make.image(LOGO, 70, 375, 120, 120));
   T('SHMtrace', 220, 372, { fontSize: BIG, bold: true, color: TEAL });
   T('each candidate mutation tested against', 220, 428, { fontSize: MED, color: MID });
-  T('the errors of matched AID-deficient libraries;', 220, 466, { fontSize: MED, color: MID });
+  T('the errors of matched AID-null libraries;', 220, 466, { fontSize: MED, color: MID });
   T('groups compared animal by animal', 220, 504, { fontSize: MED, color: MID });
 
   // 3. outcomes
@@ -75,5 +75,5 @@
   LINK(top, 's', mid, 'n');
   outs.forEach((c) => LINK(mid, 's', c, 'n', { style: 'elbow' }));
   return { id: 'crm-ga', name: 'Graphical abstract', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Graphical abstract: sample reads and matched AID-deficient controls from nanopore, Sanger or Illumina sequencing are analyzed by SHMtrace, which suppresses background, agrees with Sanger and adds clones and trees.' };
+    alt: 'Graphical abstract: sample reads and matched AID-null controls from nanopore, Sanger or Illumina sequencing are analyzed by SHMtrace, which suppresses background, agrees with Sanger and adds clones and trees.' };
 }

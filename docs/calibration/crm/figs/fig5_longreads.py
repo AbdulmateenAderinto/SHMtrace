@@ -1,6 +1,6 @@
 """Figure 5: what long reads add.
 
-A  unique variants along the whole J_H4 amplicon (positions 90-1,230), per Wt mouse and the AID-deficient controls
+A  unique variants along the whole J_H4 amplicon (positions 90-1,230), per Wt mouse and the AID-null controls
 B  AID targeting: calls per position by 5-mer mutability quintile (SHazaM HH_S5F), Wt calls against
    every Aicda-/- mismatch (sequencing error)
 C  clones from the V(D)J junction: each mouse's reads by clone, and the read- against clone-weighted rate

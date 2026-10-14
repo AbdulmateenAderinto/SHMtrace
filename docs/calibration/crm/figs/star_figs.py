@@ -79,7 +79,7 @@ def fig3():
     ax.set_xticks([0, 1], ["Wt", "Aicda$^{-/-}$"])
     ax.set_xlim(-0.5, 1.5)
     ax.set_ylabel("Unique variants per 10$^5$ bases")
-    ax.set_title("Wt vs AID-deficient", fontsize=7)
+    ax.set_title("Wt vs AID-null", fontsize=7)
     letter(ax, "A", dx=-0.45)
     # B read accounting
     ax = fig.add_subplot(gs[0, 1:])

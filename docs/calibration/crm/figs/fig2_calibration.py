@@ -1,6 +1,6 @@
 """Figure 2: calibration against known truth.
 
-A-B  spike-ins into held-out AID-deficient libraries (J_H4, N114): recall by planted read count, per caller
+A-B  spike-ins into held-out AID-null libraries (J_H4, N114): recall by planted read count, per caller
 C    recall against false calls per library, every caller and dataset with spike-ins
 D    lineage simulation on J_H4 control reads: recall by read support, and false calls in null libraries
 E    clone-weighted frequency recovers the truth when one unmutated clone dominates

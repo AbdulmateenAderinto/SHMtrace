@@ -99,7 +99,7 @@ METHODS = [
     ("h2", "Control-calibrated variant calling"),
     ("p", "Every single-nucleotide difference from the reference within the analysis window is a candidate, and a "
           "single supporting read is sufficient. For each of the 12 substitution types, each strand, and each base "
-          "quality, SHMtrace estimates from the AID-deficient libraries of the same run how often control reads "
+          "quality, SHMtrace estimates from the AID-null libraries of the same run how often control reads "
           "show that change at or above that quality, combining the pooled rate with each position's own control "
           "count. For a candidate supported by k reads, ranked by quality q_{1} ≥ q_{2} ≥ …, SHMtrace calculates "
           "for each j ≤ k the probability of observing j or more such miscalls at quality ≥ q_{j}, given the read "
@@ -167,7 +167,7 @@ METHODS = [
           "the majority consensus of its first *Aicda*^{−/−} library, built with minimap2 and SAMtools consensus "
           "and iterated to convergence."),
     ("h2", "Simulations"),
-    ("p", "For lineage simulations, the reads of one AID-deficient library were divided into approximately 40 "
+    ("p", "For lineage simulations, the reads of one AID-null library were divided into approximately 40 "
           "clones with power-law sizes. Each clone received a random 20-bp junction and J trimming (−3 to +12 bp), "
           "and trunk, branch, sub-branch, and private mutations were placed according to the S5F model with "
           "gamma-distributed mutation loads. In the expanded-clone scenario, one unmutated clone made up 60% of "
@@ -181,7 +181,7 @@ METHODS = [
     ("p", "PRJNA973112 (J_{H}4, positions 53–122, 5,000 merged read pairs per mouse), PRJNA918596 (CH12F3 VDJ, "
           "positions 21–249, 5,000 reads per replicate), and PRJNA820976 (Ramos VDJ, positions 26–446, 20,000 "
           "reads per clone, with indel calling) were analyzed with the same analysis engine and Illumina settings, "
-          "using the AID-deficient groups as controls and the S5F model. The CH12F3 and Ramos references were the "
+          "using the AID-null groups as controls and the S5F model. The CH12F3 and Ramos references were the "
           "majority consensus of the control reads. Because these libraries are sequenced far beyond one read per "
           "molecule, mutation frequency rather than unique-variant density was compared. UMI consensus was "
           "evaluated on 4,259 R10 reads of rRNA operons carrying 18-nt UMIs at both ends[@karst2021]. Reads were "
@@ -203,14 +203,14 @@ QUANT = [
 ]
 
 LEGENDS = [
-    ("Figure 1. SHMtrace calibrates every call against matched AID-deficient libraries",
+    ("Figure 1. SHMtrace calibrates every call against matched AID-null libraries",
      "(A) A read-level test judges each base by its own quality score, so errors that recur at one position pass as "
-     "mutations; SHMtrace measures the error rate of each substitution, strand and quality in AID-deficient libraries of "
+     "mutations; SHMtrace measures the error rate of each substitution, strand and quality in AID-null libraries of "
      "the same run and calls only support beyond it. ✓, correct decision; ✕, wrong decision. "
      "(B) Inputs and read preparation. (C) Calling and automatic checks; numbered steps run in order. (D) Outputs. "
      "FDR, false-discovery rate. See also Figure S1."),
     ("Figure 2. Planted mutations and simulated lineages calibrate recall and false calls",
-     "(A and B) Recall of mutations planted into reads of a held-out AID-deficient library (J_{H}4, A; N114, B), by the "
+     "(A and B) Recall of mutations planted into reads of a held-out AID-null library (J_{H}4, A; N114, B), by the "
      "number of reads carrying each, for SHMtrace, the uncorrected Geneious rule and LoFreq at three settings; 60 "
      "sites × 3 replicates × 3 held-out controls per amplicon. (C) Overall recall against false calls per library for "
      "every caller and amplicon (colors as in A; shapes, amplicon: J_{H}4 and N114 at 500 reads, Sμ and *Pim1* "
@@ -222,12 +222,12 @@ LEGENDS = [
      "dashed); mean of 3 held-out controls. (G) Share of 300 simulated experiments per condition with p < 0.05 for "
      "four group tests; dotted line, 0.05. See also Figure S5."),
     ("Figure 3. On real libraries, matched controls set the background",
-     "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-deficient (red) libraries for each "
+     "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-null (red) libraries for each "
      "caller on the same reads; triangles, libraries without calls. J_{H}4, 3 wild-type and 3 *Aicda*^{−/−} mice; "
      "N114, 3 pMX-*Aicda* and 3 empty-vector subclones (500 reads each); Sμ and *Pim1* (PRJNA1481264), 3–4 "
      "AID-competent and 3 *Aicda*^{−/−} libraries (2,000 reads each). (F) Separation: geometric mean of AID-competent "
-     "over AID-deficient densities, libraries without calls at their one-event density. (G) Calls summed over the three "
-     "AID-deficient libraries. (H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
+     "over AID-null densities, libraries without calls at their one-event density. (G) Calls summed over the three "
+     "AID-null libraries. (H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
      "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S2 "
      "and S3 and Table S2."),
     ("Figure 4. Nanopore and Sanger sequencing agree in the same mice",
@@ -249,7 +249,7 @@ LEGENDS = [
      "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S6."),
     ("Figure 6. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
-     "B cells, and AID-deficient; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
+     "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
      "in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and R174E/R178E mutants and empty "
      "vector (PRJNA918596; n = 4). (C) Spectrum and targeting of AID and R174E/R178E calls; the mutant's calls cluster "
      "at positions {ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
@@ -258,7 +258,7 @@ LEGENDS = [
 ]
 
 TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
-TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-deficient controls", "Used for"]
+TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls", "Used for"]
 TABLE1 = [
     ("J_{H}4, this study", "ONT R10.4.1", "J_{H}4 intron (529 bp; 1,141 bp)", "GC B cells, 3 Wt mice",
      "3 *Aicda*^{−/−} mice, same run", "Figures 2–5"),
@@ -268,7 +268,7 @@ TABLE1 = [
      "10–11 clones per *Aicda*^{−/−} mouse", "Figure 4"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figure 3"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figure 3"),
-    ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-deficient mice",
+    ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-null mice",
      "Figure 6"),
     ("PRJNA918596[@wang2023]", "Illumina", "VDJ (229 bp)", "AID, R50E, R174E/R178E (4 each)",
      "4 empty-vector replicates", "Figure 6"),

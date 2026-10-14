@@ -128,6 +128,16 @@ async function sciCheck(app, page) {
   each(page.objects);
   const run = () => Promise.race([app.check(page), new Promise((_, no) => setTimeout(() => no(new Error('SciCanvas check timed out')), 20000))]);
   let res = await run();
+  // objects 0.5-3 px out of line with a neighbour look like a mistake: apply SciCanvas's own "Line them up" fix
+  // and check again
+  // (repeated: lining one pair up can bring a neighbour within range of another)
+  for (let pass = 0; pass < 4; pass++) {
+    const align = res.issues.filter((x) => x.fixLabel === 'Line them up' && typeof x.fix === 'function');
+    if (!align.length) break;
+    align.forEach((x) => x.fix());
+    console.log(`  aligned: ${align.map((x) => x.msg.split(',')[0]).join('; ')}`);
+    res = await run();
+  }
   const byId = new Map(); const walk = (l) => l.forEach((o) => { byId.set(o.id, o); if (o.children) walk(o.children); }); walk(page.objects);
   const shown = res.issues.filter((x) => x.sev !== 'info');
   for (const x of res.issues) {
@@ -135,6 +145,10 @@ async function sciCheck(app, page) {
     const pt = (e) => (e && e.x != null ? `${Math.round(e.x)},${Math.round(e.y)}` : e && e.id ? `#${(byId.get(e.id) || {}).type || '?'}` : '?');
     const where = !o ? '' : o.type === 'connector' ? ` [line ${pt(o.from)} -> ${pt(o.to)}]` : ` [${o.type} at ${Math.round(o.x)},${Math.round(o.y)}]`;
     console.log(`  SciCanvas check ${x.sev}: ${x.kind}: ${x.msg}${where}`);
+    for (const pr of x.pairs || []) {
+      const A = byId.get(pr.a), B = byId.get(pr.b), at = (q) => (q ? `${q.type} ${Math.round(q.x)},${Math.round(q.y)} ${Math.round(q.w)}x${Math.round(q.h)}` : '?');
+      console.log(`    ${pr.what} off by ${pr.off}: ${at(A)} | ${at(B)}`);
+    }
   }
   console.log(`SciCanvas check: ${shown.length} problems, ${res.issues.length - shown.length} notes`);
   return shown.length;

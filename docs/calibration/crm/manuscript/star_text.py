@@ -18,13 +18,13 @@ SUMMARY = (
     "we present a protocol for measuring it without cloning. We describe steps for sorting germinal-center B "
     "cells from mouse Peyer's patches, amplifying the J_{H}4 intron, sequencing full-length amplicons on "
     "nanopore flow cells, and analyzing the reads with SHMtrace, which tests mutations against matched "
-    "AID-deficient controls and compares groups animal by animal.")
+    "AID-null controls and compares groups animal by animal.")
 SUMMARY_TAIL = ("For complete details on the use and execution of this protocol, please refer to Aderinto and Martin "
                 "[companion Cell Reports Methods article, to be cited once accepted].")
 HIGHLIGHTS = [
     "Sort germinal-center B cells and amplify the full 1.2-kb J_{H}4 intron without cloning",
     "Sequence full-length amplicons on nanopore flow cells through a service provider",
-    "Test mutations against matched AID-deficient controls with the SHMtrace app or CLI",
+    "Test mutations against matched AID-null controls with the SHMtrace app or CLI",
     "Compare groups one animal at a time and check the read counts at every step",
 ]
 GA_NOTE = "Graphical abstract: Figure 1 of this protocol, as a separate file."
@@ -33,7 +33,7 @@ BEFORE = [
     ("p", "This protocol measures somatic hypermutation (SHM) in the intron downstream of J_{H}4 in germinal-center "
           "(GC) B cells from mouse Peyer's patches[@jolly1997,@sible2021]. At the bench, cloning is replaced by "
           "full-length amplicon sequencing on nanopore flow cells. The analysis uses SHMtrace, open-source software "
-          "that tests each candidate mutation against the errors measured in AID-deficient libraries from the same "
+          "that tests each candidate mutation against the errors measured in AID-null libraries from the same "
           "sequencing run. We have also used this protocol for a hybridoma V region[@martin2002], and the analysis "
           "applies without changes to other amplicons (for example, a V gene, a switch region, or an AID off-target "
           "gene), to Sanger chromatograms, and to Illumina reads (see the companion article)."),
@@ -42,8 +42,8 @@ BEFORE = [
           "procedures were approved by the University of Toronto Animal Care Committee (protocol 20011472)."),
     ("h", "Design the experiment"),
     ("steps", [
-        "Include AID-deficient controls in every sequencing run. Prepare at least three *Aicda*^{−/−} mice (or other "
-        "AID-deficient samples) and submit them alongside the samples.",
+        "Include AID-null controls in every sequencing run. Prepare at least three *Aicda*^{−/−} mice (or other "
+        "AID-null samples) and submit them alongside the samples.",
         "CRITICAL: The controls measure the background of the sequencing run. Because errors and basecalling differ "
         "between runs, controls from another run can rank samples but cannot calibrate them.",
         "Choose the number of animals before sequencing. Animals, not reads, limit the sensitivity of SHM "
@@ -66,7 +66,7 @@ BEFORE = [
     ]),
     ("h", "Check the primers for a co-amplified paralog"),
     ("steps", [
-        "Optional: For a new amplicon, sequence one AID-deficient library first and analyze it with SHMtrace on its "
+        "Optional: For a new amplicon, sequence one AID-null library first and analyze it with SHMtrace on its "
         "own. If a large proportion of reads is removed at competitive alignment, or if calls appear at ten or "
         "more sites in the same reads, the primers are likely co-amplifying a paralog. Add the paralog's consensus "
         "sequence as a contaminant reference (troubleshooting, problem 1).",
@@ -109,7 +109,7 @@ STEPS = [
         "confirm], and wash them twice.",
         "Sort B220^{+}GL7^{+}Fas^{+} GC B cells into a tube (we used a BD FACSymphony S6 SE), collecting "
         "approximately 10,000 cells per mouse.",
-        "CRITICAL: Process wild-type and AID-deficient mice on the same day with the same reagents.",
+        "CRITICAL: Process wild-type and AID-null mice on the same day with the same reagents.",
         "Pause point: Pelleted cells can be stored at −80 °C.",
     ]),
     ("Extract genomic DNA", "Timing: 2 h, or overnight", [
@@ -124,7 +124,7 @@ STEPS = [
         "Run the cycling program described in the PCR cycling table.",
         "Check 5 µL of the product on a 1% agarose gel; a single band of approximately 1.2 kb is expected.",
         "Purify the product with a column PCR clean-up kit and elute it in 15–20 µL of water.",
-        "CRITICAL: Amplify wild-type and AID-deficient samples in the same PCR setup.",
+        "CRITICAL: Amplify wild-type and AID-null samples in the same PCR setup.",
     ]),
     ("Sequence full-length amplicons", "Timing: 15 min hands-on; results in 1–2 days", [
         "Quantify the purified amplicons and submit each one as a separate sample for full-length amplicon "
@@ -137,7 +137,7 @@ STEPS = [
     ]),
     ("Set up the SHMtrace project", "Timing: 15 min", [
         "Write a sample sheet (CSV file) with one row per library and the columns `file`, `sample`, `group`, and "
-        "`control` (yes for AID-deficient libraries). For example: "
+        "`control` (yes for AID-null libraries). For example: "
         "`reads/DHJGKB_5_AID_KO_1.fastq,KO1,Aicda-/-,yes`.",
         "Check the sample sheet with `shmtrace-sheet check samplesheet.csv`, which reports every problem (for "
         "example, missing files, duplicate names, or a sample assigned to two groups) with its line number.",
@@ -218,7 +218,7 @@ QUANT = [
 ]
 
 LIMITATIONS = (
-    "This protocol requires AID-deficient controls in the same sequencing run; without them, SHMtrace falls back "
+    "This protocol requires AID-null controls in the same sequencing run; without them, SHMtrace falls back "
     "to a test based on quality scores, which calls more background. Without unique molecular identifiers "
     "(UMIs), PCR duplicates, early PCR errors, and recombination cannot be separated from true mutations and "
     "clonal expansion. Supporting reads are therefore not independent molecules, and mutation trees are "
@@ -233,10 +233,10 @@ TROUBLE = [
     ("Problem 1", "Few reads are usable, and many are removed at competitive alignment (step 21).",
      "The primers co-amplify a related sequence. In J_{H}4, a paralog approximately 12% divergent made up as much "
      "as a quarter of the delivered reads. Use the included paralog reference. For a new amplicon, build a "
-     "consensus of the off-target reads from an AID-deficient library and provide it with `--contaminant`. If "
+     "consensus of the off-target reads from an AID-null library and provide it with `--contaminant`. If "
      "most reads instead fail the expected-error filter, check the basecalling model and read quality with the "
      "provider."),
-    ("Problem 2", "An AID-deficient control carries calls (step 19).",
+    ("Problem 2", "An AID-null control carries calls (step 19).",
      "Examine the control's spectrum and calls. Calls that resemble AID activity (a G:C bias and WRC/GYW "
      "hotspots) suggest contamination or a mislabeled sample, whereas calls with a different spectrum suggest a "
      "library-specific artifact. Because each control serves as a decoy for the false-discovery threshold, a "
@@ -307,6 +307,6 @@ LEGENDS = [
      "(A) A dominant clone: reads with a V(D)J junction by clone in each wild-type mouse, and the read-weighted "
      "versus clone-weighted mutation frequency (problem 3). (B) An error cluster: positions of calls in CH12F3 "
      "libraries with ectopic AID and with an AID mutant whose calls cluster at positions {ch12_cluster} (problem "
-     "4; public data, PRJNA918596). (C) Depth: unique variants in wild-type and AID-deficient libraries at "
+     "4; public data, PRJNA918596). (C) Depth: unique variants in wild-type and AID-null libraries at "
      "30–1,000 reads (geometric mean ± geometric SD, n = 3; problem 5)."),
 ]

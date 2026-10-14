@@ -1,9 +1,9 @@
 () => {
-  // Cell Reports Methods, Figure 1: why SHMtrace calibrates against matched AID-deficient libraries, and
+  // Cell Reports Methods, Figure 1: why SHMtrace calibrates against matched AID-null libraries, and
   // what it does. A, read-level against control-calibrated testing; B, inputs and read preparation;
   // C, calling and checks; D, outputs. Cell Press rules as in figure1_overview.js (174 mm; Arial
   // 6-8 pt; strokes 0.5-1.5 pt; no red with green). Mutations purple, sequencing errors orange-red,
-  // AID-deficient controls red, SHMtrace teal.
+  // AID-null controls red, SHMtrace teal.
   const W = 1400, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', OUTL = '#b4bec8', FAINT = '#cfd8df';
   const TEAL = '#1f6f8b', CTRL = '#9a3439', CASE = '#274b7e', SANG = '#a3621b', ILL = '#3d5a80';
@@ -45,8 +45,9 @@
   mark(ax + 20 + 0.3 * 240, 196, true); mark(ax + 20 + 0.72 * 240, 196, false);
   [['mutation', 0.3, MUT], ['error', 0.72, ERR]].forEach(([w, f, c]) => { TC(w, ax + 20 + f * 240, 228, { fontSize: SM, color: c }); TC('called', ax + 20 + f * 240, 251, { fontSize: SM, color: c }); });
   TC('✓ correct decision   ✕ wrong decision', ax + 20 + 0.5 * 240 + 330, 246, { fontSize: SM, color: SOFT });
-  lines(['each base is judged by its own quality score,', 'so errors that recur at one position (PCR,',
-    'homopolymers, paralog reads) pass as', 'mutations, and reads from one animal are', 'counted as if independent'], ax + 290, 104);
+  lines(['Each base is judged only by its own quality', 'score, so errors that recur at one position',
+    '(PCR, homopolymers, paralog reads) are', 'called as mutations, and reads from one', 'animal are treated as independent',
+    'replicates.'], ax + 290, 104);
   // A2: control-calibrated test
   const a2 = card(ax, 294, aw, 250, { stroke: TEAL, strokeWidth: 2 });
   T('Control-calibrated test (SHMtrace)', ax + 16, 304, { fontSize: HEAD, bold: true, color: TEAL });
@@ -54,23 +55,24 @@
   pile(ax + 240, 346, 120, 6, [[0.75, [0, 2, 3, 5], ERR]], 'controls');
   mark(ax + 20 + 0.3 * 200, 458, true); mark(ax + 20 + 0.75 * 200, 458, true);
   [['mutation', 'called', 0.3, MUT], ['error', 'rejected', 0.75, ERR]].forEach(([w, v, f, c]) => { TC(w, ax + 20 + f * 200, 488, { fontSize: SM, color: c }); TC(v, ax + 20 + f * 200, 511, { fontSize: SM, color: c }); });
-  lines(['error rate per substitution,', 'strand and base quality,', 'measured in matched',
-    'AID-deficient libraries from', 'the same run; a call needs', 'support beyond it (FDR ≤ 0.05,', 'set from the controls); groups', 'compared one value per animal'], ax + 378, 346);
+  lines(['Error rates per substitution,', 'strand and base quality are', 'measured in matched AID-null',
+    'libraries from the same run.', 'A call needs support beyond', 'this background (FDR ≤ 0.05),', 'and groups are compared with',
+    'one value per animal.'], ax + 378, 346);
 
   // ───────── B. Inputs and read preparation ─────────
   panel('B', 'Inputs and read preparation', 720, 10);
   const bx = 720, bw = 650;
   const inputs = [
-    ['s-nanopore-sequencing-strand-through-pore', 'Nanopore', 'full-length amplicons', INK],
-    ['s-sanger-chromatogram-trace-only', 'Sanger', '.ab1 traces + sample sheet', SANG],
-    ['s-short-read-sequencer-illumina-style', 'Illumina', 'paired reads, merged', ILL],
-    ['s-nanopore-sequencer-minion-style', 'UMI-tagged', 'one consensus per molecule', TEAL],
+    ['s-nanopore-sequencing-strand-through-pore', 'Nanopore', 'full-length amplicons', INK, 74],
+    ['s-sanger-chromatogram-trace-only', 'Sanger', '.ab1 traces + sample sheet', SANG, 74],
+    ['s-production-sequencer-novaseq-style', 'Illumina', 'paired reads, merged', ILL, 100],
+    ['s-umi-tagged-pcr-products', 'UMI-tagged', 'one consensus per molecule', TEAL, 96],
   ];
   const iw = (bw - 3 * 12) / 4, inCards = [];
-  inputs.forEach(([icon, title, sub, c], k) => {
+  inputs.forEach(([icon, title, sub, c, size], k) => {
     const x = bx + k * (iw + 12);
     inCards.push(card(x, 48, iw, 182));
-    I(icon, x + iw / 2, 100, 74);
+    I(icon, x + iw / 2, 100, size);
     TC(title, x + iw / 2, 150, { bold: true, color: c });
     const words = sub.split(' '), half = Math.ceil(words.length / 2);
     TC(words.slice(0, half).join(' '), x + iw / 2, 176, { fontSize: SM, color: MID });
@@ -137,9 +139,16 @@
   x = tile(1, ['Single-read', 'estimate'], ['observed minus', 'control background']);
   R(x + 30, dy + 112, 40, 72, { fill: MUT }); R(x + 100, dy + 160, 40, 24, { fill: '#d07a7e' });
   SEG(x + 14, dy + 184, x + tw - 14, dy + 184, 1.6, INK);
-  // clones: one dominant clone and smaller ones
-  x = tile(2, ['Clones and', 'clone-weighted rate'], ['V(D)J junction', 'as a barcode']);
-  [[54, 34], [104, 20], [138, 14], [164, 10], [184, 8], [86, 12], [124, 9]].forEach(([px, d], k) => E(x + px, dy + 132 + (k % 2) * 30, d, { fill: k ? '#9fc0d8' : CASE }));
+  // clones: reads grouped by the V(D)J junction at their 5' end (coloured block); a shared junction marks one
+  // clone (three reads of clone 1, two of clone 2), and the clone-weighted rate counts each clone once
+  x = tile(2, ['Clones from the', 'V(D)J junction'], ['reads grouped by', 'junction; each clone', 'counted once']);
+  const JN = [CASE, CASE, CASE, '#b8742a', '#b8742a'], TICKS = [[0.35, 0.7], [0.35, 0.7], [0.35], [0.55], [0.55, 0.85]];
+  JN.forEach((jc, k) => {
+    const yy = dy + 104 + k * 16 + (k >= 3 ? 4 : 0);
+    R(x + 14, yy, 30, 10, { fill: jc, radius: 3 });
+    R(x + 46, yy + 2, tw - 64, 6, { fill: FAINT, radius: 3 });
+    TICKS[k].forEach((f) => R(x + 46 + f * (tw - 64) - 1.5, yy - 1, 3, 12, { fill: MUT }));
+  });
   // mutation tree
   x = tile(3, ['Mutation', 'trees'], ['full-length reads', 'of one clone']);
   const rx = x + 24, ry = dy + 146;
@@ -150,7 +159,7 @@
   // repair indices: stacked spectrum bar
   x = tile(4, ['Repair-route', 'indices'], ['G:C Ts / Tv, A:T,', 'WA/TW, decomposition']);
   [[0.35, '#2c5d8a'], [0.25, '#7fa7cf'], [0.4, '#d9952b']].reduce((acc, [f, c]) => { R(x + 40, dy + 104 + acc * 80, 50, f * 80, { fill: c }); return acc + f; }, 0);
-  [[0.62, '#2c5d8a'], [0.33, '#7fa7cf'], [0.05, '#d9952b']].reduce((acc, [f, c]) => { R(x + 110, dy + 104 + acc * 80, 50, f * 80, { fill: c }); return acc + f; }, 0);
+  [[0.66, '#2c5d8a'], [0.29, '#7fa7cf'], [0.05, '#d9952b']].reduce((acc, [f, c]) => { R(x + 110, dy + 104 + acc * 80, 50, f * 80, { fill: c }); return acc + f; }, 0);
   // reports and interfaces
   x = tile(5, ['Reports, app', 'and command line'], ['HTML report, tables,', 'project files']);
   o.push(Make.image(LOGO, x + tw / 2 - 34, dy + 102, 68, 68));

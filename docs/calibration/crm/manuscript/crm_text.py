@@ -20,7 +20,7 @@ SUMMARY = (
     "activation-induced cytidine deaminase (AID)-deficient libraries from the same sequencing run and compares "
     "groups with the animal, not the read, as the unit. We validated SHMtrace with planted mutations, simulated "
     "B cell lineages, and libraries from six loci, five laboratories, and three sequencing platforms. SHMtrace "
-    "kept the AID-deficient background at {ctl_rec} calls per assay and separated AID-active from AID-deficient "
+    "kept the AID-null background at {ctl_rec} calls per assay and separated AID-active from AID-null "
     "libraries {sep_lo}- to {sep_hi}-fold in four of five nanopore assays, compared with {lf_lo}- to "
     "{lf_hi}-fold for a quality-based caller and {gen_lo}- to {gen_hi}-fold for an uncorrected test. Nanopore "
     "and Sanger sequencing of the same mice gave concordant mutation spectra.")
@@ -32,17 +32,17 @@ MOTIVATION = (
     "time, which is slow and samples few molecules. Long nanopore reads could replace cloning, but their "
     "per-read error rate is close to the mutation rate of interest, and general-purpose variant callers judge "
     "each base by its quality score rather than by the errors a given library actually makes. We therefore "
-    "built SHMtrace to calibrate each call against matched AID-deficient libraries sequenced in the same run, to "
+    "built SHMtrace to calibrate each call against matched AID-null libraries sequenced in the same run, to "
     "treat animals rather than reads as replicates, and to make the whole workflow, from reads or chromatograms "
     "to group statistics, reproducible.")
 HIGHLIGHTS = [
-    "Each candidate mutation is tested against errors of matched AID-deficient libraries",
-    "AID-deficient controls retain {ctl_rec} calls per assay while true mutations are kept",
+    "Each candidate mutation is tested against errors of matched AID-null libraries",
+    "AID-null controls retain {ctl_rec} calls per assay while true mutations are kept",
     "Nanopore and Sanger sequencing of the same mice give concordant mutation spectra",
     "Full-length reads add whole-amplicon maps, B cell clones, and mutation trees",
 ]
 ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Sanger, or "
-        "Illumina reads by testing each candidate mutation against errors measured in matched AID-deficient "
+        "Illumina reads by testing each candidate mutation against errors measured in matched AID-null "
         "libraries. Across six loci and three platforms, it suppresses background while retaining true mutations.")
 
 INTRO = [
@@ -72,10 +72,10 @@ INTRO = [
     "homopolymers, or a co-amplified paralog, appear as mutations. Second, reads from one animal are often "
     "pooled and treated as independent replicates, which overstates certainty because reads from the same "
     "animal share clones and PCR history[@lazic2010]. SHM studies already include the control that addresses "
-    "both problems: libraries from AID-deficient animals or cells, prepared and sequenced alongside the samples. "
+    "both problems: libraries from AID-null animals or cells, prepared and sequenced alongside the samples. "
     "Existing SHM software summarizes mutations once they have been called[@maccarthy2009,@gupta2015,@yaari2013] "
     "but does not use these controls to decide which differences are mutations.",
-    "Here, we describe SHMtrace, which calibrates each call against matched AID-deficient libraries from the "
+    "Here, we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
     "same sequencing run, compares groups with the animal as the unit, and runs the complete workflow from "
     "delivered reads or Sanger chromatograms to group statistics. We validated SHMtrace with planted mutations, "
     "simulated B cell lineages, six loci from five laboratories, three sequencing platforms, and Sanger "
@@ -84,7 +84,7 @@ INTRO = [
 ]
 
 RESULTS = [
-    ("h", "SHMtrace calibrates each call against the AID-deficient controls"),
+    ("h", "SHMtrace calibrates each call against the AID-null controls"),
     ("p", "SHMtrace starts from the files that a sequencing provider or core facility returns (Figure 1). Nanopore "
           "and Illumina reads are first filtered by length and expected error[@edgar2015] and aligned with "
           "minimap2[@li2018] against the target together with competing references. Reads that align better to a "
@@ -93,7 +93,7 @@ RESULTS = [
           "assigned to animals through a sample sheet and trimmed to their high-quality core, and reads tagged "
           "with unique molecular identifiers (UMIs) are collapsed to one consensus per molecule."),
     ("p", "The central step is the variant test (Figures 1A and 1C). For each substitution type, strand, and base "
-          "quality, SHMtrace measures how often the AID-deficient libraries of the same run show that change. It "
+          "quality, SHMtrace measures how often the AID-null libraries of the same run show that change. It "
           "then asks whether a candidate mutation is supported by more reads, at the qualities observed, than "
           "this background can explain. Because quality scores overstate certainty, the control error rates are "
           "multiplied by a safety margin chosen by leaving one control out at a time: each control is tested "
@@ -116,7 +116,7 @@ RESULTS = [
 
     ("h", "Planted mutations and simulated lineages define recall and false calls"),
     ("p", "To measure performance where the truth is known, we planted mutations into real control reads "
-          "(Figure 2). Into the reads of one AID-deficient library, with the other controls as background, we "
+          "(Figure 2). Into the reads of one AID-null library, with the other controls as background, we "
           "planted 60 substitutions at AID-weighted sites, each carried by 1–20 reads and keeping each read's own "
           "base qualities, and repeated this three times for each control. On J_{H}4, SHMtrace recalled "
           "{sp_jh4_recall}% of planted mutations with {sp_jh4_fp} false calls per library (observed FDR "
@@ -176,14 +176,14 @@ RESULTS = [
           "detected a two-fold change in 12% of experiments and a four-fold change in 30%."),
 
     ("h", "Matched controls set the background in real libraries"),
-    ("p", "We next compared callers on real libraries with matched AID-deficient controls (Table 1; Figure 3). These "
+    ("p", "We next compared callers on real libraries with matched AID-null controls (Table 1; Figure 3). These "
           "included our J_{H}4 intron libraries from germinal-center B cells of three wild-type (Wt) and three "
           "*Aicda*^{−/−} mice, N114 hybridoma subclones transduced with AID or empty vector, and three loci from "
           "an independent laboratory's public nanopore dataset: the Sμ switch region in LPS-activated B cells "
           "and in CH12 cells, and the AID off-target gene *Pim1*. Every caller analyzed exactly the same reads."),
     ("p", "SHMtrace made {ctl_rec} calls across the three controls of each assay, compared with {ctl_gen} for the "
           "Geneious rule, while keeping a Wt signal similar to that of the Geneious rule (Figures 3A–3E and 3G). "
-          "The separation between AID-active and AID-deficient libraries, measured as the ratio of geometric-mean "
+          "The separation between AID-active and AID-null libraries, measured as the ratio of geometric-mean "
           "unique-variant densities with controls without calls placed at one event, was {sep_jh4}-fold on "
           "J_{H}4, {sep_n114}-fold on N114, {sep_su_lps}-fold on Sμ in LPS-activated B cells, and "
           "{sep_su_ch12}-fold in CH12 cells. The corresponding separation was {gen_lo}- to {gen_hi}-fold for the "
@@ -262,7 +262,7 @@ RESULTS = [
     ("h", "The same analysis works across platforms, loci, and biological questions"),
     ("p", "To test SHMtrace where the platform, laboratory, and question differed, we re-analyzed three public "
           "Illumina datasets (Figure 6). In splenic germinal-center B cells sequenced across J_{H}4 (positions "
-          "53–122), Wt mice carried on average {ldha_fold} times the mutation frequency of AID-deficient mice "
+          "53–122), Wt mice carried on average {ldha_fold} times the mutation frequency of AID-null mice "
           "(Welch test on log rates, p = {ldha_p}; n = {ldha_nwt} and {ldha_nko}), and mice lacking LDHA in "
           "activated B cells did not differ from Wt mice (Mann-Whitney p = {ldha_p_ko}), consistent with the "
           "conclusion of the original study[@sharma2023] (Figure 6A)."),
@@ -298,7 +298,7 @@ RESULTS = [
 DISCUSSION = [
     "The principal contribution of this study is a variant-calling framework that replaces the two assumptions "
     "that make low-frequency calling from single reads unreliable for SHM. Instead of trusting quality scores, "
-    "SHMtrace measures the background in the AID-deficient libraries that SHM studies already include, at the "
+    "SHMtrace measures the background in the AID-null libraries that SHM studies already include, at the "
     "level of substitution type, strand, and base quality, and it checks this calibration by holding out each "
     "control in turn. Instead of treating reads as replicates, it tests animals. Both choices matter in "
     "practice. A quality-based caller either missed most true mutations in nanopore reads or, when made "
@@ -329,7 +329,7 @@ DISCUSSION = [
     "change between AID-proficient groups requires more than ten animals per group.",
 ]
 LIMITATIONS = (
-    "This study has limitations that temper its conclusions. SHMtrace requires AID-deficient control libraries "
+    "This study has limitations that temper its conclusions. SHMtrace requires AID-null control libraries "
     "from the same sequencing run, because errors and basecallers change between runs; a background measured in "
     "a different run can rank samples but cannot calibrate them. Its calls are filtered apparent variants. "
     "Without UMIs, early PCR errors, PCR recombination, and duplicates cannot be distinguished from true "
