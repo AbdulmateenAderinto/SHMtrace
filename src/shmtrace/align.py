@@ -12,6 +12,7 @@ from __future__ import annotations
 import functools
 import os
 import tempfile
+from array import array
 from dataclasses import dataclass, field
 
 import mappy as mp
@@ -44,6 +45,30 @@ class AlignedRead:
     # (for J꜀4, the V(D)J junction) and 3' sequence (a UMI) can be read back
     q_st: int = 0
     q_en: int = -1
+
+    def __reduce__(self):
+        # Reads cross process boundaries in bulk (parallel.py), and a list of one tuple per
+        # aligned base is slow to pickle: pack the columns as two arrays and a string instead.
+        # The rebuilt read is equal to this one; anything unusual is pickled as it is.
+        try:
+            rpos = array("i", [c[0] for c in self.pairs])
+            bases = "".join(c[1] for c in self.pairs)
+            quals = bytes(c[2] for c in self.pairs)
+            if len(bases) != len(self.pairs) or not all(type(c[0]) is int and type(c[2]) is int
+                                                        for c in self.pairs):
+                raise ValueError
+        except (ValueError, TypeError, OverflowError):
+            return (AlignedRead, (self.qname, self.ctg, self.r_st, self.r_en, self.pairs, self.seq,
+                                  self.strand, self.indels, self.q_st, self.q_en))
+        return (_unpack_read, (self.qname, self.ctg, self.r_st, self.r_en, rpos.tobytes(), bases, quals,
+                               self.seq, self.strand, self.indels, self.q_st, self.q_en))
+
+
+def _unpack_read(qname, ctg, r_st, r_en, rpos, bases, quals, seq, strand, indels, q_st, q_en):
+    pos = array("i")
+    pos.frombytes(rpos)
+    return AlignedRead(qname, ctg, r_st, r_en, list(zip(pos.tolist(), bases, quals, strict=True)), seq, strand,
+                       indels, q_st, q_en)
 
 
 def diagnostic_sites(reference: str, contaminant_fastas: list[str],

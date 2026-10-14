@@ -369,6 +369,11 @@ def uneven_control_pair(decoys: dict, p_at: float = 0.01, fold: float = 5.0,
     return (hi_c, lo_c, ratio) if ratio > fold else None
 
 
+def _fit_null(reads, ref, p, lo, hi, ref_name):
+    # one null per set of peer controls; independent of the others, so they are fitted in parallel
+    return null_model.fit_aligned(reads, ref, p, lo, hi, calibrate=False, ref_name=ref_name)[0]
+
+
 def _tally(drawn, ref, lo, hi):
     # every library at the analysed depth, drawn as analyse() draws it (by the caller): the
     # estimate is divided by the analysed reads' bases, so counting events in a deeper
@@ -382,7 +387,7 @@ def _call_sample(t: dict) -> dict:
     s, p, ref, lo, hi, null = t["s"], t["p"], t["ref"], t["lo"], t["hi"], t["null"]
     name, peers, sanger, reference = s["name"], t["peers"], t["sanger"], t["reference"]
     res = pipeline.analyse(t["reads"], reference, p, t["stats"], null_rates=null, depth=t["depth"],
-                           germline=t["germline"])
+                           germline=t["germline"], drawn=t.get("drawn"))
     alignment = None
     if t["browse"]:
         fates: dict = {}
@@ -483,9 +488,9 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     nulls: dict = {}
     peers_of = {s["name"]: tuple(sorted(c for c in controls if c != s["name"])) for s in samples}
     if p.error_model != "geneious" and not sanger:
-        for pr in sorted({pr for pr in peers_of.values() if pr}):
-            nulls[pr] = null_model.fit_aligned([b["reads"][c] for c in pr], ref, p, lo, hi,
-                                               calibrate=False, ref_name=ref_name)[0]
+        sets = sorted({pr for pr in peers_of.values() if pr})
+        fits = pmap(_fit_null, [([b["reads"][c] for c in pr], ref, p, lo, hi, ref_name) for pr in sets], p.jobs)
+        nulls = dict(zip(sets, fits, strict=True))
     if p.error_model == "qcal" and not sanger and controls:
         if len(controls) >= 2:
             progress(0.1, "calibrating the background model")
@@ -568,8 +573,13 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         name, peers = s["name"], peers_of[s["name"]]
         null = nulls.get(peers) if (p.error_model != "geneious" and not sanger and peers) else None
         few = sanger and len(b["reads"][name]) < p.sanger_germline_min_clones
+        reads, drawn = b["reads"][name], None
+        if not saturation_depths:
+            # draw the analysed reads here, as analyse() would, so a worker receives only those:
+            # pickling every usable read of a deep library costs as much as calling it
+            reads, drawn = downsample(reads, replace(p, downsample_to=depth))
         tasks.append(({
-            "s": s, "reads": b["reads"][name], "stats": b["stats"][name], "reference": reference,
+            "s": s, "reads": reads, "drawn": drawn, "stats": b["stats"][name], "reference": reference,
             "contaminants": contaminants, "known_blocks": b.get("known_blocks"), "p": p, "null": null,
             "depth": depth, "germline": project_germline if few else None, "browse": want_browse,
             "saturation_depths": saturation_depths, "saturation_draws": project.get("saturation_draws", 3),

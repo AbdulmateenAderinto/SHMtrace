@@ -37,7 +37,7 @@ from .variants import call_variants
 
 def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params,
                   known_blocks: list | None = None,
-                  fates: dict | None = None) -> tuple[list, dict]:
+                  fates: dict | None = None, detection: dict | None = None) -> tuple[list, dict]:
     """Filter, align and phase one sample. Returns (aligned reads, read stats).
 
     Split from `analyse` so that a batch can see every sample's usable depth
@@ -45,7 +45,8 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
 
     Pass `fates` to record what became of every input read, which is what the
     read browser draws. Reads that survive to the end are not recorded here;
-    the caller knows them already.
+    the caller knows them already. Pass `detection` (an empty dict) to receive the
+    phasing blocks detected in the returned reads (phasing.partition's `keep`).
     """
     ref_seq = dict(read_fasta(reference))[read_fasta(reference)[0][0]]
     lo, hi = _window(p, ref_seq)
@@ -80,7 +81,7 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
     # retained depth is all target population. Phasing before downsampling also
     # gives the site-detection step the full read set to work with.
     before = {a.qname for a in aligned} if fates is not None else set()
-    aligned, s_phase = partition(aligned, ref_seq, p, lo, hi, known_blocks)
+    aligned, s_phase = partition(aligned, ref_seq, p, lo, hi, known_blocks, keep=detection)
     if fates is not None:
         survived = {a.qname for a in aligned}
         for a in _dropped_by_phasing(before, survived):
@@ -94,7 +95,7 @@ def _dropped_by_phasing(before: set, after: set) -> set:
 
 def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = None,
             null_rates: dict | None = None, depth: int | None = None,
-            germline: set | None = None) -> dict:
+            germline: set | None = None, drawn: dict | None = None) -> dict:
     """Downsample, call variants and summarise already-prepared reads.
 
     `depth` overrides p.downsample_to, e.g. a batch's common depth. If fewer
@@ -106,11 +107,18 @@ def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = 
     elsewhere, removed after calling. A Sanger sample of one or two clones
     cannot tell its own germline differences from mutations, so a project
     supplies the ones its other clones show (project.sanger_germline).
+
+    `drawn` is the record downsample() returned when the caller has already drawn
+    `aligned` to the target depth (project.py draws before sending reads to a worker,
+    so only the analysed reads are pickled); the reads are then used as given.
     """
     target_name = read_fasta(reference)[0][0]
     target = depth if depth is not None else p.downsample_to
     pd = replace(p, downsample_to=target)
-    aligned, s_down = downsample(aligned, pd)
+    if drawn is None:
+        aligned, s_down = downsample(aligned, pd)
+    else:
+        s_down = dict(drawn)
     warnings = []
     if target is not None and len(aligned) < target:
         warnings.append(f"only {len(aligned)} reads available for a target depth of {target}; "

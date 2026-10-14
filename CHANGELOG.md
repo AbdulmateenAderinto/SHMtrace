@@ -16,6 +16,14 @@ this project uses [semantic versioning](https://semver.org/).
   are kept, a note names the noisier one, and `calibration["uneven_control_pair"]` records it.
 - **Processor cores in the app** (Advanced): all but one core by default. Results are identical at any setting.
 
+### Changed
+- **Faster on deep libraries with several cores**, with identical results (checked byte for byte on JH4
+  and a 7-library Ramos subset): phasing blocks are detected once, in the worker that prepares the reads,
+  instead of again in the main process; only the analysed reads are sent to a worker for calling; aligned
+  reads are pickled as packed arrays; and the controls' error models are fitted in parallel. A 7-library
+  Ramos subset at 5,000 reads went from 277 s to about 200 s on 8 cores; most of what remains is
+  reading and aligning the reads, which already runs in parallel.
+
 ## [0.2.0] - 2026-10-13
 
 ### Changed

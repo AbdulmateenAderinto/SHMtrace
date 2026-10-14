@@ -180,8 +180,36 @@ def _mode(p: Params) -> str:
     return "off" if not p.phase_reads else p.phase_mode
 
 
+def detect(aligned, ref: str, p: Params, lo: int, hi: int):
+    """The co-occurring blocks in `aligned`: a list of (block, carrier read indices,
+    histogram of sites carried), or a string giving why there are none. Depends only
+    on the reads and settings, not on the phase mode or the known blocks."""
+    sites = candidate_sites(aligned, ref, p, lo, hi)
+    if len(sites) < p.phase_min_sites:
+        return f"only {len(sites)} variable sites (< {p.phase_min_sites})"
+    idx = _index(aligned, {pos for pos, _ in sites})
+    blocks = find_blocks(aligned, ref, p, lo, hi, idx=idx, sites=sites)
+    if not blocks:
+        return f"no co-occurring block of >= {p.phase_min_sites} sites"
+    out = []
+    for block in blocks:
+        # how many of the block's sites each read carries, as a histogram. A
+        # haplotype or paralogue is all-or-nothing (reads carry every site or
+        # none); hypermutation and even a clone are graded. This is the
+        # evidence behind the action taken, and viz_project draws it.
+        carried: dict = {}
+        for seen in idx:
+            covered = sum(1 for pos, _alt in block if pos in seen)
+            if covered < p.phase_min_cover:
+                continue
+            k = sum(1 for pos, alt in block if seen.get(pos) == alt)
+            carried[k] = carried.get(k, 0) + 1
+        out.append((block, _carriers(idx, block, p), carried))
+    return out
+
+
 def partition(aligned, ref: str, p: Params, lo: int, hi: int,
-              known_blocks: list | None = None):
+              known_blocks: list | None = None, detected=None, keep: dict | None = None):
     """Split reads into (major, minor) populations. Returns (major, stats).
 
     Deliberately conservative: blocks that cannot be shown to be non-SHM are
@@ -189,6 +217,10 @@ def partition(aligned, ref: str, p: Params, lo: int, hi: int,
     more than phase_max_drop of the reads, nothing is dropped and the reason is
     reported. A tool that silently discarded half the data would be worse than
     one that does nothing.
+
+    `detected` is detect()'s result for these same reads, in this order, when it is
+    already known (batch.py: a worker detects, the main process decides); `keep`, a
+    dict, receives detect()'s result under "detected".
     """
     aligned = list(aligned)
     mode = _mode(p)
@@ -201,20 +233,17 @@ def partition(aligned, ref: str, p: Params, lo: int, hi: int,
         stats["reason"] = "no aligned reads"
         return aligned, stats
 
-    sites = candidate_sites(aligned, ref, p, lo, hi)
-    if len(sites) < p.phase_min_sites:
-        stats["reason"] = f"only {len(sites)} variable sites (< {p.phase_min_sites})"
+    found = detect(aligned, ref, p, lo, hi) if detected is None else detected
+    if keep is not None:
+        keep["detected"] = found
+    if isinstance(found, str):
+        stats["reason"] = found
         return aligned, stats
-    idx = _index(aligned, {pos for pos, _ in sites})
-    blocks = find_blocks(aligned, ref, p, lo, hi, idx=idx, sites=sites)
-    if not blocks:
-        stats["reason"] = f"no co-occurring block of >= {p.phase_min_sites} sites"
-        return aligned, stats
+    blocks = [b for b, _c, _h in found]
 
     drop: set = set()
     dropped_sites = 0
-    for block in blocks:
-        carriers = _carriers(idx, block, p)
+    for block, carriers, carried in found:
         if mode == "drop":
             action, why = "drop", "phase_mode=drop"
         elif mode == "auto" and matches_known(block, known_blocks, p.phase_min_sites):
@@ -222,17 +251,6 @@ def partition(aligned, ref: str, p: Params, lo: int, hi: int,
         else:
             action, why = "flag", ("not seen in controls or other samples; may be a clone, "
                                    "kept")
-        # how many of the block's sites each read carries, as a histogram. A
-        # haplotype or paralogue is all-or-nothing (reads carry every site or
-        # none); hypermutation and even a clone are graded. This is the
-        # evidence behind the action taken, and viz_project draws it.
-        carried: dict = {}
-        for seen in idx:
-            covered = sum(1 for pos, _alt in block if pos in seen)
-            if covered < p.phase_min_cover:
-                continue
-            k = sum(1 for pos, alt in block if seen.get(pos) == alt)
-            carried[k] = carried.get(k, 0) + 1
         stats["blocks"].append({
             "sites": [[pos + 1, alt] for pos, alt in sorted(block)],   # 1-based for humans
             "n_sites": len(block), "reads": len(carriers), "action": action, "why": why,
