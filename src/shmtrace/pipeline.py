@@ -95,7 +95,8 @@ def _dropped_by_phasing(before: set, after: set) -> set:
 
 def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = None,
             null_rates: dict | None = None, depth: int | None = None,
-            germline: set | None = None, drawn: dict | None = None) -> dict:
+            germline: set | None = None, drawn: dict | None = None,
+            germline_source: str | None = None) -> dict:
     """Downsample, call variants and summarise already-prepared reads.
 
     `depth` overrides p.downsample_to, e.g. a batch's common depth. If fewer
@@ -134,8 +135,8 @@ def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = 
             s_var["germline_positions_removed"] += len(variants) - len(kept)
             s_var["unique_variants"] = len(kept)
             warnings.append(f"{len(variants) - len(kept)} germline difference(s) removed using "
-                            "the project's other clones; this sample has too few clones to "
-                            "tell them apart itself")
+                            + (germline_source or "the project's other clones; this sample has too "
+                               "few clones to tell them apart itself"))
         variants = kept
 
     # per-read SHM load: how many called-variant sites each read carries, and

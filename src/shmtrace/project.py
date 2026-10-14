@@ -17,6 +17,7 @@ per-group tables are computed. Everything returned is JSON-serialisable.
 from __future__ import annotations
 
 import math
+import os
 import statistics
 from bisect import bisect_right
 from collections import Counter, defaultdict
@@ -26,6 +27,7 @@ from . import (
     batch,
     browse,
     clones,
+    germline_vcf,
     indels,
     metrics,
     motifs,
@@ -387,7 +389,7 @@ def _call_sample(t: dict) -> dict:
     s, p, ref, lo, hi, null = t["s"], t["p"], t["ref"], t["lo"], t["hi"], t["null"]
     name, peers, sanger, reference = s["name"], t["peers"], t["sanger"], t["reference"]
     res = pipeline.analyse(t["reads"], reference, p, t["stats"], null_rates=null, depth=t["depth"],
-                           germline=t["germline"], drawn=t.get("drawn"))
+                           germline=t["germline"], drawn=t.get("drawn"), germline_source=t.get("germline_source"))
     alignment = None
     if t["browse"]:
         fates: dict = {}
@@ -569,11 +571,28 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         for pr in {pr for pr in peers_of.values() if pr}:
             indel_nulls[pr] = indels.IndelNull([indel_piles[c] for c in pr], ref)
             indel_nulls[pr].qscale = indel_qscale
+    # germline variants from a VCF (germline_vcf.py): project-wide and per animal
+    vcf_cache: dict = {}
+
+    def vcf_sites(path):
+        if path not in vcf_cache:
+            sites, st = germline_vcf.read_sites(path, ref_name, ref)
+            vcf_cache[path] = sites
+            warn = germline_vcf.describe(path, st)
+            if warn:
+                vcf_notes.append(warn)
+        return vcf_cache[path]
+    vcf_notes: list = []
     tasks = []
     for s in samples:
         name, peers = s["name"], peers_of[s["name"]]
+        vcfs = [v for v in (project.get("germline_vcf"), s.get("germline_vcf")) if v]
+        germ = set(project_germline) if (project_germline and sanger
+                                         and len(b["reads"][name]) < p.sanger_germline_min_clones) else set()
+        for v in vcfs:
+            germ |= vcf_sites(v)
+        germ_src = ("the germline VCF " + " and ".join(os.path.basename(v) for v in vcfs)) if vcfs else None
         null = nulls.get(peers) if (p.error_model != "geneious" and not sanger and peers) else None
-        few = sanger and len(b["reads"][name]) < p.sanger_germline_min_clones
         reads, drawn = b["reads"][name], None
         if not saturation_depths:
             # draw the analysed reads here, as analyse() would, so a worker receives only those:
@@ -582,7 +601,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         tasks.append(({
             "s": s, "reads": reads, "drawn": drawn, "stats": b["stats"][name], "reference": reference,
             "contaminants": contaminants, "known_blocks": b.get("known_blocks"), "p": p, "null": null,
-            "depth": depth, "germline": project_germline if few else None, "browse": want_browse,
+            "depth": depth, "germline": germ or None, "germline_source": germ_src, "browse": want_browse,
             "saturation_depths": saturation_depths, "saturation_draws": project.get("saturation_draws", 3),
             "ref": ref, "lo": lo, "hi": hi, "control": name in controls, "sanger": sanger, "peers": peers,
             "tallies": ({n: tallies[n] for n in (name, *peers)} if single_q and peers else None),
@@ -614,7 +633,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         details[name] = out["res"]
 
     progress(0.92, "summarising")
-    notes = []
+    notes = list(vcf_notes)
     qc_out = None
     if sanger:
         # bookkeeping checks: misfiled or duplicated clones, contaminated controls (qc.py)

@@ -7,6 +7,13 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Germline variants from a VCF** (`germline_vcf.py`): `shmtrace-sheet run --germline-vcf` (every sample) or a
+  `germline_vcf` column in the sample sheet (per animal). Every substitution the VCF lists for that animal
+  (genotype not 0/0, FILTER PASS or ".") is removed from its calls, for heterozygous sites the 50% rule can miss.
+  The VCF must be called against the same reference (CHROM = the first word of its FASTA header); a VCF in other
+  coordinates, or with REF bases that disagree with the reference, is reported in the notes.
+
+### Added
 - **Base-quality recalibration from the controls** (`recal.py`, `recalibrate: true`; off by default): shifts each
   base's quality by how much more or less often bases of its quality band are miscalled next to low-quality
   neighbours, fitted on the same controls as the null. On AID-null reads a Q15-34 base beside a <Q10 base is
