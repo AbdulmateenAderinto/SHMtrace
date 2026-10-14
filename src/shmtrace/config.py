@@ -106,6 +106,11 @@ class Params:
     # (recal.py). Errors cluster, so a base next to a low-quality one is more often wrong than
     # its own quality says, and one in a clean stretch less often.
     recalibrate: bool = False
+    # Give every base the same quality (FASTA_DEFAULT_Q) after the read filters. Set by
+    # run_project when a control has no base qualities (FASTA, .seq, GenBank) while samples do:
+    # judging quality-bearing samples against a control whose qualities are invented calls
+    # sample errors at high quality as mutations, so both are judged on the same footing.
+    ignore_qualities: bool = False
     # How the two strands' p-values are combined under error_model="strand":
     #   "fisher"  Fisher's method (evidence adds up across strands)
     #   "both"    the larger of the two (a call needs evidence on each strand)
