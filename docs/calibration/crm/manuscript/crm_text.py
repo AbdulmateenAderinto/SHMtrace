@@ -354,10 +354,10 @@ RESOURCE = [
     ("Materials availability", "This study did not generate new unique reagents."),
     ("Data and code availability", "Nanopore reads of the J_{H}4 and N114 libraries, the Sanger chromatograms and "
      "clone records, SHMtrace project files, per-library read accounting and all benchmark outputs have been "
-     "deposited at [repository] and are publicly available as of the date of publication; accession numbers are "
+     "deposited at {lab_data_doi} and are publicly available as of the date of publication; accession numbers are "
      "listed in the key resources table. The public datasets analyzed are listed in Table 1 and the key resources "
      "table. SHMtrace (v0.2.0), including the desktop application, and all analysis and figure code have been "
-     "deposited at [Zenodo DOI] and are publicly available as of the date of publication. Any additional "
+     "deposited at {lab_code_doi} and are publicly available as of the date of publication. Any additional "
      "information required to reanalyze the data reported in this paper is available from the lead contact upon "
      "request."),
 ]

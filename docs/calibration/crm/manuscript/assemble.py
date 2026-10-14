@@ -12,6 +12,8 @@ import subprocess
 from datetime import date
 from pathlib import Path
 
+import lab_details
+
 CRM = Path(__file__).resolve().parents[1]
 BUILD = CRM / "build"
 FIG = CRM / "figures"
@@ -20,6 +22,7 @@ SUB = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology/Marti
                      "Paper #1 - Nanopore sequencing/June 2nd analyses/submission_v4")
 SOFFICE = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
 STAMP = date.today().isoformat()
+MISSING = "; ".join(lab_details.missing()) or "nothing"
 
 
 def pdf(docx, outdir):
@@ -81,10 +84,9 @@ README_A = f"""# Cell Reports Methods submission ({STAMP})
 | `4_Supplemental/` | Document S1 (Figures S1–S6, Tables S1 and S3), Table S2 (Excel) |
 | `5_Cover_Letter/` | Cover letter draft |
 
-Before submission: fill the bracketed items ([supplier], [Cat#], [RRID], accessions, DOIs, primer
-sequences), confirm the author list and contacts, and attach the declaration of interests form.
-Add the second library of N114 empty-vector subclone C3 (75K3B3_2_C3_Empty_March_2024_2.fastq, from
-Hybridoma manuscript/75K3B3_fastq) to the data deposit: the N114 analyses use it in place of the first.
+Before submission: fill the bracketed items in docs/calibration/crm/manuscript/lab_details.py
+(`python lab_details.py` lists them) and rebuild, confirm the author list, and attach the declaration
+of interests form. Still missing at this build: {MISSING}.
 Built by docs/calibration/crm/manuscript/ in the SHMtrace repository (README in docs/calibration/crm/).
 """
 
@@ -97,9 +99,8 @@ README_S = f"""# STAR Protocols submission ({STAMP})
 | `3_Graphical_Abstract/` | Graphical abstract (the protocol overview) |
 | `4_Cover_Letter/` | Cover letter draft |
 
-Before submission: fill the bracketed laboratory details ([to confirm]: buffers, antibody dilutions,
-primer sequences, catalog numbers, provider requirements), the technical contact's email, and the
-reference to the companion article once accepted.
+Before submission: fill the bracketed items in docs/calibration/crm/manuscript/lab_details.py
+(`python lab_details.py` lists them) and rebuild. Still missing at this build: {MISSING}.
 """
 
 if __name__ == "__main__":

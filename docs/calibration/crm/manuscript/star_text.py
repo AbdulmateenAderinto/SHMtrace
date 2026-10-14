@@ -1,8 +1,8 @@
 """Text of the STAR Protocols article: cloning-free SHM profiling with nanopore sequencing and SHMtrace.
 
 Markup: see docbuild.py. Steps are lists of strings; a step starting with "CRITICAL:", "Note:",
-"Pause point:" or "Optional:" is set as such. [to confirm] marks a laboratory detail the authors
-must supply (dilutions, catalog numbers, primer sequences); none is invented here.
+"Pause point:" or "Optional:" is set as such. {lab_...} marks a laboratory detail the authors
+must supply (lab_details.py); none is invented here.
 """
 
 TITLE = ("Protocol for cloning-free measurement of somatic hypermutation in mouse germinal-center B cells by "
@@ -11,7 +11,7 @@ AUTHORS = "Abdulmateen Aderinto^{1,3,*} and Alberto Martin^{1,2,4,**}"
 AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1A8, Canada",
          "^{2}Lead contact", "^{3}Technical contact",
          "^{4}Senior author",
-         "*Correspondence: [technical contact email, to confirm]",
+         "*Correspondence: {lab_tech_email}",
          "**Correspondence: alberto.martin@utoronto.ca"]
 SUMMARY = (
     "Somatic hypermutation is usually measured by cloning amplicons and sequencing individual colonies. Here, "
@@ -20,7 +20,7 @@ SUMMARY = (
     "nanopore flow cells, and analyzing the reads with SHMtrace, which tests mutations against matched "
     "AID-null controls and compares groups animal by animal.")
 SUMMARY_TAIL = ("For complete details on the use and execution of this protocol, please refer to Aderinto and Martin "
-                "[companion Cell Reports Methods article, to be cited once accepted].")
+                "{lab_crm_citation}.")
 HIGHLIGHTS = [
     "Sort germinal-center B cells and amplify the full 1.2-kb J_{H}4 intron without cloning",
     "Sequence full-length amplicons on nanopore flow cells through a service provider",
@@ -78,7 +78,7 @@ MATERIALS_TABLES = [
         ("Platinum SuperFi II PCR master mix (2×)", "1×", "25 µL"),
         ("Forward primer, 10 µM", "0.5 µM", "2.5 µL"),
         ("Reverse primer, 10 µM", "0.5 µM", "2.5 µL"),
-        ("Genomic DNA (lysate of ~10,000 cells)", "–", "[volume, to confirm]"),
+        ("Genomic DNA (lysate of ~10,000 cells)", "–", "{lab_lysate_volume}"),
         ("Nuclease-free water", "–", "to 50 µL"),
         ("**Total**", "–", "**50 µL**"),
     ]),
@@ -102,25 +102,24 @@ MATERIALS_NOTE = (
 
 STEPS = [
     ("Isolate germinal-center B cells from Peyer's patches", "Timing: 4–5 h", [
-        "Harvest Peyer's patches post-mortem into cold FACS buffer (PBS with 2% fetal bovine serum) [to confirm].",
+        "Harvest Peyer's patches post-mortem into cold FACS buffer ({lab_facs_buffer}).",
         "Dissociate the Peyer's patches into a single-cell suspension by pressing them through a 70-µm strainer, "
         "and wash the cells once.",
-        "Stain the cells with anti-B220, GL7, and anti-Fas for 20–30 min on ice [dilutions and fluorophores, to "
-        "confirm], and wash them twice.",
+        "Stain the cells with anti-B220, GL7, and anti-Fas for 20–30 min on ice ({lab_stain}), and wash them twice.",
         "Sort B220^{+}GL7^{+}Fas^{+} GC B cells into a tube (we used a BD FACSymphony S6 SE), collecting "
         "approximately 10,000 cells per mouse.",
         "CRITICAL: Process wild-type and AID-null mice on the same day with the same reagents.",
         "Pause point: Pelleted cells can be stored at −80 °C.",
     ]),
     ("Extract genomic DNA", "Timing: 2 h, or overnight", [
-        "Lyse the sorted cells by proteinase K digestion [buffer, volume, and incubation, to confirm], and then "
+        "Lyse the sorted cells by proteinase K digestion ({lab_lysis}), and then "
         "inactivate the proteinase K by heating.",
         "Check DNA quality and quantity by NanoDrop (A260/280 and A260/230 ratios).",
         "Pause point: Lysates can be stored at −20 °C.",
     ]),
     ("Amplify the J_{H}4 intron", "Timing: 3 h", [
         "Set up the PCR as described in the PCR reaction table, using the J_{H}4 "
-        "primers[@jolly1997,@barbulescu2024] [sequences, to confirm], and include a no-template control.",
+        "primers[@jolly1997,@barbulescu2024] ({lab_jh4_primers}), and include a no-template control.",
         "Run the cycling program described in the PCR cycling table.",
         "Check 5 µL of the product on a 1% agarose gel; a single band of approximately 1.2 kb is expected.",
         "Purify the product with a column PCR clean-up kit and elute it in 15–20 µL of water.",
@@ -128,8 +127,8 @@ STEPS = [
     ]),
     ("Sequence full-length amplicons", "Timing: 15 min hands-on; results in 1–2 days", [
         "Quantify the purified amplicons and submit each one as a separate sample for full-length amplicon "
-        "nanopore sequencing, following the provider's concentration and volume requirements [to confirm for "
-        "your provider]. We used the Plasmidsaurus Premium PCR service (R10.4.1 flow cells, Kit 14, and "
+        "nanopore sequencing, following the provider's concentration and volume requirements. "
+        "We used the Plasmidsaurus Premium PCR service (R10.4.1 flow cells, Kit 14, and "
         "super-accuracy basecalling).",
         "Download the FASTQ files (one per library) and keep them unmodified, because SHMtrace works from them "
         "directly.",
@@ -271,11 +270,11 @@ RESOURCE = [
     ("Lead contact", "Further information and requests for resources and reagents should be directed to and will "
                      "be fulfilled by the lead contact, Alberto Martin (alberto.martin@utoronto.ca)."),
     ("Technical contact", "Technical questions on executing this protocol should be directed to and will be "
-                          "answered by the technical contact, Abdulmateen Aderinto ([email, to confirm])."),
+                          "answered by the technical contact, Abdulmateen Aderinto ({lab_tech_email})."),
     ("Materials availability", "This study did not generate new unique reagents."),
     ("Data and code availability", "The nanopore reads, Sanger chromatograms and SHMtrace outputs shown here are "
-     "deposited with the companion article ([accessions, to confirm]). SHMtrace v0.2.0, its desktop application and "
-     "documentation are available at [Zenodo DOI and GitHub URL, to confirm]."),
+     "deposited with the companion article ({lab_sra}; {lab_data_doi}). SHMtrace v0.2.0, its desktop application and "
+     "documentation are available at {lab_code_doi} and {lab_github}."),
 ]
 ACK = ("We thank the University of Toronto flow cytometry facility and members of the Martin laboratory. "
        "Sequencing was performed by Plasmidsaurus and The Centre for Applied Genomics (SickKids, Toronto). This work "

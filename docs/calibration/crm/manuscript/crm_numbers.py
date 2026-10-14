@@ -9,11 +9,15 @@ spike-ins, simulations, public data), the Sanger calls, and the simulation outpu
 REPLICATES_AND_POWER and UMI (data-independent).
 """
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 from scipy import stats
+
+sys.path.insert(0, str(Path(__file__).parent))
+import lab_details  # noqa: E402
 
 CRM = Path(__file__).resolve().parents[1]
 OUT = CRM / "out"
@@ -350,6 +354,7 @@ def compute():
     N["hmk3_calls"] = f"{min(calls)}–{max(calls)}"
     N["hmk3_gc"] = f"{min(gcs):.0f}–{max(gcs):.0f}" if gcs else "–"
     N["hmces_gc_range"] = f"{min(gc):.0f}–{max(gc):.0f}" if gc else "[no substitution calls; see note]"
+    N.update(lab_details.placeholders())
     return N
 
 
