@@ -6,6 +6,14 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **`n114_vregion_contaminant.fasta`**: a second V-region template the N114 F1/R2 primer pair also amplifies
+  (476 bp, 4.0% divergent over N114 V positions 180-655), from 37 Sanger clones of the lab's N114 set. The app
+  offers it automatically with the N114 reference. Competitive alignment removes reads that align better to it;
+  because it is only 4% divergent, reads can still align best to N114, and the allele-level check is suppressed
+  where the template is common (contaminant_germline_frac treats a majority as shared germline). Screen on
+  provenance as well, not on this reference alone.
+
 ## [0.2.1] - 2026-10-14
 
 ### Added
