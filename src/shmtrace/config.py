@@ -101,6 +101,11 @@ class Params:
     #   "sanger"   one read per clone: every substitution with base quality
     #              >= min_base_quality is called, no test (see below)
     error_model: str = "auto"
+    # error_model "qcal": read each base's quality through a table fitted on the controls, keyed
+    # by the reported quality and the lowest quality among its two neighbours on each side
+    # (recal.py). Errors cluster, so a base next to a low-quality one is more often wrong than
+    # its own quality says, and one in a clean stretch less often.
+    recalibrate: bool = False
     # How the two strands' p-values are combined under error_model="strand":
     #   "fisher"  Fisher's method (evidence adds up across strands)
     #   "both"    the larger of the two (a call needs evidence on each strand)

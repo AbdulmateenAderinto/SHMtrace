@@ -36,7 +36,10 @@ VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             # candidates for a sensitive mode: a looser control-based FDR, or the calibrated test uncorrected
             "recommended_fdr10": ("recommended", {"fdr_alpha": 0.10}),
             "recommended_fdr20": ("recommended", {"fdr_alpha": 0.20}),
-            "qcal_uncorrected": ("recommended", {"multiple_testing": "none"})}
+            "qcal_uncorrected": ("recommended", {"multiple_testing": "none"}),
+            # base-quality recalibration from the controls (recal.py)
+            "recommended_recal": ("recommended", {"recalibrate": True}),
+            "sensitive_recal": ("sensitive", {"recalibrate": True})}
 
 
 def run(key, reps, n_sites, seed=1):
@@ -70,7 +73,7 @@ def run(key, reps, n_sites, seed=1):
                     pp = replace(base, **{**pipeline.mode_overrides(mode), **extra})
                     nr = None
                     if pp.error_model != "geneious":
-                        k = (pp.error_model, pp.phase_mode)
+                        k = (pp.error_model, pp.phase_mode, pp.recalibrate)
                         if k not in nulls:
                             nulls[k] = null_model.fit(peers, ds["reference"], contam, pp)[0]
                         nr = nulls[k]
