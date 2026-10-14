@@ -49,6 +49,15 @@
           <input type="text" id="window" placeholder="preset default">
           <label for="maxp">Significance threshold</label>
           <input type="number" id="maxp" step="0.001" placeholder="0.05">
+          <label for="jobs">Processor cores</label>
+          <select id="jobs">
+            <option value="0">All but one (up to 8): fastest</option>
+            <option value="4">4</option>
+            <option value="2">2</option>
+            <option value="1">1: leaves the computer free</option>
+          </select>
+          <p class="hint">Samples are called side by side on this many cores. The results are
+            identical whatever you choose; only the time changes.</p>
           <label style="display:flex;gap:8px;align-items:center;margin-top:10px">
             <input type="checkbox" id="call-indels" style="width:auto"> Call insertions and deletions
           </label>
