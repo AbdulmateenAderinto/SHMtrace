@@ -1,6 +1,6 @@
 """Figure 6: the same engine across platforms, loci and questions.
 
-A  Illumina J_H4 (PRJNA973112): mutation frequency per mouse, Wt / Ldha-deleted / AID-null
+A  Illumina J_H4 (PRJNA973112): mutation frequency per mouse, Wt / Ldha-deleted / AID-deficient
 B  CH12F3 Ung-/-Msh2-/-Aicda-/- (PRJNA918596): mutation frequency per replicate by condition
 C  spectrum and targeting of AID and R174E/R178E calls
 D  Ramos (PRJNA820976): deletions and insertions per clone
@@ -43,7 +43,7 @@ def main():
     vals = {g: [s["mutation_frequency_x1e3"] for s in p["samples"] if s["group"] == g] for g in groups}
     strip(ax, groups, vals, [(CASEF, CASE), ("#b9a3d6", "#6a4c93"), (CTRLF, CTRL)], 0.01)
     ax.set_yscale("log")
-    ax.set_xticks(range(3), ["Wt", "$Ldha$ deleted", "AID-null"])
+    ax.set_xticks(range(3), ["Wt", "$Ldha$ deleted", "AID-deficient"])
     ax.set_ylabel("Mutations per 10$^3$ bp")
     ax.set_title("J$_H$4, Illumina (Sharma et al.)", fontsize=7)
     letter(ax, "A", dx=-0.32)

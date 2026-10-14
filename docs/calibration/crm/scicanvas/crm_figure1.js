@@ -1,9 +1,9 @@
 () => {
-  // Cell Reports Methods, Figure 1: why SHMtrace calibrates against matched AID-null libraries, and
+  // Cell Reports Methods, Figure 1: why SHMtrace calibrates against matched AID-deficient libraries, and
   // what it does. A, read-level against control-calibrated testing; B, inputs and read preparation;
   // C, calling and checks; D, outputs. Cell Press rules as in figure1_overview.js (174 mm; Arial
   // 6-8 pt; strokes 0.5-1.5 pt; no red with green). Mutations purple, sequencing errors orange-red,
-  // AID-null controls red, SHMtrace teal.
+  // AID-deficient controls red, SHMtrace teal.
   const W = 1400, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', OUTL = '#b4bec8', FAINT = '#cfd8df';
   const TEAL = '#1f6f8b', CTRL = '#9a3439', CASE = '#274b7e', SANG = '#a3621b', ILL = '#3d5a80';
@@ -51,11 +51,11 @@
   const a2 = card(ax, 294, aw, 250, { stroke: TEAL, strokeWidth: 2 });
   T('Control-calibrated test (SHMtrace)', ax + 16, 304, { fontSize: HEAD, bold: true, color: TEAL });
   pile(ax + 20, 346, 200, 6, [[0.3, [0, 2, 4], MUT], [0.75, [1, 3, 5], ERR]], 'sample');
-  pile(ax + 240, 346, 120, 6, [[0.75, [0, 2, 3, 5], ERR]], 'AID-null controls');
+  pile(ax + 240, 346, 120, 6, [[0.75, [0, 2, 3, 5], ERR]], 'controls');
   mark(ax + 20 + 0.3 * 200, 458, true); mark(ax + 20 + 0.75 * 200, 458, true);
   [['mutation', 'called', 0.3, MUT], ['error', 'rejected', 0.75, ERR]].forEach(([w, v, f, c]) => { TC(w, ax + 20 + f * 200, 488, { fontSize: SM, color: c }); TC(v, ax + 20 + f * 200, 511, { fontSize: SM, color: c }); });
-  lines(['error rate per substitution,', 'strand and base quality,', 'measured in matched AID-null',
-    'libraries from the same run;', 'a call needs support beyond', 'it (FDR ≤ 0.05, set by control', 'decoys); groups are compared', 'one value per animal'], ax + 378, 346);
+  lines(['error rate per substitution,', 'strand and base quality,', 'measured in matched',
+    'AID-deficient libraries from', 'the same run; a call needs', 'support beyond it (FDR ≤ 0.05,', 'set from the controls); groups', 'compared one value per animal'], ax + 378, 346);
 
   // ───────── B. Inputs and read preparation ─────────
   panel('B', 'Inputs and read preparation', 720, 10);
@@ -97,7 +97,7 @@
   panel('C', 'Calling and quality checks', 30, cy);
   const csteps = [
     ['Control error model', ['per substitution, strand and', 'base quality; a margin chosen by', 'leave-one-control-out']],
-    ['Test and FDR', ['support against expected errors;', 'FDR ≤ 0.05 set by control decoys;', 'each control called vs the others']],
+    ['Test and FDR', ['support against expected errors;', 'FDR ≤ 0.05 set from the controls;', 'each control called vs the others']],
     ['Germline and window', ['sites at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional']],
     ['Automatic checks', ['spectrum (C→T/G→A share),', 'positional clustering, 5-mer', 'targeting index, Sanger', 'bookkeeping flags']],
   ];

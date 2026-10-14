@@ -1,6 +1,6 @@
 """Figure 5: what long reads add.
 
-A  distinct calls along the whole J_H4 amplicon (positions 90-1,230), per Wt mouse and the AID-null controls
+A  unique variants along the whole J_H4 amplicon (positions 90-1,230), per Wt mouse and the AID-deficient controls
 B  AID targeting: calls per position by 5-mer mutability quintile (SHazaM HH_S5F), Wt calls against
    every Aicda-/- mismatch (sequencing error)
 C  clones from the V(D)J junction: each mouse's reads by clone, and the read- against clone-weighted rate
@@ -100,7 +100,7 @@ def main():
             label="Aicda$^{-/-}$ (mean)")
     ax.set_xlim(90, 1230)
     ax.set_xlabel("J$_H$4 amplicon position (bp); 50-bp bins")
-    ax.set_ylabel("Distinct calls per 10$^5$ bases")
+    ax.set_ylabel("Unique variants per 10$^5$ bases")
     ax.set_title("The whole amplicon from each read (positions 90–1,230)", fontsize=7)
     ax.legend(fontsize=5.5, loc="upper right")
     letter(ax, "A", dx=-0.08)

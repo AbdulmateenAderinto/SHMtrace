@@ -45,6 +45,12 @@ def pct(x):
     return f"{100 * x:.0f}"
 
 
+def series(xs):
+    """'221, 344, and 73' (a list in running text, with the serial comma)."""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else f"{xs[0]} and {xs[1]}" if len(xs) == 2 else ", ".join(xs[:-1]) + f", and {xs[-1]}"
+
+
 def word(n):
     return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"][n] if n < 10 else f"{n:,}"
 
@@ -192,11 +198,11 @@ def compute():
     ctl_gen = [b[k]["geneious"]["ctl_calls"] for k in ("jh4", "n114", "su_lps", "su_ch12", "pim1")]
     N["ctl_rec"], N["ctl_gen"] = f"{min(ctl_rec)}–{max(ctl_rec)}", f"{min(ctl_gen)}–{max(ctl_gen)}"
     j = b["jh4"]
-    N["jh4_wt_rec"] = ", ".join(str(j["recommended"]["case_calls"][x]) for x in ("WT2", "WT3", "WT4"))
-    N["jh4_ko_rec"] = ", ".join(str(j["recommended"]["ctl_each"][x]) for x in ("KO1", "KO2", "KO3"))
-    N["jh4_wt_gen"] = ", ".join(str(j["geneious"]["case_calls"][x]) for x in ("WT2", "WT3", "WT4"))
-    N["jh4_ko_gen"] = ", ".join(str(j["geneious"]["ctl_each"][x]) for x in ("KO1", "KO2", "KO3"))
-    N["jh4_wt_lf"] = ", ".join(str(j["lofreq"]["case_calls"][x]) for x in ("WT2", "WT3", "WT4"))
+    N["jh4_wt_rec"] = series(j["recommended"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
+    N["jh4_ko_rec"] = series(j["recommended"]["ctl_each"][x] for x in ("KO1", "KO2", "KO3"))
+    N["jh4_wt_gen"] = series(j["geneious"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
+    N["jh4_ko_gen"] = series(j["geneious"]["ctl_each"][x] for x in ("KO1", "KO2", "KO3"))
+    N["jh4_wt_lf"] = series(j["lofreq"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
     N["jh4_wt2_lfnb"] = str(j["lofreq_nobaq"]["case_calls"]["WT2"])
     N["jh4_wt2_rec"] = str(j["recommended"]["case_calls"]["WT2"])
     su = list(b["su_lps"]["recommended"]["case_calls"].values()) + list(b["su_ch12"]["recommended"]["case_calls"].values())
@@ -228,7 +234,7 @@ def compute():
         N[f"loco_{k}_final"] = f1(100 * last[0] / last[1])
     margins = {N["loco_jh4_margin"], N["loco_n114_margin"], N["loco_full_margin"]}
     N["loco_margins"] = (f"{N['loco_jh4_margin']}×" if len(margins) == 1 else
-                         f"{N['loco_jh4_margin']}× on J_{{H}}4, {N['loco_full_margin']}× on the full length and "
+                         f"{N['loco_jh4_margin']}× on J_{{H}}4, {N['loco_full_margin']}× on the full length, and "
                          f"{N['loco_n114_margin']}× on N114")
     # ---------------- J_H4 manuscript run, Sanger comparison
     jp = _load(FIG / "jh4_shmtrace/project.json")

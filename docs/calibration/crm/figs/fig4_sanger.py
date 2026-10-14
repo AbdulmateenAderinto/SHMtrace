@@ -1,6 +1,6 @@
 """Figure 4: nanopore and Sanger agree in the same mice.
 
-A    distinct-call density per mouse, Sanger clones and nanopore reads (529-bp window)
+A    unique-variant density per mouse, Sanger clones and nanopore reads (529-bp window)
 B    pooled 12-type substitution spectrum, Sanger against nanopore (three Wt mice)
 C    where calls fall along the window (25-bp bins)
 D    hotspot use: G:C calls at WRC/GYW and A:T calls at WA/TW, against the window's share of such sites
@@ -45,7 +45,7 @@ def main():
     ax.set_xticks([0, 1, 2.4, 3.4], ["Wt", "Aicda$^{-/-}$", "Wt", "Aicda$^{-/-}$"])
     ax.text(0.5, -0.27, "Sanger clones", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, color=SANG_C)
     ax.text(2.9, -0.27, "Nanopore reads", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, color=ONT_C)
-    ax.set_ylabel("Distinct calls per 10$^5$ bases")
+    ax.set_ylabel("Unique variants per 10$^5$ bases")
     ax.set_title("Same mice, both platforms", fontsize=7)
     letter(ax, "A", dx=-0.3)
     # B: spectrum scatter

@@ -45,147 +45,172 @@ KRT = [
 ]
 
 EXPERIMENTAL = [
-    ("Mice", "Wild-type and *Aicda*^{−/−} mice on a predominantly C57BL/6 background, aged 4 months, of both sexes, "
-             "were used (n = 3 per genotype); sex-specific effects were not evaluated because the study validates a "
-             "measurement method. These were the same mice analyzed previously by cloned-amplicon Sanger "
-             "sequencing[@barbulescu2025]. Procedures were approved by the University of Toronto Animal Care "
-             "Committee (protocol 20011472)."),
-    ("Cell lines", "N114 hybridoma cells[@martin2002,@martin2002b] were transduced with pMX-*Aicda* or the empty "
-                   "vector (both encoding GFP and puromycin resistance), sorted for high GFP and subcloned by limiting "
-                   "dilution; three puromycin-resistant subclones per vector were kept for 1 month before DNA "
-                   "collection. Each subclone is represented by one library: where a subclone had been sequenced "
-                   "more than once (C1 and D3, from stocks frozen on different dates; C3, as two libraries), the "
-                   "library with the most usable reads was analyzed, and for C3 the other library is reported as a "
-                   "sensitivity analysis (Results)."),
+    ("Mice", "Wt and *Aicda*^{−/−} mice, 4 months of age, were maintained on a predominantly C57BL/6 background. "
+             "Both male and female mice were included (n = 3 per genotype). Animals were not stratified by sex "
+             "because the study was designed to validate a measurement method rather than to test sex-dependent "
+             "variation. The J_{H}4 analysis intentionally used the same mice previously analyzed by "
+             "cloned-amplicon Sanger sequencing[@barbulescu2025], enabling a mouse-matched platform comparison. All "
+             "animal procedures were approved by the University of Toronto Animal Care Committee (protocol "
+             "20011472)."),
+    ("Cell lines", "N114 hybridoma cells[@martin2002,@martin2002b] were retrovirally transduced with pMX-*Aicda* or "
+                   "the matched empty vector; both constructs encoded GFP and puromycin resistance. GFP-high cells "
+                   "were selected and subcloned by limiting dilution, and three puromycin-resistant subclones per "
+                   "vector were maintained for 1 month before DNA collection. Each subclone is represented by one "
+                   "library. Where a subclone had been sequenced more than once (C1 and D3, from stocks frozen on "
+                   "different dates; C3, as two libraries), the library with the most usable reads was analyzed, "
+                   "and for C3 the other library is reported as a sensitivity analysis (Results)."),
 ]
 
 METHODS = [
-    ("h2", "Germinal-center B cells and DNA"),
-    ("p", "Peyer's patches were dissociated and stained with anti-B220, anti-GL7 and anti-Fas, and B220^{+}GL7^{+}Fas^{+} "
-          "germinal-center B cells were sorted (BD FACSymphony S6 SE). Genomic DNA was extracted from about 10,000 "
-          "sorted cells, or 5 × 10^{6} hybridoma cells, by proteinase K digestion."),
+    ("h2", "Germinal-center B cell isolation and DNA extraction"),
+    ("p", "Peyer's patches were harvested post-mortem, dissociated into single-cell suspensions, and stained with "
+          "anti-B220, GL7, and anti-Fas. Germinal-center B cells (B220^{+}GL7^{+}Fas^{+}) were isolated by "
+          "fluorescence-activated cell sorting (BD FACSymphony S6 SE). Genomic DNA was extracted from "
+          "approximately 10,000 sorted germinal-center B cells or 5 × 10^{6} hybridoma cells by proteinase K "
+          "digestion."),
     ("h2", "Amplification and sequencing"),
-    ("p", "The 1,230-bp J_{H}4 intron amplicon[@jolly1997,@barbulescu2024] and the 655-bp N114 V region[@martin2002] "
-          "were amplified with SuperFi II polymerase (98 °C for 5 min; 35 cycles of 98 °C for 30 s, 68.8 °C for 30 s "
-          "and 72 °C for 1 min; 72 °C for 5 min) and column-purified. Each amplicon was submitted as a separate "
-          "barcoded sample for full-length amplicon sequencing (Plasmidsaurus Premium PCR: ligation library, "
-          "R10.4.1 flow cells, Kit 14, super-accuracy basecalling with dna_r10.4.1_e8.2_400bps_sup@v5.2.0). "
-          "2,336–5,000 reads were delivered per library. For the Sanger benchmark, J_{H}4 amplicons from separate PCRs "
-          "of the same DNA were cloned and sequenced[@barbulescu2025]; 447 chromatograms were re-analyzed here."),
+    ("p", "The 1,230-bp J_{H}4 intron amplicon[@jolly1997,@barbulescu2024] and the 655-bp N114 V-region "
+          "amplicon[@martin2002] were amplified with SuperFi II high-fidelity DNA polymerase. Cycling was 98 °C for "
+          "5 min; 35 cycles of 98 °C for 30 s, 68.8 °C for 30 s, and 72 °C for 1 min; and a final 72 °C for 5 min. "
+          "Amplicons were column-purified and submitted as separate, individually barcoded samples for full-length "
+          "amplicon sequencing (Plasmidsaurus Premium PCR service), which uses ligation library preparation, "
+          "R10.4.1 flow cells, Kit 14 chemistry, and super-accuracy basecalling "
+          "(dna_r10.4.1_e8.2_400bps_sup@v5.2.0). Between 2,336 and 5,000 reads were delivered per library. For the "
+          "Sanger benchmark, J_{H}4 amplicons from separate PCRs of the same DNA had been cloned and "
+          "sequenced[@barbulescu2025], and the 447 resulting chromatograms were re-analyzed here."),
     ("h2", "Read preparation"),
-    ("p", "SHMtrace reads FASTQ (optionally gzipped, or Illumina pairs, merged on overlap) and applies, in order: an "
-          "upper read-length limit (2,000 bp for J_{H}4, 900 bp for N114, set per locus), a mean expected error of at "
-          "most 0.01 per base computed from Phred qualities[@edgar2015], alignment with minimap2 (map-ont, or sr for "
-          "Illumina) against an index holding the target and any competing references, assignment of each read to the "
-          "sequence it aligns to best, and removal of unmapped reads, reads assigned to a competing reference, reads "
-          "with a supplementary alignment (chimeras) and reads aligned over less than a minimum length (800 bp J_{H}4, "
-          "400 bp N114). For J_{H}4, the competing references were a J_{H}4-like paralog (the consensus of "
-          "Agouti-type clones, about 12% divergent) and a recurrent contaminant haplotype. Because a full-length "
-          "paralog read can align better to the longer target, reads carrying 10 or more bases specific to a "
-          "competing reference (at sites where fewer than 20% of the sample's reads carry them) were then removed; real "
-          "J_{H}4 reads carry 0–7 such bases and paralog reads and chimeras 11–62. The fate of every read is recorded. "
-          "Usable reads were downsampled at random with a fixed seed (Python random, seed 0) to the analysis depth "
-          "(500 reads for J_{H}4 and N114; 2,000 for the IRCM loci). Analysis windows were positions 101–629 (529 bp, "
-          "the window shared with Sanger) or 90–1,230 (full length) of the J_{H}4 reference and positions 21–635 of "
-          "the N114 reference."),
-    ("h2", "Control-calibrated calling"),
-    ("p", "Every single-nucleotide difference from the reference in the window is a candidate, one supporting read "
-          "sufficing. For each substitution class (12), strand (2) and base quality, the rate at which control reads "
-          "show that change at or above that quality is estimated from the AID-null libraries of the same run, pooled "
-          "with each position's own control count. For a candidate with k supporting reads sorted by quality "
-          "q_{1} ≥ q_{2} ≥ …, SHMtrace computes for each j ≤ k the probability of observing j or more such miscalls "
-          "at quality ≥ q_{j}, given the column depth on each strand and the control rates multiplied by a margin c; "
-          "the candidate's p value is the smallest over j, multiplied by k. The margin is chosen by "
-          "leave-one-control-out from the grid 1, 2, 3, 5, 10, 20 and 50 as the smallest value at which at most 1% of "
-          "a held-out control's tests reach p < 0.01; it was {loco_margins} in the analyses reported. Each held-out "
-          "control, downsampled to the samples' analysis depth and called against the other controls, is kept as a "
-          "decoy: its sorted p values and the bases it tested. For a sample with p values P and a threshold t, the "
-          "expected number of false calls is the mean over decoys of the decoy p values ≤ t, scaled by the ratio of "
-          "the sample's tested bases to the decoy's when that exceeds 1 (decoys are never scaled down to a shallower "
-          "library, whose coarser p values they would otherwise under-represent); SHMtrace keeps the largest t at which this is at most 0.05 times "
-          "the number of sample p values ≤ t (target–decoy FDR[@elias2007]). A control is never its own decoy: when a control is called, only "
-          "its peers' decoys are used. A control whose held-out candidates at p ≤ 0.01 per base exceed five times "
-          "the median of the other controls', and number at least five, is left out of the decoys (unless none "
-          "would remain) and named in the report; it still contributes to the error model. With fewer than two controls, or for indels, the Benjamini–Hochberg "
-          "procedure[@benjamini1995] across positions and alternative alleles is used instead. Sites at which 50% or "
-          "more of reads differ from the reference are removed. Without controls, SHMtrace falls back to a Poisson-binomial test on "
-          "read qualities. A distinct call is a position–substitution pair counted once per sample; the "
-          "distinct-call density is calls per analyzed base × 10^{5}, and the mutation frequency is supporting "
-          "reads per base sequenced. The Geneious rule was reproduced as an uncorrected approximate p ≤ 0.05 per "
-          "candidate, which matched Geneious exports site by site (Jaccard index 0.97–0.98 on wild-type J_{H}4)."),
-    ("h2", "Single-read estimate, clones, trees and checks"),
-    ("p", "Mutations carried by one read are estimated in aggregate: one-read events at base quality ≥ 35 not "
-          "otherwise called, minus the control rate of such events scaled to the sample's bases, divided by the share "
-          "of correctly read bases at that quality, with a 95% interval combining Poisson noise, between-control "
-          "overdispersion and the uncertainty of the control rate. Clones are defined by the 20 bases 5′ of the "
-          "alignment start of reads beginning within 18 bp of J_{H}4, clustered greedily against abundance-ranked "
-          "centroids at edit distance ≤ 3 with a free 5′ edge; a clone's mutations are calls carried by at least half "
-          "of its reads, and the clone-weighted frequency counts each clone once. Within a clone, calls in two or more "
-          "reads carried by nearly the same reads (Jaccard ≥ 0.9) form one node, each node's parent is the smallest "
-          "node whose reads include at least 90% of its own, a read fits the tree when its nodes lie on one path from "
-          "the root, and two calls fail the four-gamete test when reads carrying both, either alone and neither are "
-          "all present (each in at least two reads). The targeting index is the mean S5F mutability[@yaari2013] at "
-          "mutated positions over the window mean, with a one-sided permutation p value (2,000 random position sets); "
-          "the model was exported from SHazaM 1.2.0. Positional clustering flags any 10-base window holding more calls "
-          "than a Poisson scatter allows (Bonferroni over windows, p < 10^{−3}). Sanger chromatograms are assigned to "
-          "animals by a sample sheet, trimmed to their longest stretch of base quality ≥ 20 that aligns cleanly, and "
-          "every substitution at quality ≥ 20 is counted after the germline rule; quality-control flags (copied files, "
-          "clones shared between animals beyond chance by a Poisson test weighted by mutation frequency across animals, "
-          "control clones with excess mutations, label mismatches, load outliers) are reported, never applied."),
+    ("p", "SHMtrace reads FASTQ files, which may be gzipped or, for Illumina data, paired files that are merged on "
+          "their overlap. Reads are then processed in the following order. First, reads longer than a locus-specific "
+          "limit (2,000 bp for J_{H}4 and 900 bp for N114) are removed, as are reads with a mean expected error "
+          "above 0.01 per base, calculated from Phred qualities[@edgar2015]. Second, reads are aligned with "
+          "minimap2 (map-ont preset, or sr for Illumina) against an index containing the target and any competing "
+          "references, and each read is assigned to the sequence it aligns to best. Unmapped reads, reads assigned "
+          "to a competing reference, reads with a supplementary alignment (chimeras), and reads aligned over less "
+          "than a minimum length (800 bp for J_{H}4 and 400 bp for N114) are removed. For J_{H}4, the competing "
+          "references were a J_{H}4-like paralog (the consensus of Agouti-type clones, approximately 12% "
+          "divergent) and a recurrent contaminant haplotype. Because a full-length paralog read can align better "
+          "to the longer target, reads carrying 10 or more bases specific to a competing reference, at sites where "
+          "fewer than 20% of the sample's reads carry them, are also removed. Genuine J_{H}4 reads carry 0–7 such "
+          "bases, whereas paralog reads and chimeras carry 11–62. The fate of every read is recorded. Usable reads "
+          "were then downsampled at random with a fixed seed (Python random, seed 0) to the analysis depth: 500 "
+          "reads for J_{H}4 and N114 and 2,000 reads for the IRCM loci. The analysis windows were positions "
+          "101–629 (529 bp, the window shared with Sanger) or 90–1,230 (full length) of the J_{H}4 reference and "
+          "positions 21–635 of the N114 reference."),
+    ("h2", "Control-calibrated variant calling"),
+    ("p", "Every single-nucleotide difference from the reference within the analysis window is a candidate, and a "
+          "single supporting read is sufficient. For each of the 12 substitution types, each strand, and each base "
+          "quality, SHMtrace estimates from the AID-deficient libraries of the same run how often control reads "
+          "show that change at or above that quality, combining the pooled rate with each position's own control "
+          "count. For a candidate supported by k reads, ranked by quality q_{1} ≥ q_{2} ≥ …, SHMtrace calculates "
+          "for each j ≤ k the probability of observing j or more such miscalls at quality ≥ q_{j}, given the read "
+          "depth on each strand and the control error rates multiplied by a margin c. The candidate's p value is "
+          "the smallest of these probabilities multiplied by k."),
+    ("p", "The margin c is chosen by leaving one control out at a time. Each control is tested against an error "
+          "model built from the other controls, and c is the smallest value in the grid 1, 2, 3, 5, 10, 20, and "
+          "50 at which no more than 1% of a held-out control's tests reach p < 0.01. In the analyses reported "
+          "here, c was {loco_margins}. The same held-out tests, made at the samples' analysis depth, are then used "
+          "to set the significance threshold. Each held-out control is kept as a decoy, defined by its sorted p "
+          "values and the number of bases it tested. For a sample and a candidate threshold t, the expected number "
+          "of false calls is the mean, across decoys, of the number of decoy p values ≤ t, scaled by the ratio of "
+          "the sample's tested bases to the decoy's when that ratio exceeds 1. Decoys are never scaled down to a "
+          "shallower library, whose coarser p values they would otherwise underestimate. SHMtrace keeps the "
+          "largest t at which the expected number of false calls is at most 0.05 times the number of sample p "
+          "values ≤ t, a target–decoy estimate of the FDR[@elias2007]. A control is never used as its own decoy: "
+          "when a control is tested, only the other controls serve as decoys. A control whose held-out candidates "
+          "at p ≤ 0.01 per base exceed five times the median of the other controls, and number at least five, is "
+          "left out of the decoys (unless no decoy would remain) and named in the report; it still contributes to "
+          "the error model. With fewer than two controls, or for indels, the Benjamini–Hochberg "
+          "procedure[@benjamini1995] across positions and alternative alleles is used instead. Sites at which 50% "
+          "or more of reads differ from the reference are removed as germline or parental differences. Without "
+          "controls, SHMtrace falls back to a Poisson-binomial test based on read qualities."),
+    ("p", "A unique variant is a position–substitution pair counted once per sample. Unique-variant density is the "
+          "number of unique variants per analyzed base × 10^{5}, and mutation frequency is the number of "
+          "supporting reads per base sequenced. The Geneious rule was reproduced as an uncorrected approximate "
+          "p ≤ 0.05 per candidate, which matched Geneious exports site by site (Jaccard index 0.97–0.98 on Wt "
+          "J_{H}4)."),
+    ("h2", "Single-read estimate, clones, mutation trees, and quality checks"),
+    ("p", "Mutations carried by a single read are estimated in aggregate. SHMtrace counts single-read events at "
+          "base quality ≥ 35 that were not otherwise called, subtracts the control rate of such events scaled to "
+          "the sample's bases, and divides by the proportion of correctly read bases at that quality. The 95% "
+          "interval combines Poisson noise, between-control overdispersion, and the uncertainty of the control "
+          "rate."),
+    ("p", "Clones are defined by the 20 bases immediately 5′ of the alignment start in reads that begin within "
+          "18 bp of J_{H}4. These junction sequences are clustered greedily against abundance-ranked centroids at "
+          "an edit distance of ≤ 3, allowing a free 5′ end. A clone's mutations are the calls carried by at least "
+          "half of its reads, and the clone-weighted frequency counts each clone once. To build mutation trees, "
+          "calls present in two or more reads of a clone and carried by nearly the same reads (Jaccard index "
+          "≥ 0.9) are merged into one node, and each node's parent is the smallest node whose reads include at "
+          "least 90% of its own. A read fits the tree when its nodes lie on a single path from the root. Two calls "
+          "fail the four-gamete test when reads carrying both, either one alone, and neither are all present, each "
+          "in at least two reads."),
+    ("p", "The targeting index is the mean S5F mutability[@yaari2013] at mutated positions divided by the mean over "
+          "the window, with a one-sided permutation p value from 2,000 random sets of positions; the model was "
+          "exported from SHazaM 1.2.0. Positional clustering flags any 10-base window containing more calls than a "
+          "Poisson distribution allows (Bonferroni correction across windows, p < 10^{−3}). Sanger chromatograms "
+          "are assigned to animals through a sample sheet and trimmed to their longest stretch of base quality "
+          "≥ 20 that aligns cleanly, and every substitution at quality ≥ 20 is counted after the germline filter. "
+          "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
+          "shared between animals beyond chance (Poisson test weighted by mutation frequency across animals), "
+          "control clones with excess mutations, label mismatches, and outliers in mutation load."),
     ("h2", "Benchmark against LoFreq and the Geneious rule"),
-    ("p", "For each library, the reads SHMtrace analyzed were written out and aligned with minimap2 (same preset, "
-          "secondary alignments off), sorted and indexed with SAMtools, and called with LoFreq 2.1.5 `call` restricted "
-          "to the analysis window at three settings: defaults (base-alignment quality on, Bonferroni correction, "
-          "default filters); `-B` (base-alignment quality off); and `-B -a 0.05 -b 1 --no-default-filter` "
-          "(uncorrected p ≤ 0.05, filters off). Substitutions at allele frequency < 0.5 were kept, matching "
-          "SHMtrace's germline rule. All callers share one density denominator per library. In spike-in tests, 60 "
-          "sites per replicate were chosen with WRC/GYW weighted 4× and WA/TW 2×, and each substitution was written "
-          "into 1, 2, 3, 5, 10 or 20 reads covering it, keeping the read's own base quality; three replicates per "
-          "held-out control. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, validated with "
-          "vdb-validate and subsampled to 6,000 reads (seed 0); each locus' reference was the majority consensus of "
-          "its first *Aicda*^{−/−} library (minimap2 and SAMtools consensus, iterated to convergence)."),
+    ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
+          "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
+          "called with LoFreq 2.1.5 `call`, restricted to the analysis window, at three settings: default settings "
+          "(base-alignment quality on, Bonferroni correction, default filters); `-B` (base-alignment quality off); "
+          "and `-B -a 0.05 -b 1 --no-default-filter` (uncorrected p ≤ 0.05, filters off). Substitutions at an "
+          "allele frequency below 0.5 were kept, matching SHMtrace's germline filter, and all callers used the same "
+          "density denominator for each library. In the spike-in tests, 60 sites per replicate were chosen with "
+          "WRC/GYW motifs weighted 4-fold and WA/TW motifs 2-fold, and each substitution was written into 1, 2, 3, "
+          "5, 10, or 20 reads covering that site while keeping each read's own base quality. Three replicates were "
+          "performed for each held-out control. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, "
+          "validated with vdb-validate, and subsampled to 6,000 reads (seed 0). The reference for each locus was "
+          "the majority consensus of its first *Aicda*^{−/−} library, built with minimap2 and SAMtools consensus "
+          "and iterated to convergence."),
     ("h2", "Simulations"),
-    ("p", "Lineage simulations dealt the reads of one AID-null library into about 40 clones with power-law sizes, "
-          "gave each a random 20-bp junction and J trimming (−3 to +12 bp), and planted trunk, branch, sub-branch and "
-          "private mutations placed by the S5F model, with gamma-distributed loads; in the expanded scenario one "
-          "unmutated clone held 60% of reads. Each control was held out in turn with the other two as background. "
-          "Quantification accuracy was measured on the same design at 125, 250, 500 and 1,000 reads for J_{H}4 and "
-          "N114 (168 libraries). Group tests were simulated as log-normal animal rates (coefficient of variation 1) "
-          "with negative-binomial counts on 500 reads × 526 bp per animal, 300 experiments per condition. Sanger "
-          "projects (40) were simulated with realistic trace qualities, unusable traces and one of each bookkeeping "
-          "error planted."),
+    ("p", "For lineage simulations, the reads of one AID-deficient library were divided into approximately 40 "
+          "clones with power-law sizes. Each clone received a random 20-bp junction and J trimming (−3 to +12 bp), "
+          "and trunk, branch, sub-branch, and private mutations were placed according to the S5F model with "
+          "gamma-distributed mutation loads. In the expanded-clone scenario, one unmutated clone made up 60% of "
+          "reads. Each control was held out in turn, with the other two as background. Quantification accuracy "
+          "was measured with the same design at 125, 250, 500, and 1,000 reads for J_{H}4 and N114 (168 "
+          "libraries). Group tests were simulated with log-normal animal rates (coefficient of variation of 1) and "
+          "negative-binomial counts on 500 reads × 526 bp per animal, with 300 experiments per condition. Forty "
+          "Sanger projects were simulated with realistic trace qualities, unusable traces, and one of each "
+          "bookkeeping error planted."),
     ("h2", "Public Illumina and UMI datasets"),
-    ("p", "PRJNA973112 (J_{H}4, positions 53–122, 5,000 merged pairs per mouse), PRJNA918596 (CH12F3 VDJ, positions "
-          "21–249, 5,000 reads per replicate) and PRJNA820976 (Ramos VDJ, positions 26–446, 20,000 reads per clone, "
-          "indels on) were analyzed with the same engine and Illumina settings, the AID-null groups as controls, and "
-          "the S5F model; the CH12F3 and Ramos references were majority consensuses of the control reads. These "
-          "libraries are resequenced far beyond one read per molecule, so mutation frequency, not distinct-call "
-          "density, was compared. UMI consensus was evaluated on 4,259 R10 reads of rRNA operons with 18-nt UMIs at "
-          "both ends[@karst2021]: reads were grouped by UMI (up to three edits per end, directional merging of rare "
-          "UMIs) and each group of three or more reads became one quality-weighted consensus, scored against the "
-          "community's 43 known operon sequences."),
+    ("p", "PRJNA973112 (J_{H}4, positions 53–122, 5,000 merged read pairs per mouse), PRJNA918596 (CH12F3 VDJ, "
+          "positions 21–249, 5,000 reads per replicate), and PRJNA820976 (Ramos VDJ, positions 26–446, 20,000 "
+          "reads per clone, with indel calling) were analyzed with the same analysis engine and Illumina settings, "
+          "using the AID-deficient groups as controls and the S5F model. The CH12F3 and Ramos references were the "
+          "majority consensus of the control reads. Because these libraries are sequenced far beyond one read per "
+          "molecule, mutation frequency rather than unique-variant density was compared. UMI consensus was "
+          "evaluated on 4,259 R10 reads of rRNA operons carrying 18-nt UMIs at both ends[@karst2021]. Reads were "
+          "grouped by UMI (allowing up to three edits per end, with directional merging of rare UMIs), and each "
+          "group of three or more reads was collapsed into one quality-weighted consensus, which was scored against "
+          "the 43 known operon sequences of the mock community."),
 ]
 
 QUANT = [
-    "Groups were compared with one value per animal (or independent subclone or clone). The negative-binomial test "
-    "fits each group's rate with one shared dispersion, as in DESeq2[@love2014], and obtains p by parametric bootstrap; "
-    "the Welch test uses log_{10} rates, with libraries without calls placed at their one-event density so that folds "
-    "are lower bounds; the permutation test is exact. Folds are ratios of geometric means. Spectra were compared by "
-    "pooled Pearson correlation across the 12 substitution types with a Fisher interval, a repeated-measures "
-    "platform-by-type interaction with mouse as the matching factor and paired Šídák-adjusted t tests. Sample sizes, "
-    "tests and dispersion measures are given in each figure legend. Analyses used Python 3.13 with NumPy and "
+    "Groups were compared with one value per animal (or per independent subclone or clone). The negative-binomial "
+    "test fits each group's rate with one shared dispersion, as in DESeq2[@love2014], and obtains p values by "
+    "parametric bootstrap. The Welch test uses log_{10} rates, with libraries without calls placed at their "
+    "one-event density, so that folds are lower bounds. The permutation test is exact. Folds are ratios of "
+    "geometric means. Spectra were compared by pooled Pearson correlation across the 12 substitution types with "
+    "a Fisher interval, by a repeated-measures test of the platform-by-substitution-type interaction with mouse "
+    "as the matching factor, and by paired Šídák-adjusted t tests. Sample sizes, statistical tests, and "
+    "dispersion measures are given in each figure legend. Analyses used Python 3.13 with NumPy and "
     "SciPy[@virtanen2020].",
 ]
 
 LEGENDS = [
-    ("Figure 1. SHMtrace calibrates every call against matched AID-null libraries",
+    ("Figure 1. SHMtrace calibrates every call against matched AID-deficient libraries",
      "(A) A read-level test judges each base by its own quality score, so errors that recur at one position pass as "
-     "mutations; SHMtrace measures the error rate of each substitution, strand and quality in AID-null libraries of "
+     "mutations; SHMtrace measures the error rate of each substitution, strand and quality in AID-deficient libraries of "
      "the same run and calls only support beyond it. ✓, correct decision; ✕, wrong decision. "
      "(B) Inputs and read preparation. (C) Calling and automatic checks; numbered steps run in order. (D) Outputs. "
      "FDR, false-discovery rate. See also Figure S1."),
     ("Figure 2. Planted mutations and simulated lineages calibrate recall and false calls",
-     "(A and B) Recall of mutations planted into reads of a held-out AID-null library (J_{H}4, A; N114, B), by the "
+     "(A and B) Recall of mutations planted into reads of a held-out AID-deficient library (J_{H}4, A; N114, B), by the "
      "number of reads carrying each, for SHMtrace, the uncorrected Geneious rule and LoFreq at three settings; 60 "
      "sites × 3 replicates × 3 held-out controls per amplicon. (C) Overall recall against false calls per library for "
      "every caller and amplicon (colors as in A; shapes, amplicon: J_{H}4 and N114 at 500 reads, Sμ and *Pim1* "
@@ -197,16 +222,16 @@ LEGENDS = [
      "dashed); mean of 3 held-out controls. (G) Share of 300 simulated experiments per condition with p < 0.05 for "
      "four group tests; dotted line, 0.05. See also Figure S5."),
     ("Figure 3. On real libraries, matched controls set the background",
-     "(A–E) Distinct calls per 10^{5} analyzed bases in AID-competent (blue) and AID-null (red) libraries for each "
+     "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-deficient (red) libraries for each "
      "caller on the same reads; triangles, libraries without calls. J_{H}4, 3 wild-type and 3 *Aicda*^{−/−} mice; "
      "N114, 3 pMX-*Aicda* and 3 empty-vector subclones (500 reads each); Sμ and *Pim1* (PRJNA1481264), 3–4 "
      "AID-competent and 3 *Aicda*^{−/−} libraries (2,000 reads each). (F) Separation: geometric mean of AID-competent "
-     "over AID-null densities, libraries without calls at their one-event density. (G) Calls summed over the three "
-     "AID-null libraries. (H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
+     "over AID-deficient densities, libraries without calls at their one-event density. (G) Calls summed over the three "
+     "AID-deficient libraries. (H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
      "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S2 "
      "and S3 and Table S2."),
     ("Figure 4. Nanopore and Sanger sequencing agree in the same mice",
-     "(A) Distinct calls per 10^{5} bases per mouse (n = 3 per genotype) from Sanger clones (26–40 per wild-type "
+     "(A) Unique variants per 10^{5} bases per mouse (n = 3 per genotype) from Sanger clones (26–40 per wild-type "
      "mouse, re-analyzed from chromatograms) and from nanopore reads (500 per mouse); bars, geometric means; p, Welch "
      "test on log densities; nanopore fold is a lower bound (one control without calls at one event). (B) Pooled "
      "share of each of 12 substitution types ({n_sanger} Sanger, {n_ont} nanopore calls, 3 wild-type mice); dashed line, "
@@ -215,7 +240,7 @@ LEGENDS = [
      "share of such sites. (E) Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects. "
      "See also Figure S4."),
     ("Figure 5. Long reads add whole-amplicon maps, clones and mutation trees",
-     "(A) Distinct calls per 10^{5} bases in 50-bp bins over J_{H}4 positions 90–1,230; thin lines, wild-type mice; "
+     "(A) Unique variants per 10^{5} bases in 50-bp bins over J_{H}4 positions 90–1,230; thin lines, wild-type mice; "
      "thick lines, means (n = 3 per genotype); shading, the window shared with Sanger. (B) Calls per position by "
      "quintile of S5F mutability for wild-type calls and for every *Aicda*^{−/−} mismatch (germline sites excluded), "
      "relative to each series' mean; targeting index, permutation test. (C) Reads with a V(D)J junction by clone "
@@ -224,7 +249,7 @@ LEGENDS = [
      "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S6."),
     ("Figure 6. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
-     "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
+     "B cells, and AID-deficient; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
      "in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and R174E/R178E mutants and empty "
      "vector (PRJNA918596; n = 4). (C) Spectrum and targeting of AID and R174E/R178E calls; the mutant's calls cluster "
      "at positions {ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
@@ -233,7 +258,7 @@ LEGENDS = [
 ]
 
 TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
-TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls", "Used for"]
+TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-deficient controls", "Used for"]
 TABLE1 = [
     ("J_{H}4, this study", "ONT R10.4.1", "J_{H}4 intron (529 bp; 1,141 bp)", "GC B cells, 3 Wt mice",
      "3 *Aicda*^{−/−} mice, same run", "Figures 2–5"),
@@ -243,7 +268,7 @@ TABLE1 = [
      "10–11 clones per *Aicda*^{−/−} mouse", "Figure 4"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figure 3"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figure 3"),
-    ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-null mice",
+    ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-deficient mice",
      "Figure 6"),
     ("PRJNA918596[@wang2023]", "Illumina", "VDJ (229 bp)", "AID, R50E, R174E/R178E (4 each)",
      "4 empty-vector replicates", "Figure 6"),

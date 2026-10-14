@@ -29,7 +29,7 @@
   I('s-mouse-c57bl-6-black-realistic', 720, 110, 84, { flipX: true });
   I('s-mouse-c57bl-6-black-realistic', 880, 110, 84, { flipX: true });
   TC('samples', 720, 160, { fontSize: SM, color: CASE, bold: true });
-  TC('AID-null', 880, 160, { fontSize: SM, color: CTRL, bold: true });
+  TC('AID-deficient', 880, 160, { fontSize: SM, color: CTRL, bold: true });
   TC('controls', 880, 192, { fontSize: SM, color: CTRL, bold: true });
   TC('same sequencing run', 800, 232, { fontSize: SM - 3, color: MID });
 
@@ -38,7 +38,7 @@
   o.push(Make.image(LOGO, 70, 375, 120, 120));
   T('SHMtrace', 220, 372, { fontSize: BIG, bold: true, color: TEAL });
   T('each candidate mutation tested against', 220, 428, { fontSize: MED, color: MID });
-  T('the errors of matched AID-null libraries;', 220, 466, { fontSize: MED, color: MID });
+  T('the errors of matched AID-deficient libraries;', 220, 466, { fontSize: MED, color: MID });
   T('groups compared animal by animal', 220, 504, { fontSize: MED, color: MID });
 
   // 3. outcomes
@@ -55,14 +55,14 @@
     const m = ys.reduce((a, b) => a + b) / 3; SEG(cx - 40, m, cx + 40, m, 3.4, e);
   });
   SEG(x + 30, by + 290, x + bw - 30, by + 290, 2.4, INK);
-  TC('0–3 calls per control set', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
+  TC('1–4 calls per control set', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
   // b. spectrum agreement
   x = 30 + bw + 24;
   const pts = [[0.1, 0.12], [0.2, 0.17], [0.3, 0.33], [0.42, 0.38], [0.5, 0.55], [0.63, 0.6], [0.75, 0.8], [0.85, 0.9]];
   SEG(x + 40, by + 280, x + bw - 30, by + 280, 2.4, INK); SEG(x + 40, by + 80, x + 40, by + 280, 2.4, INK);
   SEG(x + 40, by + 280, x + bw - 40, by + 90, 2, OUTL);
   pts.forEach(([a, b]) => E(x + 40 + a * (bw - 80), by + 280 - b * 190, 16, { fill: TEAL }));
-  TC('nanopore vs Sanger, r = 0.93', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
+  TC('nanopore vs Sanger, r = 0.92', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
   // c. tree
   x = 30 + 2 * (bw + 24);
   const rx = x + 40, ry = by + 190;
@@ -75,5 +75,5 @@
   LINK(top, 's', mid, 'n');
   outs.forEach((c) => LINK(mid, 's', c, 'n', { style: 'elbow' }));
   return { id: 'crm-ga', name: 'Graphical abstract', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Graphical abstract: sample reads and matched AID-null controls from nanopore, Sanger or Illumina sequencing are analyzed by SHMtrace, which suppresses background, agrees with Sanger and adds clones and trees.' };
+    alt: 'Graphical abstract: sample reads and matched AID-deficient controls from nanopore, Sanger or Illumina sequencing are analyzed by SHMtrace, which suppresses background, agrees with Sanger and adds clones and trees.' };
 }

@@ -155,7 +155,7 @@
     [5, 'Candidate substitutions', ['every base that differs from the', 'reference in the analyzed window;', 'one supporting read suffices']],
     [6, 'Control error model', ['error rate per substitution, strand and', 'base quality from the AID-null controls;', 'margin (5× J_{H}4, 10× N114) set by', 'leave-one-control-out']],
     [7, 'Significance and filtering', ['reads supporting each candidate are', 'tested against expected errors;', 'FDR ≤ 0.05 set by control decoys;', 'sites at ≥ 50% removed (germline)']],
-    [8, 'Animal-level summary', ['distinct calls per base sequenced;', 'spectra, clones and lineage trees;', 'the mouse or subclone is the unit']],
+    [8, 'Animal-level summary', ['unique variants per base sequenced;', 'spectra, clones and lineage trees;', 'the mouse or subclone is the unit']],
   ], c0, ch, TEAL);
   x = cc[0].cx; let rw = cc[0].cw - 40;
   R(x + 14, c0 + 52, rw, 3, { fill: INK });

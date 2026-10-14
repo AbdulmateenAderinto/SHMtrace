@@ -45,10 +45,11 @@ def public_numbers():
     reads = [r["reads"] for r in rec]
     a, b = rng(rec, False), rng(rec, True)
     ga, gb = rng(gen, False), rng(gen, True)
-    n["pim1_deep"] = (f"and with all usable reads ({min(reads):,}–{max(reads):,} per library) SHMtrace called {a[0]}–{a[1]} "
-                      f"mutations per AID-competent library and {'none' if b[1] == 0 else f'{b[0]}–{b[1]}'} in the "
-                      f"controls, and the Geneious rule {ga[0]}–{ga[1]} and {gb[0]}–{gb[1]}: at a weak AID target, signal stays close "
-                      "to the background even at the full depth available (Table S2).")
+    n["pim1_deep"] = (f"With all usable reads ({min(reads):,}–{max(reads):,} per library), SHMtrace called "
+                      f"{a[0]}–{a[1]} mutations per AID-competent library and "
+                      f"{'none' if b[1] == 0 else f'{b[0]}–{b[1]}'} per control, and the Geneious rule called "
+                      f"{ga[0]}–{ga[1]} and {gb[0]}–{gb[1]}, respectively. At a weak AID target, the signal therefore "
+                      "remains close to the background even at the full depth available (Table S2).")
     # Illumina J_H4 (Ldha)
     p = json.load(open(OUT / "public/ldha/project.json"))
     f = {g: [s["mutation_frequency_x1e3"] for s in p["samples"] if s["group"] == g] for g in ("WT", "LDHA_KO", "AID_KO")}
@@ -112,6 +113,14 @@ def fill_modules(n):
     STATS, SUPP_FIGS = fill_all(STATS, n), fill_all(SUPP_FIGS, n)
 
 
+def check_figure_numbers(n):
+    """The graphical abstract is drawn in SciCanvas with its numbers typed in: they must match the analysis."""
+    ga = (CRM / "scicanvas/crm_ga.js").read_text()
+    for text in (f"{n['ctl_rec']} calls per control set", f"r = {n['r_spec']}"):
+        if text not in ga:
+            raise RuntimeError(f"graphical abstract is stale: expected '{text}' in scicanvas/crm_ga.js")
+
+
 def check_limits():
     words = lambda s: len(s.split())   # noqa: E731
     sw = word_count([("p", T.SUMMARY)])
@@ -128,6 +137,7 @@ def main(outdir):
     out.mkdir(parents=True, exist_ok=True)
     n = {**crm_numbers.compute(), **public_numbers()}
     fill_modules(n)
+    check_figure_numbers(n)
     sw = check_limits()
     m = Manuscript()
     # ---- title page
@@ -261,9 +271,9 @@ def main(outdir):
 
 
 STATS = [
-    ("J_{H}4, Wt vs *Aicda*^{−/−} (nanopore, distinct-call density)", "Welch t on log_{10}; n = 3 vs 3",
+    ("J_{H}4, Wt vs *Aicda*^{−/−} (nanopore, unique-variant density)", "Welch t on log_{10}; n = 3 vs 3",
      "≥ {ont_fold}-fold; p = {ont_p}"),
-    ("J_{H}4, Wt vs *Aicda*^{−/−} (Sanger, distinct-call density)", "Welch t on log_{10}; n = 3 vs 3",
+    ("J_{H}4, Wt vs *Aicda*^{−/−} (Sanger, unique-variant density)", "Welch t on log_{10}; n = 3 vs 3",
      "{sanger_fold}-fold; p = {sanger_p}"),
     ("N114, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "≥ {sep_n114}-fold"),
     ("J_{H}4, full length (positions 90–1,230)", "geometric means", "{full_wt} vs {full_ko} × 10^{−5}; ~{full_fold}-fold"),
@@ -290,18 +300,18 @@ SUPP_FIGS = [
      "(A) Experimental design for the J_{H}4 and N114 assays. (B and C) Read preparation and variant calling as run by "
      "SHMtrace from the delivered reads. (D) The Sanger route. (E) The fate of every delivered read per library; line, "
      "the 500 reads analyzed."),
-    ("Figure S2. Sequencing depth and distinct-call discovery, related to Figure 3",
+    ("Figure S2. Sequencing depth and unique-variant discovery, related to Figure 3",
      [MC / "FigureS3_depth_discovery_density.png", MC / "FigureS4_saturation.png"],
      "Each library was analyzed at 30–1,000 reads (one random draw of usable reads per depth), with controls "
-     "calibrated at the same depth. Top, distinct calls and density against depth (geometric mean ± geometric SD, "
+     "calibrated at the same depth. Top, unique variants and density against depth (geometric mean ± geometric SD, "
      "n = 3 per group). Bottom, calls at each depth relative to each AID-active sample's maximum (mean ± SD); at 500 "
      "reads, {depth_jh4_500}% (J_{H}4) and {depth_n114_500}% (N114)."),
     ("Figure S3. N114 V-region results and per-library spectra, related to Figure 3",
      [MC / "Figure4_hybridoma_combined.png", MC / "FigureS6_individual_JH4_ONT_matrices.png",
       MC / "FigureS7_individual_N114_matrices.png"],
-     "Top, N114 distinct-call density per subclone (n = 3 per vector; empty-vector subclones without calls at one "
+     "Top, N114 unique-variant density per subclone (n = 3 per vector; empty-vector subclones without calls at one "
      "event) and pooled spectra. Middle and bottom, From → To substitution matrices for each J_{H}4 mouse and N114 "
-     "subclone; each cell gives distinct calls and their share of the sample's calls."),
+     "subclone; each cell gives unique variants and their share of the sample's calls."),
     ("Figure S4. Sanger re-analysis, related to Figure 4",
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
      "Top, substitution matrices for each mouse's Sanger clones (re-analyzed from 447 chromatograms; base quality "

@@ -78,8 +78,8 @@ def fig3():
     ax.set_ylim(0.2, 1000)
     ax.set_xticks([0, 1], ["Wt", "Aicda$^{-/-}$"])
     ax.set_xlim(-0.5, 1.5)
-    ax.set_ylabel("Distinct calls per 10$^5$ bases")
-    ax.set_title("Wt vs AID-null", fontsize=7)
+    ax.set_ylabel("Unique variants per 10$^5$ bases")
+    ax.set_title("Wt vs AID-deficient", fontsize=7)
     letter(ax, "A", dx=-0.45)
     # B read accounting
     ax = fig.add_subplot(gs[0, 1:])
@@ -115,7 +115,7 @@ def fig3():
     ax.bar(range(12), [100 * counts[t_] / tot for t_ in TYPES], color=cols)
     ax.set_xticks(range(12), [t_.replace(">", "→") for t_ in TYPES], rotation=0, fontsize=5.5)
     ax.set_ylabel("Share of Wt calls (%)")
-    ax.set_title(f"Spectrum, three Wt mice pooled (n = {tot} distinct calls)", fontsize=7)
+    ax.set_title(f"Spectrum, three Wt mice pooled (n = {tot} unique variants)", fontsize=7)
     from matplotlib.patches import Patch
     ax.legend(handles=[Patch(color="#2c5d8a", label="from G:C"), Patch(color="#d9952b", label="from A:T")],
               fontsize=5.5, loc="upper right")
@@ -199,7 +199,7 @@ def fig4():
     ax.minorticks_off()
     ax.axvline(500, color=SOFT, lw=0.6, ls=":")
     ax.set_xlabel("Reads analyzed")
-    ax.set_ylabel("Distinct calls (geometric mean)")
+    ax.set_ylabel("Unique variants (geometric mean)")
     ax.set_title("Depth", fontsize=7)
     ax.legend(fontsize=5.5, loc="center right")
     letter(ax, "C", dx=-0.3)

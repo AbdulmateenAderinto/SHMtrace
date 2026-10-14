@@ -1,8 +1,8 @@
-"""Figure 3: on real libraries with matched AID-null controls, the controls set the background.
+"""Figure 3: on real libraries with matched AID-deficient controls, the controls set the background.
 
-A-E  distinct-call density per library (case blue, AID-null control red) for each caller, five datasets
+A-E  unique-variant density per library (case blue, AID-deficient control red) for each caller, five datasets
 F    separation: geometric-mean case density over control density (controls without calls at one event)
-G    calls made in the AID-null control libraries, summed per dataset
+G    calls made in the AID-deficient control libraries, summed per dataset
 H    leave-one-control-out calibration: share of held-out control tests with p < 0.01 against the margin
 I    what SHMtrace did with every delivered read (J_H4 and N114 totals)
 """
@@ -68,15 +68,15 @@ def main():
         ax.set_xlim(-0.6, len(SHOW) - 0.4)
         ax.set_title(title, fontsize=6.5)
         if i == 0:
-            ax.set_ylabel("Distinct calls per 10$^5$ bases")
+            ax.set_ylabel("Unique variants per 10$^5$ bases")
         letter(ax, "ABCDE"[i], dx=-0.3 if i == 0 else -0.22)
     # legend for case / control
     h = [plt.Line2D([], [], marker="o", ls="", ms=3.5, mfc=CASEF, mec=CASE, label="AID-competent"),
-         plt.Line2D([], [], marker="o", ls="", ms=3.5, mfc=CTRLF, mec=CTRL, label="AID-null control"),
+         plt.Line2D([], [], marker="o", ls="", ms=3.5, mfc=CTRLF, mec=CTRL, label="AID-deficient control"),
          plt.Line2D([], [], marker="v", ls="", ms=3.5, mfc="white", mec=MID, label="no calls (below dotted line)")]
     fig.legend(handles=h, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.995), fontsize=6)
     # F: separation fold, G: control calls (dot/heat tables)
-    for p, (idx, title, which) in enumerate(((0, "Separation, case / control", 0), (1, "Calls in AID-null controls", 1))):
+    for p, (idx, title, which) in enumerate(((0, "Separation, case / control", 0), (1, "Calls in AID-deficient controls", 1))):
         ax = fig.add_subplot(row2[0, idx])
         mat = np.full((len(avail), len(SHOW)), np.nan)
         for i, (key, _t) in enumerate(avail):
