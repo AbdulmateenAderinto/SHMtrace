@@ -95,7 +95,7 @@
   const steps = [
     ['Target-read selection', ['removes over-length, low-quality,', 'chimeric and paralogous reads']],
     ['Control-calibrated variant calling', ['each substitution is tested against the', 'error rate measured in the AID-null',
-      'controls (Benjamini–Hochberg FDR ≤ 0.05)']],
+      'controls (FDR ≤ 0.05 set by control decoys)']],
     ['Animal-level statistics', ['one value per mouse or subclone;', 'reads are not treated as replicates']],
   ];
   let sy = 239;
