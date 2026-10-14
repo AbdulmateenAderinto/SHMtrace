@@ -36,11 +36,12 @@ def fig2():
     setup()
     fig = plt.figure(figsize=(FULL, 118 * MM))
     gs = gridspec.GridSpec(2, 2, figure=fig, left=0.03, right=0.99, top=0.96, bottom=0.02, wspace=0.08, hspace=0.12)
-    shots = [("app_setup.png", "A"), ("app_results.png", "B"), ("app_tables.png", "C"), ("app_power.jpg", "D")]
+    shots = [("app_setup.png", "A"), ("app_results.png", "B"), ("app_tables.png", "C"), ("app_power.png", "D")]
     for k, (f, lab) in enumerate(shots):
         ax = fig.add_subplot(gs[k // 2, k % 2])
         im = Image.open(SCREENS / f)
         ax.imshow(im, interpolation="lanczos")
+        ax.set_anchor("N")          # top-align each screenshot in its cell (the Tables view is short)
         ax.set_xticks([])
         ax.set_yticks([])
         for s in ax.spines.values():
