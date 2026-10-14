@@ -79,6 +79,18 @@ def test_a_control_far_noisier_than_its_peers_is_named():
     assert project.noisy_decoys({"K1": clean, "K3": dirty}) == []
 
 
+def test_two_controls_far_apart_are_flagged_but_both_kept():
+    clean = ([0.02, 0.3, 0.6], 100000)
+    dirty = ([1e-6] * 30 + [0.3], 100000)
+    one = ([0.005, 0.3], 100000)
+    noisier, other, fold = project.uneven_control_pair({"K1": clean, "K3": dirty})
+    assert (noisier, other, fold) == ("K3", "K1", float("inf"))
+    assert project.uneven_control_pair({"K1": one, "K3": dirty})[:2] == ("K3", "K1")
+    assert project.uneven_control_pair({"K1": clean, "K3": clean}) is None
+    assert project.uneven_control_pair({"K1": clean, "K3": ([1e-6] * 4, 100000)}) is None   # too few calls
+    assert project.uneven_control_pair({"K1": clean, "K2": clean, "K3": dirty}) is None     # three: noisy_decoys
+
+
 def test_a_noisy_control_is_set_aside_as_a_decoy_but_never_leaves_none():
     clean = ([0.02, 0.3], 100000)
     dirty = ([1e-6] * 30, 100000)

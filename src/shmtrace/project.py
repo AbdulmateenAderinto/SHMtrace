@@ -351,6 +351,24 @@ def noisy_decoys(decoys: dict, p_at: float = 0.01, fold: float = 5.0, min_calls:
     return sorted(out)
 
 
+def uneven_control_pair(decoys: dict, p_at: float = 0.01, fold: float = 5.0,
+                        min_calls: int = 5) -> tuple[str, str, float] | None:
+    """With exactly two controls noisy_decoys has no majority to compare against, so it
+    cannot say which control is wrong. Return (noisier, other, fold difference) when one
+    control's held-out candidates at p <= p_at, per base, exceed `fold` times the other's
+    (and number at least `min_calls`); None otherwise. The fold is inf if the other has none."""
+    from bisect import bisect_right
+    rate = {c: (bisect_right(pv, p_at), b) for c, (pv, b) in decoys.items() if b}
+    if len(rate) != 2:
+        return None
+    (hi_c, (n_hi, b_hi)), (lo_c, (n_lo, b_lo)) = sorted(rate.items(), key=lambda kv: -kv[1][0] / kv[1][1])
+    if n_hi < min_calls:
+        return None
+    r_hi, r_lo = n_hi / b_hi, n_lo / b_lo
+    ratio = r_hi / r_lo if r_lo else float("inf")
+    return (hi_c, lo_c, ratio) if ratio > fold else None
+
+
 def _tally(drawn, ref, lo, hi):
     # every library at the analysed depth, drawn as analyse() draws it (by the caller): the
     # estimate is divided by the analysed reads' bases, so counting events in a deeper
@@ -518,6 +536,10 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # tallies, indel nulls, the Sanger germline) is built first; each sample is then
     # called on its own, in this process or on several (parallel.py, Params.jobs).
     noisy = noisy_decoys(decoys)
+    uneven = uneven_control_pair(decoys)
+    if uneven:
+        calibration["uneven_control_pair"] = {"noisier": uneven[0], "other": uneven[1],
+                                              "fold": round(uneven[2], 1) if uneven[2] != float("inf") else None}
     if decoys:
         # each control's held-out candidates at p <= 0.01 per 1e5 bases: what noisy_decoys compares
         calibration["decoy_noise_x1e5"] = {c: round(1e5 * bisect_right(pv, 0.01) / b_, 3) if b_ else None
@@ -617,6 +639,14 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                "mutations")
             + ". Check it (contamination, a mutated or mislabeled library); if it is not a clean control, "
             "analyze it as a sample instead.")
+    if uneven:
+        fold = "many times" if uneven[2] == float("inf") else f"{uneven[2]:.0f} times"
+        notes.append(
+            f"Control {uneven[0]} gives {fold} more background candidates per base than control {uneven[1]}. "
+            "With only two controls SHMtrace cannot tell which one is wrong, so both were kept; the noisier one "
+            "raises the false calls expected in every sample and can suppress real mutations. Check it "
+            "(contamination, a mutated or mislabeled library), rerun with it marked as a sample to compare, "
+            "or add a third control so a noisy one is set aside automatically.")
     if want_indels and not sanger and len(controls) < 2:
         notes.append("Indels need a control other than the sample itself, so they were "
                      + ("not called." if not controls else

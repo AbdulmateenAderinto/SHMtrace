@@ -287,6 +287,7 @@ async function runProject() {
     over.analysis_window = [+m[1], +m[2]];
   }
   if ($("maxp").value.trim()) over.max_pvalue = +$("maxp").value;
+  over.jobs = +$("jobs").value;
   if ($("call-indels").checked) over.exclude_indels = false;
   if ($("umi").value !== "off") {
     over.umi = $("umi").value;
