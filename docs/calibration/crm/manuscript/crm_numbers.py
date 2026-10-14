@@ -334,6 +334,8 @@ def compute():
     hm = _load(OUT / "public/hmces/project.json")
     gc = [x["pct_GC"] for x in hm["samples"] if x["group"] != "AID_KO" and x.get("pct_GC") is not None]
     N["hmces_ko3_gc"] = f"{next(x for x in hm['samples'] if x['sample'] == 'AIDKO_3')['pct_GC']:.0f}"
+    hmc = [x["unique_mutations"] for x in hm["samples"] if x["group"] in ("WT", "HMCES_KO")]
+    N["hm_calls"] = f"{min(hmc)}–{max(hmc)}"
     N["hmces_ko3_calls"] = str(next(x for x in hm["samples"] if x["sample"] == "AIDKO_3")["unique_mutations"])
     k3 = _load(OUT / "public/hmces_k3/project.json")
     mut = [x for x in k3["samples"] if x["group"] in ("WT", "HMCES_KO")]

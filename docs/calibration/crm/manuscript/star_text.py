@@ -222,12 +222,12 @@ TROUBLE = [
      "instead, check the basecalling model and read quality with the provider."),
     ("Problem 2", "An AID-null control carries calls (step 19).",
      "Look at the control's spectrum and calls. Calls that look like AID's (G:C bias, WRC/GYW hotspots) suggest "
-     "contamination or a mislabeled sample; calls with another spectrum suggest a library-specific artifact. A control far "
-     "noisier than the others also suppresses calls in every sample, because each control serves as a decoy for "
-     "the false-discovery threshold; SHMtrace names such a control in the report's notes. In a public Ramos "
-     "dataset, one AID-knockout clone carried {hmces_ko3_calls} calls, {hmces_ko3_gc}% at G:C, against none in its "
-     "two siblings, and no substitution was called in any wild-type clone until it was analyzed as a sample "
-     "({hmk3_calls} calls per clone, {hmk3_gc}% at G:C). Report the analysis with and without such a control, "
+     "contamination or a mislabeled sample; calls with another spectrum suggest a library-specific artifact. Each control serves as a decoy for the "
+     "false-discovery threshold, so with three or more controls SHMtrace sets aside, as a decoy, one far noisier "
+     "than the others and names it in the report's notes (`decoys_set_aside` and `decoy_noise_x1e5` in "
+     "`calibration`); with two it cannot tell which is the odd one out. In a public Ramos dataset, one "
+     "AID-knockout clone carried {hmces_ko3_calls} calls, {hmces_ko3_gc}% at G:C, against none in its two "
+     "siblings; set aside as a decoy, wild-type and HMCES-deficient clones carried {hm_calls} calls each. Report the analysis with and without such a control, "
      "and resequence if possible."),
     ("Problem 3", "One clone dominates a library (step 22 warning).",
      "Common in Peyer's patches: in one wild-type mouse, a nearly unmutated clone held {wt2_largest}% of reads with a V(D)J "

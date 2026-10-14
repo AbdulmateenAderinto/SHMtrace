@@ -155,6 +155,10 @@ class Params:
     # "mean" over controls, or "max" (the noisiest control; guards against a sample
     # that errs more than the average control)
     control_decoy_estimate: str = "mean"
+    # a control far noisier than the others (project.noisy_decoys) is left out of the decoys,
+    # so one contaminated or poor library cannot raise every sample's threshold; it still
+    # contributes to the error model, and the project notes name it
+    exclude_noisy_decoys: bool = True
     # processes for per-library work (parallel.py): 1 = this process only (default);
     # 0 = one fewer than the cores, up to 8. Results do not depend on it. Worker
     # processes are started by "spawn", so a script that sets jobs != 1 must run its

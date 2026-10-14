@@ -82,6 +82,7 @@ def hmces_k3():
 if __name__ == "__main__":
     for key in sys.argv[1:]:
         proj = {"ldha": ldha, "ch12": ch12, "hmces": hmces, "hmces_k3": hmces_k3}[key]()
+        proj["overrides"] = {**proj.get("overrides", {}), "jobs": 0}     # all but one core; same results
         res = project.run_project(proj)
         out = OUT / key
         out.mkdir(parents=True, exist_ok=True)
