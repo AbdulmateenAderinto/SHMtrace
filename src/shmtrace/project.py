@@ -635,7 +635,30 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      "measured. Every mutation was judged from base qualities alone, "
                      "which calls more background. Mark your mutation-free samples as "
                      "controls, or sequence one on the same run.")
-    elif len(controls) < 2 and p.error_model == "qcal":
+    if controls and not sanger:
+        # Nanopore error is run-specific, so a control from another flow cell does not describe
+        # this run's background. The single-sample CLI checks this (pipeline.fit_null); project
+        # mode has to check it here, because controls arrive as samples marked control=yes.
+        def _first_file(path):
+            # a sample's path is a filename, or [[file, clone_id], ...] from a sample sheet
+            while isinstance(path, (list, tuple)) and path:
+                path = path[0]
+            return path if isinstance(path, str) else None
+        runs = {}
+        for s_ in samples:
+            f = _first_file(s_.get("path"))
+            tok = s_.get("run") or (null_model.run_token(f) if f else None)
+            if tok:
+                runs.setdefault(s_["name"] in controls, set()).add(tok)
+        ctl_runs, smp_runs = runs.get(True, set()), runs.get(False, set())
+        if ctl_runs and smp_runs and not (ctl_runs & smp_runs):
+            notes.append(
+                f"The controls come from sequencing run(s) {', '.join(sorted(ctl_runs))} and the samples from "
+                f"{', '.join(sorted(smp_runs))}. Nanopore error is run-specific, so a control from another flow "
+                "cell does not measure this run's background: if the control run was cleaner, its error model "
+                "makes this run's errors look like real mutations and calls MORE of them. Sequence a "
+                "mutation-free control alongside these samples.")
+    if len(controls) < 2 and p.error_model == "qcal" and controls:
         notes.append(f"Only one control, so the background model could not be calibrated "
                      f"by leaving a control out; the default factor "
                      f"({null_model.DEFAULT_QSCALE:g}, measured on JH4) was used instead. "

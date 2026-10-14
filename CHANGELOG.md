@@ -6,6 +6,12 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **A control from another sequencing run is now flagged in project mode.** The single-sample CLI already
+  warned; project mode did not, because controls arrive as samples marked `control=yes`. Found on a real
+  dataset where borrowing a cleaner run's AID-null controls *raised* the call count in 11 of 15 samples,
+  because the borrowed error model made this run's errors look like mutations.
+
 ### Added
 - **`n114_vregion_contaminant.fasta`**: a second V-region template the N114 F1/R2 primer pair also amplifies
   (476 bp, 4.0% divergent over N114 V positions 180-655), from 37 Sanger clones of the lab's N114 set. The app

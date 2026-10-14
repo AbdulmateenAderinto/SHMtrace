@@ -100,3 +100,18 @@ def test_a_noisy_control_is_set_aside_as_a_decoy_but_never_leaves_none():
     assert set(project.decoys_for(("K1", "K2", "K3"), decoys, aside)) == {"K1", "K2"}   # a sample
     assert set(project.decoys_for(("K2", "K3"), decoys, aside)) == {"K2"}               # control K1
     assert set(project.decoys_for(("K3",), decoys, aside)) == {"K3"}                    # nothing else left
+
+
+def test_a_control_from_another_run_is_called_out(tmp_path):
+    """Nanopore error is run-specific, so a cross-run control must be flagged (project mode)."""
+    from shmtrace import null_model
+    def fq(name, run):
+        f = tmp_path / f"{name}.fastq"
+        f.write_text(f"@0_{run}_1\nACGT\n+\nIIII\n")
+        return str(f)
+    assert null_model.run_token(fq("a", "RUNA")) == "RUNA"
+    assert null_model.run_token(fq("b", "RUNB")) == "RUNB"
+    # same-run controls raise nothing; the check lives in project.run_project and keys off these tokens
+    assert null_model.check_same_run([fq("c1", "RUNA")], fq("s1", "RUNA"))[0]
+    ok, why = null_model.check_same_run([fq("c2", "RUNB")], fq("s2", "RUNA"))
+    assert not ok and "RUNB" in why
