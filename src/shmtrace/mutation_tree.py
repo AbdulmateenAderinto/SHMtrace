@@ -67,7 +67,7 @@ def build(read_mutations: dict, min_reads: int = 2, merge: float = 0.9,
     # a read sits at the deepest node it carries; reads with no kept mutation sit at the root
     at = Counter()
     fit = []
-    for r, muts in read_mutations.items():
+    for r in read_mutations:
         mine = [n for n in nodes if r in n.reads]
         if not mine:
             at[0] += 1

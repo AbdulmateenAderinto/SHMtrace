@@ -1,6 +1,7 @@
 import random
 
-from shmtrace import clones, lineage_sim as L
+from shmtrace import clones
+from shmtrace import lineage_sim as L
 
 
 def test_clone_sizes_add_up_and_the_dominant_clone_comes_first():

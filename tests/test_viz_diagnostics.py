@@ -1,7 +1,8 @@
 """The diagnostic figures: they draw when the data is there and keep quiet when it is not."""
 import pytest
 
-from shmtrace import project, viz_diagnostics as vd
+from shmtrace import project
+from shmtrace import viz_diagnostics as vd
 
 PNG = b"\x89PNG"
 
@@ -59,7 +60,7 @@ def test_a_figure_that_raises_is_skipped_not_fatal(monkeypatch, jh4):
 
 
 def test_public_lists_the_figures_without_drawing_them(jh4, monkeypatch):
-    for name, fn, _label, _ok in vd.FIGURES:
+    for _name, fn, _label, _ok in vd.FIGURES:
         monkeypatch.setattr(vd, fn.__name__,
                             lambda *a, **k: pytest.fail("public() must not render"))
     pub = project.public(jh4)
@@ -75,6 +76,7 @@ def test_svg_and_pdf_come_out_too(jh4):
 
 def test_corrected_spectrum_uses_shmtool_denominator():
     from collections import Counter
+
     from shmtrace.project import corrected_spectrum
     # 6 C>T over 3 animals in a window with 20 C: 6 / (20 x 3)
     out = corrected_spectrum(Counter({"C>T": 6}), {"A": 10, "C": 20, "G": 5, "T": 0}, 3)

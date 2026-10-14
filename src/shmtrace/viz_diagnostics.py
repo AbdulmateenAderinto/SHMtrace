@@ -180,7 +180,6 @@ def targeting_profile(res: dict, fmt: str = "png") -> bytes | None:
     colour = _group_colour(res)
     pos_rel = sorted((float(v), int(k)) for k, v in prof.items())
     nb = 5
-    edges = [pos_rel[min(len(pos_rel) - 1, round(i * len(pos_rel) / nb))][0] for i in range(nb)]
     bin_of = {}
     for rank, (_v, pos) in enumerate(pos_rel):
         bin_of[pos] = min(nb - 1, rank * nb // len(pos_rel))
@@ -414,7 +413,6 @@ def indel_figure(res: dict, fmt: str = "png") -> bytes | None:
     # every group, including one with no indels at all: a flat zero next to a
     # tall bar is the comparison
     all_groups = list(res["group_order"])
-    n_per = Counter(s["sample"] for s in res["samples"])
     for i, g in enumerate(all_groups):
         members = [s["sample"] for s in res["samples"] if s["group"] == g] or [None]
         per = {m: [0, 0] for m in members}

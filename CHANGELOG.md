@@ -6,6 +6,8 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-13
+
 ### Changed
 - **A control far noisier than the others is set aside as a decoy** (`Params.exclude_noisy_decoys`, on by
   default): one contaminated or poor control no longer raises every sample's false-discovery threshold. It
