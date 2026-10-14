@@ -204,9 +204,11 @@ QUANT = [
 
 LEGENDS = [
     ("Figure 1. SHMtrace calibrates every call against matched AID-null libraries",
-     "(A) A read-level test judges each base by its own quality score, so errors that recur at one position pass as "
-     "mutations; SHMtrace measures the error rate of each substitution, strand and quality in AID-null libraries of "
-     "the same run and calls only support beyond it. ✓, correct decision; ✕, wrong decision. "
+     "(A) A read-level test judges each base only by its own quality score, so sequencing errors that recur at one "
+     "position (from PCR, homopolymers, or paralog reads) pass the test and are wrongly counted as SHM mutations. "
+     "SHMtrace instead measures the error rate of each substitution, strand, and base quality in AID-null libraries "
+     "of the same run and calls a mutation only when its support exceeds that background. ✓, correct decision; "
+     "✕, wrong decision. "
      "(B) Inputs and read preparation. (C) Calling and automatic checks; numbered steps run in order. (D) Outputs. "
      "FDR, false-discovery rate. See also Figure S1."),
     ("Figure 2. Planted mutations and simulated lineages calibrate recall and false calls",

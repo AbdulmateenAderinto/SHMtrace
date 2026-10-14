@@ -99,7 +99,7 @@
   panel('C', 'Calling and quality checks', 30, cy);
   const csteps = [
     ['Control error model', ['per substitution, strand and', 'base quality; a margin chosen by', 'leave-one-control-out']],
-    ['Test and FDR', ['support against expected errors;', 'FDR ≤ 0.05 set from the controls;', 'each control called vs the others']],
+    ['Test and FDR', ['support against expected errors;', 'FDR ≤ 0.05 set from the controls;', 'controls tested against each other']],
     ['Germline and window', ['sites at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional']],
     ['Automatic checks', ['spectrum (C→T/G→A share),', 'positional clustering, 5-mer', 'targeting index, Sanger', 'bookkeeping flags']],
   ];
