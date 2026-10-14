@@ -43,11 +43,11 @@
   const cols = [[0.3, [0, 2, 4], MUT], [0.72, [1, 3, 5], ERR]];
   pile(ax + 20, 100, 240, 7, cols);
   mark(ax + 20 + 0.3 * 240, 196, true); mark(ax + 20 + 0.72 * 240, 196, false);
-  [['mutation', 0.3, MUT], ['error', 0.72, ERR]].forEach(([w, f, c]) => { TC(w, ax + 20 + f * 240, 228, { fontSize: SM, color: c }); TC('called', ax + 20 + f * 240, 251, { fontSize: SM, color: c }); });
+  [['mutation', 'called', 0.3, MUT], ['error', 'miscalled', 0.72, ERR]].forEach(([w, v, f, c]) => { TC(w, ax + 20 + f * 240, 228, { fontSize: SM, color: c }); TC(v, ax + 20 + f * 240, 251, { fontSize: SM, color: c }); });
   TC('✓ correct decision   ✕ wrong decision', ax + 20 + 0.5 * 240 + 330, 246, { fontSize: SM, color: SOFT });
-  lines(['Each base is judged only by its own quality', 'score, so errors that recur at one position',
-    '(PCR, homopolymers, paralog reads) are', 'called as mutations, and reads from one', 'animal are treated as independent',
-    'replicates.'], ax + 290, 104);
+  lines(['Each base is judged only by its own quality', 'score. Sequencing errors that recur at one',
+    'position (PCR, homopolymers, paralog reads)', 'pass this test and are wrongly counted as', 'SHM mutations, and reads from one animal',
+    'are treated as independent replicates.'], ax + 290, 104);
   // A2: control-calibrated test
   const a2 = card(ax, 294, aw, 250, { stroke: TEAL, strokeWidth: 2 });
   T('Control-calibrated test (SHMtrace)', ax + 16, 304, { fontSize: HEAD, bold: true, color: TEAL });
