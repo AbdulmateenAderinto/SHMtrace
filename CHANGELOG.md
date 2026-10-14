@@ -7,6 +7,20 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Kinds of control.** The sample sheet's control column may name the control instead of "yes":
+  `aid_null`, `empty_vector`, `plasmid`, `germline_tissue` (taken to be mutation-free) or `baseline` (the cells
+  before the experiment, which may carry earlier mutations). A baseline is the control of last resort: with any
+  mutation-free control in the project it is analysed as a sample; used as the control, the notes say that calls
+  then count mutations new since the baseline and that the background estimate is conservative.
+
+### Fixed
+- **Controls without base qualities.** A control given as FASTA (or .seq, GenBank) got an invented quality on
+  every base, and quality-bearing samples judged against it were over-called (J_H4 Wt2 221 -> 234, Wt4 73 -> 81
+  calls, with no warning). Now every sample is then analysed without its qualities too (`ignore_qualities`,
+  after the read filters) and the notes say so. That is conservative (Wt2 57, Wt3 324, Wt4 72, controls 0/2/0
+  on the same data), because a mutation in one read can rarely be told from an error without qualities.
+
+### Added
 - **Germline variants from a VCF** (`germline_vcf.py`): `shmtrace-sheet run --germline-vcf` (every sample) or a
   `germline_vcf` column in the sample sheet (per animal). Every substitution the VCF lists for that animal
   (genotype not 0/0, FILTER PASS or ".") is removed from its calls, for heterozygous sites the 50% rule can miss.

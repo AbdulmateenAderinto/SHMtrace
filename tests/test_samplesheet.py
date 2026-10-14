@@ -148,3 +148,21 @@ def test_a_sheet_mixing_traces_and_reads_is_refused(tmp_path, traces):
     with pytest.raises(SystemExit, match="mixes"):
         samplesheet.main(["run", str(tmp_path / "m.csv"), "--reference", "r.fasta", "--region", "jh4_intron",
                           "-o", str(tmp_path / "out")])
+
+
+def test_the_control_column_names_the_kind_of_control(tmp_path):
+    from shmtrace import samplesheet
+    for n in ("a", "b", "c", "d"):
+        (tmp_path / f"{n}.fastq").write_text("@r\nACGT\n+\nIIII\n")
+    (tmp_path / "s.csv").write_text("file,sample,group,control\n"
+                                    "a.fastq,A,wt,no\nb.fastq,B,ko,Empty vector\n"
+                                    "c.fastq,C,d0,baseline\nd.fastq,D,ko,yes\n")
+    ss = {s["name"]: s for s in samplesheet.load(str(tmp_path / "s.csv")).samples()}
+    assert not ss["A"]["control"] and "control_kind" not in ss["A"]
+    assert ss["B"]["control"] and ss["B"]["control_kind"] == "empty_vector"
+    assert ss["C"]["control"] and ss["C"]["control_kind"] == "baseline"
+    assert ss["D"]["control"] and "control_kind" not in ss["D"]
+    (tmp_path / "bad.csv").write_text("file,sample,group,control\na.fastq,A,wt,maybe\n")
+    import pytest
+    with pytest.raises(samplesheet.SheetError, match="kind of control"):
+        samplesheet.load(str(tmp_path / "bad.csv"))

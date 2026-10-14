@@ -52,6 +52,10 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
     lo, hi = _window(p, ref_seq)
     reads = list(read_fastq(fastq))
     kept, s_pre = prefilter(reads, p, fates)
+    if p.ignore_qualities:
+        from .io_utils import FASTA_DEFAULT_Q
+        q = chr(33 + FASTA_DEFAULT_Q)
+        kept = [(n, s, q * len(s)) for n, s, _q in kept]
     aligner, target_names, contam_names = build_index([reference], contaminants,
                                                       p.minimap2_preset)
     aligned = [a for a in align_reads(kept, aligner, target_names, contam_names, p, fates)

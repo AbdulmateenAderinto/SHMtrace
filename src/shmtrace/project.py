@@ -39,7 +39,7 @@ from . import (
     targeting,
 )
 from .config import load_preset
-from .io_utils import read_fasta
+from .io_utils import read_fasta, sniff_format
 from .parallel import pmap
 from .reads_filter import downsample
 
@@ -465,8 +465,41 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     names = [s["name"] for s in samples]
     if len(set(names)) != len(names):
         raise ValueError("sample names must be unique")
-    controls = {s["name"] for s in samples if s.get("control")}
     sanger = (project.get("platform") == "sanger")
+    setup_notes: list = []
+    # A baseline (the cells before the experiment) is the control of last resort: it may carry
+    # earlier mutations. With a mutation-free control in the project it is analysed as a sample.
+    baselines = [s["name"] for s in samples if s.get("control") and s.get("control_kind") == "baseline"]
+    if baselines and any(s.get("control") and s.get("control_kind") != "baseline" for s in samples):
+        samples = [{**s, "control": False} if s["name"] in baselines else s for s in samples]
+        setup_notes.append(
+            f"{', '.join(baselines)} {'is a baseline' if len(baselines) == 1 else 'are baselines'} and the "
+            "project has a mutation-free control, so the baseline was analysed as a sample, not as a control.")
+    elif baselines:
+        setup_notes.append(
+            f"The controls are {'a baseline' if len(baselines) == 1 else 'baselines'} ({', '.join(baselines)}), not "
+            "mutation-free libraries. Mutations already present at baseline are treated as background, so the "
+            "calls count mutations that are new since the baseline, and the background estimate includes the "
+            "baseline's own mutations, which makes it conservative. An AID-null, empty-vector or plasmid library "
+            "on the same run would measure the sequencing background alone.")
+    controls = {s["name"] for s in samples if s.get("control")}
+    # Base qualities must mean the same thing in the controls and the samples. A control without
+    # them (FASTA, .seq, GenBank: every base gets FASTA_DEFAULT_Q) would make every sample error
+    # above that quality look like a mutation, so then no sample's qualities are used either.
+    def _no_quals(s):
+        files = s["path"] if isinstance(s["path"], list) else [s["path"]]
+        files = [f[0] if isinstance(f, (list, tuple)) else f for f in files]
+        return all(sniff_format(f) in ("fasta", "seq", "genbank") for f in files if isinstance(f, str))
+    if not sanger and controls:
+        ctl_noq = [s["name"] for s in samples if s["name"] in controls and _no_quals(s)]
+        smp_q = [s["name"] for s in samples if s["name"] not in controls and not _no_quals(s)]
+        if ctl_noq and smp_q:
+            p = replace(p, ignore_qualities=True)
+            setup_notes.append(
+                f"Control(s) {', '.join(ctl_noq)} have no base qualities (FASTA or similar), so every sample was "
+                "analysed without its qualities too, so that controls and samples are judged alike. This is "
+                "conservative: mutations carried by a single read can rarely be told from errors without "
+                "qualities. Supply the controls as FASTQ to use them.")
 
     # project["browse"]: keep the alignment of every read, kept or dropped, so
     # the result can be inspected read by read. Off by default: it re-runs the
@@ -633,7 +666,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         details[name] = out["res"]
 
     progress(0.92, "summarising")
-    notes = list(vcf_notes)
+    notes = setup_notes + list(vcf_notes)
     qc_out = None
     if sanger:
         # bookkeeping checks: misfiled or duplicated clones, contaminated controls (qc.py)

@@ -55,6 +55,10 @@ KNOWN = ("file", "sample", "group", "control", "clone_id", "order", "well", "lab
          "barcode", "barcode2", "germline_vcf",
          "aliases")
 YES = {"yes", "y", "true", "t", "1", "control", "x"}
+# what kind of control a library is (the control column may name it instead of "yes"). All but
+# "baseline" are taken to be free of mutations; a baseline (the cells before the experiment)
+# may carry earlier ones and is used as the control only when no mutation-free control is given.
+CONTROL_KINDS = {"aid_null", "empty_vector", "plasmid", "germline_tissue", "baseline"}
 NO = {"no", "n", "false", "f", "0", ""}
 
 
@@ -80,6 +84,7 @@ class Row:
     exclude: str = ""
     barcode: str = ""        # inline barcode(s): the file is a pooled run (demux.py)
     barcode2: str = ""
+    control_kind: str = ""   # one of CONTROL_KINDS, or "" for a plain yes
     germline_vcf: str = ""   # this animal's germline variants (germline_vcf.py), resolved
     id_given: bool = True
     extra: dict = field(default_factory=dict)
@@ -106,6 +111,8 @@ class Sheet:
         for r in self.used:
             s = out.setdefault(r.sample, {"name": r.sample, "path": [], "group": r.group,
                                           "control": r.control})
+            if r.control_kind:
+                s["control_kind"] = r.control_kind
             s["path"].append([r.file, r.clone_id])
             if r.germline_vcf:
                 s["germline_vcf"] = r.germline_vcf
@@ -275,10 +282,12 @@ def load(path: str) -> Sheet:
         if not sample:
             problems.append(f"line {ln}: no sample")
             continue
-        ctrl_txt = rec.get("control", "").lower()
-        if ctrl_txt not in YES | NO:
-            problems.append(f"line {ln}: control is '{rec['control']}'; use yes or no")
+        ctrl_txt = rec.get("control", "").lower().replace("-", "_").replace(" ", "_")
+        if ctrl_txt not in YES | NO | CONTROL_KINDS:
+            problems.append(f"line {ln}: control is '{rec['control']}'; use yes, no, or the kind of control "
+                            f"({', '.join(sorted(CONTROL_KINDS))})")
             continue
+        kind = ctrl_txt if ctrl_txt in CONTROL_KINDS else ""
         files = _expand(rec.get("file", ""), base) if rec.get("file") else []
         if not files:
             problems.append(f"line {ln}: file not found: {rec.get('file') or '(blank)'}")
@@ -307,7 +316,8 @@ def load(path: str) -> Sheet:
             if len(files) > 1 and rec.get("clone_id"):
                 cid = f"{cid}/{_stem(f)}"
             rows.append(Row(line=ln, file=os.path.abspath(f), sample=sample,
-                            group=rec.get("group") or sample, control=ctrl_txt in YES,
+                            group=rec.get("group") or sample, control=ctrl_txt in YES or bool(kind),
+                            control_kind=kind,
                             clone_id=cid, order=order, well=well, label=rec.get("label", ""),
                             exclude=rec.get("exclude", ""), id_given=given,
                             barcode=rec.get("barcode", "").upper(),
