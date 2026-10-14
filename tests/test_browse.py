@@ -89,7 +89,8 @@ def test_the_cap_keeps_the_analysed_reads_first():
         def __init__(self, n):
             self.qname, self.ctg, self.r_st, self.r_en = n, "r", 0, 10
             self.pairs, self.strand, self.indels = [], 1, []
-    import tempfile, pathlib
+    import pathlib
+    import tempfile
     fa = pathlib.Path(tempfile.mkdtemp()) / "r.fasta"
     fa.write_text(">r\n" + "A" * 40 + "\n")
     kept = [R(f"k{i}") for i in range(5)]

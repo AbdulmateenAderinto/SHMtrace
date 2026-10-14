@@ -357,7 +357,7 @@ def merge_pair(seq1: str, qual1: str, seq2: str, qual2: str, min_overlap: int = 
         seq.append(s1[:o])
         qual.append(qual1[:o])
     qc = _QCHAR
-    for b1, b2, x1, x2 in zip(s1[a:b], s2[a - o:b - o], q1[a:b], q2[a - o:b - o]):
+    for b1, b2, x1, x2 in zip(s1[a:b], s2[a - o:b - o], q1[a:b], q2[a - o:b - o], strict=False):
         if b1 == b2:
             seq.append(b1)
             qual.append(qc[min(x1 + x2, 60)])
@@ -395,7 +395,7 @@ def _best_offset(s1: str, s2: str, min_overlap: int, max_mismatch_rate: float, k
             continue
         limit = max_mismatch_rate * L
         mm = 0
-        for x, y in zip(s1[a:b], s2[a - o:b - o]):
+        for x, y in zip(s1[a:b], s2[a - o:b - o], strict=True):
             if x != y:
                 mm += 1
                 if mm > limit:

@@ -497,7 +497,7 @@ def summarise(runs: list[dict]) -> list[dict]:
     rows = []
     for key in dict.fromkeys((r["scenario"], r["mode"]) for r in runs):
         rs = [r for r in runs if (r["scenario"], r["mode"]) == key]
-        mean = lambda f: _mean([r.get(f) for r in rs])   # noqa: E731
+        mean = lambda f, rs=rs: _mean([r.get(f) for r in rs])   # noqa: E731
         bins: dict = defaultdict(lambda: [0, 0])
         for r in rs:
             for b, v in r["recall_by_support"].items():

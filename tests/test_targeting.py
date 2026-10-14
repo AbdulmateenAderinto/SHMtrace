@@ -4,7 +4,8 @@ import random
 
 import pytest
 
-from shmtrace import project, targeting as tg
+from shmtrace import project
+from shmtrace import targeting as tg
 
 
 @pytest.fixture

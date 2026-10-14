@@ -62,6 +62,7 @@ def _v(pos, ref="G", alt="A"):
 
 def test_scattered_calls_are_not_flagged_as_clustered():
     import random
+
     from shmtrace import metrics
     rng = random.Random(0)
     for _ in range(200):
