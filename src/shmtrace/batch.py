@@ -38,8 +38,11 @@ def recurring_blocks(blocks_by_sample: dict[str, list], min_shared: int) -> list
 
 def _prepare_one(fq, reference, contaminants, pp, want_fates):
     f = {} if want_fates else None
-    aligned, st = pipeline.prepare_reads(fq, reference, contaminants, pp, fates=f)
-    return aligned, st, f or {}
+    det: dict = {}
+    aligned, st = pipeline.prepare_reads(fq, reference, contaminants, pp, fates=f, detection=det)
+    # the blocks found here are returned with the reads, so the main process can decide which
+    # to drop without detecting them again
+    return aligned, st, f or {}, det.get("detected")
 
 
 def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[str],
@@ -67,10 +70,11 @@ def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[st
     # each library is prepared on its own (parallel.py); results come back in order
     tasks = [(fq, reference, contaminants, control_params(p) if name in controls else detect,
               fates is not None) for name, fq in samples.items()]
-    for name, (aligned, st, f) in zip(samples, pmap(_prepare_one, tasks, p.jobs), strict=True):
+    detected = {}
+    for name, (aligned, st, f, det) in zip(samples, pmap(_prepare_one, tasks, p.jobs), strict=True):
         if fates is not None:
             fates.setdefault(name, {}).update(f)
-        raw[name], stats[name] = aligned, st
+        raw[name], stats[name], detected[name] = aligned, st, det
         blocks[name] = [[(pos - 1, alt) for pos, alt in b["sites"]] for b in st.get("blocks", [])]
 
     known = list(control_blocks or [])
@@ -82,7 +86,7 @@ def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[st
             if name in controls:
                 continue
             before = {a.qname for a in raw[name]}
-            raw[name], st = partition(raw[name], ref_seq, p, lo, hi, known)
+            raw[name], st = partition(raw[name], ref_seq, p, lo, hi, known, detected=detected[name])
             if fates is not None:
                 for q in before - {a.qname for a in raw[name]}:
                     fates[name][q] = {"fate": "minor haplotype"}
