@@ -272,12 +272,15 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     want_qsum = model == "geneious"
     want_err = model not in ("qcal", "sanger", "geneious")
     want_s_err = model == "strand"
+    # the quality-calibrated test reads qualities through the null's recalibration, if it has one
+    recal = getattr(null_rates, "recal", None) if model == "qcal" else None
     for r in aligned_reads:
         if r.ctg != target_name:
             continue
         n_clones += 1
         s = getattr(r, "strand", 1)
-        for rpos, base, q in r.pairs:
+        eq = recal.quals(r.pairs) if recal is not None else None
+        for i, (rpos, base, q) in enumerate(r.pairs):
             if base not in BASES or q < minq:
                 continue
             counts[rpos][base] += 1
@@ -294,7 +297,7 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
                     # what the quality-calibrated test keys on
                     qual_hist[min(int(q), 60)] += 1
             if want_quals and base != ref[rpos]:
-                alt_quals[(rpos, base, s)].append(q)
+                alt_quals[(rpos, base, s)].append(eq[i] if eq is not None else q)
             if want_err or col_probs is not None:
                 # per-read chance of an error landing on each of the 3 non-observed
                 # bases ~ (10^(-Q/10))/3; contributes to that alt's false-call rate.
@@ -483,11 +486,13 @@ def qcal_pvalues_by_qscale(aligned_reads, target_ref_fasta: str, target_name: st
     depth = defaultdict(int)
     s_depth = defaultdict(int)
     alt_quals = defaultdict(list)
+    recal = getattr(null_rates, "recal", None)
     for r in aligned_reads:
         if r.ctg != target_name:
             continue
         s = getattr(r, "strand", 1)
-        for rpos, base, q in r.pairs:
+        eq = recal.quals(r.pairs) if recal is not None else None
+        for i, (rpos, base, q) in enumerate(r.pairs):
             # the candidate loop below reads the window only
             if base not in BASES or q < minq or not lo <= rpos <= hi:
                 continue
@@ -495,7 +500,7 @@ def qcal_pvalues_by_qscale(aligned_reads, target_ref_fasta: str, target_name: st
             depth[rpos] += 1
             s_depth[(rpos, s)] += 1
             if base != ref[rpos]:
-                alt_quals[(rpos, base, s)].append(q)
+                alt_quals[(rpos, base, s)].append(eq[i] if eq is not None else q)
     sites = []
     for rpos in range(lo, hi + 1):
         d = depth.get(rpos, 0)

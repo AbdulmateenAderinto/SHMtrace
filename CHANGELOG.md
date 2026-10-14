@@ -7,6 +7,14 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Base-quality recalibration from the controls** (`recal.py`, `recalibrate: true`; off by default): shifts each
+  base's quality by how much more or less often bases of its quality band are miscalled next to low-quality
+  neighbours, fitted on the same controls as the null. On AID-null reads a Q15-34 base beside a <Q10 base is
+  miscalled 4-8 times as often as one in a clean stretch, but on the planted-mutation benchmark the
+  recalibration changed recall and false calls by about 0.02 and two calls per library, in both directions,
+  so it stays off (docs/calibration/RECAL.md).
+
+### Added
 - **AIRR Community export** (`airr.py`; `airr_rearrangements.tsv` in every project's output): one row per
   analysed read with all AIRR-required fields. `sequence_alignment` is the read with sequencing error removed
   (germline everywhere except the mutations SHMtrace called), so Immcantation tools such as SHazaM,

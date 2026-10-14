@@ -175,6 +175,8 @@ class NullModel(dict):
         # controls at the samples' depth, and the bases it had in the window.
         # {control name: (sorted p-values, bases)}
         self.decoys: dict = {}
+        # base-quality recalibration fitted on the same control reads (recal.py), or None
+        self.recal = None
 
     @property
     def has_qcal(self) -> bool:
@@ -211,7 +213,8 @@ class NullModel(dict):
                 "site_depth": [[k[0], k[1], v] for k, v in sorted(self.site_depth.items())],
                 "rates": [[k[0], k[1], v] for k, v in sorted(self.items())],
                 "strand_rates": [[k[0], k[1], k[2], v]
-                                 for k, v in sorted(self.strand_rates.items())]}
+                                 for k, v in sorted(self.strand_rates.items())],
+                "recal": self.recal.to_json() if self.recal is not None else None}
 
     @classmethod
     def from_json(cls, data: dict) -> NullModel:
@@ -223,7 +226,12 @@ class NullModel(dict):
                    {(a, b, int(s)): v for a, b, s, v in data.get("qtail", [])},
                    {(int(a), b, int(s)): v for a, b, s, v in data.get("site_quals", [])},
                    {(int(a), int(s)): v for a, s, v in data.get("site_depth", [])},
-                   data.get("qscale", 1.0))
+                   data.get("qscale", 1.0))._with_recal(data.get("recal"))
+
+    def _with_recal(self, data):
+        from .recal import Recal
+        self.recal = Recal.from_json(data)
+        return self
 
 
 def save_panel(null: NullModel, path: str, **meta) -> None:
@@ -368,6 +376,11 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
     site_ref: dict = {}
     stats = {"control_files": len(aligned_per_file), "control_reads_used": 0,
              "germline_sites_excluded": 0}
+    recal = None
+    if p.recalibrate and p.error_model == "qcal":
+        from .recal import fit as fit_recal
+        recal = fit_recal(aligned_per_file, ref, lo, hi, p.germline_freq_threshold)
+        stats["recalibration"] = recal.meta
     for aligned in aligned_per_file:
         stats["control_reads_used"] += len(aligned)
         counts: dict = defaultdict(lambda: defaultdict(int))
@@ -378,7 +391,8 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
         ref_u = ref.upper()
         for r in aligned:
             s = getattr(r, "strand", 1)
-            for rpos, base, q in r.pairs:
+            eq = recal.quals(r.pairs) if recal is not None else None
+            for i, (rpos, base, q) in enumerate(r.pairs):
                 # only the window is read below, so bases outside it are skipped
                 if base in BASES and lo <= rpos <= hi:
                     counts[rpos][base] += 1
@@ -386,7 +400,7 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
                     sc[(rpos, base, s)] += 1
                     sd[(rpos, s)] += 1
                     if base != ref_u[rpos]:
-                        quals[(rpos, base, s)].append(min(QMAX, q))
+                        quals[(rpos, base, s)].append(min(QMAX, eq[i] if eq is not None else q))
         this_file: dict = {}
         for pos in range(lo, hi + 1):
             d = depth.get(pos, 0)
@@ -462,6 +476,7 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
     null = NullModel(rates, srates, rho, qtail=qtail,
                      site_quals={k: v for k, v in site_quals.items() if v},
                      site_depth=site_depth)
+    null.recal = recal
     if calibrate:
         null.qscale, s_cal = calibrate_qscale(aligned_per_file, ref, ref_name, p, lo, hi,
                                               depth=p.downsample_to)
