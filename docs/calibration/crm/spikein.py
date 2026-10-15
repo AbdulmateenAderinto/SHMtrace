@@ -59,8 +59,8 @@ def run(key, reps, n_sites, seed=1):
         pool = [r for r in read_fastq(fq) if r[0].split()[0] in names]
         nulls = {}
         normal = None
-        if WITH_CLAIRS:
-            # ClairS's matched normal: the other controls' usable reads, pooled (what SHMtrace's null is fitted on)
+        if WITH_CLAIRS or WITH_DS:
+            # ClairS's and DeepSomatic's matched normal: the other controls' usable reads, pooled (what SHMtrace's null is fitted on)
             normal = []
             for pfq in peers:
                 pu, _ = pipeline.prepare_reads(pfq, ds["reference"], contam, base)
@@ -121,6 +121,24 @@ def run(key, reps, n_sites, seed=1):
                             rows.append({"control": ctl, "rep": rep, "caller": cname, "reads": len(reads),
                                          **simulate.evaluate(called, planted)})
                             print(key, ctl, rep, cname, rows[-1]["recall"], rows[-1]["false_calls"], flush=True)
+                    if prof == "recommended" and (WITH_DV or WITH_DS):
+                        from deepvariant_runner import (
+                            DEEPSOMATIC,
+                            DEEPVARIANT,
+                            deepsomatic_calls,
+                            deepvariant_calls,
+                        )
+                        keep = {a.qname for a in res["_aligned"]}
+                        reads = [r for r in spiked if r[0].split()[0] in keep]
+                        for cname in [*(DEEPVARIANT if WITH_DV else ()), *(DEEPSOMATIC if WITH_DS else ())]:
+                            if cname in DEEPVARIANT:
+                                cs = deepvariant_calls(reads, ds["reference"], lo + 1, hi + 1, setting=cname)
+                            else:
+                                cs = deepsomatic_calls(reads, normal, ds["reference"], lo + 1, hi + 1, setting=cname)
+                            called = {(pos - 1, a) for pos, _r, a in cs}
+                            rows.append({"control": ctl, "rep": rep, "caller": cname, "reads": len(reads),
+                                         **simulate.evaluate(called, planted)})
+                            print(key, ctl, rep, cname, rows[-1]["recall"], rows[-1]["false_calls"], flush=True)
             finally:
                 os.remove(tmp)
     OUT.mkdir(exist_ok=True)
@@ -138,11 +156,14 @@ if __name__ == "__main__":
     ap.add_argument("--tag", default="", help="suffix for the output file")
     ap.add_argument("--clairs", action="store_true", help="also run ClairS (Docker image hkubal/clairs)")
     ap.add_argument("--clair3", action="store_true", help="also run Clair3 (bundled in the ClairS image)")
+    ap.add_argument("--deepvariant", action="store_true", help="also run DeepVariant (google/deepvariant)")
+    ap.add_argument("--deepsomatic", action="store_true", help="also run DeepSomatic (google/deepsomatic)")
     a = ap.parse_args()
     PROFILES_RUN = a.profiles.split(",")
     WITH_LOFREQ = not a.no_lofreq
     WITH_CLAIRS = a.clairs
     WITH_CLAIR3 = a.clair3
+    WITH_DV, WITH_DS = a.deepvariant, a.deepsomatic
     TAG = a.tag
     for k in a.datasets:
         run(k, a.reps, a.sites)

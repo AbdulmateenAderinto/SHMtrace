@@ -35,6 +35,10 @@ KRT = [
     ("SHMtrace v{shmtrace_version} (command line and desktop application)", "This paper", "{lab_code_doi}; {lab_github}"),
     ("minimap2 2.30 (mappy 2.31)", "Li[@li2018]", "https://github.com/lh3/minimap2"),
     ("LoFreq 2.1.5", "Wilm et al.[@wilm2012]", "https://github.com/CSB5/lofreq"),
+    ("ClairS 0.5.1 and Clair3 2.0.3 (Docker image hkubal/clairs)", "Zheng et al.[@zheng2026,@zheng2022]",
+     "https://github.com/HKU-BAL/ClairS"),
+    ("DeepVariant 1.9.0 and DeepSomatic 1.9.0 (Docker images google/deepvariant, google/deepsomatic)",
+     "Poplin et al.[@poplin2018]; Park et al.[@park2026]", "https://github.com/google/deepvariant"),
     ("SAMtools 1.24", "Danecek et al.[@danecek2021]", "https://github.com/samtools/samtools"),
     ("SHazaM 1.2.0 (HH_S5F model)", "Gupta et al.[@gupta2015]; Yaari et al.[@yaari2013]", "https://immcantation.readthedocs.io"),
     ("Python 3.13, NumPy 2.5, SciPy 1.18", "Virtanen et al.[@virtanen2020]", "https://scipy.org"),
@@ -152,7 +156,7 @@ METHODS = [
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
           "shared between animals beyond chance (Poisson test weighted by mutation frequency across animals), "
           "control clones with excess mutations, label mismatches, and outliers in mutation load."),
-    ("h2", "Benchmark against LoFreq and the Geneious rule"),
+    ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
           "called with LoFreq 2.1.5 `call`, restricted to the analysis window, at three settings: default settings "
@@ -166,6 +170,21 @@ METHODS = [
           "validated with vdb-validate, and subsampled to 6,000 reads (seed 0). The reference for each locus was "
           "the majority consensus of its first *Aicda*^{−/−} library, built with minimap2 and SAMtools consensus "
           "and iterated to convergence."),
+    ("p", "Two somatic callers that compare a case library with a matched normal, ClairS 0.5.1[@zheng2026] and "
+          "DeepSomatic 1.9.0[@park2026], and two germline callers, Clair3 2.0.3[@zheng2022] and DeepVariant "
+          "1.9.0[@poplin2018], were run from their official Docker images on the same planted mutations, using "
+          "the same alignments as LoFreq and restricted to the analysis window. For the somatic callers, the "
+          "normal was the pooled usable reads of the other two AID-null libraries, the libraries from which "
+          "SHMtrace's null is fitted. Each caller was run at its defaults for R10.4.1 nanopore reads (ClairS "
+          "`ont_r10_dorado_sup_5khz`; Clair3 `r1041_e82_400bps_sup_v520`; DeepVariant `ONT_R104`; DeepSomatic "
+          "`ONT`) and at the lowest allele fraction it accepts (ClairS `--snv_min_af 0.005 --min_coverage 4`; "
+          "Clair3 `--snp_min_af 0.01 --min_coverage 4`; DeepVariant and DeepSomatic candidate thresholds of 1% "
+          "and 0.5% of reads, with two supporting reads). PRJNA1481264 reports PromethION sequencing without the "
+          "chemistry, so the same R10.4.1 models were used for Sμ and *Pim1*. Substitutions with FILTER PASS "
+          "below 0.5 allele fraction were kept, as for the other callers. To find the allele fraction at which "
+          "the somatic callers begin to work, 30 substitutions were also planted into 25, 50, and 100 of 500 "
+          "reads (5%, 10%, and 20%) of each held-out J_{H}4 control, which otherwise carries few mutations, and "
+          "ClairS and DeepSomatic were run on the wild-type J_{H}4 libraries against the pooled *Aicda*^{−/−} reads."),
     ("h2", "Simulations"),
     ("p", "For lineage simulations, the reads of one AID-null library were divided into approximately 40 "
           "clones with power-law sizes. Each clone received a random 20-bp junction and J trimming (−3 to +12 bp), "
@@ -222,10 +241,11 @@ LEGENDS = [
      "the truth (black bars) in simulated libraries; expanded clone, one unmutated clone with 60% of reads. "
      "(F) Estimate over truth against analysis depth for three measures (J_{H}4 polyclonal, solid; N114 subclonal, "
      "dashed); mean of 3 held-out controls. (G) Share of 300 simulated experiments per condition with p < 0.05 for "
-     "four group tests (3 or 5 animals per group); dotted line, 0.05. (H) ClairS recall on J_{H}4 against the "
-     "share of reads carrying each mutation: the spike-ins of A (shaded; 1–20 of 500 reads) and 30 mutations planted "
-     "into 5%, 10% and 20% of 500 reads of each held-out AID-null library, with the other two as its matched normal; "
-     "SHMtrace on the spike-ins for comparison. ClairS at its defaults and at snv_min_af 0.005 gave the same recall. "
+     "four group tests (3 or 5 animals per group); dotted line, 0.05. (H) Recall of the somatic callers ClairS "
+     "and DeepSomatic on J_{H}4, at their permissive settings, against the share of reads carrying each mutation: "
+     "the spike-ins of A (shaded; 1–20 of 500 reads; solid) and 30 mutations planted into 5%, 10%, and 20% of 500 "
+     "reads of each held-out AID-null library (dashed, open symbols), with the other two libraries as the matched "
+     "normal; SHMtrace on the spike-ins for comparison. "
      "See also Figure S5 and Table S2."),
     ("Figure 3. On real libraries, matched controls set the background",
      "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-null (red) libraries for each "

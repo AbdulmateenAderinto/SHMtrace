@@ -6,7 +6,7 @@ D    lineage simulation on J_H4 control reads: recall by read support, and false
 E    clone-weighted frequency recovers the truth when one unmutated clone dominates
 F    quantification: estimate / truth against depth (J_H4 polyclonal, N114 subclonal)
 G    group tests: share of simulated experiments with p < 0.05, animals as the unit vs pooled reads
-H    ClairS recall against the share of reads carrying a mutation: the J_H4 spike-ins (1-20 of 500 reads) and
+H    ClairS and DeepSomatic recall against the share of reads carrying a mutation: the J_H4 spike-ins (1-20 of 500 reads) and
      clean mutations planted at 5, 10 and 20% of reads, with SHMtrace on the same spike-ins
 """
 import json
@@ -47,19 +47,22 @@ def spike_summary(key):
 SPIKE_READS = 500                # reads per spike-in library (spikein.py)
 
 
-def clairs_by_fraction():
-    """{% of reads: ClairS recall}, J_H4: the spike-ins (out/spikein_jh4_clairs.json) and the clean high-fraction
-    plants (out/clairs_highaf_jh4.json, 500 reads). Its two settings gave the same recall at every fraction, so
-    the defaults are drawn."""
-    rec = defaultdict(lambda: [0, 0])
-    for f, n in (("spikein_jh4_clairs.json", SPIKE_READS), ("clairs_highaf_jh4.json", SPIKE_READS)):
-        for r in json.load(open(DATA / f))["rows"]:
-            if r["caller"] != "clairs":
-                continue
-            for k, (got, tot) in r["recall_by_reads"].items():
-                rec[100 * int(k) / n][0] += got
-                rec[100 * int(k) / n][1] += tot
-    return {x: g / t for x, (g, t) in sorted(rec.items())}
+def by_fraction(caller):
+    """J_H4 recall by % of reads for a somatic caller ("clairs" or "deepsomatic") at its permissive setting, the
+    more sensitive of its two, as two series: the spike-ins (out/spikein_jh4_<caller>.json) and the clean
+    high-fraction plants (out/<caller>_highaf_jh4.json), 500 reads each. [{%: recall}, {%: recall}]"""
+    out = []
+    for f in (f"spikein_jh4_{caller}.json", f"{caller}_highaf_jh4.json"):
+        rec = defaultdict(lambda: [0, 0])
+        if (DATA / f).exists():
+            for r in json.load(open(DATA / f))["rows"]:
+                if r["caller"] != f"{caller}_permissive":
+                    continue
+                for k, (got, tot) in r["recall_by_reads"].items():
+                    rec[100 * int(k) / SPIKE_READS][0] += got
+                    rec[100 * int(k) / SPIKE_READS][1] += tot
+        out.append({x: g / t for x, (g, t) in sorted(rec.items())})
+    return out
 
 
 def main():
@@ -193,18 +196,19 @@ def main():
     ax.set_title("Group tests (300 simulations)", fontsize=7)
     ax.legend(fontsize=5.3, ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.02), columnspacing=0.8, handlelength=1.2)
     letter(ax, "G", dx=-0.2)
-    # H: ClairS needs a mutation in a large share of reads
+    # H: the somatic callers need a mutation in a large share of reads
     ax = fig.add_subplot(bottom[3])
     spiked = spike_summary("jh4")["recommended"]["by_k"]
-    cs = clairs_by_fraction()
     lab, col, mk = CALLERS["recommended"]
     ax.plot([100 * k / SPIKE_READS for k in spiked], list(spiked.values()), marker=mk, ms=3, color=col, lw=1)
-    ax.text(0.5, 0.42, lab, fontsize=5.8, color=col)
-    lab, col, mk = CALLERS["clairs"]
-    ax.plot(list(cs), list(cs.values()), marker=mk, ms=3.5, color=col, lw=1)
-    ax.text(11, 0.62, lab, fontsize=5.8, color=col, ha="right")
+    ax.text(5.3, 1.0, lab, fontsize=5.8, color=col, va="center")
+    for caller, (tx, ty, ha) in (("clairs", (4.4, 0.06, "right")), ("deepsomatic", (1.9, 0.765, "center"))):
+        spike, clean = by_fraction(caller)
+        lab, col, mk = CALLERS[caller]
+        ax.plot(list(spike), list(spike.values()), marker=mk, ms=3.5, color=col, lw=1)
+        ax.plot(list(clean), list(clean.values()), marker=mk, ms=3.5, color=col, lw=1, ls="--", mfc="white")
+        ax.text(tx, ty, lab, fontsize=5.8, color=col, ha=ha)
     ax.axvspan(100 / SPIKE_READS * 0.8, 100 * 20 / SPIKE_READS * 1.15, color=SOFT, alpha=0.12, lw=0)
-    ax.text(1, 0.1, "spike-ins (A)", fontsize=5.2, color=MID, ha="center")
     ax.set_xscale("log")
     ax.set_xticks([0.2, 1, 5, 20], ["0.2", "1", "5", "20"])
     ax.minorticks_off()
@@ -212,7 +216,7 @@ def main():
     ax.set_ylim(-0.03, 1.03)
     ax.set_xlabel("Reads with the mutation (%)")
     ax.set_ylabel("Recall")
-    ax.set_title("ClairS on J$_H$4", fontsize=7)
+    ax.set_title("Somatic callers on J$_H$4", fontsize=7)
     letter(ax, "H", dx=-0.32)
     save(fig, "Figure2")
 

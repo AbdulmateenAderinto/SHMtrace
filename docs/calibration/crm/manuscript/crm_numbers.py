@@ -384,11 +384,53 @@ def compute():
             band[b][1] += n
     N.update({f"cs_hi_{b}": pct(band[b][0] / band[b][1]) for b in (5, 10, 20)})
     N["cs_hi_n"] = f0(band[20][1])
-    # phrases that read naturally when a caller recalled nothing
-    n_pl = f"{sum(r['planted'] for k in ('jh4', 'n114') for r in _load(OUT / f'spikein_{k}_clairs.json')['rows'] if r['caller'] == 'clairs'):,}"
-    for tag, a, b in (("cs", N["cs_jh4"], N["cs_n114"]), ("c3", N["c3_jh4"], N["c3_n114"])):
-        N[f"{tag}_recall"] = (f"none of the {n_pl} planted mutations on J_{{H}}4 and N114" if a == b == "0" else
-                              f"{a}% of planted mutations on J_{{H}}4 and {b}% on N114")
+    if (OUT / "deepsomatic_highaf_jh4.json").exists():      # DeepSomatic on the same plants (clairs_highaf.py)
+        band = defaultdict(lambda: [0, 0])
+        for r in _load(OUT / "deepsomatic_highaf_jh4.json")["rows"]:
+            if r["caller"] == "deepsomatic_permissive":            # as drawn in Figure 2H
+                for kk, (g, n) in r["recall_by_reads"].items():
+                    band[5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)][0] += g
+                    band[5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)][1] += n
+        N.update({f"ds_hi_{b}": pct(band[b][0] / band[b][1]) for b in (5, 10, 20)})
+    # phrases that read naturally when a caller recalled nothing, over every dataset it was run on
+    names = {"jh4": "J_{H}4", "n114": "N114", "su_lps": "Sμ", "pim1": "*Pim1*"}
+    for tag, ftag, settings in (("cs", "_clairs", ("clairs", "clairs_permissive")),
+                                ("c3", "_clair3", ("clair3", "clair3_permissive")),
+                                ("dv", "_deepvariant", ("deepvariant", "deepvariant_permissive")),
+                                ("ds", "_deepsomatic", ("deepsomatic", "deepsomatic_permissive"))):
+        done = [k for k in names if (OUT / f"spikein_{k}{ftag}.json").exists()]
+        if not done:
+            continue
+        rec = {k: max(spike(k, s, ftag)["recall"] for s in settings) for k in done}
+        fp = max(spike(k, s, ftag)["fp"] for k in done for s in settings)
+        n_pl = sum(r["planted"] for k in done for r in _load(OUT / f"spikein_{k}{ftag}.json")["rows"]
+                   if r["caller"] == settings[0])
+        where = ", ".join(names[k] for k in done[:-1]) + f", and {names[done[-1]]}" if len(done) > 2 else \
+            " and ".join(names[k] for k in done)
+        parts = [f"{pct(rec[k])}% on {names[k]}" for k in done]
+        parts[0] = parts[0].replace("% on", "% of planted mutations on", 1)
+        N[f"{tag}_recall"] = (f"none of the {n_pl:,} planted mutations on {where}" if not any(rec.values()) else
+                              ", ".join(parts[:-1]) + f", and {parts[-1]}")
+        # recall at the defaults alone, and for mutations in 20 reads (the most any spike-in had)
+        N[f"{tag}_default"] = "none" if not any(spike(k, settings[0], ftag)["recall"] for k in done) else "some"
+        r20 = [max(spike(k, s, ftag)["by"].get(20, 0) for s in settings) for k in done]
+        N[f"{tag}_20"] = f"{pct(min(r20))}–{pct(max(r20))}"
+        N[f"{tag}_fp"] = "no" if fp == 0 else f1(fp)
+        N[f"{tag}_sets"] = word(len(done))
+        N[f"{tag}_max"] = pct(max(rec.values()))
+    # two callers in one sentence: "Clair3 and DeepVariant each recalled none of ..." when both recalled nothing
+    for tag, (x, y), (lx, ly) in (("som", ("cs", "ds"), ("ClairS", "DeepSomatic")),
+                                  ("germ", ("c3", "dv"), ("Clair3", "DeepVariant"))):
+        if f"{x}_recall" not in N or f"{y}_recall" not in N:
+            continue
+        if N[f"{x}_recall"] == N[f"{y}_recall"] and N[f"{x}_recall"].startswith("none"):
+            N[f"{tag}_recall"] = f"{lx} and {ly} each recalled {N[f'{x}_recall']}"
+        else:
+            N[f"{tag}_recall"] = f"{lx} recalled {N[f'{x}_recall']}, and {ly} {N[f'{y}_recall']}"
+    if (OUT / "deepsomatic_real_jh4.json").exists():         # DeepSomatic on the real wild-type libraries
+        dsr = _load(OUT / "deepsomatic_real_jh4.json")["libraries"]
+        N["ds_real_pass"] = word(max(sum(dsr[w][s]["pass_somatic"] for w in dsr)
+                                     for s in ("deepsomatic", "deepsomatic_permissive")))
     real = _load(OUT / "clairs_real_jh4.json")["libraries"]
     cands = real["WT3"]["clairs_permissive"]["candidates"]
     N.update(cs_real_pass=word(sum(real[w]["clairs_permissive"]["pass_somatic"] for w in real)),

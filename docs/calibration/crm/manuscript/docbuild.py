@@ -36,6 +36,14 @@ MANUAL = {
     "zheng2026": "Zheng, Z., Chen, L., Su, J., Yu, X., He, M., Lee, Y.-L., Lam, T.-W., and Luo, R. (2026). ClairS: a "
                  "deep-learning method for long-read tumor–normal pair somatic small variant calling. Nat. Methods "
                  "23, 1507–1520. 10.1038/s41592-026-03152-4.",
+    # DeepVariant and DeepSomatic: authors, volumes and pages from Crossref (Cell Press: first 10 authors, et al.)
+    "poplin2018": "Poplin, R., Chang, P.-C., Alexander, D., Schwartz, S., Colthurst, T., Ku, A., Newburger, D., "
+                  "Dijamco, J., Nguyen, N., Afshar, P.T., et al. (2018). A universal SNP and small-indel variant "
+                  "caller using deep neural networks. Nat. Biotechnol. 36, 983–987. 10.1038/nbt.4235.",
+    "park2026": "Park, J., Cook, D.E., Chang, P.-C., Kolesnikov, A., Brambrink, L., Mier, J.C., Gardner, J., "
+                "McNulty, B., Sacco, S., Keskus, A.G., et al. (2026). Accurate somatic small variant discovery for "
+                "multiple sequencing technologies with DeepSomatic. Nat. Biotechnol. 44, 1569–1578. "
+                "10.1038/s41587-025-02839-x.",
 }
 PAGE_FIX = {"sanderson2024": "001246"}
 TOKEN = re.compile(r"(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\^\{[^}]*\}|_\{[^}]*\}|\[@[^\]]+\])")

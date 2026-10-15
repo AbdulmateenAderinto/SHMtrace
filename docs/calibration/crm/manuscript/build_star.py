@@ -66,7 +66,9 @@ def main(outdir):
         else:
             steps(m, payload, pre)
     m.heading("Key resources table", 1)
-    m.table(M.KRT_HEADER, fill_all(M.KRT, n), widths=[75, 50, 45], size=8)
+    # the other callers benchmarked in the article are not used in the protocol
+    krt = [r for r in M.KRT if not r[0].startswith(("ClairS", "DeepVariant"))]
+    m.table(M.KRT_HEADER, fill_all(krt, n), widths=[75, 50, 45], size=8)
     m.heading("Materials and equipment", 1)
     for title, header, rows in S.MATERIALS_TABLES:
         m.table(header, rows, title=f"**{title}**", size=9)

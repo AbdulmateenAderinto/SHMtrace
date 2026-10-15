@@ -48,23 +48,29 @@ def _bam(reads, ref, path, mm2, sample):
                    shell=True, check=True)
 
 
+def _ref(reference, d):
+    """The first record of `reference`, named by the first word of its header, written to d/ref.fa and indexed."""
+    ref = os.path.join(d, "ref.fa")
+    name, seq = None, []
+    for line in open(reference):
+        if line.startswith(">"):
+            if name is not None:
+                break
+            name = line[1:].split()[0]
+        else:
+            seq.append(line.strip())
+    with open(ref, "w") as fh:
+        fh.write(f">{name}\n{''.join(seq)}\n")
+    subprocess.run([f"{BIN}/samtools", "faidx", ref], check=True)
+    return ref, name
+
+
 def clairs_calls(tumor_reads, normal_reads, reference, lo, hi, setting="clairs", germline=0.5, threads=8,
                  keep_vcf=None):
     """`keep_vcf`, a path: also save ClairS's full VCF there (every candidate, with its FILTER)."""
     mm2 = _mm2()
     with tempfile.TemporaryDirectory(dir=os.path.expanduser("~/Nanoshm")) as d:
-        ref = os.path.join(d, "ref.fa")
-        name, seq = None, []
-        for line in open(reference):
-            if line.startswith(">"):
-                if name is not None:
-                    break
-                name = line[1:].split()[0]
-            else:
-                seq.append(line.strip())
-        with open(ref, "w") as fh:
-            fh.write(f">{name}\n{''.join(seq)}\n")
-        subprocess.run([f"{BIN}/samtools", "faidx", ref], check=True)
+        ref, name = _ref(reference, d)
         _bam(tumor_reads, ref, os.path.join(d, "tumor.bam"), mm2, "tumor")
         _bam(normal_reads, ref, os.path.join(d, "normal.bam"), mm2, "normal")
         out = os.path.join(d, "out")
@@ -109,18 +115,7 @@ CLAIR3 = {"clair3": (), "clair3_permissive": ("--snp_min_af=0.01", "--min_covera
 def clair3_calls(reads, reference, lo, hi, setting="clair3", germline=0.5, threads=8):
     mm2 = _mm2()
     with tempfile.TemporaryDirectory(dir=os.path.expanduser("~/Nanoshm")) as d:
-        ref = os.path.join(d, "ref.fa")
-        name, seq = None, []
-        for line in open(reference):
-            if line.startswith(">"):
-                if name is not None:
-                    break
-                name = line[1:].split()[0]
-            else:
-                seq.append(line.strip())
-        with open(ref, "w") as fh:
-            fh.write(f">{name}\n{''.join(seq)}\n")
-        subprocess.run([f"{BIN}/samtools", "faidx", ref], check=True)
+        ref, name = _ref(reference, d)
         _bam(reads, ref, os.path.join(d, "s.bam"), mm2, "sample")
         bed = os.path.join(d, "w.bed")
         with open(bed, "w") as fh:
