@@ -384,13 +384,19 @@ def compute():
             band[b][1] += n
     N.update({f"cs_hi_{b}": pct(band[b][0] / band[b][1]) for b in (5, 10, 20)})
     N["cs_hi_n"] = f0(band[20][1])
+    # phrases that read naturally when a caller recalled nothing
+    n_pl = f"{sum(r['planted'] for k in ('jh4', 'n114') for r in _load(OUT / f'spikein_{k}_clairs.json')['rows'] if r['caller'] == 'clairs'):,}"
+    for tag, a, b in (("cs", N["cs_jh4"], N["cs_n114"]), ("c3", N["c3_jh4"], N["c3_n114"])):
+        N[f"{tag}_recall"] = (f"none of the {n_pl} planted mutations on J_{{H}}4 and N114" if a == b == "0" else
+                              f"{a}% of planted mutations on J_{{H}}4 and {b}% on N114")
     real = _load(OUT / "clairs_real_jh4.json")["libraries"]
     cands = real["WT3"]["clairs_permissive"]["candidates"]
     N.update(cs_real_pass=word(sum(real[w]["clairs_permissive"]["pass_somatic"] for w in real)),
              cs_real_empty=word(sum(1 for w in real if not real[w]["clairs_permissive"]["candidates"])),
              cs_real_cand=f0(len(cands)), cs_real_rej=f0(sum(c["filter"] != "PASS" for c in cands)),
              cs_real_hi=word(sum(c["af"] >= 0.2 for c in cands)),
-             cs_real_hi_pass=word(sum(c["af"] >= 0.2 and c["filter"] == "PASS" for c in cands)),
+             cs_real_hi_pass=(lambda k, n: "neither" if (k, n) == (0, 2) else ("none" if k == 0 else word(k)))(
+                 sum(c["af"] >= 0.2 and c["filter"] == "PASS" for c in cands), sum(c["af"] >= 0.2 for c in cands)),
              cs_real_reads=f"{min(c['alt_reads'] for c in cands)}–{max(c['alt_reads'] for c in cands)}",
              cs_real_naf=f"{100 * max(c['normal_af'] for c in cands):.1f}")
     # indels planted into held-out nanopore controls (indel_spike.py)

@@ -131,8 +131,8 @@ RESULTS = [
           "(Figures 2A and 2C)."),
     ("p", "We also tested ClairS[@zheng2023], a deep-learning somatic caller for long reads that compares a case "
           "library with a matched normal, the design closest to SHMtrace's, using the other AID-null libraries as the "
-          "normal. ClairS recalled {cs_jh4}% of the {cs_jh4_n} planted mutations on J_{H}4 and {cs_n114}% on N114, at "
-          "its defaults and at the lowest allele fraction it accepts, and made no false calls. Its working range "
+          "normal. ClairS recalled {cs_recall}, at its defaults and at the lowest allele fraction it accepts, and "
+          "made no false calls. Its working range "
           "starts higher: of mutations planted into otherwise unmutated reads at 5%, 10%, and 20% of reads, it "
           "recalled {cs_hi_5}%, {cs_hi_10}%, and {cs_hi_20}%. On the wild-type J_{H}4 libraries themselves, however, "
           "ClairS reported {cs_real_pass} mutation in total across the three libraries, where SHMtrace called "
@@ -142,8 +142,8 @@ RESULTS = [
           "{cs_real_naf}% of the normal's reads; {cs_real_hi} were carried by 20% or more of reads, a level at which it "
           "recalled nearly all clean planted mutations, and it passed {cs_real_hi_pass} of them. Real hypermutated "
           "reads, which carry many mutations each, therefore appear to be discounted by a model trained on human "
-          "genomes, in which somatic variants are sparse along each read. The germline caller Clair3[@zheng2022] recalled {c3_jh4}% of planted mutations on J_{H}4 and "
-          "{c3_n114}% on N114, as expected for a method that looks for variants carried by about half or all of the "
+          "genomes, in which somatic variants are sparse along each read. The germline caller Clair3[@zheng2022] recalled {c3_recall}, "
+          "as expected for a method that looks for variants carried by about half or all of the "
           "reads (Table S2)."),
     ("p", "N114 V-region reads gave similar results (Figure 2B). SHMtrace recalled {sp_n114_recall}% of planted "
           "mutations, including {sp_n114_1}% of those in a single read, with {sp_n114_fp} false calls per "
