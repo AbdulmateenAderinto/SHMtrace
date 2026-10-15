@@ -2,7 +2,7 @@
 "use strict";
 
 const S = {                       // everything the page knows
-  options: null, reference: null, contaminant: null,
+  options: null, reference: null, contaminant: null, germlineVcf: null,
   samples: [],                    // {name, path, group, control}
   sheet: null,                    // the loaded sample sheet (provenance for the Sanger QC)
   job: null, result: null, table: "samples", sort: null, sortDir: 1,
@@ -47,6 +47,10 @@ async function init() {
   dropZone($("drop-ref"), false, (f) => upload(f).then(([x]) => {
     $("ref-pick").value = "";
     S.reference = x; $("ref-name").textContent = "Reference: " + x.name;
+  }));
+  dropZone($("drop-vcf"), false, (f) => upload(f).then(([x]) => {
+    if (!x) return;
+    S.germlineVcf = x; $("vcf-name").textContent = "Germline VCF: " + x.name;
   }));
   dropZone($("drop-contam"), false, (f) => upload(f).then(([x]) => {
     S.contaminant = x; $("contam-name").textContent = "Contaminant: " + x.name;
@@ -140,6 +144,20 @@ async function upload(files) {
   return (await r.json()).files;
 }
 
+/* A library is a sample, or a control of some kind. All but a baseline are taken to be free of
+   mutations; a baseline (the cells before the experiment) is the control only when nothing
+   mutation-free is given (project.py). "Control" alone is the plain yes of a sample sheet. */
+const ROLES = [["no", "sample"], ["yes", "control"], ["aid_null", "AID-null"],
+               ["empty_vector", "empty vector"], ["plasmid", "plasmid"],
+               ["germline_tissue", "germline tissue"], ["baseline", "baseline"]];
+function roleOf(s) { return !s.control ? "no" : (s.control_kind || "yes"); }
+function setRole(i, v) {
+  const s = S.samples[i];
+  s.control = v !== "no";
+  s.control_kind = (v === "no" || v === "yes") ? "" : v;
+  renderSamples();
+}
+
 /* ── samples ──────────────────────────────────────────────── */
 // "sample_R1.fastq.gz", "sample.R1.fq", "sample_1.fastq": the 1 is the mate number
 const R1R2 = /([._-])(R)?1(?=(\.|_|-|$))/i;
@@ -208,8 +226,8 @@ async function loadSheet() {
       <ul>${probs.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>`;
     return;
   }
-  S.samples = d.samples.map(s => ({ name: s.name, path: s.path, group: s.group,
-                                    control: s.control, note: `${s.path.length} file(s) from the sheet` }));
+  S.samples = d.samples.map(s => ({ name: s.name, path: s.path, group: s.group, control: s.control,
+                                    control_kind: s.control_kind || "", note: `${s.path.length} file(s) from the sheet` }));
   S.sheet = d.sheet;
   const ex = d.excluded.length ? `; ${d.excluded.length} row(s) excluded by the sheet` : "";
   const pooledFiles = Object.keys(d.pooled || {});
@@ -258,10 +276,10 @@ function renderSamples() {
       <span class="nm" title="${esc(s.path)}">${esc(s.name)}${s.note ? ` <span class="pill ctrl">${esc(s.note)}</span>` : ""}</span>
       <input list="group-list" value="${esc(s.group)}" oninput="S.samples[${i}].group=this.value"
              placeholder="group">
-      <label style="margin:0;display:flex;gap:5px;align-items:center;color:var(--fg)">
-        <input type="checkbox" style="width:auto" ${s.control ? "checked" : ""}
-               onchange="S.samples[${i}].control=this.checked"> control
-      </label>
+      <select style="width:auto" title="Is this library a control, and of what kind?"
+              onchange="setRole(${i}, this.value)">
+        ${ROLES.map(([v, t]) => `<option value="${v}" ${roleOf(s) === v ? "selected" : ""}>${t}</option>`).join("")}
+      </select>
       <button class="x" title="Remove" onclick="S.samples.splice(${i},1);renderSamples()">✕</button>
     </div>`).join("")
     + `<datalist id="group-list">${groups.map(g => `<option>${esc(g)}</option>`).join("")}</datalist>`;
@@ -312,7 +330,9 @@ async function runProject() {
     browse: $("keep-alignment").checked,
     targeting_model: S.model ? S.model.path : null,
     overrides: over,
-    samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control })),
+    samples: S.samples.map(s => ({ name: s.name, path: s.path, group: s.group || s.name, control: s.control,
+                                   ...(s.control && s.control_kind ? { control_kind: s.control_kind } : {}) })),
+    germline_vcf: S.germlineVcf ? S.germlineVcf.path : null,
     sample_sheet: S.sheet || null,
     demux: { left_anchor: $("demux-left").value.trim(), right_anchor: $("demux-right").value.trim() },
   };
@@ -424,11 +444,14 @@ function buildHeadline() {
 
   const verdict = lines.map(l => {
     const strong = l.p != null && l.p < 0.05 && l.fold && l.fold >= 3;
-    const word = strong ? "clearly above" : (l.fold && l.fold >= 2 ? "above" : "not separated from");
+    const word = strong ? "clearly above" : (l.fold && l.fold >= 2 ? "above"
+                 : (l.fold != null && l.fold <= 0.5 ? "below" : "not separated from"));
+    // 73-fold, 2.4-fold, 0.43-fold: whole numbers only where the decimals no longer matter
+    const fx = (f) => f >= 10 ? f.toFixed(0) : (f >= 1 ? f.toFixed(1) : f.toFixed(2));
     return `<div class="verdict ${strong ? "yes" : "maybe"}">
       <b>${esc(l.g)}</b> is ${word} <b>${esc(l.ctrl)}</b>:
       ${l.a == null ? "—" : l.a.toFixed(1)} vs ${l.b == null ? "—" : l.b.toFixed(2)} per 10⁵ bp
-      ${l.fold ? `· <b>${l.fold.toFixed(0)}-fold</b>` : ""}
+      ${l.fold ? `· <b>${fx(l.fold)}-fold</b>` : ""}
       ${l.p != null ? `· P = ${l.p < 1e-4 ? l.p.toExponential(1) : l.p.toFixed(4)}
         <span class="hint">(Welch on log₁₀ densities, n = ${l.n} vs ${ctrlGroup ? ctrlGroup.n : "?"})</span>` : ""}
     </div>`;

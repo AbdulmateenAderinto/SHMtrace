@@ -471,10 +471,18 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # earlier mutations. With a mutation-free control in the project it is analysed as a sample.
     baselines = [s["name"] for s in samples if s.get("control") and s.get("control_kind") == "baseline"]
     if baselines and any(s.get("control") and s.get("control_kind") != "baseline" for s in samples):
-        samples = [{**s, "control": False} if s["name"] in baselines else s for s in samples]
+        # a demoted baseline that shares a group with true controls gets a group of its own, or the
+        # control group would no longer be all controls and the group comparisons would lose it
+        ctl_groups = {s.get("group") or s["name"] for s in samples if s.get("control") and s["name"] not in baselines}
+        samples = [{**s, "control": False,
+                    **({"group": f"{s.get('group') or s['name']} (baseline)"}
+                       if (s.get("group") or s["name"]) in ctl_groups else {})}
+                   if s["name"] in baselines else s for s in samples]
         setup_notes.append(
             f"{', '.join(baselines)} {'is a baseline' if len(baselines) == 1 else 'are baselines'} and the "
-            "project has a mutation-free control, so the baseline was analysed as a sample, not as a control.")
+            "project has a mutation-free control, so the baseline was analysed as a sample, not as a control"
+            + (" (in a group of its own, apart from the controls)." if any(
+                s["name"] in baselines and s["group"].endswith(" (baseline)") for s in samples) else "."))
     elif baselines:
         setup_notes.append(
             f"The controls are {'a baseline' if len(baselines) == 1 else 'baselines'} ({', '.join(baselines)}), not "

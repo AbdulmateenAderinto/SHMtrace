@@ -120,6 +120,10 @@
         <label for="drop-contam-label">Contaminant FASTA (optional)</label>
         <div class="drop" id="drop-contam" style="padding:12px">Optional: a sequence to exclude</div>
         <p class="hint" id="contam-name"></p>
+        <label for="drop-vcf-label">Germline VCF (optional)</label>
+        <div class="drop" id="drop-vcf" style="padding:12px">Optional: germline variants to remove (a VCF called
+          against the same reference, e.g. by Clair3)</div>
+        <p class="hint" id="vcf-name"></p>
       </div>
     </div>
 
@@ -155,9 +159,11 @@
         </div>
         <div class="samples" id="samples"></div>
         <p class="hint">
-          A <b>control</b> is a sample with no real mutations (AID-knockout, empty vector,
-          germline). Controls measure the sequencing background for every other sample, and
-          each control is measured against the others, never itself.
+          A <b>control</b> is a sample with no real mutations: AID-null, an empty vector, a plasmid
+          template or germline tissue (tail DNA), sequenced on the same run. Controls measure the
+          sequencing background for every other sample, and each control is measured against the
+          others, never itself. A <b>baseline</b> (the cells before the experiment) is used as the
+          control only when nothing mutation-free is given, since it may carry earlier mutations.
         </p>
       </div>
 
@@ -253,6 +259,8 @@
       <button class="btn primary" onclick="dl('bundle.zip')">Everything (.zip)</button>
       <button class="btn" onclick="dl('report.html')">Report (.html)</button>
       <button class="btn" onclick="dl('tables.xlsx')">Tables (.xlsx)</button>
+      <button class="btn" onclick="dl('airr_rearrangements.tsv')"
+              title="Every analysed read in the AIRR Community format, for Immcantation and other AIRR tools">AIRR table (.tsv)</button>
     </div>
     <h3>Tables</h3>
     <div class="row" id="export-tables"></div>

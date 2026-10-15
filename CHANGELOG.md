@@ -7,6 +7,18 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **The desktop app knows the new options.** Each library's role is a menu (sample, control, AID-null, empty
+  vector, plasmid, germline tissue, baseline) instead of a control checkbox, and a sample sheet's kinds load
+  into it; a germline VCF can be dropped beside the contaminant FASTA; the Export tab downloads the AIRR table.
+  A fold below 10 is shown with its decimals (0.43-fold, not "0-fold"), and a group clearly under its
+  control reads "below".
+
+### Fixed
+- **A demoted baseline no longer breaks the group comparison.** A baseline that shared its group with
+  mutation-free controls left that group mixed, so it stopped counting as the control group and no group was
+  compared with anything. It now gets a group of its own ("KO (baseline)").
+
+### Added
 - **Kinds of control.** The sample sheet's control column may name the control instead of "yes":
   `aid_null`, `empty_vector`, `plasmid`, `germline_tissue` (taken to be mutation-free) or `baseline` (the cells
   before the experiment, which may carry earlier mutations). A baseline is the control of last resort: with any
