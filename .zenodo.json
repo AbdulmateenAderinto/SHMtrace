@@ -1,8 +1,8 @@
 {
   "title": "SHMtrace: control-calibrated profiling of somatic hypermutation",
   "upload_type": "software",
-  "version": "0.2.1",
-  "publication_date": "2026-10-14",
+  "version": "0.2.2",
+  "publication_date": "2026-10-15",
   "license": "MIT",
   "description": "SHMtrace measures somatic hypermutation from amplicon reads on any platform (nanopore, PacBio, Illumina, Sanger) by testing each candidate mutation against the errors of matched AID-null libraries from the same run, with a control-based false-discovery threshold and animal-level group tests. Includes a desktop application.",
   "creators": [

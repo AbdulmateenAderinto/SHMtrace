@@ -6,17 +6,7 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added
-- **The desktop app knows the new options.** Each library's role is a menu (sample, control, AID-null, empty
-  vector, plasmid, germline tissue, baseline) instead of a control checkbox, and a sample sheet's kinds load
-  into it; a germline VCF can be dropped beside the contaminant FASTA; the Export tab downloads the AIRR table.
-  A fold below 10 is shown with its decimals (0.43-fold, not "0-fold"), and a group clearly under its
-  control reads "below".
-
-### Fixed
-- **A demoted baseline no longer breaks the group comparison.** A baseline that shared its group with
-  mutation-free controls left that group mixed, so it stopped counting as the control group and no group was
-  compared with anything. It now gets a group of its own ("KO (baseline)").
+## [0.2.2] - 2026-10-15
 
 ### Added
 - **Kinds of control.** The sample sheet's control column may name the control instead of "yes":
@@ -24,22 +14,28 @@ this project uses [semantic versioning](https://semver.org/).
   before the experiment, which may carry earlier mutations). A baseline is the control of last resort: with any
   mutation-free control in the project it is analysed as a sample; used as the control, the notes say that calls
   then count mutations new since the baseline and that the background estimate is conservative.
-
-### Fixed
-- **Controls without base qualities.** A control given as FASTA (or .seq, GenBank) got an invented quality on
-  every base, and quality-bearing samples judged against it were over-called (J_H4 Wt2 221 -> 234, Wt4 73 -> 81
-  calls, with no warning). Now every sample is then analysed without its qualities too (`ignore_qualities`,
-  after the read filters) and the notes say so. That is conservative (Wt2 57, Wt3 324, Wt4 72, controls 0/2/0
-  on the same data), because a mutation in one read can rarely be told from an error without qualities.
-
-### Added
 - **Germline variants from a VCF** (`germline_vcf.py`): `shmtrace-sheet run --germline-vcf` (every sample) or a
   `germline_vcf` column in the sample sheet (per animal). Every substitution the VCF lists for that animal
   (genotype not 0/0, FILTER PASS or ".") is removed from its calls, for heterozygous sites the 50% rule can miss.
   The VCF must be called against the same reference (CHROM = the first word of its FASTA header); a VCF in other
   coordinates, or with REF bases that disagree with the reference, is reported in the notes.
-
-### Added
+- **AIRR Community export** (`airr.py`; `airr_rearrangements.tsv` in every project's output): one row per
+  analysed read with all AIRR-required fields. `sequence_alignment` is the read with sequencing error removed
+  (germline everywhere except the mutations SHMtrace called), so Immcantation tools such as SHazaM,
+  BASELINe and dowser count SHMtrace's calls rather than every mismatch; the raw read is in
+  `sequence_alignment_raw`, the junction clone in `clone_id`. On the J_H4 project the raw reads carry
+  44,684 mismatches against germline and the denoised alignments 8,023, exactly the called mutations.
+- **The desktop app knows the new options.** Each library's role is a menu (sample, control, AID-null, empty
+  vector, plasmid, germline tissue, baseline) instead of a control checkbox, and a sample sheet's kinds load
+  into it; a germline VCF can be dropped beside the contaminant FASTA; the Export tab downloads the AIRR table.
+  A fold below 10 is shown with its decimals (0.43-fold, not "0-fold"), and a group clearly under its
+  control reads "below".
+- **`n114_vregion_contaminant.fasta`**: a second V-region template the N114 F1/R2 primer pair also amplifies
+  (476 bp, 4.0% divergent over N114 V positions 180-655), from 37 Sanger clones of the lab's N114 set. The app
+  offers it automatically with the N114 reference. Competitive alignment removes reads that align better to it;
+  because it is only 4% divergent, reads can still align best to N114, and the allele-level check is suppressed
+  where the template is common (contaminant_germline_frac treats a majority as shared germline). Screen on
+  provenance as well, not on this reference alone.
 - **Base-quality recalibration from the controls** (`recal.py`, `recalibrate: true`; off by default): shifts each
   base's quality by how much more or less often bases of its quality band are miscalled next to low-quality
   neighbours, fitted on the same controls as the null. On AID-null reads a Q15-34 base beside a <Q10 base is
@@ -47,27 +43,19 @@ this project uses [semantic versioning](https://semver.org/).
   recalibration changed recall and false calls by about 0.02 and two calls per library, in both directions,
   so it stays off (docs/calibration/RECAL.md).
 
-### Added
-- **AIRR Community export** (`airr.py`; `airr_rearrangements.tsv` in every project's output): one row per
-  analysed read with all AIRR-required fields. `sequence_alignment` is the read with sequencing error removed
-  (germline everywhere except the mutations SHMtrace called), so Immcantation tools such as SHazaM,
-  BASELINe and dowser count SHMtrace's calls rather than every mismatch; the raw read is in
-  `sequence_alignment_raw`, the junction clone in `clone_id`. On the J_H4 project the raw reads carry
-  44,684 mismatches against germline and the denoised alignments 8,023, exactly the called mutations.
-
 ### Fixed
+- **A demoted baseline no longer breaks the group comparison.** A baseline that shared its group with
+  mutation-free controls left that group mixed, so it stopped counting as the control group and no group was
+  compared with anything. It now gets a group of its own ("KO (baseline)").
+- **Controls without base qualities.** A control given as FASTA (or .seq, GenBank) got an invented quality on
+  every base, and quality-bearing samples judged against it were over-called (J_H4 Wt2 221 -> 234, Wt4 73 -> 81
+  calls, with no warning). Now every sample is then analysed without its qualities too (`ignore_qualities`,
+  after the read filters) and the notes say so. That is conservative (Wt2 57, Wt3 324, Wt4 72, controls 0/2/0
+  on the same data), because a mutation in one read can rarely be told from an error without qualities.
 - **A control from another sequencing run is now flagged in project mode.** The single-sample CLI already
   warned; project mode did not, because controls arrive as samples marked `control=yes`. Found on a real
   dataset where borrowing a cleaner run's AID-null controls *raised* the call count in 11 of 15 samples,
   because the borrowed error model made this run's errors look like mutations.
-
-### Added
-- **`n114_vregion_contaminant.fasta`**: a second V-region template the N114 F1/R2 primer pair also amplifies
-  (476 bp, 4.0% divergent over N114 V positions 180-655), from 37 Sanger clones of the lab's N114 set. The app
-  offers it automatically with the N114 reference. Competitive alignment removes reads that align better to it;
-  because it is only 4% divergent, reads can still align best to N114, and the allele-level check is suppressed
-  where the template is common (contaminant_germline_frac treats a majority as shared germline). Screen on
-  provenance as well, not on this reference alone.
 
 ## [0.2.1] - 2026-10-14
 
