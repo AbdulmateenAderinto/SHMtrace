@@ -1,0 +1,65 @@
+"""ClairS on the real J_H4 wild-type libraries, with the AID-null libraries as its matched normal.
+
+    python docs/calibration/crm/clairs_real.py      -> out/clairs_real_jh4.json
+
+Each Wt library: the 500 usable reads SHMtrace analyses (seed 0), against the Aicda-/- libraries' usable
+reads pooled as the normal. Records every candidate ClairS wrote, with its FILTER, QUAL, allele fraction and
+read support in the case and in the normal, so the paper can say how many candidates ClairS considered and why
+it passed few of them. SHMtrace's call count on the same reads is from the project run (benchmark_real).
+"""
+import gzip
+import json
+import os
+import random
+import sys
+import tempfile
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from clairs_runner import clairs_calls  # noqa: E402
+from datasets import DATASETS  # noqa: E402
+
+from shmtrace import pipeline  # noqa: E402
+from shmtrace.config import load_preset  # noqa: E402
+from shmtrace.io_utils import read_fasta, read_fastq  # noqa: E402
+
+OUT = Path(__file__).parent / "out"
+
+
+def usable(fq, ds, p):
+    u, _ = pipeline.prepare_reads(fq, ds["reference"], ds["contaminants"], p)
+    names = {a.qname for a in u}
+    return [r for r in read_fastq(fq) if r[0].split()[0] in names]
+
+
+if __name__ == "__main__":
+    ds = DATASETS["jh4"]
+    p = load_preset(ds["preset"])
+    ref = read_fasta(ds["reference"])[0][1]
+    lo, hi = pipeline._window(p, ref)
+    normal = [r for k in ("KO1", "KO2", "KO3") for r in usable(ds["samples"][k]["fastq"], ds, p)]
+    out = {"normal_reads": len(normal), "window": [lo + 1, hi + 1], "libraries": {}}
+    for wt in ("WT2", "WT3", "WT4"):
+        reads = usable(ds["samples"][wt]["fastq"], ds, p)
+        reads = random.Random(0).sample(reads, min(500, len(reads)))
+        res = {}
+        for setting in ("clairs", "clairs_permissive"):
+            with tempfile.TemporaryDirectory() as d:
+                vcf = os.path.join(d, "c.vcf.gz")
+                calls = clairs_calls(reads, normal, ds["reference"], lo + 1, hi + 1, setting=setting, keep_vcf=vcf)
+                cands = []
+                for line in gzip.open(vcf, "rt"):
+                    if line.startswith("#"):
+                        continue
+                    f = line.rstrip("\n").split("\t")
+                    fmt = dict(zip(f[8].split(":"), f[9].split(":"), strict=False))
+                    ad = fmt.get("AD", "0,0").split(",")
+                    cands.append({"pos": int(f[1]), "ref": f[3], "alt": f[4], "qual": float(f[5]), "filter": f[6],
+                                  "af": float(fmt.get("AF", "nan")), "alt_reads": int(ad[-1]) if ad[-1].isdigit() else None,
+                                  "normal_af": float(fmt.get("NAF", "nan"))})
+            res[setting] = {"pass_somatic": len(calls), "candidates": cands}
+            print(wt, setting, f"{len(cands)} candidates, {len(calls)} passed below 50% AF", flush=True)
+        out["libraries"][wt] = {"reads": len(reads), **res}
+    OUT.mkdir(exist_ok=True)
+    json.dump(out, open(OUT / "clairs_real_jh4.json", "w"), indent=1)
+    print(OUT / "clairs_real_jh4.json")

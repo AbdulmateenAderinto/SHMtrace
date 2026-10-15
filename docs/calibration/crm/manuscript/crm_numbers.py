@@ -363,6 +363,36 @@ def compute():
         N.update({f"sens_{k}_1": pct(r["by"][1]), f"sens_{k}_fdr": f"{r['fdr']:.2f}",
                   f"sens_{k}_fp": f1(r["fp"])})
         assert r["by"][1] > spike(k, "geneious")["by"][1], "the text says sensitive beats the Geneious rule"
+    # ClairS (somatic, with a matched normal) and Clair3 (germline) on the same planted mutations
+    # (spikein.py --clairs / --clair3), ClairS on clean high-fraction plants (clairs_highaf.py) and on the
+    # real wild-type libraries (clairs_real.py)
+    for k in ("jh4", "n114"):
+        cs, csp = spike(k, "clairs", "_clairs"), spike(k, "clairs_permissive", "_clairs")
+        c3, c3p = spike(k, "clair3", "_clair3"), spike(k, "clair3_permissive", "_clair3")
+        N.update({f"cs_{k}": pct(max(cs["recall"], csp["recall"])), f"cs_{k}_fp": f1(max(cs["fp"], csp["fp"])),
+                  f"c3_{k}": pct(max(c3["recall"], c3p["recall"]))})
+        rows = [r for r in _load(OUT / f"spikein_{k}_clairs.json")["rows"] if r["caller"] == "clairs"]
+        N[f"cs_{k}_n"] = f"{sum(r['planted'] for r in rows):,}"
+    hi = _load(OUT / "clairs_highaf_jh4.json")["rows"]
+    band = defaultdict(lambda: [0, 0])
+    for r in hi:
+        if r["caller"] != "clairs":
+            continue
+        for kk, (g, n) in r["recall_by_reads"].items():
+            b = 5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)
+            band[b][0] += g
+            band[b][1] += n
+    N.update({f"cs_hi_{b}": pct(band[b][0] / band[b][1]) for b in (5, 10, 20)})
+    N["cs_hi_n"] = f0(band[20][1])
+    real = _load(OUT / "clairs_real_jh4.json")["libraries"]
+    cands = real["WT3"]["clairs_permissive"]["candidates"]
+    N.update(cs_real_pass=word(sum(real[w]["clairs_permissive"]["pass_somatic"] for w in real)),
+             cs_real_empty=word(sum(1 for w in real if not real[w]["clairs_permissive"]["candidates"])),
+             cs_real_cand=f0(len(cands)), cs_real_rej=f0(sum(c["filter"] != "PASS" for c in cands)),
+             cs_real_hi=word(sum(c["af"] >= 0.2 for c in cands)),
+             cs_real_hi_pass=word(sum(c["af"] >= 0.2 and c["filter"] == "PASS" for c in cands)),
+             cs_real_reads=f"{min(c['alt_reads'] for c in cands)}–{max(c['alt_reads'] for c in cands)}",
+             cs_real_naf=f"{100 * max(c['normal_af'] for c in cands):.1f}")
     # indels planted into held-out nanopore controls (indel_spike.py)
     for k in ("jh4", "n114"):
         r = indel_spike.summary(k)

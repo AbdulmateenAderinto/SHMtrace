@@ -138,6 +138,10 @@ STEPS = [
         "Write a sample sheet (CSV file) with one row per library and the columns `file`, `sample`, `group`, and "
         "`control` (yes for AID-null libraries). For example: "
         "`reads/DHJGKB_5_AID_KO_1.fastq,KO1,Aicda-/-,yes`.",
+        "Note: The `control` column may name the kind of control instead of yes: `aid_null`, `empty_vector`, "
+        "`plasmid` (a cloned template), or `germline_tissue` (for example, tail DNA), each sequenced on the same run. "
+        "A `baseline` library (the cells before the experiment) is used as the control only when no mutation-free "
+        "control is given, because it may carry earlier mutations. Do not use a control from another run.",
         "Check the sample sheet with `shmtrace-sheet check samplesheet.csv`, which reports every problem (for "
         "example, missing files, duplicate names, or a sample assigned to two groups) with its line number.",
         "In the application (Figure 2A), choose the region (`jh4_intron`), the platform (`ont`), and the calling "
@@ -177,6 +181,8 @@ STEPS = [
         "or a control with excess mutations each produces a message (see troubleshooting).",
         "Open the Tables tab (Figure 2C) or `tables.xlsx`, which list per-sample calls, densities, and "
         "frequencies, every call with its supporting reads, and the clones.",
+        "Optional: To continue in Immcantation or other AIRR Community tools, use `airr_rearrangements.tsv`, which "
+        "lists every analyzed read with sequencing error removed: each read keeps only the mutations SHMtrace called.",
     ]),
     ("Plan the next experiment", "Timing: 5 min", [
         "Open the Power tab (Figure 2D). Using this analysis as the pilot, choose the measure, the fold change to "

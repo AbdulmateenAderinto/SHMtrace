@@ -28,7 +28,7 @@ from lofreq_runner import LOFREQ, lofreq_calls  # noqa: E402
 
 OUT = Path(__file__).parent / "out"
 PROFILES = ("recommended", "geneious", "v0.1", "pbinom")
-PROFILES_RUN, WITH_LOFREQ, TAG = list(PROFILES), True, ""
+PROFILES_RUN, WITH_LOFREQ, WITH_CLAIRS, WITH_CLAIR3, TAG = list(PROFILES), True, False, False, ""
 # extra settings tried on top of a mode: name -> (mode, Params overrides)
 VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             "recommended_bh": ("recommended", {"multiple_testing": "bh"}),
@@ -58,6 +58,14 @@ def run(key, reps, n_sites, seed=1):
         names = {a.qname for a in usable}
         pool = [r for r in read_fastq(fq) if r[0].split()[0] in names]
         nulls = {}
+        normal = None
+        if WITH_CLAIRS:
+            # ClairS's matched normal: the other controls' usable reads, pooled (what SHMtrace's null is fitted on)
+            normal = []
+            for pfq in peers:
+                pu, _ = pipeline.prepare_reads(pfq, ds["reference"], contam, base)
+                pn = {a.qname for a in pu}
+                normal += [r for r in read_fastq(pfq) if r[0].split()[0] in pn]
         rng = random.Random(seed)
         for rep in range(reps):
             sub = rng.sample(pool, min(len(pool), ds["depth"]))
@@ -93,6 +101,26 @@ def run(key, reps, n_sites, seed=1):
                                          **simulate.evaluate(called, planted)})
                             print(key, ctl, rep, lname, rows[-1]["recall"], rows[-1]["false_calls"],
                                   flush=True)
+                    if prof == "recommended" and WITH_CLAIRS:
+                        from clairs_runner import CLAIRS, clairs_calls
+                        keep = {a.qname for a in res["_aligned"]}
+                        reads = [r for r in spiked if r[0].split()[0] in keep]
+                        for cname in CLAIRS:
+                            cs = clairs_calls(reads, normal, ds["reference"], lo + 1, hi + 1, setting=cname)
+                            called = {(pos - 1, a) for pos, _r, a in cs}
+                            rows.append({"control": ctl, "rep": rep, "caller": cname, "reads": len(reads),
+                                         **simulate.evaluate(called, planted)})
+                            print(key, ctl, rep, cname, rows[-1]["recall"], rows[-1]["false_calls"], flush=True)
+                    if prof == "recommended" and WITH_CLAIR3:
+                        from clairs_runner import CLAIR3, clair3_calls
+                        keep = {a.qname for a in res["_aligned"]}
+                        reads = [r for r in spiked if r[0].split()[0] in keep]
+                        for cname in CLAIR3:
+                            cs = clair3_calls(reads, ds["reference"], lo + 1, hi + 1, setting=cname)
+                            called = {(pos - 1, a) for pos, _r, a in cs}
+                            rows.append({"control": ctl, "rep": rep, "caller": cname, "reads": len(reads),
+                                         **simulate.evaluate(called, planted)})
+                            print(key, ctl, rep, cname, rows[-1]["recall"], rows[-1]["false_calls"], flush=True)
             finally:
                 os.remove(tmp)
     OUT.mkdir(exist_ok=True)
@@ -108,9 +136,13 @@ if __name__ == "__main__":
     ap.add_argument("--profiles", default=",".join(PROFILES), help="modes or VARIANTS names")
     ap.add_argument("--no-lofreq", action="store_true")
     ap.add_argument("--tag", default="", help="suffix for the output file")
+    ap.add_argument("--clairs", action="store_true", help="also run ClairS (Docker image hkubal/clairs)")
+    ap.add_argument("--clair3", action="store_true", help="also run Clair3 (bundled in the ClairS image)")
     a = ap.parse_args()
     PROFILES_RUN = a.profiles.split(",")
     WITH_LOFREQ = not a.no_lofreq
+    WITH_CLAIRS = a.clairs
+    WITH_CLAIR3 = a.clair3
     TAG = a.tag
     for k in a.datasets:
         run(k, a.reps, a.sites)

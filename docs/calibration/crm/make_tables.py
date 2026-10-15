@@ -10,7 +10,9 @@ from openpyxl.styles import Font
 OUT = Path(__file__).parent / "out"
 LABEL = {"recommended": "SHMtrace", "geneious": "Geneious rule", "lofreq": "LoFreq (defaults)",
          "lofreq_nobaq": "LoFreq (-B, BAQ off)", "lofreq_permissive": "LoFreq (-B, p<=0.05 uncorrected, filters off)",
-         "v0.1": "per-position null", "pbinom": "quality model only"}
+         "v0.1": "per-position null", "pbinom": "quality model only",
+         "clairs": "ClairS (defaults, ont_r10_dorado_sup_5khz)", "clairs_permissive": "ClairS (snv_min_af 0.005)",
+         "clair3": "Clair3 (defaults, r1041_e82_400bps_sup_v520)", "clair3_permissive": "Clair3 (snp_min_af 0.01)"}
 SETS = {"jh4": "J_H4 intron, this study", "n114": "N114 V region, this study", "su_lps": "Smu, LPS (PRJNA1481264)",
         "su_ch12": "Smu, CH12 (PRJNA1481264)", "pim1": "Pim1, LPS (PRJNA1481264), 2,000 reads",
         "pim1_deep": "Pim1, LPS (PRJNA1481264), all usable reads"}
@@ -39,8 +41,14 @@ for key in ("jh4", "n114", "su_lps", "pim1"):
     if not f.exists():
         continue
     rows = json.load(open(f))["rows"]
-    for caller in ("recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive"):
+    for tag in ("_clairs", "_clair3"):           # ClairS and Clair3, run on the same planted mutations
+        if (OUT / f"spikein_{key}{tag}.json").exists():
+            rows += [r for r in json.load(open(OUT / f"spikein_{key}{tag}.json"))["rows"] if r["caller"] != "recommended"]
+    for caller in ("recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive",
+                   "clairs", "clairs_permissive", "clair3", "clair3_permissive"):
         rs = [r for r in rows if r["caller"] == caller]
+        if not rs:                               # ClairS and Clair3 were run on J_H4 and N114 only
+            continue
         rec = defaultdict(lambda: [0, 0])
         for r in rs:
             for k, (got, n) in r["recall_by_reads"].items():

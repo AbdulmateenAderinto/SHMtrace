@@ -79,8 +79,9 @@ INTRO = [
     "same sequencing run, compares groups with the animal as the unit, and runs the complete workflow from "
     "delivered reads or Sanger chromatograms to group statistics. We validated SHMtrace with planted mutations, "
     "simulated B cell lineages, six loci from five laboratories, three sequencing platforms, and Sanger "
-    "sequencing of the same mice, and we compared it with LoFreq[@wilm2012] and with the uncorrected test used "
-    "in Geneious[@kearse2012].",
+    "sequencing of the same mice, and we compared it with LoFreq[@wilm2012], with the long-read somatic caller "
+    "ClairS[@zheng2023] and germline caller Clair3[@zheng2022], and with the uncorrected test used in "
+    "Geneious[@kearse2012].",
 ]
 
 RESULTS = [
@@ -128,6 +129,22 @@ RESULTS = [
           "off, LoFreq recalled {sp_jh4_lfnb}% of planted mutations, all of them carried by five or more reads, "
           "and a permissive setting raised recall to {sp_jh4_lfp}% at {sp_jh4_lfp_fp} false calls per library "
           "(Figures 2A and 2C)."),
+    ("p", "We also tested ClairS[@zheng2023], a deep-learning somatic caller for long reads that compares a case "
+          "library with a matched normal, the design closest to SHMtrace's, using the other AID-null libraries as the "
+          "normal. ClairS recalled {cs_jh4}% of the {cs_jh4_n} planted mutations on J_{H}4 and {cs_n114}% on N114, at "
+          "its defaults and at the lowest allele fraction it accepts, and made no false calls. Its working range "
+          "starts higher: of mutations planted into otherwise unmutated reads at 5%, 10%, and 20% of reads, it "
+          "recalled {cs_hi_5}%, {cs_hi_10}%, and {cs_hi_20}%. On the wild-type J_{H}4 libraries themselves, however, "
+          "ClairS reported {cs_real_pass} mutation in total across the three libraries, where SHMtrace called "
+          "{jh4_wt_rec}. It found no "
+          "candidates in {cs_real_empty} of the three libraries, and in Wt3 it rejected {cs_real_rej} of its "
+          "{cs_real_cand} candidates, which were supported by {cs_real_reads} reads and seen in at most "
+          "{cs_real_naf}% of the normal's reads; {cs_real_hi} were carried by 20% or more of reads, a level at which it "
+          "recalled nearly all clean planted mutations, and it passed {cs_real_hi_pass} of them. Real hypermutated "
+          "reads, which carry many mutations each, therefore appear to be discounted by a model trained on human "
+          "genomes, in which somatic variants are sparse along each read. The germline caller Clair3[@zheng2022] recalled {c3_jh4}% of planted mutations on J_{H}4 and "
+          "{c3_n114}% on N114, as expected for a method that looks for variants carried by about half or all of the "
+          "reads (Table S2)."),
     ("p", "N114 V-region reads gave similar results (Figure 2B). SHMtrace recalled {sp_n114_recall}% of planted "
           "mutations, including {sp_n114_1}% of those in a single read, with {sp_n114_fp} false calls per "
           "library (FDR {sp_n114_fdr}), compared with {sp_n114_lfnb}% recall for LoFreq without base-alignment "
@@ -318,7 +335,10 @@ DISCUSSION = [
     "removes alignment artifacts. On nanopore reads, that correction suppressed almost every call, and without "
     "it, LoFreq still required five or more supporting reads. This is not a defect of LoFreq on the data it was "
     "designed for, but it illustrates that a per-base error model cannot know the library-specific background "
-    "of an SHM assay, which only a matched control measures. The Geneious rule recalled more single-read "
+    "of an SHM assay, which only a matched control measures. ClairS uses a matched normal, but its learned "
+    "model of somatic variation comes from synthetic somatic variants in human genomes, which are sparse "
+    "along each read; it called clean planted mutations once they reached about 20% of reads, but not real "
+    "SHM at the same frequencies. The Geneious rule recalled more single-read "
     "planted mutations on J_{H}4 and *Pim1* and fewer on N114 and Sμ, and it made more false calls on every "
     "amplicon. In polyclonal simulations, where single-read mutations sit among many true mutations, SHMtrace "
     "recalled {lin_1_rec}% of them and the Geneious rule {lin_1_gen}%, with SHMtrace making more false calls "
