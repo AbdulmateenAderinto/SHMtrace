@@ -207,6 +207,7 @@ def compute():
     j = b["jh4"]
     N["jh4_wt_rec"] = series(j["recommended"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
     N["jh4_ko_rec"] = series(j["recommended"]["ctl_each"][x] for x in ("KO1", "KO2", "KO3"))
+    N["n114_aid_rec"] = series(b["n114"]["recommended"]["case_calls"][x] for x in ("C1", "D3", "D5"))
     N["jh4_wt_gen"] = series(j["geneious"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
     N["jh4_ko_gen"] = series(j["geneious"]["ctl_each"][x] for x in ("KO1", "KO2", "KO3"))
     N["jh4_wt_lf"] = series(j["lofreq"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
@@ -427,10 +428,11 @@ def compute():
             N[f"{tag}_recall"] = f"{lx} and {ly} each recalled {N[f'{x}_recall']}"
         else:
             N[f"{tag}_recall"] = f"{lx} recalled {N[f'{x}_recall']}, and {ly} {N[f'{y}_recall']}"
-    if (OUT / "deepsomatic_real_jh4.json").exists():         # DeepSomatic on the real wild-type libraries
-        dsr = _load(OUT / "deepsomatic_real_jh4.json")["libraries"]
-        N["ds_real_pass"] = word(max(sum(dsr[w][s]["pass_somatic"] for w in dsr)
-                                     for s in ("deepsomatic", "deepsomatic_permissive")))
+    for k, tag in (("jh4", "ds_real_pass"), ("n114", "ds_real_n114_pass")):   # DeepSomatic on real AID libraries
+        if (OUT / f"deepsomatic_real_{k}.json").exists():
+            dsr = _load(OUT / f"deepsomatic_real_{k}.json")["libraries"]
+            N[tag] = word(max(sum(dsr[w][s]["pass_somatic"] for w in dsr)
+                              for s in ("deepsomatic", "deepsomatic_permissive")))
     real = _load(OUT / "clairs_real_jh4.json")["libraries"]
     cands = real["WT3"]["clairs_permissive"]["candidates"]
     N.update(cs_real_pass=word(sum(real[w]["clairs_permissive"]["pass_somatic"] for w in real)),

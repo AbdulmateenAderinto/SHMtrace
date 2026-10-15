@@ -184,7 +184,8 @@ METHODS = [
           "below 0.5 allele fraction were kept, as for the other callers. To find the allele fraction at which "
           "the somatic callers begin to work, 30 substitutions were also planted into 25, 50, and 100 of 500 "
           "reads (5%, 10%, and 20%) of each held-out J_{H}4 control, which otherwise carries few mutations, and "
-          "ClairS and DeepSomatic were run on the wild-type J_{H}4 libraries against the pooled *Aicda*^{−/−} reads."),
+          "ClairS and DeepSomatic were run on the wild-type J_{H}4 libraries against the pooled *Aicda*^{−/−} reads, "
+          "and DeepSomatic on the pMX-*Aicda* N114 subclones against the pooled empty-vector reads (500 reads each, seed 0)."),
     ("h2", "Simulations"),
     ("p", "For lineage simulations, the reads of one AID-null library were divided into approximately 40 "
           "clones with power-law sizes. Each clone received a random 20-bp junction and J trimming (−3 to +12 bp), "
