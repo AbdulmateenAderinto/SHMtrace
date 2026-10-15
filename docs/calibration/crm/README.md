@@ -30,7 +30,7 @@ SHazaM with `scripts/export_shazam_model.R`; AGPL-3, not committed).
 - `scicanvas/crm_figure1.js`, `crm_ga.js`, `star_figure1.js`: built with
   `manuscript_corrected/figure1_scicanvas/build.js` (graphical abstract with `GA=1`); Cell Press checks and
   SciCanvas's figure check run on every build.
-- `figs/fig2_call.py` … `fig7_platforms.py`, `figS5_estimates.py`, `star_figs.py`: matplotlib, Arial,
+- `figs/fig2_call.py` … `fig7_platforms.py`, `figS3_estimates.py`, `star_figs.py`: matplotlib, Arial,
   174 mm, 600-dpi PNG/TIFF and vector PDF.
 
 ## Documents

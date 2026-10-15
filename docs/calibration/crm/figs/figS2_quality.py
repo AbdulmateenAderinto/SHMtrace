@@ -1,4 +1,4 @@
-"""Figure S8: reported base quality against the error measured in the AID-null controls, per run.
+"""Figure S2: reported base quality against the error measured in the AID-null controls, per run.
 
 Each point is the mismatch rate among control bases of one reported quality (germline sites excluded; bins of
 two quality values with at least 2,000 bases); the diagonal is the rate the quality score promises,
@@ -43,7 +43,7 @@ def main():
     ax.set_ylabel("Mismatch rate in AID-null controls")
     ax.legend(fontsize=5.2, loc="lower left", handlelength=1.6, borderaxespad=0.3)
     ax.grid(True, which="major", color=SOFT, lw=0.2, alpha=0.5)
-    save(fig, "FigureS8")
+    save(fig, "FigureS2")
     json.dump({"error_q20plus": out}, open(DATA / "figS8_numbers.json", "w"), indent=1)
 
 

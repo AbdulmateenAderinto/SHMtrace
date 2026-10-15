@@ -86,7 +86,7 @@ INTRO = [
 
 RESULTS = [
     ("h", "SHMtrace calibrates each call against the AID-null controls"),
-    ("p", "SHMtrace starts from the files that a sequencing provider or core facility returns (Figure 1). Nanopore "
+    ("p", "SHMtrace starts from the files that a sequencing provider or core facility returns (Figures 1 and S1). Nanopore "
           "and Illumina reads are first filtered by length and expected error[@edgar2015] and aligned with "
           "minimap2[@li2018] against the target together with competing references. Reads that align better to a "
           "paralog, are chimeric, or carry ten or more paralog-specific bases are removed (Figure 1B), and the "
@@ -96,7 +96,8 @@ RESULTS = [
     ("p", "The central step is the variant test (Figures 1A and 1C). For each substitution type, strand, and base "
           "quality, SHMtrace measures how often the AID-null libraries of the same run show that change. It "
           "then asks whether a candidate mutation is supported by more reads, at the qualities observed, than "
-          "this background can explain. Because quality scores overstate certainty, the control error rates are "
+          "this background can explain. Because quality scores overstate certainty at the highest qualities "
+          "(Figure S2), the control error rates are "
           "multiplied by a safety margin chosen by leaving one control out at a time: each control is tested "
           "against the others, and the smallest margin at which no more than 1% of its tests reach p < 0.01 is "
           "kept. These held-out tests, made at the same read depth as the samples, also set the significance "
@@ -212,7 +213,7 @@ RESULTS = [
           "read. Adding the aggregate single-read estimate brought density to {q_cd} of the true value across "
           "scenarios. Unique-variant densities should therefore be compared at matched depth. When 25, 50, or "
           "100 single-read mutations were planted, the aggregate estimate increased by {sr_rec}% of the number "
-          "planted on average (Figure S5)."),
+          "planted on average (Figure S3)."),
     ("p", "Finally, we asked how often group tests report a difference when none exists (Figure 3G). In 300 "
           "simulated experiments per condition, with a between-animal coefficient of variation of 1 as measured "
           "in wild-type J_{H}4, pooling reads across animals gave p < 0.05 in 91% (3 versus 3 animals) and 94% "
@@ -230,20 +231,22 @@ RESULTS = [
           "Geneious rule, while keeping a Wt signal similar to that of the Geneious rule (Figures 4A–4E and 4G). "
           "The separation between AID-active and AID-null libraries, measured as the ratio of geometric-mean "
           "unique-variant densities with controls without calls placed at one event, was {sep_jh4}-fold on "
-          "J_{H}4, {sep_n114}-fold on N114, {sep_su_lps}-fold on Sμ in LPS-activated B cells, and "
+          "J_{H}4, {sep_n114}-fold on N114 (Figure S4), {sep_su_lps}-fold on Sμ in LPS-activated B cells, and "
           "{sep_su_ch12}-fold in CH12 cells. The corresponding separation was {gen_lo}- to {gen_hi}-fold for the "
           "Geneious rule and {lf_lo}- to {lf_hi}-fold for the three LoFreq settings (Figure 4F). On J_{H}4, "
           "SHMtrace called {jh4_wt_rec} unique variants in the Wt libraries and {jh4_ko_rec} in the controls, "
           "whereas the Geneious rule called {jh4_wt_gen} and {jh4_ko_gen}, respectively. LoFreq with "
           "base-alignment quality called {jh4_wt_lf} Wt variants. Without that correction, LoFreq called "
           "{jh4_wt2_lfnb} variants in Wt2, a library dominated by one clone with many single-read mutations, "
-          "compared with {jh4_wt2_rec} for SHMtrace. On the external Sμ datasets, SHMtrace called {su_wt_calls} "
+          "compared with {jh4_wt2_rec} for SHMtrace. At 500 reads, the AID-active libraries had reached "
+          "{depth_jh4_500}% (J_{H}4) and {depth_n114_500}% (N114) of the calls each made at its largest depth "
+          "(Figure S5). On the external Sμ datasets, SHMtrace called {su_wt_calls} "
           "Wt variants per library, compared with {su_gen_wt_calls} for the Geneious rule, with {su_ctl_calls} "
           "calls per control versus {su_gen_ctl_calls}. Background in the AID-null libraries was concentrated "
-          "at particular positions of each amplicon (Figures S7A and S7B). Once germline differences were set "
+          "at particular positions of each amplicon (Figures S6A and S6B). Once germline differences were set "
           "aside, a wild-type and an *Aicda*^{−/−} J_{H}4 library carried the same number of other high-quality "
           "mismatches ({rast_wt_other} and {rast_ko_other} in 500 reads), and the wild-type library added "
-          "{rast_wt_called} at called sites, in blocks shared by the reads of a clone (Figures S7C and S7D)."),
+          "{rast_wt_called} at called sites, in blocks shared by the reads of a clone (Figures S6C and S6D)."),
     ("p", "*Pim1*, where AID acts weakly, marked the limit of detection. At 2,000 reads, no caller convincingly "
           "separated AID-competent from *Aicda*^{−/−} libraries (SHMtrace {pim1_rec_fold}-fold with {pim1_rec_ctl} "
           "control calls; Geneious rule {pim1_gen_fold}-fold with {pim1_gen_ctl} control calls). {pim1_deep}"),
@@ -260,7 +263,7 @@ RESULTS = [
     ("h", "Nanopore and Sanger sequencing agree in the same mice"),
     ("p", "The same six mice had previously been analyzed by cloned-amplicon Sanger sequencing[@barbulescu2025]. We "
           "re-analyzed their 447 chromatograms with SHMtrace's Sanger mode and compared the two platforms over "
-          "the 529-bp window that the Sanger clones read cleanly (Figure 5). Both platforms separated Wt from "
+          "the 529-bp window that the Sanger clones read cleanly (Figures 5 and S7). Both platforms separated Wt from "
           "*Aicda*^{−/−} mice (Sanger, {sanger_fold}-fold, p = {sanger_p}; nanopore, at least {ont_fold}-fold, "
           "p = {ont_p}; Welch tests on log densities, n = 3 per group; Figure 5A). The pooled substitution "
           "spectra agreed closely (Pearson r = {r_spec}, 95% CI {r_spec_ci}; slope = {slope}; Figure 5B), as did "
@@ -289,7 +292,7 @@ RESULTS = [
           "first 450 bp, and the number of mutations declined about {full_decline}-fold between the first and "
           "last 250 bp, consistent with the decline of SHM about 1 kb from the V(D)J junction[@lebecque1990]. "
           "Extending the analysis to the full interval did not change the mutation spectrum, which matched the "
-          "spectrum of the Sanger window (r = {s1_r})."),
+          "spectrum of the Sanger window (r = {s1_r}; Figure S8)."),
     ("p", "Mutations in Wt libraries favored the positions that the S5F model considers most mutable. The "
           "targeting index, the mean S5F mutability at mutated positions relative to the window, was {s5f_wt} "
           "(p ≤ {s5f_wt_p}, permutation test), and mutations per position increased {s5f_dose}-fold from the least "
@@ -360,7 +363,7 @@ DISCUSSION = [
     "designed for, but it illustrates that a per-base error model cannot know the library-specific background "
     "of an SHM assay, which only a matched control measures. Nanopore quality scores themselves were "
     "conservative up to about Q30, but above Q40 the measured error no longer fell as the scores promise and "
-    "differed between runs ({q40_lo}–{q40_hi} × 10^{−5}; Figure S8), so the high-quality bases on which a "
+    "differed between runs ({q40_lo}–{q40_hi} × 10^{−5}; Figure S2), so the high-quality bases on which a "
     "read-level test relies carry a run-specific error that only same-run controls measure. ClairS and DeepSomatic use a matched normal, but "
     "their learned models of somatic variation come from human cancer genomes and synthetic variants, in which "
     "somatic variants are sparse along each read; they called clean planted mutations once they reached about "

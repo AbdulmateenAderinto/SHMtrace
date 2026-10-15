@@ -444,7 +444,7 @@ def compute():
                  sum(c["af"] >= 0.2 and c["filter"] == "PASS" for c in cands), sum(c["af"] >= 0.2 for c in cands)),
              cs_real_reads=f"{min(c['alt_reads'] for c in cands)}–{max(c['alt_reads'] for c in cands)}",
              cs_real_naf=f"{100 * max(c['normal_af'] for c in cands):.1f}")
-    # Figure 2 and Figures S7-S8: anatomy of a call, the control FDR, where real SHM sits, the background along
+    # Figure 2 and Figures S2 and S6: anatomy of a call, the control FDR, where real SHM sits, the background along
     # the amplicon and reported quality against measured error (intuition_data.py, fig2_call.py)
     from bisect import bisect_right
     su = _load(OUT / "intuition_su_lps.json")

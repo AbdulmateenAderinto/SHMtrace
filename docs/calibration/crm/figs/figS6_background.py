@@ -1,4 +1,4 @@
-"""Figure S7: the background is position-specific, and the reads show what is called.
+"""Figure S6: the background is position-specific, and the reads show what is called.
 
 A-B  mismatch rate (base quality >= 20, germline sites excluded) at every position of the window in each
      AID-null control and in the AID-active libraries (mean), J_H4 and Smu; r, Spearman between controls
@@ -92,7 +92,7 @@ def main():
         ax = fig.add_subplot(gs[2, j])
         raster_panel(ax, d, n, label)
         letter(ax, "CD"[j], dx=-0.14)
-    save(fig, "FigureS7")
+    save(fig, "FigureS6")
 
 
 if __name__ == "__main__":

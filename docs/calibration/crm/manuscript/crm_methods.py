@@ -244,7 +244,7 @@ LEGENDS = [
      "stay below 5% of the calls (dotted line), here the dashed threshold. (E) Share of reads carrying each call "
      "made by SHMtrace in the AID-active libraries of four loci (J_{H}4 and N114, 500 reads; Sμ and *Pim1*, "
      "2,000 reads); shaded, where ClairS and DeepSomatic recall most clean planted mutations (Figure 3H); dotted "
-     "line, a heterozygous germline genotype. See also Figure S8."),
+     "line, a heterozygous germline genotype. See also Figure S2."),
     ("Figure 3. Planted mutations and simulated lineages calibrate recall and false calls",
      "(A and B) Recall of mutations planted into reads of a held-out AID-null library (J_{H}4, A; N114, B), by the "
      "number of reads carrying each, for SHMtrace, the uncorrected Geneious rule and LoFreq at three settings; 60 "
@@ -261,7 +261,7 @@ LEGENDS = [
      "the spike-ins of A (shaded; 1–20 of 500 reads; solid) and 30 mutations planted into 5%, 10%, and 20% of 500 "
      "reads of each held-out AID-null library (dashed, open symbols), with the other two libraries as the matched "
      "normal; SHMtrace on the spike-ins for comparison. "
-     "See also Figure S5 and Table S2."),
+     "See also Figure S3 and Table S2."),
     ("Figure 4. On real libraries, matched controls set the background",
      "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-null (red) libraries for each "
      "caller on the same reads; triangles, libraries without calls. J_{H}4, 3 wild-type and 3 *Aicda*^{−/−} mice; "
@@ -269,8 +269,8 @@ LEGENDS = [
      "AID-competent and 3 *Aicda*^{−/−} libraries (2,000 reads each). (F) Separation: geometric mean of AID-competent "
      "over AID-null densities, libraries without calls at their one-event density. (G) Calls summed over the three "
      "AID-null libraries. (H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
-     "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S2 "
-     "and S3 and Table S2."),
+     "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S4 "
+     "and S5 and Table S2."),
     ("Figure 5. Nanopore and Sanger sequencing agree in the same mice",
      "(A) Unique variants per 10^{5} bases per mouse (n = 3 per genotype) from Sanger clones (26–40 per wild-type "
      "mouse, re-analyzed from chromatograms) and from nanopore reads (500 per mouse); bars, geometric means; p, Welch "
@@ -279,7 +279,7 @@ LEGENDS = [
      "identity; r, Pearson with 95% CI. (C) Share of calls in 25-bp bins along the 529-bp window. (D) Share of G:C "
      "calls at WRC/GYW and of A:T calls at WA/TW; bars, mean of 3 mice; points, mice; dashed lines, the window's "
      "share of such sites. (E) Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects. "
-     "See also Figure S4."),
+     "See also Figure S7."),
     ("Figure 6. Long reads add whole-amplicon maps, clones and mutation trees",
      "(A) Unique variants per 10^{5} bases in 50-bp bins over J_{H}4 positions 90–1,230; thin lines, wild-type mice; "
      "thick lines, means (n = 3 per genotype); shading, the window shared with Sanger. (B) Calls per position by "
@@ -287,7 +287,7 @@ LEGENDS = [
      "relative to each series' mean; targeting index, permutation test. (C) Reads with a V(D)J junction by clone "
      "(dark, largest clone) and the read- and clone-weighted mutation frequencies. (D) Mutation tree of the largest "
      "Wt3 clone: square, unmutated ancestor; ticks, mutations colored by class; circles, nodes, sized and labeled "
-     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S6."),
+     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S8."),
     ("Figure 7. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
      "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
@@ -324,7 +324,7 @@ TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Na
                "molecular identifier.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S6 and Tables S1 and S3",
+    "Document S1. Figures S1–S8 and Tables S1 and S3",
     "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]
