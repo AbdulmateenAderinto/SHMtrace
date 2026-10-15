@@ -388,7 +388,7 @@ def compute():
     if (OUT / "deepsomatic_highaf_jh4.json").exists():      # DeepSomatic on the same plants (clairs_highaf.py)
         band = defaultdict(lambda: [0, 0])
         for r in _load(OUT / "deepsomatic_highaf_jh4.json")["rows"]:
-            if r["caller"] == "deepsomatic_permissive":            # as drawn in Figure 2H
+            if r["caller"] == "deepsomatic_permissive":            # as drawn in Figure 3H
                 for kk, (g, n) in r["recall_by_reads"].items():
                     band[5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)][0] += g
                     band[5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)][1] += n
@@ -444,6 +444,49 @@ def compute():
                  sum(c["af"] >= 0.2 and c["filter"] == "PASS" for c in cands), sum(c["af"] >= 0.2 for c in cands)),
              cs_real_reads=f"{min(c['alt_reads'] for c in cands)}–{max(c['alt_reads'] for c in cands)}",
              cs_real_naf=f"{100 * max(c['normal_af'] for c in cands):.1f}")
+    # Figure 2 and Figures S7-S8: anatomy of a call, the control FDR, where real SHM sits, the background along
+    # the amplicon and reported quality against measured error (intuition_data.py, fig2_call.py)
+    from bisect import bisect_right
+    su = _load(OUT / "intuition_su_lps.json")
+    an = su["anatomy"]
+    case = an["case"]
+    tr, er = an["sites"]["true"], an["sites"]["error"]
+
+    def reads(site, n):
+        v = site["libraries"][n]
+        return v["alt_plus"] + v["alt_minus"], v["depth_plus"] + v["depth_minus"]
+
+    def med(qs):
+        return sorted(qs)[len(qs) // 2]
+    k_t, d_t = reads(tr, case)
+    k_e, d_e = reads(er, case)
+    ko = max((n for n in er["libraries"] if n != case), key=lambda n: reads(er, n)[0])
+    k_k, d_k = reads(er, ko)
+    ctl_t = [reads(tr, n)[0] for n in tr["libraries"] if n != case]
+    hq_t = [q for n in tr["libraries"] if n != case for q in tr["libraries"][n]["alt_quals"] if q >= 20]
+    N.update(ana_case=case, ana_t_pos=f0(tr["pos"]), ana_t_ctx=tr["context"], ana_t_reads=f"{k_t} of {d_t:,}",
+             ana_t_q=f0(med(tr["libraries"][case]["alt_quals"])), ana_t_ctl=f"{min(ctl_t)}–{max(ctl_t)}",
+             ana_t_ctl_hq=word(len(hq_t)), ana_t_p=f"{tr['p']:.0e}".replace("e-", " × 10^{−") + "}",
+             ana_e_pos=f0(er["pos"]), ana_e_ctx=er["context"], ana_e_reads=f"{k_e} of {d_e:,}",
+             ana_e_q=f0(med(er["libraries"][case]["alt_quals"])), ana_e_ko=ko, ana_e_ko_reads=f"{k_k} of {d_k:,}",
+             ana_e_ko_q=f0(med(er["libraries"][ko]["alt_quals"])),
+             ana_e_gen_ctl=word(er["geneious_calls"][0]), ana_e_gen_case=word(er["geneious_calls"][1]))
+    c = su["candidates"][case]
+    N.update(ana_thr=f"{c['threshold']:.3f}", ana_kept=f0(bisect_right(sorted(c["p"]), c["threshold"])),
+             ana_cand=f"{len(c['p']):,}")
+    fig2n = _load(OUT / "fig2_numbers.json")
+    N.update(af_n=f"{fig2n['af_calls']:,}", af_lt1=pct(fig2n["af_share_below"]["1"] / 100),
+             af_lt5=pct(fig2n["af_share_below"]["5"] / 100), af_lt20=f"{fig2n['af_share_below']['20']:.1f}")
+    jr = _load(OUT / "intuition_jh4.json")["raster"]
+    N.update(rast_wt_called=f"{sum(m[2] for r in jr['WT3'] for m in r['muts']):,}",
+             rast_wt_other=f0(sum(1 - m[2] for r in jr["WT3"] for m in r["muts"])),
+             rast_ko_other=f0(sum(1 - m[2] for r in jr["KO1"] for m in r["muts"])))
+    hiq = []          # measured error at reported quality >= 40 in each run's controls
+    for k in ("jh4", "n114", "su_lps", "pim1"):
+        q = _load(OUT / f"intuition_{k}.json")["quality"]
+        m, b = (sum(v[i] for qq, v in q.items() if int(qq) >= 40) for i in (0, 1))
+        hiq.append(m / b)
+    N.update(q40_lo=f"{min(hiq) * 1e5:.0f}", q40_hi=f"{max(hiq) * 1e5:.0f}")
     # indels planted into held-out nanopore controls (indel_spike.py)
     for k in ("jh4", "n114"):
         r = indel_spike.summary(k)

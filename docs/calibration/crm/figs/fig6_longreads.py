@@ -1,4 +1,4 @@
-"""Figure 5: what long reads add.
+"""Figure 6: what long reads add.
 
 A  unique variants along the whole J_H4 amplicon (positions 90-1,230), per Wt mouse and the AID-null controls
 B  AID targeting: calls per position by 5-mer mutability quintile (SHazaM HH_S5F), Wt calls against
@@ -156,7 +156,7 @@ def main():
     hs = [plt.Line2D([], [], color=c, lw=1.6, label=lab) for lab, c in CLASS.values()]
     ax.legend(handles=hs, fontsize=5.3, loc="lower right", ncol=3, handlelength=1)
     letter(ax, "D", dx=-0.06)
-    save(fig, "Figure5")
+    save(fig, "Figure6")
 
 
 if __name__ == "__main__":

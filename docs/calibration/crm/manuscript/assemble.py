@@ -45,7 +45,7 @@ def main():
     pdf(a / "5_Cover_Letter/CoverLetter_CellReportsMethods.docx", a / "5_Cover_Letter")
     shutil.copy(FIG / "Figure1.pdf", a / "2_Figures/Figure1.pdf")
     shutil.copy(FIG / "Figure1_1000dpi.tif", a / "2_Figures/Figure1.tif")
-    for i in range(2, 7):
+    for i in range(2, 8):
         for ext in ("pdf", "tif"):
             shutil.copy(FIG / f"Figure{i}.{ext}", a / f"2_Figures/Figure{i}.{ext}")
     for ext, src in (("pdf", "GraphicalAbstract.pdf"), ("tif", "GraphicalAbstract_1000dpi.tif"),

@@ -1,4 +1,4 @@
-"""Figure 6: the same engine across platforms, loci and questions.
+"""Figure 7: the same engine across platforms, loci and questions.
 
 A  Illumina J_H4 (PRJNA973112): mutation frequency per mouse, Wt / Ldha-deleted / AID-null
 B  CH12F3 Ung-/-Msh2-/-Aicda-/- (PRJNA918596): mutation frequency per replicate by condition
@@ -116,7 +116,7 @@ def main():
     ax.set_title(f"UMI consensus, R10 reads ({u['molecules_3plus_reads']} molecules)", fontsize=7)
     ax.legend(fontsize=5.3, loc="lower left")
     letter(ax, "E", dx=-0.16)
-    save(fig, "Figure6")
+    save(fig, "Figure7")
 
 
 if __name__ == "__main__":

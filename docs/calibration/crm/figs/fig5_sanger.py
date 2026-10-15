@@ -1,4 +1,4 @@
-"""Figure 4: nanopore and Sanger agree in the same mice.
+"""Figure 5: nanopore and Sanger agree in the same mice.
 
 A    unique-variant density per mouse, Sanger clones and nanopore reads (529-bp window)
 B    pooled 12-type substitution spectrum, Sanger against nanopore (three Wt mice)
@@ -132,7 +132,7 @@ def main():
     ax.set_title("Sanger bookkeeping checks (40 simulated projects)", fontsize=7)
     ax.text(1.0, -0.32, "no flags on 6,018 correctly filed clones", transform=ax.transAxes, ha="right", fontsize=5.5, color=MID)
     letter(ax, "E", dx=-0.62)
-    save(fig, "Figure4")
+    save(fig, "Figure5")
 
 
 if __name__ == "__main__":

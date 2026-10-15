@@ -256,14 +256,14 @@ def main(outdir):
     s.table(["Assay", "Library", "Delivered", "Over-length", "Expected error > 0.01", "Unmapped or paralog",
              "Chimeric or short alignment", "Paralog alleles", "Usable", "Analyzed", "Candidates tested",
              "Calls (FDR ≤ 0.05)"], rows, size=7.5,
-            title="**Table S1. Read preparation and calls per library, related to Figure 3**",
+            title="**Table S1. Read preparation and calls per library, related to Figure 4**",
             footnote="Counts of reads removed at each step of SHMtrace's read preparation, from the delivered FASTQ "
                      "files; 500 usable reads were drawn at random (seed 0) for analysis. WT, wild type; KO, "
                      "*Aicda*^{−/−}; C1, D3, D5, pMX-*Aicda* subclones; C3, C4, D1, empty-vector subclones.")
     # Table S3: statistics
     s.page_break()
     s.table(["Comparison", "Test", "Result"], STATS, size=8.5,
-            title="**Table S3. Statistical summary, related to Figures 2–6**",
+            title="**Table S3. Statistical summary, related to Figures 3–7**",
             footnote="With three animals per group, p values and intervals are descriptive. Folds with a control "
                      "library without calls placed at its one-event density are lower bounds.")
     s.save(out / "Document_S1.docx")
@@ -300,34 +300,47 @@ SUPP_FIGS = [
      "(A) Experimental design for the J_{H}4 and N114 assays. (B and C) Read preparation and variant calling as run by "
      "SHMtrace from the delivered reads. (D) The Sanger route. (E) The fate of every delivered read per library; line, "
      "the 500 reads analyzed."),
-    ("Figure S2. Sequencing depth and unique-variant discovery, related to Figure 3",
+    ("Figure S2. Sequencing depth and unique-variant discovery, related to Figure 4",
      [MC / "FigureS3_depth_discovery_density.png", MC / "FigureS4_saturation.png"],
      "Each library was analyzed at 30–1,000 reads (one random draw of usable reads per depth), with controls "
      "calibrated at the same depth. Top, unique variants and density against depth (geometric mean ± geometric SD, "
      "n = 3 per group). Bottom, calls at each depth relative to each AID-active sample's maximum (mean ± SD); at 500 "
      "reads, {depth_jh4_500}% (J_{H}4) and {depth_n114_500}% (N114)."),
-    ("Figure S3. N114 V-region results and per-library spectra, related to Figure 3",
+    ("Figure S3. N114 V-region results and per-library spectra, related to Figure 4",
      [MC / "Figure4_hybridoma_combined.png", MC / "FigureS6_individual_JH4_ONT_matrices.png",
       MC / "FigureS7_individual_N114_matrices.png"],
      "Top, N114 unique-variant density per subclone (n = 3 per vector; empty-vector subclones without calls at one "
      "event) and pooled spectra. Middle and bottom, From → To substitution matrices for each J_{H}4 mouse and N114 "
      "subclone; each cell gives unique variants and their share of the sample's calls."),
-    ("Figure S4. Sanger re-analysis, related to Figure 4",
+    ("Figure S4. Sanger re-analysis, related to Figure 5",
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
      "Top, substitution matrices for each mouse's Sanger clones (re-analyzed from 447 chromatograms; base quality "
      "≥ 20). Bottom, the share of wild-type clones with a high-quality base at each J_{H}4 position and calls per 10^{3} "
      "bases read; shading, the 529-bp window used for comparison."),
-    ("Figure S5. Single-read estimate, power and UMI consensus on simulated libraries, related to Figure 2",
+    ("Figure S5. Single-read estimate, power and UMI consensus on simulated libraries, related to Figure 3",
      FIG / "FigureS5.png",
      "(A) Change in the aggregate single-read estimate against one-read mutations planted into held-out J_{H}4 "
      "control libraries (three controls; three replicates per amount); dashed line, identity. (B) Power at α = 0.05 "
      "to detect a two-fold change with the animal-level test, by animals per group, from the J_{H}4 wild-type pilot "
      "(1,000 simulated experiments per point). (C) False calls per library with and without UMI consensus in "
      "simulated UMI libraries built from real control reads (three held-out controls)."),
-    ("Figure S6. Full-length spectra and mutation trees in each mouse, related to Figure 5",
+    ("Figure S6. Full-length spectra and mutation trees in each mouse, related to Figure 6",
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
+    ("Figure S7. The background along the amplicon and in each read, related to Figure 4",
+     FIG / "FigureS7.png",
+     "(A and B) Mismatches at base quality ≥ 20 at every position of the analysis window, germline sites "
+     "excluded, in each AID-null library (red) and averaged over the AID-active libraries (blue); J_{H}4, 500 "
+     "reads per library; Sμ (PRJNA1481264), 2,000. r, Spearman correlation between pairs of controls. (C and D) "
+     "Every mismatch at quality ≥ 20 (germline sites excluded) in each of the 500 reads of a wild-type (C) and an "
+     "*Aicda*^{−/−} (D) J_{H}4 library; colored, at sites SHMtrace called; gray, other mismatches. Reads are sorted "
+     "by clone (dotted lines between the largest clones) and by mutation load."),
+    ("Figure S8. Reported base quality against the error measured in AID-null controls, related to Figure 2",
+     FIG / "FigureS8.png",
+     "Mismatch rate among the AID-null control bases of each reported quality (bins of two quality values with "
+     "at least 2,000 bases; germline sites excluded) for the four nanopore loci, sequenced in three runs; dashed "
+     "line, the rate a quality score promises, 10^{−Q/10}."),
 ]
 
 if __name__ == "__main__":

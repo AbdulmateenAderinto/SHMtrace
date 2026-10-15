@@ -1,4 +1,4 @@
-"""Figure 3: on real libraries with matched AID-null controls, the controls set the background.
+"""Figure 4: on real libraries with matched AID-null controls, the controls set the background.
 
 A-E  unique-variant density per library (case blue, AID-null control red) for each caller, five datasets
 F    separation: geometric-mean case density over control density (controls without calls at one event)
@@ -144,7 +144,7 @@ def main():
     ax.legend(fontsize=5.3, loc="center left", bbox_to_anchor=(1.005, 0.5), handlelength=1)
     ax.set_position([0.07, ax.get_position().y0, 0.72, ax.get_position().height])
     letter(ax, "I", dx=-0.075)
-    save(fig, "Figure3")
+    save(fig, "Figure4")
 
 
 if __name__ == "__main__":

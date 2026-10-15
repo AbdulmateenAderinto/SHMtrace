@@ -232,7 +232,20 @@ LEGENDS = [
      "✕, wrong decision. "
      "(B) Inputs and read preparation. (C) Calling and automatic checks; numbered steps run in order. (D) Outputs. "
      "FDR, false-discovery rate. See also Figure S1."),
-    ("Figure 2. Planted mutations and simulated lineages calibrate recall and false calls",
+    ("Figure 2. Matched controls separate mutations from recurrent errors that look the same",
+     "(A and B) Two C-to-T changes in the same Sμ wild-type library (WT3; PRJNA1481264, 2,000 reads per library): "
+     "share of reads carrying each, on the + strand (dark) and − strand (light), in WT3 (blue) and in each "
+     "*Aicda*^{−/−} control (red); numbers, reads carrying the change of reads covering the site. (A) A WRC hotspot "
+     "(underlined C); (B) a site of recurrent background, which the uncorrected Geneious rule called in WT3 and "
+     "in two controls. p, SHMtrace's test against the controls. (C) Base qualities of the reads carrying each "
+     "change; bars, medians; dotted line, Q20. (D) The control FDR for the same library: candidates with "
+     "p ≤ t (blue) against the false calls that the held-out controls predict at t (red; mean over controls, "
+     "scaled to the library's bases); SHMtrace keeps calls up to the largest t at which the predicted false calls "
+     "stay below 5% of the calls (dotted line), here the dashed threshold. (E) Share of reads carrying each call "
+     "made by SHMtrace in the AID-active libraries of four loci (J_{H}4 and N114, 500 reads; Sμ and *Pim1*, "
+     "2,000 reads); shaded, where ClairS and DeepSomatic recall most clean planted mutations (Figure 3H); dotted "
+     "line, a heterozygous germline genotype. See also Figure S8."),
+    ("Figure 3. Planted mutations and simulated lineages calibrate recall and false calls",
      "(A and B) Recall of mutations planted into reads of a held-out AID-null library (J_{H}4, A; N114, B), by the "
      "number of reads carrying each, for SHMtrace, the uncorrected Geneious rule and LoFreq at three settings; 60 "
      "sites × 3 replicates × 3 held-out controls per amplicon. (C) Overall recall against false calls per library for "
@@ -249,7 +262,7 @@ LEGENDS = [
      "reads of each held-out AID-null library (dashed, open symbols), with the other two libraries as the matched "
      "normal; SHMtrace on the spike-ins for comparison. "
      "See also Figure S5 and Table S2."),
-    ("Figure 3. On real libraries, matched controls set the background",
+    ("Figure 4. On real libraries, matched controls set the background",
      "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-null (red) libraries for each "
      "caller on the same reads; triangles, libraries without calls. J_{H}4, 3 wild-type and 3 *Aicda*^{−/−} mice; "
      "N114, 3 pMX-*Aicda* and 3 empty-vector subclones (500 reads each); Sμ and *Pim1* (PRJNA1481264), 3–4 "
@@ -258,7 +271,7 @@ LEGENDS = [
      "AID-null libraries. (H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
      "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S2 "
      "and S3 and Table S2."),
-    ("Figure 4. Nanopore and Sanger sequencing agree in the same mice",
+    ("Figure 5. Nanopore and Sanger sequencing agree in the same mice",
      "(A) Unique variants per 10^{5} bases per mouse (n = 3 per genotype) from Sanger clones (26–40 per wild-type "
      "mouse, re-analyzed from chromatograms) and from nanopore reads (500 per mouse); bars, geometric means; p, Welch "
      "test on log densities; nanopore fold is a lower bound (one control without calls at one event). (B) Pooled "
@@ -267,7 +280,7 @@ LEGENDS = [
      "calls at WRC/GYW and of A:T calls at WA/TW; bars, mean of 3 mice; points, mice; dashed lines, the window's "
      "share of such sites. (E) Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects. "
      "See also Figure S4."),
-    ("Figure 5. Long reads add whole-amplicon maps, clones and mutation trees",
+    ("Figure 6. Long reads add whole-amplicon maps, clones and mutation trees",
      "(A) Unique variants per 10^{5} bases in 50-bp bins over J_{H}4 positions 90–1,230; thin lines, wild-type mice; "
      "thick lines, means (n = 3 per genotype); shading, the window shared with Sanger. (B) Calls per position by "
      "quintile of S5F mutability for wild-type calls and for every *Aicda*^{−/−} mismatch (germline sites excluded), "
@@ -275,7 +288,7 @@ LEGENDS = [
      "(dark, largest clone) and the read- and clone-weighted mutation frequencies. (D) Mutation tree of the largest "
      "Wt3 clone: square, unmutated ancestor; ticks, mutations colored by class; circles, nodes, sized and labeled "
      "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S6."),
-    ("Figure 6. The same engine works across platforms, loci and biological questions",
+    ("Figure 7. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
      "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
      "in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and R174E/R178E mutants and empty "
@@ -289,23 +302,23 @@ TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
 TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls", "Used for"]
 TABLE1 = [
     ("J_{H}4, this study", "ONT R10.4.1", "J_{H}4 intron (529 bp; 1,141 bp)", "GC B cells, 3 Wt mice",
-     "3 *Aicda*^{−/−} mice, same run", "Figures 2–5"),
+     "3 *Aicda*^{−/−} mice, same run", "Figures 2–6"),
     ("N114, this study", "ONT R10.4.1", "N114 V region (615 bp)", "3 pMX-*Aicda* subclones",
-     "3 empty-vector subclones", "Figures 2 and 3"),
+     "3 empty-vector subclones", "Figures 2–4"),
     ("J_{H}4 Sanger, same mice", "Sanger", "J_{H}4 intron (529 bp)", "26–40 clones per Wt mouse",
-     "10–11 clones per *Aicda*^{−/−} mouse", "Figure 4"),
-    ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figure 3"),
-    ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figure 3"),
+     "10–11 clones per *Aicda*^{−/−} mouse", "Figure 5"),
+    ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
+    ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
     ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-null mice",
-     "Figure 6"),
+     "Figure 7"),
     ("PRJNA918596[@wang2023]", "Illumina", "VDJ (229 bp)", "AID, R50E, R174E/R178E (4 each)",
-     "4 empty-vector replicates", "Figure 6"),
+     "4 empty-vector replicates", "Figure 7"),
     ("PRJNA820976[@wu2022]", "Illumina", "IGH VDJ (421 bp)", "6 Wt, 6 HMCES-KO clones", "3 AID-KO clones",
-     "Figure 6"),
+     "Figure 7"),
     ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
-     "Figure 6"),
+     "Figure 7"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
-     "Figures 2 and 4"),
+     "Figures 3 and 5"),
 ]
 TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique "
                "molecular identifier.")

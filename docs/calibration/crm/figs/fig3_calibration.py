@@ -1,4 +1,4 @@
-"""Figure 2: calibration against known truth.
+"""Figure 3: calibration against known truth.
 
 A-B  spike-ins into held-out AID-null libraries (J_H4, N114): recall by planted read count, per caller
 C    recall against false calls per library, every caller and dataset with spike-ins
@@ -218,7 +218,7 @@ def main():
     ax.set_ylabel("Recall")
     ax.set_title("Somatic callers on J$_H$4", fontsize=7)
     letter(ax, "H", dx=-0.32)
-    save(fig, "Figure2")
+    save(fig, "Figure3")
 
 
 if __name__ == "__main__":
