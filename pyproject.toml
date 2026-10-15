@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "shmtrace"
-version = "0.2.1"
+version = "0.2.2"
 description = "SHMtrace: somatic hypermutation measured from amplicon reads on any platform (nanopore, PacBio, Illumina, Sanger), against matched controls"
 readme = "README.md"
 requires-python = ">=3.10"
