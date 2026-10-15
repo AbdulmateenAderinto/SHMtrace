@@ -222,7 +222,11 @@ LEGENDS = [
      "the truth (black bars) in simulated libraries; expanded clone, one unmutated clone with 60% of reads. "
      "(F) Estimate over truth against analysis depth for three measures (J_{H}4 polyclonal, solid; N114 subclonal, "
      "dashed); mean of 3 held-out controls. (G) Share of 300 simulated experiments per condition with p < 0.05 for "
-     "four group tests; dotted line, 0.05. See also Figure S5."),
+     "four group tests (3 or 5 animals per group); dotted line, 0.05. (H) ClairS recall on J_{H}4 against the "
+     "share of reads carrying each mutation: the spike-ins of A (shaded; 1–20 of 500 reads) and 30 mutations planted "
+     "into 5%, 10% and 20% of 500 reads of each held-out AID-null library, with the other two as its matched normal; "
+     "SHMtrace on the spike-ins for comparison. ClairS at its defaults and at snv_min_af 0.005 gave the same recall. "
+     "See also Figure S5 and Table S2."),
     ("Figure 3. On real libraries, matched controls set the background",
      "(A–E) Unique variants per 10^{5} analyzed bases in AID-competent (blue) and AID-null (red) libraries for each "
      "caller on the same reads; triangles, libraries without calls. J_{H}4, 3 wild-type and 3 *Aicda*^{−/−} mice; "

@@ -20,6 +20,7 @@ CALLERS = {   # key: (label, colour, marker)
     "lofreq_permissive": ("LoFreq, permissive", "#c08fc7", "D"),
     "v0.1": ("Per-position null", "#5f6b75", "x"),
     "pbinom": ("Quality model only", "#2c5d8a", "P"),
+    "clairs": ("ClairS", "#c99a06", "X"),
 }
 CASE, CASEF, CTRL, CTRLF = "#274b7e", "#6d9ad0", "#9a3439", "#d07a7e"
 INK, MID, SOFT = "#1d2733", "#4a5562", "#8a96a3"

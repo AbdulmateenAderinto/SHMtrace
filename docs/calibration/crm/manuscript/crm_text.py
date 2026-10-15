@@ -134,7 +134,7 @@ RESULTS = [
           "normal. ClairS recalled {cs_recall}, at its defaults and at the lowest allele fraction it accepts, and "
           "made no false calls. Its working range "
           "starts higher: of mutations planted into otherwise unmutated reads at 5%, 10%, and 20% of reads, it "
-          "recalled {cs_hi_5}%, {cs_hi_10}%, and {cs_hi_20}%. On the wild-type J_{H}4 libraries themselves, however, "
+          "recalled {cs_hi_5}%, {cs_hi_10}%, and {cs_hi_20}% (Figure 2H). On the wild-type J_{H}4 libraries themselves, however, "
           "ClairS reported {cs_real_pass} mutation in total across the three libraries, where SHMtrace called "
           "{jh4_wt_rec}. It found no "
           "candidates in {cs_real_empty} of the three libraries, and in Wt3 it rejected {cs_real_rej} of its "
