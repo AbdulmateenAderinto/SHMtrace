@@ -36,7 +36,9 @@ DETAILS = {
     "wt_rrid": ("C57BL/6 RRID", "N/A (bred in house)"),
     "aicda_rrid": ("Aicda-/- RRID (MGI)", None),
     # primers
-    "jh4_primers": ("J_{H}4 primer sequences", None),
+    # Barbulescu 2025 Table S1 (Jh4-F/Jh4-R, with EcoRI/SpeI tails); 85%/81% of Wt3 nanopore reads carry them
+    "jh4_primers": ("J_{H}4 primer sequences",
+                    "forward 5′-GGAATTCGCCTGACATCTGAGGACTCTGC-3′, reverse 5′-GACTAGTCCTCTCCAGTTTCGGCTGAATCC-3′"),
     # EPI2ME folder vprimers.fasta; they bound the 655-nt N114 reference exactly
     "n114_primers": ("N114 primer sequences", "forward 5′-TTACCTGGGTCTATGGCAGT-3′, reverse 5′-TGAAGGCTCAGAATCCCCC-3′"),
     # bench details (STAR protocol)
