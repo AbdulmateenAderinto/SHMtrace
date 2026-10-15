@@ -428,11 +428,12 @@ def compute():
             N[f"{tag}_recall"] = f"{lx} and {ly} each recalled {N[f'{x}_recall']}"
         else:
             N[f"{tag}_recall"] = f"{lx} recalled {N[f'{x}_recall']}, and {ly} {N[f'{y}_recall']}"
-    for k, tag in (("jh4", "ds_real_pass"), ("n114", "ds_real_n114_pass")):   # DeepSomatic on real AID libraries
-        if (OUT / f"deepsomatic_real_{k}.json").exists():
-            dsr = _load(OUT / f"deepsomatic_real_{k}.json")["libraries"]
-            N[tag] = word(max(sum(dsr[w][s]["pass_somatic"] for w in dsr)
-                              for s in ("deepsomatic", "deepsomatic_permissive")))
+    # the somatic callers on the real AID-active libraries: the most passed in total, over their two settings
+    for caller, k, tag in (("deepsomatic", "jh4", "ds_real_pass"), ("deepsomatic", "n114", "ds_real_n114_pass"),
+                           ("clairs", "n114", "cs_real_n114_pass")):
+        if (OUT / f"{caller}_real_{k}.json").exists():
+            rr = _load(OUT / f"{caller}_real_{k}.json")["libraries"]
+            N[tag] = word(max(sum(rr[w][s]["pass_somatic"] for w in rr) for s in (caller, f"{caller}_permissive")))
     real = _load(OUT / "clairs_real_jh4.json")["libraries"]
     cands = real["WT3"]["clairs_permissive"]["candidates"]
     N.update(cs_real_pass=word(sum(real[w]["clairs_permissive"]["pass_somatic"] for w in real)),
