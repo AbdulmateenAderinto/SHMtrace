@@ -44,7 +44,7 @@ def main():
     ax.legend(fontsize=5.2, loc="lower left", handlelength=1.6, borderaxespad=0.3)
     ax.grid(True, which="major", color=SOFT, lw=0.2, alpha=0.5)
     save(fig, "FigureS2")
-    json.dump({"error_q20plus": out}, open(DATA / "figS8_numbers.json", "w"), indent=1)
+    json.dump({"error_q20plus": out}, open(DATA / "figS2_numbers.json", "w"), indent=1)
 
 
 if __name__ == "__main__":
