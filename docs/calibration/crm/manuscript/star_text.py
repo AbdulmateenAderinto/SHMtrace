@@ -111,9 +111,9 @@ STEPS = [
         "CRITICAL: Process wild-type and AID-null mice on the same day with the same reagents.",
         "Pause point: Pelleted cells can be stored at −80 °C.",
     ]),
-    ("Extract genomic DNA", "Timing: 2 h, or overnight", [
-        "Lyse the sorted cells by proteinase K digestion ({lab_lysis}), and then "
-        "inactivate the proteinase K by heating.",
+    ("Extract genomic DNA", "Timing: overnight", [
+        "Lyse the sorted cells by proteinase K digestion, and then inactivate the proteinase K by heating "
+        "({lab_lysis}).",
         "Check DNA quality and quantity by NanoDrop (A260/280 and A260/230 ratios).",
         "Pause point: Lysates can be stored at −20 °C.",
     ]),

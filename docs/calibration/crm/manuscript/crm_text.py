@@ -80,7 +80,7 @@ INTRO = [
     "delivered reads or Sanger chromatograms to group statistics. We validated SHMtrace with planted mutations, "
     "simulated B cell lineages, six loci from five laboratories, three sequencing platforms, and Sanger "
     "sequencing of the same mice, and we compared it with LoFreq[@wilm2012], with the long-read somatic caller "
-    "ClairS[@zheng2023] and germline caller Clair3[@zheng2022], and with the uncorrected test used in "
+    "ClairS[@zheng2026] and germline caller Clair3[@zheng2022], and with the uncorrected test used in "
     "Geneious[@kearse2012].",
 ]
 
@@ -129,7 +129,7 @@ RESULTS = [
           "off, LoFreq recalled {sp_jh4_lfnb}% of planted mutations, all of them carried by five or more reads, "
           "and a permissive setting raised recall to {sp_jh4_lfp}% at {sp_jh4_lfp_fp} false calls per library "
           "(Figures 2A and 2C)."),
-    ("p", "We also tested ClairS[@zheng2023], a deep-learning somatic caller for long reads that compares a case "
+    ("p", "We also tested ClairS[@zheng2026], a deep-learning somatic caller for long reads that compares a case "
           "library with a matched normal, the design closest to SHMtrace's, using the other AID-null libraries as the "
           "normal. ClairS recalled {cs_recall}, at its defaults and at the lowest allele fraction it accepts, and "
           "made no false calls. Its working range "

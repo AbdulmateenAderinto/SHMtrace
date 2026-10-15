@@ -31,11 +31,11 @@ MANUAL = {
     "zheng2022": "Zheng, Z., Li, S., Su, J., Leung, A.W.-S., Lam, T.-W., and Luo, R. (2022). Symphonizing pileup and "
                  "full-alignment for deep learning-based long-read variant calling. Nat. Comput. Sci. 2, 797–803. "
                  "10.1038/s43588-022-00387-x.",
-    # ClairS: the bioRxiv preprint (authors and date from biorxiv.org). A Nature Methods version (2026,
-    # 10.1038/s41592-026-03152-4) is reported by HKU's press release; cite it instead once confirmed.
-    "zheng2023": "Zheng, Z., Su, J., Chen, L., Lee, Y.-L., Lam, T.-W., and Luo, R. (2023). ClairS: a deep-learning "
-                 "method for long-read somatic small variant calling. Preprint at bioRxiv, "
-                 "10.1101/2023.08.17.553778.",
+    # ClairS: the Nature Methods paper (authors, volume and pages from Crossref; the bioRxiv preprint was
+    # 10.1101/2023.08.17.553778)
+    "zheng2026": "Zheng, Z., Chen, L., Su, J., Yu, X., He, M., Lee, Y.-L., Lam, T.-W., and Luo, R. (2026). ClairS: a "
+                 "deep-learning method for long-read tumor–normal pair somatic small variant calling. Nat. Methods "
+                 "23, 1507–1520. 10.1038/s41592-026-03152-4.",
 }
 PAGE_FIX = {"sanderson2024": "001246"}
 TOKEN = re.compile(r"(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\^\{[^}]*\}|_\{[^}]*\}|\[@[^\]]+\])")

@@ -1,4 +1,4 @@
-"""ClairS (Zheng et al. 2023, somatic small variants from long reads) on the reads SHMtrace analysed.
+"""ClairS (Zheng et al. 2026, somatic small variants from long reads) on the reads SHMtrace analysed.
 
     from clairs_runner import clairs_calls
     calls = clairs_calls(tumor_reads, normal_reads, reference, lo, hi, setting="clairs")
