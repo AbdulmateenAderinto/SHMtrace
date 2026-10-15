@@ -496,6 +496,13 @@ def export(job_id: str, what: str):
         return Response(blob, media_type=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
             headers={"Content-Disposition": "attachment; filename=shmtrace_tables.xlsx"})
+    if what == "airr_rearrangements.tsv":
+        from .. import airr
+        rows = airr.project_rows(res)
+        if not rows:
+            raise HTTPException(404, "no analysed reads to export")
+        return Response(airr.write_tsv(rows), media_type="text/tab-separated-values",
+                        headers={"Content-Disposition": f"attachment; filename={what}"})
     if what.endswith(".csv"):
         tables = report.tables(res)
         if what not in tables:

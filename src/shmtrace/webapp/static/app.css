@@ -101,7 +101,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 /* sample list */
 .samples { display: grid; gap: 6px; }
 .sample {
-  display: grid; grid-template-columns: 1fr 120px 70px 28px; gap: 8px; align-items: center;
+  display: grid; grid-template-columns: 1fr 120px 128px 28px; gap: 8px; align-items: center;
   padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
 }
 .sample .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
