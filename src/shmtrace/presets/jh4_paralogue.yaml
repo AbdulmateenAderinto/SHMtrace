@@ -1,0 +1,30 @@
+# Preset: the J_H4-like paralogue that the J_H4 primers also amplify (mouse_jh4_paralogue.fasta)
+name: jh4_paralogue
+description: >
+  J_H4-like paralogue co-amplified by the J_H4 primers (about 89% identical). Clones that align
+  best to it are called against its own germline, so its germline differences from J_H4 are not
+  counted as mutations. Run beside jh4_intron as a second target (project.run_targets).
+
+minimap2_preset: map-ont
+min_align_len: 400          # 614-bp reference
+max_total_len: 2000
+max_ee_rate: 0.01           # Q20-equivalent expected-error gate
+drop_supplementary: true
+downsample_to: 500
+
+contaminant_allele_frac: 0.5
+
+# The J_H4 preset's 529-bp window (101-629) carried onto the 614-bp paralogue, which aligns to J_H4 59-673.
+# Set to null to analyse the full-length reliably-covered window instead.
+analysis_window: [43, 571]
+germline_freq_threshold: 0.50
+max_pvalue: 0.05
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 0
+density_scale: 100000
+
+# The amplicon starts in the V region, so the bases just 5' of J꜀4 (coding
+# segment from position 53) are the V(D)J junction: a clone barcode.
+junction_ref_start: null    # the paralogue starts past the V(D)J junction
