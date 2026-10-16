@@ -30,6 +30,12 @@ Columns (names are case-insensitive; spaces and dashes count as underscores):
             inline barcode(s) of a pooled run: every such row names the same
             pooled FASTQ in `file`, and the run is split by barcode before the
             analysis (demux.py). barcode2 is the barcode at the other end.
+  shared_trace
+            yes on every row that names a trace deliberately filed under more
+            than one sample, so it is analysed under each of them. Without it,
+            one file under two samples is an error, and a second copy of a
+            chromatogram at another path is left out, so that one molecule is
+            counted once.
   aliases   how this sample is written on tube labels, separated by ; (for
             WT3: w3;wt3). Optional; with it, a clone whose label names a
             different sample is flagged (qc.py, label_mismatch).
@@ -53,7 +59,7 @@ from .io_utils import READ_EXTENSIONS, _stem, sniff_format
 REQUIRED = ("file", "sample")
 KNOWN = ("file", "sample", "group", "control", "clone_id", "order", "well", "label", "exclude",
          "barcode", "barcode2", "germline_vcf",
-         "aliases")
+         "aliases", "shared_trace")
 YES = {"yes", "y", "true", "t", "1", "control", "x"}
 # what kind of control a library is (the control column may name it instead of "yes"). All but
 # "baseline" are taken to be free of mutations; a baseline (the cells before the experiment)
@@ -82,6 +88,7 @@ class Row:
     well: str = ""
     label: str = ""
     exclude: str = ""
+    shared_trace: bool = False
     barcode: str = ""        # inline barcode(s): the file is a pooled run (demux.py)
     barcode2: str = ""
     control_kind: str = ""   # one of CONTROL_KINDS, or "" for a plain yes
@@ -283,13 +290,22 @@ def load(path: str) -> Sheet:
             problems.append(f"line {ln}: no sample")
             continue
         ctrl_txt = rec.get("control", "").lower().replace("-", "_").replace(" ", "_")
+        kind = ctrl_txt if ctrl_txt in CONTROL_KINDS else ""
         if ctrl_txt not in YES | NO | CONTROL_KINDS:
             problems.append(f"line {ln}: control is '{rec['control']}'; use yes, no, or the kind of control "
                             f"({', '.join(sorted(CONTROL_KINDS))})")
             continue
-        kind = ctrl_txt if ctrl_txt in CONTROL_KINDS else ""
         files = _expand(rec.get("file", ""), base) if rec.get("file") else []
         if not files:
+            if rec.get("exclude", "").strip():
+                # an excluded row is a record of a clone that was not analysed: it need not
+                # name a file that still exists, or any file at all
+                rows.append(Row(line=ln, file="", sample=sample, group=rec.get("group") or sample,
+                                control=ctrl_txt in YES or bool(kind), control_kind=kind,
+                                clone_id=rec.get("clone_id") or f"line{ln}", order=rec.get("order", ""),
+                                well=rec.get("well", "").upper(), label=rec.get("label", ""),
+                                exclude=rec["exclude"], id_given=bool(rec.get("clone_id"))))
+                continue
             problems.append(f"line {ln}: file not found: {rec.get('file') or '(blank)'}")
             continue
         order, well = rec.get("order", ""), rec.get("well", "").upper()
@@ -320,6 +336,7 @@ def load(path: str) -> Sheet:
                             control_kind=kind,
                             clone_id=cid, order=order, well=well, label=rec.get("label", ""),
                             exclude=rec.get("exclude", ""), id_given=given,
+                            shared_trace=(rec.get("shared_trace", "").strip().lower() in YES),
                             barcode=rec.get("barcode", "").upper(),
                             barcode2=rec.get("barcode2", "").upper(), germline_vcf=gvcf,
                             extra={k: v for k, v in rec.items()
@@ -350,10 +367,19 @@ def load(path: str) -> Sheet:
                                 f"{o.line} without a barcode")
             by_file.setdefault(r.file, r)
             continue
+        if not r.file:                      # an excluded row that names no file
+            continue
         if r.file in by_file:
             o = by_file[r.file]
-            problems.append(f"line {r.line}: {os.path.basename(r.file)} is already listed on "
-                            f"line {o.line} (sample {o.sample}); a file belongs to one sample")
+            if r.shared_trace and o.shared_trace:
+                # filed under two animals on purpose: analysed under both, as filed, and flagged
+                warnings.append(f"line {r.line} ({r.clone_id}, {r.sample}) is the same trace as line "
+                                f"{o.line} ({o.clone_id}, {o.sample}), marked shared_trace; it is analysed "
+                                "under both, so it counts once in each")
+            else:
+                problems.append(f"line {r.line}: {os.path.basename(r.file)} is already listed on "
+                                f"line {o.line} (sample {o.sample}); a file belongs to one sample. If it was "
+                                "deliberately filed under both, put yes in a shared_trace column on both rows")
         by_file.setdefault(r.file, r)
         if r.order and r.well:
             k = (r.order, r.well)
@@ -385,9 +411,23 @@ def load(path: str) -> Sheet:
         if h in by_hash:
             o = by_hash[h]
             where = "the same sample" if o.sample == r.sample else f"sample {o.sample}"
-            warnings.append(f"line {r.line} ({r.clone_id}, {r.sample}) is byte-for-byte the same "
-                            f"file as line {o.line} ({o.clone_id}, {where}); a copied trace is "
-                            "one clone, not two")
+            if r.shared_trace and o.shared_trace:
+                warnings.append(f"line {r.line} ({r.clone_id}, {r.sample}) is byte-for-byte the same file as "
+                                f"line {o.line} ({o.clone_id}, {where}), marked shared_trace; it is analysed "
+                                "under both")
+            elif r.file.lower().endswith(_SANGER_EXT):
+                # one chromatogram is one molecule read once, so analysing a copy of it would count
+                # that molecule twice: the later row is left out, and said to be left out
+                r.exclude = (f"a byte-for-byte copy of {o.clone_id} ({where}), counted once there; "
+                             "mark both rows shared_trace to analyse it under both")
+                warnings.append(f"line {r.line} ({r.clone_id}, {r.sample}) is byte-for-byte the same "
+                                f"file as line {o.line} ({o.clone_id}, {where}); a copied trace is "
+                                "one clone, not two, so this row is not analysed")
+            else:
+                # a read file is many molecules; listing one twice is worth saying, but which of
+                # the two is the mistake is not knowable here
+                warnings.append(f"line {r.line} ({r.clone_id}, {r.sample}) is byte-for-byte the same "
+                                f"file as line {o.line} ({o.clone_id}, {where}); both are analysed")
         by_hash.setdefault(h, r)
 
     if problems:

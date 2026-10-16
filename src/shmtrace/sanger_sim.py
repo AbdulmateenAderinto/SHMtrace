@@ -283,8 +283,13 @@ def score(res: dict, truth: dict) -> dict:
     for f in (res.get("qc") or {}).get("flags", []):
         if f["severity"] != "info":
             flags[f["clone"]].add(f["check"])
+    # the sheet itself catches a copied trace before the analysis: a copy of a chromatogram is
+    # the same molecule, so the row is left out rather than counted twice (samplesheet.py)
+    kept_out = {e.get("clone") or e.get("clone_id") for e in (res.get("qc") or {}).get("excluded", [])
+                if "byte-for-byte copy" in str(e.get("reason", ""))}
     planted = {cid: c["planted"] for cid, c in clones.items() if c["planted"] in EXPECTED}
-    detected = {cid: bool(flags.get(cid, set()) & EXPECTED[kind]) for cid, kind in planted.items()}
+    detected = {cid: bool(flags.get(cid, set()) & EXPECTED[kind]) or cid in kept_out
+                for cid, kind in planted.items()}
     involved = set(planted) | {c.get("copy_of") for c in clones.values() if c.get("copy_of")}
     # a clone whose lineage mate was misfiled shares mutations with it, legitimately flagged
     mates = defaultdict(set)

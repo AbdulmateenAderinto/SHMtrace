@@ -317,5 +317,50 @@ def run(details: dict, samples: list[dict], ref: str, lo: int, hi: int, minq: in
     flags.sort(key=lambda f: (SEVERITY_ORDER[f["severity"]], f["check"], f["sample"], f["clone"]))
     summary = Counter((f["check"], f["severity"]) for f in flags)
     return {"flags": flags, "excluded": excluded, "pairs": pairs,
+            "duplicate_groups": duplicate_groups(flags, clones),
             "summary": [{"check": c, "severity": s, "clones": n} for (c, s), n in sorted(summary.items())],
             "clones_analysed": len(clones)}
+
+
+def duplicate_groups(flags: list[dict], clones: dict) -> list[dict]:
+    """One row per set of clones that are the same sequence, instead of a row per pair.
+
+    `duplicate_clone` and `duplicate_file` are flagged pairwise, so a dozen copies of one
+    sequence become dozens of flags (134 of them in one real project). The pairs are the
+    edges of a graph whose connected components are the sequences themselves; this returns
+    those components, each with the samples it spans, which is what a person has to decide
+    about.
+    """
+    parent: dict = {}
+
+    def find(x):
+        parent.setdefault(x, x)
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    kinds: dict = defaultdict(set)
+    for f in flags:
+        if f["check"] not in ("duplicate_clone", "duplicate_file") or not f.get("other_clone"):
+            continue
+        a, b = f["clone"], f["other_clone"]
+        kinds[find(a)].add(f["check"])
+        kinds[find(b)].add(f["check"])
+        parent[find(a)] = find(b)
+    members: dict = defaultdict(list)
+    for c in parent:
+        members[find(c)].append(c)
+    out = []
+    for cs in members.values():
+        cs = sorted(cs)
+        samples = sorted({clones[c]["sample"] for c in cs if c in clones})
+        kind = set()
+        for c in cs:
+            kind |= kinds.get(find(c), set())
+        out.append({"clones": cs, "n_clones": len(cs), "samples": samples, "n_samples": len(samples),
+                    "checks": sorted(kind),
+                    "mutations": max((clones[c]["load"] for c in cs if c in clones), default=0),
+                    "severity": "problem" if len(samples) > 1 else "check"})
+    out.sort(key=lambda g: (-g["n_samples"], -g["n_clones"], g["clones"][0]))
+    return out
