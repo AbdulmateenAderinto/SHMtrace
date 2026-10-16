@@ -444,6 +444,9 @@ def main(argv=None):
     r.add_argument("--platform", default=None, choices=("sanger", "ont", "illumina"),
                    help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont)")
     r.add_argument("--contaminant", action="append", default=[])
+    r.add_argument("--target", action="append", default=[], metavar="NAME=FASTA[:REGION]",
+                   help="a second locus the same primers amplify (a paralogue, say), analysed in its own "
+                        "right instead of being discarded; repeatable. --reference is the first target.")
     r.add_argument("--mode", default="recommended")
     r.add_argument("--jobs", type=int, default=0,
                    help="processes for per-library work: 0 = all but one core (default), 1 = one")
@@ -478,7 +481,32 @@ def main(argv=None):
                       overrides={"jobs": a.jobs})
     if a.germline_vcf:
         proj["germline_vcf"] = os.path.abspath(a.germline_vcf)
-    res = project.run_project(proj, lambda f, m: print(f"{100 * f:3.0f}%  {m}"))
+    prog = lambda f, m: print(f"{100 * f:3.0f}%  {m}")                            # noqa: E731
+    os.makedirs(a.out, exist_ok=True)
+    if a.target:
+        targets = [{"name": "target", "reference": a.reference, "region": a.region}]
+        for spec in a.target:
+            name, _, rest = spec.partition("=")
+            if not rest:
+                raise SystemExit(f"--target {spec}: expected NAME=FASTA[:REGION]")
+            ref, _, region = rest.partition(":")
+            targets.append({"name": name, "reference": ref, "region": region or a.region})
+        proj["targets"] = targets
+        multi = project.run_targets(proj, prog)
+        for wmsg in multi["notes"]:
+            print("note:", wmsg)
+        for name, res in multi["by_target"].items():
+            out = os.path.join(a.out, project._slug(name))
+            for f in report.write_all(res, out):
+                print(f)
+            with open(os.path.join(out, "project.json"), "w") as fh:
+                json.dump(project.public(res), fh, indent=1, default=str)
+        with open(os.path.join(a.out, "targets.json"), "w") as fh:
+            json.dump({k: v for k, v in project.public_targets(multi).items() if k != "by_target"},
+                      fh, indent=1, default=str)
+        print(os.path.join(a.out, "targets.json"))
+        return
+    res = project.run_project(proj, prog)
     written = report.write_all(res, a.out)
     with open(os.path.join(a.out, "project.json"), "w") as fh:
         json.dump(project.public(res), fh, indent=1, default=str)
