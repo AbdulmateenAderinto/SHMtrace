@@ -315,7 +315,7 @@ RESULTS = [
           "analyzed as filed and reported rather than removed."),
 
     ("p", "The same automated re-analysis of the *Mkln1* study[@barbulescu2025], whose clones were filed in "
-          "per-mouse folders of the original analysis, read {mk_traces} chromatograms and found mutation frequency "
+          "per-mouse folders of the original analysis, together with a later batch of *Mkln1*^{−/−} clones filed separately and named for the same three mice, read {mk_traces} chromatograms and found mutation frequency "
           "{mk_fold}-fold lower in *Mkln1*^{−/−} than in wild-type mice (published, {mk_pub_fold}-fold; "
           "p = {mk_p} and {mk_pub_p}) and G:C transversions rising from {mk_tv_wt}% to {mk_tv_ko}% of mutations "
           "(published per-mouse tables, {mk_tv_pub_wt}% to {mk_tv_pub_ko}%; p = {mk_tv_p} and {mk_tv_pub_p}), "

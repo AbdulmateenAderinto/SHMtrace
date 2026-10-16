@@ -180,6 +180,17 @@ METHODS = [
           "groups were compared with the one-tailed unpaired t-test used in the original study, and with Welch "
           "tests on log frequencies against the *Aicda*^{−/−} mice. The sample sheet and the transcribed "
           "tables are part of Data S1."),
+    ("p", "For the *Mkln1* study[@barbulescu2025], each clone was likewise assigned to the per-mouse folder it was "
+          "filed under in the original analysis project, read from a screen recording of that project. That "
+          "project also holds a separate folder of 58 *Mkln1*^{−/−} chromatograms from a later sequencing run, "
+          "named for the same three knockout mice; they are included here under the mice their names give, "
+          "because the study's published substitution counts exceed those of its earlier preprint by eight "
+          "mutations whose types match the eight SHMtrace calls in this later batch. Which of these clones "
+          "entered the published per-mouse tables, and how the project's three knockout folders map onto the "
+          "paper's mice #1 to #3, are not recorded in the files, so the comparison here is made between groups "
+          "and not mouse by mouse. Because these clones carry at most two mutations each, the nanopore libraries "
+          "of the same three mice cannot place them: a clone is assigned to a library only when a read of that "
+          "library carries three or more of its mutations, and no clone of this batch reaches that bar."),
     ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
@@ -349,7 +360,7 @@ TABLE1 = [
     ("J_{H}4 Sanger, published study[@barbulescu2024]", "Sanger", "J_{H}4 intron (529 bp)",
      "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "4 *Aicda*^{−/−} mice", "Figure S8"),
     ("J_{H}4 Sanger, published study[@barbulescu2025]", "Sanger", "J_{H}4 intron (529 bp)",
-     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–66 clones each", "3 *Aicda*^{−/−} mice", "Figure S9"),
+     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–93 clones each", "3 *Aicda*^{−/−} mice", "Figure S9"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
     ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (1,008 and 982 bp)",
