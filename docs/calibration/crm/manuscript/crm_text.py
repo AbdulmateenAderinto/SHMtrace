@@ -319,7 +319,8 @@ RESULTS = [
           "{mk_fold}-fold lower in *Mkln1*^{−/−} than in wild-type mice (published, {mk_pub_fold}-fold; "
           "p = {mk_p} and {mk_pub_p}) and G:C transversions rising from {mk_tv_wt}% to {mk_tv_ko}% of mutations "
           "(published per-mouse tables, {mk_tv_pub_wt}% to {mk_tv_pub_ko}%; p = {mk_tv_p} and {mk_tv_pub_p}), "
-          "with pooled spectra correlated at r = {mk_spec_r} (Figure S9). The paralog filter left out "
+          "with pooled spectra correlated at r = {mk_spec_r} (Figure S9; both studies metric by metric in "
+          "Table S4). The paralog filter left out "
           "{mk_paralog} clones that the original analysis kept in its denominators; they carried almost no "
           "mutations, so they lower frequencies without changing spectra."),
 

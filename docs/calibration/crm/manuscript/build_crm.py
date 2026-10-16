@@ -266,6 +266,20 @@ def main(outdir):
             title="**Table S3. Statistical summary, related to Figures 3–7**",
             footnote="With three animals per group, p values and intervals are descriptive. Folds with a control "
                      "library without calls placed at its one-event density are lower bounds.")
+    # Table S4: SHMtrace against the two published Sanger analyses, metric by metric (sanger_compare.py)
+    sys.path.insert(0, str(CRM))
+    import sanger_compare
+    s.page_break()
+    s.table(sanger_compare.HEADER, sanger_compare.table_rows(), size=7.5,
+            title="**Table S4. SHMtrace and two published Sanger analyses, metric by metric, related to Figures S8 "
+                  "and S9**",
+            footnote="Each cell gives wild type \u2192 knockout, the arrow the direction of a significant change, and "
+                     "the stars a two-tailed test across mice (Welch on log_{10} for frequency, Student t on "
+                     "per-mouse percentages otherwise): ***, p < 0.001; **, p < 0.01; *, p < 0.05; ns, not "
+                     "significant. Frequencies count unique mutations over the bases sequenced, as both papers do. "
+                     "Published values are computed from the papers' per-mouse tables, the *Mkln1* tables read as "
+                     "printed. Maea, *Maea*^{fl/fl}*Mb1*^{cre} (Barbulescu et al., 2024); Mkln1, *Mkln1*^{\u2212/\u2212} "
+                     "(Barbulescu et al., 2025). N.R., not reported.")
     s.save(out / "Document_S1.docx")
     print("Document S1 written")
 
@@ -366,8 +380,16 @@ SUPP_FIGS = [
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
-    ("Figure S11. How SHMtrace turns reads into calls, related to STAR Methods",
-     [FIG / "FigureS11_engine.png"],
+    ("Figure S11. An overview of SHMtrace, related to STAR Methods",
+     [FIG / "FigureS11_overview.png"],
+     "From libraries to group tests. Reads or chromatograms are assigned to animals through a sample sheet, "
+     "gated and aligned competitively against the target, its paralog and any contaminant; the AID-null controls "
+     "measure the background, each candidate is tested against it, and the controls, called against one another as "
+     "decoys, set the threshold. Results are summarised per animal and compared between groups with one value per "
+     "animal. Bookkeeping checks are reported beside the results and never applied. Figure S12 gives the rule and "
+     "equation behind each step."),
+    ("Figure S12. How SHMtrace turns reads into calls, related to STAR Methods",
+     [FIG / "FigureS12_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
      "libraries. (A) The fate of every delivered read, per library: gated by length or expected error, sent "
      "elsewhere by competitive alignment, or usable (Figure S1 separates the gates). (B) Each read's identity "
