@@ -15,15 +15,17 @@ AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1
 
 SUMMARY = (
     "Somatic hypermutation (SHM) is usually measured by cloning amplicons and sequencing them clone by clone, "
-    "because a single long read makes errors at rates close to the mutation rates being measured. Here, we "
-    "describe SHMtrace, which tests each candidate mutation against the errors measured in matched "
-    "activation-induced cytidine deaminase (AID)-deficient libraries from the same sequencing run and compares "
-    "groups with the animal, not the read, as the unit. We validated SHMtrace with planted mutations, simulated "
-    "B cell lineages, and libraries from six loci, five laboratories, and three sequencing platforms. SHMtrace "
-    "kept the AID-null background at {ctl_rec} calls per assay and separated AID-active from AID-null "
-    "libraries {sep_lo}- to {sep_hi}-fold in four of five nanopore assays, compared with {lf_lo}- to "
-    "{lf_hi}-fold for a quality-based caller and {gen_lo}- to {gen_hi}-fold for an uncorrected test. Nanopore "
-    "and Sanger sequencing of the same mice gave concordant mutation spectra.")
+    "because a single long read errs at rates close to the mutation rate. Here, we describe "
+    "SHMtrace, which tests each candidate mutation against the errors measured in matched activation-induced "
+    "cytidine deaminase (AID)-deficient libraries from the same sequencing run and compares groups with the "
+    "animal, not the read, as the unit. We validated it with planted mutations, simulated B cell lineages, "
+    "and six loci from five laboratories on three platforms. It held the AID-null background to "
+    "{ctl_rec} calls per assay and separated AID-active from AID-null libraries {sep_lo}- to {sep_hi}-fold in "
+    "four of five nanopore assays, against {lf_lo}- to {lf_hi}-fold and {gen_lo}- to {gen_hi}-fold for "
+    "quality-based and uncorrected tests. Nanopore and Sanger sequencing of the same mice gave concordant "
+    "spectra, and the deposited clones of three published Sanger studies, one external, "
+    "returned their published comparisons unaided.")
+
 KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanopore sequencing, variant calling, "
             "negative controls, false-discovery rate, pseudoreplication, immunoglobulin, mutation trees, Sanger "
             "sequencing")
@@ -34,16 +36,20 @@ MOTIVATION = (
     "each base by its quality score rather than by the errors a given library actually makes. We therefore "
     "built SHMtrace to calibrate each call against matched AID-null libraries sequenced in the same run, to "
     "treat animals rather than reads as replicates, and to make the whole workflow, from reads or chromatograms "
-    "to group statistics, reproducible.")
+    "to group statistics, reproducible. Because the same engine reads deposited clones, it can also re-run a "
+    "published Sanger study from its own records, which turns a published analysis into something a reader can "
+    "check rather than take on trust.")
 HIGHLIGHTS = [
     "Each candidate mutation is tested against errors of matched AID-null libraries",
     "AID-null controls retain {ctl_rec} calls per assay while true mutations are kept",
     "Nanopore and Sanger sequencing of the same mice give concordant mutation spectra",
     "Full-length reads add whole-amplicon maps, B cell clones, and mutation trees",
+    "Three published Sanger studies are reproduced from their deposited clones alone",
 ]
 ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Sanger, or "
-        "Illumina reads by testing each candidate mutation against errors measured in matched AID-null "
-        "libraries. Across six loci and three platforms, it suppresses background while retaining true mutations.")
+        "Illumina reads by testing each candidate against errors measured in matched AID-null libraries. It "
+        "suppresses background across six loci and three platforms, and reproduces three published Sanger "
+        "studies from their deposited clones.")
 
 INTRO = [
     "Somatic hypermutation (SHM) diversifies immunoglobulin (Ig) genes in germinal-center B cells. It is "
@@ -78,8 +84,8 @@ INTRO = [
     "Here, we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
     "same sequencing run, compares groups with the animal as the unit, and runs the complete workflow from "
     "delivered reads or Sanger chromatograms to group statistics. We validated SHMtrace with planted mutations, "
-    "simulated B cell lineages, six loci from five laboratories, three sequencing platforms, and Sanger "
-    "sequencing of the same mice, and we compared it with LoFreq[@wilm2012], with the long-read somatic callers "
+    "simulated B cell lineages, six loci from five laboratories, three sequencing platforms, Sanger "
+    "sequencing of the same mice, and the deposited clones of three published Sanger studies, and we compared it with LoFreq[@wilm2012], with the long-read somatic callers "
     "ClairS[@zheng2026] and DeepSomatic[@park2026] and germline callers Clair3[@zheng2022] and "
     "DeepVariant[@poplin2018], and with the uncorrected test used in Geneious[@kearse2012].",
 ]
@@ -295,6 +301,7 @@ RESULTS = [
           "clone whose label had also been changed was flagged in 22 of 40 projects, depending on how many "
           "mutations it shared with its lineage."),
 
+    ("h", "Published Sanger analyses are reproduced from their deposited clones"),
     ("p", "To test whether this re-analysis can be automated end to end, we applied the Sanger mode to a second, "
           "published J_{H}4 study: germinal-center B cells of four wild-type, four *Maea*^{fl/fl}*Mb1*^{cre} and "
           "*Aicda*^{−/−} mice, cloned and sequenced in 96-well plates and analyzed with SHMTool[@barbulescu2024,@maccarthy2009]. "
@@ -346,6 +353,15 @@ RESULTS = [
           "expected collapse of A:T mutations, from {sw_at_wt}% to {sw_at_msh2}% of all mutations. Because this "
           "study deposits sequences rather than chromatograms, it tests the calling, the spectrum and the group "
           "statistics but not the trace reading."),
+    ("p", "The three studies differ in what remained to be explained. Where the original analyses counted every "
+          "filed clone at one fixed length, as the tools they used require, SHMtrace counts the bases each clone "
+          "actually read and sets paralog amplicons aside; applying the published convention to SHMtrace's own "
+          "mutations reconciled the knockout frequencies in both J_{H}4 studies (Table S4). The three studies also "
+          "span the range of what a deposit can support: one supplies chromatograms and a project that records "
+          "which mouse each clone came from, one supplies chromatograms whose per-mouse assignment had to be "
+          "reconstructed, and one supplies sequences whose records carry the assignment themselves. Comparisons "
+          "here are made between groups rather than between individual animals wherever the assignment is not "
+          "recorded."),
 
     ("h", "Long reads add whole-amplicon maps, clones, and mutation trees"),
     ("p", "Because each nanopore read spans the entire 1,230-bp J_{H}4 amplicon, the whole product can be analyzed "
@@ -462,6 +478,18 @@ DISCUSSION = [
     "can be ordered into a tree. Sanger sequencing of the same mice, re-analyzed from the chromatograms, agreed "
     "with nanopore sequencing on spectrum, position, and hotspot use; what each platform measures that the other cannot is set out in Figure S12. The re-analysis also showed that the "
     "weakest link in the traditional assay is bookkeeping, which SHMtrace now checks explicitly.",
+    "Because the engine reads deposited clones as readily as new reads, a published SHM analysis can be re-run "
+    "from the records that accompany it. We did this for three studies. In each, the published comparisons "
+    "followed from the deposit alone, including a study from an unrelated laboratory at a different locus whose "
+    "claims concern the mutation spectrum rather than the mutation rate, and whose numbers SHMtrace reproduced "
+    "to a correlation of {sw_r} across its five arms and twelve substitution types. The exercise also showed "
+    "to carry for this to be possible. Chromatograms alone are not enough: which animal each clone came from "
+    "is what makes the group test meaningful, and it is the item most often missing. Where it was recorded in "
+    "the clone names themselves, re-analysis was immediate; where it had to be reconstructed from the original "
+    "project's folders, some clones could not be placed at all. The differences that remained between our "
+    "numbers and the published ones were matters of counting convention rather than of calling, and they "
+    "disappeared once the published convention was applied (Table S4). We would encourage deposits to name the "
+    "animal and the genotype in each record, as one of these studies does.",
     "Several features make SHMtrace practical for routine use. The analysis starts from delivered reads, the "
     "number of reads removed at each step is reported, the random draw of reads is reproducible from a fixed "
     "seed, and a desktop application provides the same analysis with reports that a non-specialist can read. "
@@ -488,7 +516,12 @@ LIMITATIONS = (
     "further. Indels were validated on planted events in nanopore reads and on one Illumina dataset but not yet on "
     "nanopore reads of a library with a known indel phenotype, and UMI consensus was validated on rRNA "
     "operons rather than an SHM library. Where UMIs or duplex reads are available, molecule-level consensus is "
-    "preferable to calibrating single reads, and SHMtrace supports both approaches.")
+    "preferable to calibrating single reads, and SHMtrace supports both approaches. Finally, the three re-analyses "
+    "are not equally complete tests. Two of the studies come from the laboratory that produced the libraries "
+    "analyzed here, and in one of them the clone-to-mouse assignment is a reconstruction from the original "
+    "project rather than a record, so its comparisons are made between groups. The third is independent but "
+    "deposits sequences rather than chromatograms and includes no AID-null arm, so it exercises the calling "
+    "and the statistics but neither the chromatogram reading nor the control-calibrated background.")
 
 RESOURCE = [
     ("Lead contact", "Requests for further information and resources should be directed to and will be fulfilled by "
