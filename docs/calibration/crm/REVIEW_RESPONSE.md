@@ -7,7 +7,7 @@ Status key: **open** / **investigating** / **fixed** / **won't fix (with reason)
 
 ---
 
-## Major issue 1 — OT1/OT2: two different analyses (investigating)
+## Major issue 1 — OT1/OT2: two different analyses (fixed, c5ad350)
 
 **Verified. The reviewer is right, and the cause is identified.**
 
@@ -48,8 +48,15 @@ Scope of this bug: **OT1 and OT2 only.** Every other dataset in Figure 4 has a s
 
 **Also note:** the text's 1,179-fold and 7,139-fold come from the geometric-mean ratio with zero-call controls floored at `1e-6` (`crm_numbers.py:458`). Reproduced: OT1 = 1,181. A fold computed against a floor is an artefact of the floor, not a measurement, and it is why the text and figure differ by two orders of magnitude.
 
-### Decision required before fixing
-Which source is authoritative for the OT paragraph? See "Open decisions" below.
+### Resolved (user decision, 16 Oct): run_project is authoritative for biology; no floored folds; KO2 stays excluded
+
+Done in c5ad350:
+- Figure 4F gives OT1 and OT2 one row per AID-competent group ("OT1 Wt", "OT1 dKO"). SHMtrace now reads 53 and 1.8 at OT1, 28 and 1.0 at OT2. Panel G, whose counts belong to the dataset rather than the case group, names each dataset once instead of repeating its controls on both rows.
+- The Results quote no fold. They give per-library counts, group mean densities with SDs, and the Welch tests on log density and on frequency. OT1 wild type 3.32 against 0.05 per 10^5 bases (p = 6.2 x 10^-4); OT2 1.39 against 0.02 (p = 4.3 x 10^-4). The double knockout is 0.03 and 0.00, separable from neither control group (p = 0.45 and 0.56) and below the AID-competent libraries (p = 0.034 and 2.6 x 10^-5).
+- The paragraph states that control KO2 was left out of the decoys at OT1, so that threshold rests on two controls.
+- The Figure 4 legend defines both OT groups and says panels A-I come from the caller-comparison run while the text's OT counts come from the full pipeline.
+
+Still open from this issue: Table S2 is still labelled as covering every caller and dataset (C29), and its OT rows come from the caller-comparison run; the table needs a column or note naming the run behind each row.
 
 ---
 
@@ -57,10 +64,10 @@ Which source is authoritative for the OT paragraph? See "Open decisions" below.
 
 | # | Issue | Status |
 |---|---|---|
-| 1 | OT1/OT2 analysis provenance | investigating — cause identified, decision needed |
+| 1 | OT1/OT2 analysis provenance | **fixed** (c5ad350); Table S2 labelling still open (C29) |
 | 2 | Platform-wide calling claim contradicts Sanger Methods | open |
 | 3 | Empirical FDR presented as stronger control than established | open |
-| 4 | Noisy-control policy ("sets aside" vs "still contributes") | open — linked to issue 1 |
+| 4 | Noisy-control policy ("sets aside" vs "still contributes") | **partly fixed** (c5ad350): wording reconciled, three-control minimum and provenance stated. Still open: side-by-side all-controls vs exclusion results, and validation under heterogeneous nulls |
 | 5 | "Reproduced unaided" overstates the Sanger evidence | open |
 | 6 | SWHEL host identity and change of statistical test | open |
 | 7 | Estimands undefined (three different frequency metrics) | open — confirmed by the OT denominator finding above |
@@ -76,8 +83,14 @@ Explicitly **not** contradictions, per the reviewer: the low Mkln1 knockout spec
 
 ---
 
+## Decisions taken
+
+1. **OT authoritative source: `run_project`** for the biology; `benchmark_real` for the caller comparison only, with Figure 4 labelled so the two roles are separate. (16 Oct)
+2. **No folds against floored zeros.** Groups are compared by density with a test. (16 Oct)
+3. **KO2 stays excluded** at OT1, and the exclusion is now stated in the Results, with the rule's minimum and provenance in the Methods. (16 Oct)
+
+Note on provenance, checked rather than assumed: the rule was introduced on 13 Oct 2026 for the Ramos clones (a public dataset), applied unchanged to all eleven datasets, and was already fixed when the OT libraries were run on 15 Oct. It is therefore derived from data, not pre-registered, and the Methods now say so.
+
 ## Open decisions (user)
 
-1. **OT authoritative source.** Recommendation: use `run_project` (`offtarget_*.json`) for the biology, because it is the method the manuscript describes; keep `benchmark_real` for the caller comparison only, and relabel Figure 4's panels so the two roles are visibly separate. The alternative is to re-run the OT libraries through `benchmark_real` only, which would mean the headline OT numbers no longer come from the full method.
-2. **OT fold convention.** Recommendation: stop quoting a fold against floored zeros. Report wild type vs AID-null and double knockout vs AID-null as separate three-group comparisons with counts and the test, and state the one-event convention wherever a fold is unavoidable.
-3. **Noisy-control exclusion (issue 4).** Whether KO2 of OT1 should be excluded at all, and whether the rule was fixed before the public data were analysed. This determines both the OT numbers and the honesty of the FDR claim.
+None outstanding. Next issue to address: major issue 2 (the platform-wide calling claim vs the Sanger Methods), which needs a branch in Figure 1 and the graphical abstract.
