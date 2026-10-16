@@ -10,17 +10,13 @@ mkln: Barbulescu et al. (2025, J Immunol), J_H4 of wild-type, Mkln1-/- and Aicda
 filed in per-mouse folders of the original analysis project.
 
 In both, each clone is assigned to the mouse it was filed under in that project, through a sample sheet.
-A trace filed under two mice is listed twice and analysed as filed, through temporary copies, because
-SHMtrace accepts a file in one sample only. Writes out/sanger_<key>.json: the project result, the run time,
+A trace filed under two mice is listed twice, marked shared_trace, and analysed under both as filed.
+Writes out/sanger_<key>.json: the project result, the run time,
 and per-mouse values in the units of the published figures, for the figure scripts and the manuscript
 numbers.
 """
-import csv
 import json
-import os
-import shutil
 import sys
-import tempfile
 import time
 from collections import Counter
 from pathlib import Path
@@ -38,28 +34,13 @@ TS, TV = {"C>T", "G>A"}, {"C>A", "C>G", "G>C", "G>T"}
 def run(key="cohort2"):
     sheet_path = CAL / STUDIES[key]
     out_path = Path(__file__).parent / f"out/sanger_{key}.json"
-    with tempfile.TemporaryDirectory() as tmp:
-        rows = [r for r in csv.DictReader(open(sheet_path)) if not r["exclude"]]
-        seen = Counter()
-        for r in rows:
-            f = os.path.expanduser(r["file"])
-            r["file"] = f
-            seen[f] += 1
-            if seen[f] > 1:                                  # filed twice: analyse as filed, from a copy
-                cp = Path(tmp) / f"{r['clone_id']}_{Path(f).name}"
-                shutil.copyfile(f, cp)
-                r["file"] = str(cp)
-        sheet = Path(tmp) / "sheet.csv"
-        with open(sheet, "w", newline="") as fh:            # closed before SHMtrace reads it
-            w = csv.DictWriter(fh, fieldnames=list(rows[0]))
-            w.writeheader()
-            w.writerows(rows)
-        t0 = time.time()
-        sh = samplesheet.load(str(sheet))
-        proj = sh.project(str(REF / "mouse_jh4_intron.fasta"), "jh4_intron",
-                          contaminants=[str(REF / "mouse_jh4_contaminant.fasta")])
-        res = project.run_project(proj)
-        seconds = time.time() - t0
+    t0 = time.time()
+    sh = samplesheet.load(str(sheet_path))
+    proj = sh.project(str(REF / "mouse_jh4_intron.fasta"), "jh4_intron",
+                      contaminants=[str(REF / "mouse_jh4_contaminant.fasta")])
+    res = project.run_project(proj)
+    seconds = time.time() - t0
+    rows = sh.used
     pub = project.public(res)
     per = {}
     for s in pub["samples"]:

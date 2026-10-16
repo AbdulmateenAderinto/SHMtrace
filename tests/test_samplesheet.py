@@ -166,3 +166,46 @@ def test_the_control_column_names_the_kind_of_control(tmp_path):
     import pytest
     with pytest.raises(samplesheet.SheetError, match="kind of control"):
         samplesheet.load(str(tmp_path / "bad.csv"))
+
+
+# ---------------------------------------------- one trace, two samples --
+
+def _dup_sheet(tmp_path, rows, header="file,sample,group,control,clone_id,shared_trace"):
+    p = tmp_path / "sheet.csv"
+    p.write_text(header + "\n" + "\n".join(rows) + "\n")
+    return p
+
+
+def _dup_trace(tmp_path, name, text=b"ACGTACGTACGTACGTACGT\n"):
+    f = tmp_path / name
+    f.write_bytes(text)
+    return f
+
+
+def test_one_file_under_two_samples_is_an_error_unless_marked(tmp_path):
+    f = _dup_trace(tmp_path, "a.seq")
+    rows = [f"{f},S1,WT,,c1,", f"{f},S2,WT,,c2,"]
+    with pytest.raises(samplesheet.SheetError, match="shared_trace"):
+        samplesheet.load(str(_dup_sheet(tmp_path, rows)))
+
+
+def test_a_trace_marked_shared_is_analysed_under_both(tmp_path):
+    f = _dup_trace(tmp_path, "a.seq")
+    rows = [f"{f},S1,WT,,c1,yes", f"{f},S2,WT,,c2,yes"]
+    sh = samplesheet.load(str(_dup_sheet(tmp_path, rows)))
+    assert [r.sample for r in sh.used] == ["S1", "S2"]
+    assert any("counts once in each" in w for w in sh.warnings)
+
+
+def test_a_copy_of_a_trace_at_another_path_is_counted_once(tmp_path):
+    a, b = _dup_trace(tmp_path, "a.seq"), _dup_trace(tmp_path, "copy.seq")
+    sh = samplesheet.load(str(_dup_sheet(tmp_path, [f"{a},S1,WT,,c1,", f"{b},S2,WT,,c2,"])))
+    assert [r.sample for r in sh.used] == ["S1"], "the copy should not be analysed as a second clone"
+    assert "byte-for-byte copy of c1" in sh.excluded()[0]["reason"]
+    assert any("not analysed" in w for w in sh.warnings)
+
+
+def test_a_copy_marked_shared_is_kept(tmp_path):
+    a, b = _dup_trace(tmp_path, "a.seq"), _dup_trace(tmp_path, "copy.seq")
+    sh = samplesheet.load(str(_dup_sheet(tmp_path, [f"{a},S1,WT,,c1,yes", f"{b},S2,WT,,c2,yes"])))
+    assert [r.sample for r in sh.used] == ["S1", "S2"]

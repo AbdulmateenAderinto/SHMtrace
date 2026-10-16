@@ -185,7 +185,7 @@ def corrected_spectrum(counts, base_sites: dict, n_files: int) -> dict:
     return out
 
 
-def sanger_germline(reads_by_sample: dict, ref: str, lo: int, hi: int, p) -> set:
+def sanger_germline(reads_by_sample: dict, ref: str, lo: int, hi: int, p, only: set | None = None) -> set:
     """Germline differences from the reference, measured over a Sanger project's clones.
 
     A sample of fewer than `sanger_germline_min_clones` clones cannot tell a
@@ -195,11 +195,18 @@ def sanger_germline(reads_by_sample: dict, ref: str, lo: int, hi: int, p) -> set
     clones covering the position, among at least that many clones, is germline.
     Without this, one clone from an Aicda-/- mouse reported the strain's five
     germline differences in J꜀4 as five mutations.
+
+    `only` restricts the estimate to those clone ids, so a sample can borrow the germline of
+    its own sequencing batch rather than of the whole project: a cohort from another colony
+    carries fixed differences that the rest of the project does not, and those differences are
+    not somatic mutations.
     """
     from collections import Counter
     depth, alts = Counter(), Counter()
     for aligned in reads_by_sample.values():
         for a in aligned:
+            if only is not None and a.qname not in only:
+                continue
             for pos, base, _q in a.pairs:
                 if lo <= pos <= hi and base in "ACGT":
                     depth[pos] += 1
@@ -604,8 +611,18 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         if qscale is not None:
             fit.qscale = qscale
         fit.decoys = decoys_for(pr, decoys, set_aside)
+    batch_germline: dict = {}        # sequencing batch -> its own germline, for small samples
+    batch_of: dict = {}              # clone id -> the batch it was sequenced in
     if sanger and any(len(b["reads"][s["name"]]) < p.sanger_germline_min_clones for s in samples):
         project_germline = sanger_germline(b["reads"], ref, lo, hi, p)
+        prov = (project.get("sample_sheet") or {}).get("provenance") or {}
+        batch_of = {c: v.get("order") for c, v in prov.items() if v.get("order")}
+        if batch_of and all(a.qname in batch_of for al in b["reads"].values() for a in al):
+            # every clone names its sequencing batch, so a small sample borrows its own batch's
+            # germline; a batch with too few clones of its own falls back to the project
+            for bid in sorted(set(batch_of.values())):          # not `batch`: that is the module
+                ids = {c for c, o in batch_of.items() if o == bid}
+                batch_germline[bid] = sanger_germline(b["reads"], ref, lo, hi, p, only=ids)
     if single_q:
         names = sorted({n for s in samples if peers_of[s["name"]] for n in (s["name"], *peers_of[s["name"]])})
         pd = replace(p, downsample_to=depth)
@@ -632,11 +649,20 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     for s in samples:
         name, peers = s["name"], peers_of[s["name"]]
         vcfs = [v for v in (project.get("germline_vcf"), s.get("germline_vcf")) if v]
-        germ = set(project_germline) if (project_germline and sanger
-                                         and len(b["reads"][name]) < p.sanger_germline_min_clones) else set()
+        germ, germ_from = set(), None
+        if project_germline is not None and sanger and len(b["reads"][name]) < p.sanger_germline_min_clones:
+            mine = {batch_of.get(a.qname) for a in b["reads"][name]}
+            bid = mine.pop() if len(mine) == 1 else None
+            if bid is not None and bid in batch_germline:
+                germ, germ_from = (set(batch_germline[bid]),
+                                   f"the other clones of sequencing batch {bid}; this sample has too "
+                                   "few clones to tell germline from mutation itself")
+            else:
+                germ, germ_from = (set(project_germline), "the project's other clones; this sample has too "
+                                   "few clones to tell them apart itself")
         for v in vcfs:
             germ |= vcf_sites(v)
-        germ_src = ("the germline VCF " + " and ".join(os.path.basename(v) for v in vcfs)) if vcfs else None
+        germ_src = ("the germline VCF " + " and ".join(os.path.basename(v) for v in vcfs)) if vcfs else germ_from
         null = nulls.get(peers) if (p.error_model != "geneious" and not sanger and peers) else None
         reads, drawn = b["reads"][name], None
         if not saturation_depths:
