@@ -20,6 +20,7 @@ Checks, each a row in `flags` with a severity of "problem" (likely wrong),
                      lineage, which can only have come from one animal.
   label_mismatch     the clone's tube label names another sample (needs the
                      sample sheet's aliases column).
+  control_error_site a call at a position where the control clones mismatch too
   control_mutations  a clone of a control (e.g. AID-knockout) animal carries
                      more mutations than its own base qualities predict
                      (calibrated on the other control clones; Poisson,
@@ -137,7 +138,7 @@ def label_tokens(label: str) -> set[str]:
 def run(details: dict, samples: list[dict], ref: str, lo: int, hi: int, minq: int = 20,
         provenance: dict | None = None, fates: dict | None = None,
         sheet_excluded: list | None = None, alpha: float = 0.01,
-        aliases: dict | None = None) -> dict:
+        aliases: dict | None = None, control_sites: dict | None = None) -> dict:
     provenance = provenance or {}
     controls = {s["name"] for s in samples if s.get("control")}
     clones = _clone_table(details, lo, hi, minq)
@@ -259,6 +260,20 @@ def run(details: dict, samples: list[dict], ref: str, lo: int, hi: int, minq: in
              f"{c['load']} mutations in a control animal's clone where its base qualities "
              f"predict {lam:.1f} errors ({hot} at AID/Pol-eta hotspots): contamination or a "
              "mislabelled clone")
+
+    # 3b. a call where the control clones mismatch too: a position the chemistry gets wrong
+    for pos_s, (n_ctl, depth_ctl) in sorted((control_sites or {}).items()):
+        pos = int(pos_s)
+        for name, c in sorted(clones.items()):
+            if c["sample"] in controls:
+                continue
+            alts = [a for pp, a in c["muts"] if pp == pos]
+            if not alts:
+                continue
+            flag("control_error_site", "info", name,
+                 f"the call at {pos}{alts[0]} is at a position where {n_ctl} of {depth_ctl} control "
+                 "clones also mismatch: the chemistry misreads it, so weigh this call accordingly "
+                 "(nothing was removed)")
 
     # 4. a clone far more mutated than the rest of its animal
     by_sample = defaultdict(list)

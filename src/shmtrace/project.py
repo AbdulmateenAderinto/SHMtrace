@@ -217,6 +217,69 @@ def sanger_germline(reads_by_sample: dict, ref: str, lo: int, hi: int, p, only: 
             and k / depth[pos] >= p.germline_freq_threshold}
 
 
+def sanger_background(control_reads: dict, ref: str, lo: int, hi: int, p) -> dict:
+    """What the AID-null clones say a Sanger project's error looks like.
+
+    A Sanger clone is one molecule read once, so a mutation cannot be told from an error by
+    counting reads, and the calls carry no test. The control clones can still say how often a
+    base of a given reported quality is wrong, and at which positions errors recur, which is
+    the same thing the nanopore path measures from its controls.
+
+    Returns the mismatch rate per reported quality (the controls' own germline excluded), the
+    positions where more than one control clone mismatches, and the overall rate per base.
+    """
+    minq = p.min_base_quality or 20
+    depth, alts = Counter(), Counter()
+    for aligned in control_reads.values():
+        for a in aligned:
+            for pos, base, q in a.pairs:
+                if lo <= pos <= hi and base in "ACGT" and q >= minq:
+                    depth[pos] += 1
+                    if base != ref[pos].upper():
+                        alts[(pos, base)] += 1
+    germ = {(pos, b) for (pos, b), k in alts.items()
+            if depth[pos] and k / depth[pos] >= p.germline_freq_threshold}
+    qmm, qbases, pos_mm = Counter(), Counter(), Counter()
+    for aligned in control_reads.values():
+        for a in aligned:
+            for pos, base, q in a.pairs:
+                if lo <= pos <= hi and base in "ACGT" and q >= minq:
+                    qbases[q] += 1
+                    if base != ref[pos].upper() and (pos, base) not in germ:
+                        qmm[q] += 1
+                        pos_mm[pos] += 1
+    bases = sum(qbases.values())
+    mism = sum(qmm.values())
+    return {"min_quality": minq, "clones": sum(len(v) for v in control_reads.values()),
+            "bases": bases, "mismatches": mism,
+            "rate_per_1e5": round(1e5 * mism / bases, 3) if bases else None,
+            "by_quality": {str(q): [qmm.get(q, 0), qbases[q]] for q in sorted(qbases)},
+            # positions where the controls mismatch more than once: errors that recur there
+            "recurrent_positions": {str(pos + 1): [n, depth[pos]] for pos, n in sorted(pos_mm.items()) if n > 1},
+            "germline_excluded": len(germ)}
+
+
+def sanger_expected_false(bg: dict, aligned: list, lo: int, hi: int) -> float:
+    """Calls this library's own bases would produce at the controls' measured error rate.
+
+    Each base is charged the rate measured for its reported quality, falling back to the
+    project's overall rate where a quality was too rare in the controls to measure.
+    """
+    if not bg or not bg.get("bases"):
+        return 0.0
+    minq = bg["min_quality"]
+    overall = bg["mismatches"] / bg["bases"]
+    rate = {}
+    for q, (mm, n) in bg["by_quality"].items():
+        rate[int(q)] = mm / n if n >= 500 else overall
+    exp = 0.0
+    for a in aligned:
+        for pos, base, q in a.pairs:
+            if lo <= pos <= hi and base in "ACGT" and q >= minq:
+                exp += rate.get(q, overall)
+    return exp
+
+
 def coverage_dips(depth: list, start: int, frac: float = 0.5, min_run: int = 10) -> str:
     """A warning naming stretches covered by under `frac` of the median depth.
 
@@ -705,13 +768,34 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
     progress(0.92, "summarising")
     notes = setup_notes + list(vcf_notes)
+    # Sanger: what the AID-null clones say the background is, and how much of each library's
+    # calls it accounts for. The calls are not changed by this; it is the scale against which
+    # they should be read, as the nanopore path measures its background from the same controls.
+    sanger_bg: dict = {}
+    if sanger and controls:
+        ctl_reads = {c: b["reads"][c] for c in sorted(controls) if b["reads"].get(c)}
+        if ctl_reads:
+            sanger_bg = sanger_background(ctl_reads, ref, lo, hi, p)
+            for m in per_sample:
+                exp = sanger_expected_false(sanger_bg, b["reads"][m["sample"]], lo, hi)
+                m["expected_false_calls"] = round(exp, 2)
+                m["expected_false_pct"] = (round(100 * exp / m["unique_mutations"], 1)
+                                           if m["unique_mutations"] else None)
+            worst = [m for m in per_sample if not m["control"] and (m["expected_false_pct"] or 0) >= 20]
+            if worst:
+                notes.append(
+                    "the controls' own error rate accounts for 20% or more of the calls in "
+                    + ", ".join(f"{m['sample']} ({m['expected_false_pct']}%)" for m in worst)
+                    + f"; the controls carry {sanger_bg['rate_per_1e5']} mismatches per 10^5 bases read "
+                    f"at quality >= {sanger_bg['min_quality']}")
     qc_out = None
     if sanger:
         # bookkeeping checks: misfiled or duplicated clones, contaminated controls (qc.py)
         sheet = project.get("sample_sheet") or {}
         qc_out = qc.run(details, samples, ref, lo, hi, minq=p.min_base_quality or 20,
                         provenance=sheet.get("provenance"), fates=fates,
-                        sheet_excluded=sheet.get("excluded"), aliases=sheet.get("aliases"))
+                        sheet_excluded=sheet.get("excluded"), aliases=sheet.get("aliases"),
+                        control_sites=(sanger_bg or {}).get("recurrent_positions"))
         notes += sheet.get("warnings") or []
         n_prob = len({f["clone"] for f in qc_out["flags"] if f["severity"] == "problem"})
         if n_prob:
@@ -905,6 +989,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "indels": indel_rows,
         # position -> fitted control error rate, for the background diagnostic
         "control_background": {str(k): round(v, 8) for k, v in sorted(control_background.items())},
+        # Sanger only: the error the control clones themselves show (sanger_background)
+        "sanger_background": sanger_bg or None,
         "groups": groups,
         "animal_tests": animal_tests,
         "notes": notes,

@@ -3,8 +3,10 @@ name: sanger_clones
 description: >
   One trace per clone. Every high-quality mismatch inside the trimmed read is a
   mutation; there is no statistical test, because a clone's mutation is seen in
-  exactly one read by construction. Use with --platform sanger, which also
-  turns on quality trimming.
+  exactly one read by construction. The AID-null clones still measure the error
+  rate, so each library is told how many of its calls that background accounts
+  for (sanger_background), and calls at positions the controls misread are
+  noted. Use with --platform sanger, which also turns on quality trimming.
 
 minimap2_preset: map-ont
 min_align_len: 200
