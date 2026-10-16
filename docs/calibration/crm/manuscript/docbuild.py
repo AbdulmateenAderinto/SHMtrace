@@ -2,6 +2,7 @@
 
 Text is written with light markup:
     *italic*   **bold**   ^{superscript}   _{subscript}   [@key] or [@key1,@key2]  (citations)
+    \\*  a literal asterisk (significance stars in a legend), which is not markup
 Citations become numbered superscripts in order of first appearance (Cell style); the reference
 list is built from refs.json (resolved against PubMed by resolve_refs.py) plus MANUAL entries for
 the few works PubMed does not index. Blocks are (kind, payload) tuples; see add_block.
@@ -11,7 +12,6 @@ import re
 from pathlib import Path
 
 from docx import Document
-from docx.enum.section import WD_SECTION
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
@@ -54,6 +54,7 @@ MANUAL = {
                 "10.1038/s41587-025-02839-x.",
 }
 PAGE_FIX = {"sanderson2024": "001246"}
+LITERAL_STAR = "\uE000"     # stands in for an escaped asterisk while the markup is read
 TOKEN = re.compile(r"(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\^\{[^}]*\}|_\{[^}]*\}|\[@[^\]]+\])")
 
 
@@ -113,12 +114,14 @@ class Manuscript:
         return ",".join(out)
 
     def runs(self, par, text, size=None, bold=False, color=None):
+        # an escaped asterisk is hidden from the markup and printed as itself
+        text = text.replace("\\*", LITERAL_STAR)
         for piece in TOKEN.split(text):
             if not piece:
                 continue
             kw = {}
             if piece.startswith("`"):
-                r = par.add_run(piece[1:-1])
+                r = par.add_run(piece[1:-1].replace(LITERAL_STAR, "*"))
                 r.font.name = "Courier New"
                 r.font.size = Pt((size or 11) - 1)
                 continue
@@ -137,7 +140,7 @@ class Manuscript:
             for sp in sub_parts:
                 if not sp:
                     continue
-                r = par.add_run(sp.strip("*") if sp.startswith("*") else sp)
+                r = par.add_run((sp.strip("*") if sp.startswith("*") else sp).replace(LITERAL_STAR, "*"))
                 r.bold = bold or kw.get("bold")
                 r.italic = kw.get("italic") or sp.startswith("*")
                 # superscript and subscript share w:vertAlign: set only the one that applies
@@ -187,18 +190,18 @@ class Manuscript:
         t = self.doc.add_table(rows=1, cols=len(header))
         t.style = "Table Grid"
         t.alignment = WD_TABLE_ALIGNMENT.CENTER
-        for c, h in zip(t.rows[0].cells, header):
+        for c, h in zip(t.rows[0].cells, header, strict=True):
             c.paragraphs[0].paragraph_format.space_after = Pt(0)
             self.runs(c.paragraphs[0], h, size=size, bold=True)
         for row in rows:
             cells = t.add_row().cells
-            for c, v in zip(cells, row):
+            for c, v in zip(cells, row, strict=True):
                 c.paragraphs[0].paragraph_format.space_after = Pt(0)
                 c.paragraphs[0].paragraph_format.line_spacing = 1.0
                 self.runs(c.paragraphs[0], str(v), size=size)
         if widths:
             for row in t.rows:
-                for c, w in zip(row.cells, widths):
+                for c, w in zip(row.cells, widths, strict=True):
                     c.width = Mm(w)
         if footnote:
             self.para(footnote, size=8.5)

@@ -275,7 +275,7 @@ def main(outdir):
                   "and S9**",
             footnote="Each cell gives wild type \u2192 knockout, the arrow the direction of a significant change, and "
                      "the stars a two-tailed test across mice (Welch on log_{10} for frequency, Student t on "
-                     "per-mouse percentages otherwise): ***, p < 0.001; **, p < 0.01; *, p < 0.05; ns, not "
+                     "per-mouse percentages otherwise): \\*\\*\\*, p < 0.001; \\*\\*, p < 0.01; \\*, p < 0.05; ns, not "
                      "significant. Frequencies count unique mutations over the bases sequenced, as both papers do: "
                      "SHMtrace counts the bases each clone read at base quality \u2265 20 and sets paralog clones "
                      "aside, whereas both papers counted every filed clone at one fixed length (577 bp for Maea, "
