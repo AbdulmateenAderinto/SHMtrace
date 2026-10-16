@@ -329,6 +329,24 @@ RESULTS = [
           "the last; with all three resolved by rules fixed in advance, the result was unchanged "
           "({mk_ev_fold}-fold, p = {mk_ev_p}; Table S4)."),
 
+    ("p", "Both of those studies come from the laboratory that produced the libraries analyzed here, so we also "
+          "re-analyzed a Sanger study from an unrelated laboratory, at a different locus: Thientosapol et al. "
+          "hypermutated a SW_{HEL} V_{H}10 knock-in V region in germinal-center B cells and reported that "
+          "inactivating *Samhd1* raises transitions at C:G base pairs and lowers transversions at A:T and at C:G "
+          "in both strands[@thientosapol2018]. Its {sw_clones} clones are deposited one record per clone, each "
+          "naming its genotype, its host animal and its well, and SHMtrace was given nothing else: the germline is "
+          "the majority consensus of the clones themselves, each clone is assigned to the animal its own record "
+          "names, and the arms are the genotypes its records state. The {sw_bp}-bp window this yields matches the "
+          "560 bp the study analyzed. Across the five arms and the twelve substitution types, SHMtrace counted "
+          "{sw_muts} of the {sw_pub_muts} mutations the study tabulates (Pearson r = {sw_r} over the 60 cells; "
+          "Figure S10), and mutations per sequence agreed to two decimal places in every arm. Every published "
+          "comparison followed: transversions fell at A:T (p = {sw_at_tv_p}) and at C:G (p = {sw_gc_tv_p}), "
+          "transitions at C:G rose (p = {sw_gc_ts_p}), and transitions at A:T did not move ({sw_at_ts_p}), as the "
+          "study reported. The *Msh2*^{−/−} arm, which SHMtrace was not told was a repair mutant, showed the "
+          "expected collapse of A:T mutations, from {sw_at_wt}% to {sw_at_msh2}% of all mutations. Because this "
+          "study deposits sequences rather than chromatograms, it tests the calling, the spectrum and the group "
+          "statistics but not the trace reading."),
+
     ("h", "Long reads add whole-amplicon maps, clones, and mutation trees"),
     ("p", "Because each nanopore read spans the entire 1,230-bp J_{H}4 amplicon, the whole product can be analyzed "
           "(Figure 6A). Over the reliably covered positions 90–1,230, Wt libraries carried {full_fold} times the "
@@ -336,7 +354,7 @@ RESULTS = [
           "first 450 bp, and the number of mutations declined about {full_decline}-fold between the first and "
           "last 250 bp, consistent with the decline of SHM about 1 kb from the V(D)J junction[@lebecque1990]. "
           "Extending the analysis to the full interval did not change the mutation spectrum, which matched the "
-          "spectrum of the Sanger window (r = {s1_r}; Figure S10)."),
+          "spectrum of the Sanger window (r = {s1_r}; Figure S11)."),
     ("p", "Mutations in Wt libraries favored the positions that the S5F model considers most mutable. The "
           "targeting index, the mean S5F mutability at mutated positions relative to the window, was {s5f_wt} "
           "(p ≤ {s5f_wt_p}, permutation test), and mutations per position increased {s5f_dose}-fold from the least "
@@ -442,7 +460,7 @@ DISCUSSION = [
     "decline of mutation is visible without tiling. Because the V(D)J junction identifies clones, an expanded "
     "or jackpotted clone no longer dominates the mutation frequency. In addition, the mutations within a clone "
     "can be ordered into a tree. Sanger sequencing of the same mice, re-analyzed from the chromatograms, agreed "
-    "with nanopore sequencing on spectrum, position, and hotspot use; what each platform measures that the other cannot is set out in Figure S11. The re-analysis also showed that the "
+    "with nanopore sequencing on spectrum, position, and hotspot use; what each platform measures that the other cannot is set out in Figure S12. The re-analysis also showed that the "
     "weakest link in the traditional assay is bookkeeping, which SHMtrace now checks explicitly.",
     "Several features make SHMtrace practical for routine use. The analysis starts from delivered reads, the "
     "number of reads removed at each step is reported, the random draw of reads is reproducible from a fixed "

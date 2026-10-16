@@ -12,7 +12,7 @@ import json
 import math
 import statistics
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -659,6 +659,43 @@ def compute():
             ys += [sh[k] / sum(sh.values()) for k in TY]
         N["mk_spec_r"] = f2(float(stats.pearsonr(xs, ys)[0]))
         N["mk_paralog"] = f"{mk['excluded'].get('contaminant', 0)}"
+    # a published Sanger study from another laboratory (Thientosapol et al. 2018; external/swhel_samhd1.py)
+    sw_f = CRM.parent / "external/out/swhel_samhd1.json"
+    if sw_f.exists():
+        sw = _load(sw_f)
+        swp = _load(CRM / "published/thientosapol2018_swhel.json")
+        per = sw["per_mouse"]
+        arms = ["Samhd1_WT", "Samhd1_KO", "Samhd1_KO_UGI", "Msh2_KO", "Msh2_Samhd1_KO"]
+        mice = {g: [m for m in per if per[m]["group"] == g] for g in arms}
+        tot: dict = {g: Counter() for g in arms}
+        for v in sw["project"]["variants"]:
+            tot[per[v["sample"]]["group"]][f"{v['ref']}>{v['alt']}"] += v["reads"]
+        types = sorted(swp["groups"]["Samhd1_WT"]["m"])
+        xs = [swp["groups"][g]["m"][ty] / sum(swp["groups"][g]["m"].values()) for g in arms for ty in types]
+        ys = [tot[g][ty] / sum(tot[g].values()) for g in arms for ty in types]
+        N["sw_clones"] = f0(sum(per[m]["clones"] for g in arms for m in mice[g]))
+        N["sw_bp"] = "558"
+        N["sw_muts"] = f0(sum(sum(tot[g].values()) for g in arms))
+        N["sw_pub_muts"] = f0(sum(sum(swp["groups"][g]["m"].values()) for g in arms))
+        N["sw_r"] = f"{float(stats.pearsonr(xs, ys)[0]):.4f}"
+
+        def _cls(m, keys):
+            sp = per[m]["spectrum"]
+            s = sum(sp.values())
+            return 100 * sum(sp.get(k, 0) for k in keys) / s if s else 0.0
+        CL = {"at_tv": ("A>T", "A>C", "T>A", "T>G"), "at_ts": ("A>G", "T>C"),
+              "gc_tv": ("C>A", "C>G", "G>C", "G>T"), "gc_ts": ("C>T", "G>A")}
+        for k, keys in CL.items():
+            a_ = [_cls(m, keys) for m in mice["Samhd1_WT"]]
+            b_ = [_cls(m, keys) for m in mice["Samhd1_KO"]]
+            pv = float(stats.ttest_ind(a_, b_)[1])
+            N[f"sw_{k}_p"] = ("p = " + pfmt(pv)) if k == "at_ts" and pv >= 0.05 else pfmt(pv)
+        N["sw_at_ts_p"] = "p = " + pfmt(float(stats.ttest_ind(
+            [_cls(m, CL["at_ts"]) for m in mice["Samhd1_WT"]],
+            [_cls(m, CL["at_ts"]) for m in mice["Samhd1_KO"]])[1]))
+        AT = ("A>G", "T>C", "A>T", "A>C", "T>A", "T>G")
+        N["sw_at_wt"] = f"{np.mean([_cls(m, AT) for m in mice['Samhd1_WT']]):.0f}"
+        N["sw_at_msh2"] = f"{np.mean([_cls(m, AT) for m in mice['Msh2_KO']]):.0f}"
         # the evidence-based clone set (sanger_evidence.py): lineages filed under two mice resolved by nanopore
         ev_path = OUT / "sanger_mkln_evidence.json"
         if ev_path.exists():

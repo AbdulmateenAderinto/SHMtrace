@@ -1,10 +1,10 @@
-"""Data and equations for the SciCanvas Figure S13 (figS13_engine.js).
+"""Data and equations for the SciCanvas Figure S14 (figS14_engine.js).
 
     python docs/calibration/crm/scicanvas/engine_data.py
 
 Reads what figs/fig_engine.py reads (out/intuition_jh4.json, out/engine_alignment.json and the J_H4
 read accounting), reduces each panel to the numbers it plots, renders the six equations as small SVGs
-(mathtext in Arial, drawn as outlines) and writes all of it into figS13_engine.js between the DATA
+(mathtext in Arial, drawn as outlines) and writes all of it into figS14_engine.js between the DATA
 markers, so the builder stays one file that can also be pasted into SciCanvas.
 """
 import base64
@@ -21,7 +21,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "figs"))
 from fig_engine import ACCT, D, alignment_points  # noqa: E402
 
-BUILDER = HERE / "figS13_engine.js"
+BUILDER = HERE / "figS14_engine.js"
 PT = 1400 / (174 / 25.4 * 72)             # page units per point at 174 mm
 EQ_PT = 7.0
 

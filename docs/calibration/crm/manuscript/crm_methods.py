@@ -155,8 +155,8 @@ METHODS = [
           "the window, with a one-sided permutation p value from 2,000 random sets of positions; the model was "
           "exported from SHazaM 1.2.0. Positional clustering flags any 10-base window containing more calls than a "
           "Poisson distribution allows (Bonferroni correction across windows, p < 10^{−3}). An overview of the "
-          "analysis is given in Figure S12, and each stage, the rule it applies and that rule working on the "
-          "J_{H}4 libraries in Figure S13. Sanger chromatograms "
+          "analysis is given in Figure S13, and each stage, the rule it applies and that rule working on the "
+          "J_{H}4 libraries in Figure S14. Sanger chromatograms "
           "are assigned to animals through a sample sheet and trimmed to their longest stretch of base quality "
           "≥ 20 that aligns cleanly, and every substitution at quality ≥ 20 is counted after the germline filter. "
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
@@ -203,6 +203,18 @@ METHODS = [
           "SHMtrace flagged as carrying more mutations than its base qualities predict would have been set aside; "
           "none was. Clones the original project never filed under a mouse were not used, as in the primary "
           "analysis."),
+    ("p", "For the SW_{HEL} study[@thientosapol2018], the 1,795 clones deposited in GenBank (MH198*-MH200*) were "
+          "downloaded and each read as one Sanger sequence; GenBank records carry no base qualities, so every base "
+          "was given Phred 30. The germline was the iterated majority consensus of the clones themselves, which "
+          "converged in two passes, and the analysis window was the stretch at least 99% of them read (558 bp of "
+          "the 576-bp consensus). Each clone was assigned to the host animal and each animal to the genotype its "
+          "own record states; the uracil-glycosylase-inhibited arm was kept separate from the untreated arms. "
+          "There is no *Aicda*^{\u2212/\u2212} arm, so no control-calibrated background was fitted. The published "
+          "per-arm counts were transcribed from the study's Table 1, which counts every sequence independently; "
+          "SHMtrace's totals are compared on that basis, and its unique-mutation counts are lower, as expected. "
+          "The deposit names 12 host animals in the wild-type arm where the study reports 13, one record carrying "
+          "about twice as many clones as any other, so two animals appear to share a name there; the arms are "
+          "compared as groups and this does not affect them."),
     ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
@@ -345,7 +357,7 @@ LEGENDS = [
      "relative to each series' mean; targeting index, permutation test. (C) Reads with a V(D)J junction by clone "
      "(dark, largest clone) and the read- and clone-weighted mutation frequencies. (D) Mutation tree of the largest "
      "Wt3 clone: square, unmutated ancestor; ticks, mutations colored by class; circles, nodes, sized and labeled "
-     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S10."),
+     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S11."),
     ("Figure 7. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
      "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
@@ -395,7 +407,7 @@ TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Na
                "molecular identifier.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S13 and Tables S1, S3 and S4",
+    "Document S1. Figures S1–S14 and Tables S1, S3 and S4",
     "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

@@ -1,9 +1,9 @@
 () => {
-  // Cell Reports Methods, Figure S11: what Sanger clones and nanopore reads can each measure. Top, one unit
+  // Cell Reports Methods, Figure S12: what Sanger clones and nanopore reads can each measure. Top, one unit
   // of data from each platform on one base-pair scale; bottom, what only one of them gives and what both give,
   // with the agreement measured in the same six mice (Figure 5) and the long-read results (Figure 6).
   // Every number is one the article reports. Built with manuscript_corrected/figure1_scicanvas/build.js into
-  // crm/figures/FigureS11_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
+  // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
   const W = 1400, H = 742, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
   const TEAL = '#1f6f8b', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a';
@@ -100,6 +100,6 @@
   y = item(c3, y, 'Calls at a known false-discovery rate', ['each candidate tested against the controls,',
     'the threshold set by them as decoys; single-read', 'mutations as one background-subtracted estimate'], TEAL);
 
-  return { id: 'crm-figS11-platforms', name: 'Figure S11', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S11. What Sanger clones and nanopore reads can each measure, and what both measure alike in the same mice.' };
+  return { id: 'crm-figS12-platforms', name: 'Figure S12', width: W, height: H, background: '#ffffff', objects: o,
+    alt: 'Figure S12. What Sanger clones and nanopore reads can each measure, and what both measure alike in the same mice.' };
 }

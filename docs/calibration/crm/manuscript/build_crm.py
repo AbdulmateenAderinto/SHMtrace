@@ -383,12 +383,26 @@ SUPP_FIGS = [
      "from the per-mouse tables as printed, and the values the paper's summary bars report (Supplementary "
      "Figure S2C) are listed separately. Paralog clones are J_{H}4-paralog amplicons, which SHMtrace analyzes "
      "apart from J_{H}4; \"background explains\" is as in Figure S8."),
-    ("Figure S10. Full-length spectra and mutation trees in each mouse, related to Figure 6",
+    ("Figure S10. A published Sanger study from another laboratory re-analyzed automatically, related to Figure 5",
+     [FIG / "FigureS10_swhel.png"],
+     "The 1,795 Sanger clones of Thientosapol et al. (2018), who hypermutated a SW_{HEL} V_{H}10 knock-in V region "
+     "in germinal-center B cells and reported that inactivating *Samhd1* raises transitions at C:G and lowers "
+     "transversions at A:T and at C:G. SHMtrace was given only the deposited GenBank records: the germline is the "
+     "iterated majority consensus of the clones themselves, each clone is assigned to the animal its own record "
+     "names, and the arms are the genotypes its records state. (A) Mutations per sequence in each arm, SHMtrace "
+     "against the paper's Table 1. (B) The 12 substitution types in each of the five arms, as a share of that "
+     "arm's mutations. (C) The four classes the paper tests, one point per animal for SHMtrace and the published "
+     "value as an open square; stars, two-tailed t-test across animals. (D) Each published claim against what "
+     "SHMtrace finds. Unlike Figures S8 and S9 this study deposits sequences rather than chromatograms, so the "
+     "chromatogram reading and the bookkeeping checks are not exercised; it has no *Aicda*^{\u2212/\u2212} arm, "
+     "and Sanger error (about 2 in 10^{5} bases, measured in the AID-null clones of those two studies) is some "
+     "500-fold below the mutation frequency here."),
+    ("Figure S11. Full-length spectra and mutation trees in each mouse, related to Figure 6",
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
-    ("Figure S11. What Sanger clones and nanopore reads each measure, related to Figures 5 and 6",
-     [FIG / "FigureS11_platforms.png"],
+    ("Figure S12. What Sanger clones and nanopore reads each measure, related to Figures 5 and 6",
+     [FIG / "FigureS12_platforms.png"],
      "Top, one unit of data from each platform on one base-pair scale. A Sanger clone is one molecule read once "
      "over the 529-bp window that the clones read cleanly, so each clone's mutations are known exactly and "
      "sequencing errors are rare. A nanopore read spans the whole 1,230-bp amplicon but carries more errors than "
@@ -397,16 +411,16 @@ SUPP_FIGS = [
      "give, what only nanopore reads give, and what both give in the six mice of Figure 5, with the agreement "
      "measured there. Sanger error rate: mismatches at base quality \u2265 20 in the AID-null clones of the "
      "two published studies of Figures S8 and S9."),
-    ("Figure S12. An overview of SHMtrace, related to STAR Methods",
-     [FIG / "FigureS12_overview.png"],
+    ("Figure S13. An overview of SHMtrace, related to STAR Methods",
+     [FIG / "FigureS13_overview.png"],
      "From libraries to group tests. Reads or chromatograms are assigned to animals through a sample sheet, "
      "gated and aligned competitively against the target, its paralog and any contaminant; the AID-null controls "
      "measure the background, each candidate is tested against it, and the controls, called against one another as "
      "decoys, set the threshold. Results are summarised per animal and compared between groups with one value per "
-     "animal. Bookkeeping checks are reported beside the results and never applied. Figure S13 gives the rule and "
+     "animal. Bookkeeping checks are reported beside the results and never applied. Figure S14 gives the rule and "
      "equation behind each step."),
-    ("Figure S13. How SHMtrace turns reads into calls, related to STAR Methods",
-     [FIG / "FigureS13_engine.png"],
+    ("Figure S14. How SHMtrace turns reads into calls, related to STAR Methods",
+     [FIG / "FigureS14_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
      "libraries. (A) The fate of every delivered read, per library: gated by length or expected error, sent "
      "elsewhere by competitive alignment, or usable (Figure S1 separates the gates). (B) Each read's identity "
