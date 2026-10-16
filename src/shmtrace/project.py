@@ -9,6 +9,10 @@ This is the engine behind the desktop app. A project is
      "depth": null | int,
      "samples": [{"name": "WT1", "path": "...", "group": "WT", "control": false}, ...]}
 
+Some amplicons carry more than one locus, because the primers also reach a paralogue.
+Give such a project a `targets` list instead of one `reference` and run `run_targets`:
+each read goes to the locus it matches best, and each locus is analysed in its own right.
+
 Every sample is prepared together (shared phasing knowledge, one common depth),
 each sample is called against a null fitted from the project's control samples
 (leaving the sample itself out when it is a control), and per-sample and
@@ -917,3 +921,98 @@ def public(res: dict) -> dict:
 
 
 __all__ = ["run_project", "public", "build_params", "metrics", "replace"]
+
+
+# ------------------------------------------------------------ many targets --
+
+def _target_list(project: dict) -> list[dict]:
+    """`project["targets"]` normalised to [{name, reference, region}, ...]."""
+    out = []
+    for i, t in enumerate(project.get("targets") or []):
+        if isinstance(t, str):
+            t = {"reference": t}
+        ref = t.get("reference")
+        if not ref:
+            raise ValueError("every target needs a 'reference' (a FASTA file)")
+        name = t.get("name") or read_fasta(ref)[0][0] or f"target{i + 1}"
+        out.append({"name": name, "reference": ref, "region": t.get("region") or project.get("region")})
+    names = [t["name"] for t in out]
+    if len(set(names)) != len(names):
+        raise ValueError("target names must be unique")
+    return out
+
+
+def run_targets(project: dict, progress=lambda frac, msg: None) -> dict:
+    """Analyse one set of libraries against several targets at once.
+
+    Some amplicons carry more than one locus: J_H4 primers also amplify a J_H4-like
+    paralogue, and a paralogue is worth measuring rather than discarding, because the
+    same primers, PCR and plate make it an internal background for the target.
+
+    `project["targets"]` is a list of {"name", "reference", "region"} (or plain FASTA
+    paths). Each target is analysed as its own locus, against its own reference, window
+    and controls, with every other target added to that run's contaminants. Competitive
+    alignment therefore sends each read to the target it matches best, and no read is
+    counted twice; any that are, because two references scored alike, are reported in
+    `notes` and listed per sample in `shared_clones`.
+
+    Returns {"targets": [names], "by_target": {name: run_project(...)}, "samples": a row
+    per sample with each target's clones, unique mutations, bases and frequency, and the
+    pooled frequency over every target, "notes": [...]}. The per-target results are
+    ordinary project results, so every existing figure and table works on each of them.
+    """
+    targets = _target_list(project)
+    if len(targets) < 2:
+        raise ValueError("run_targets needs at least two targets; use run_project for one")
+    base_contaminants = list(project.get("contaminants") or [])
+    by_target, notes = {}, []
+    for i, t in enumerate(targets):
+        others = [x["reference"] for x in targets if x["name"] != t["name"]]
+        sub = {k: v for k, v in project.items() if k != "targets"}
+        sub.update(name=f"{project.get('name') or 'project'} / {t['name']}", reference=t["reference"],
+                   region=t["region"], contaminants=base_contaminants + others)
+        lo_frac, hi_frac = i / len(targets), (i + 1) / len(targets)
+        by_target[t["name"]] = run_project(
+            sub, progress=lambda f, m, a=lo_frac, b=hi_frac, n=t["name"]: progress(a + (b - a) * f, f"{n}: {m}"))
+        notes += [f"{t['name']}: {n}" for n in by_target[t["name"]]["notes"]]
+
+    rows, shared = [], {}
+    first = by_target[targets[0]["name"]]
+    for s in first["samples"]:
+        name = s["sample"]
+        per, clones_seen = {}, defaultdict(list)
+        for t in targets:
+            r = next((x for x in by_target[t["name"]]["samples"] if x["sample"] == name), None)
+            if r is None:
+                continue
+            per[t["name"]] = {"clones": r["reads"], "unique_mutations": r["unique_mutations"],
+                              "bases": r["frequency_bases"],
+                              "frequency_x1e4": (round(1e4 * r["unique_mutations"] / r["frequency_bases"], 4)
+                                                 if r["frequency_bases"] else None)}
+            for q in by_target[t["name"]]["_details"].get(name, {}).get("_aligned", []):
+                clones_seen[q.qname].append(t["name"])
+        both = {c: ts for c, ts in clones_seen.items() if len(ts) > 1}
+        if both:
+            shared[name] = {c: ts for c, ts in sorted(both.items())}
+        mut = sum(v["unique_mutations"] for v in per.values())
+        bp = sum(v["bases"] for v in per.values())
+        rows.append({"sample": name, "group": s["group"], "control": s["control"], "per_target": per,
+                     "clones_total": sum(v["clones"] for v in per.values()),
+                     "unique_mutations_total": mut, "bases_total": bp,
+                     "pooled_frequency_x1e4": round(1e4 * mut / bp, 4) if bp else None})
+    if shared:
+        n = sum(len(v) for v in shared.values())
+        notes.append(f"{n} clone(s) aligned equally well to more than one target and are counted in each; "
+                     "see shared_clones. Separate the references further, or drop the weaker hit.")
+    empty = [t["name"] for t in targets
+             if not any(r["per_target"].get(t["name"], {}).get("clones") for r in rows)]
+    for e in empty:
+        notes.append(f"no library had a read that aligned best to {e}.")
+    return {"name": project.get("name") or "SHMtrace project",
+            "targets": [t["name"] for t in targets],
+            "by_target": by_target, "samples": rows, "shared_clones": shared, "notes": notes}
+
+
+def public_targets(res: dict) -> dict:
+    """`run_targets` output with each target's result reduced by `public`."""
+    return {**res, "by_target": {k: public(v) for k, v in res["by_target"].items()}}
