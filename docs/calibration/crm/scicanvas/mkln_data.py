@@ -42,7 +42,7 @@ def main():
                            "pub": [round(gc(pub_spec(m))[i], 2) for m in pub_mice if pub_g[m] == g]})
 
     # C: pooled 12-type spectrum, as percentages
-    panelC = {}
+    panelC, rg = {}, {}
     allx, ally = [], []
     for g in ("WT", "Mkln1_KO"):
         sh = {t: sum(per[m]["spectrum"].get(t, 0) for m in mine[g]) for t in TYPES}
@@ -52,6 +52,7 @@ def main():
         allx += x
         ally += y
         panelC[g] = [[round(a, 3), round(b, 3), t] for a, b, t in zip(x, y, TYPES, strict=True)]
+        rg[g] = round(float(stats.pearsonr(x, y)[0]), 2)
     r = float(stats.pearsonr(allx, ally)[0])
 
     # D: the published comparisons, published against SHMtrace
@@ -75,7 +76,7 @@ def main():
         ["... Mkln1KO", "–", _bg_share("Mkln1_KO"), 1],
         ["Analysis", "Benchling", f"{RES['seconds']:.0f} s", 0],
     ]
-    data = {"A": panelA, "B": panelB, "C": panelC, "r": round(r, 2), "D": panelD,
+    data = {"A": panelA, "B": panelB, "C": panelC, "r": round(r, 2), "r_group": rg, "D": panelD,
             "traces": RES["traces"], "clones": RES["clones_analysed"]}
     n = inject(BUILDER, data)
     print(f"{BUILDER.name}: data {n:+d} bytes; r = {r:.2f}; {len(panelD)} rows in D")

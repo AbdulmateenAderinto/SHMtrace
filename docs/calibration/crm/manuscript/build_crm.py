@@ -379,7 +379,9 @@ SUPP_FIGS = [
      "squares, the published values, replotted from the paper's per-mouse tables (Supplementary Figure S2A). "
      "(A) Unique mutations per 10^{4} bases sequenced, per mouse; lines, means. (B) G:C transitions and "
      "transversions as a share of each mouse's mutations. (C) Pooled 12-type substitution spectra, SHMtrace "
-     "against published. (D) The comparisons, published and SHMtrace's; the published P values are computed "
+     "against published, with r for each genotype. Of the three published *Mkln1*^{\u2212/\u2212} tables, only "
+     "mouse #1's spectrum matches the clones of a folder (K2); tables #2 and #3 match no folder or set of clones in "
+     "the original project, which limits the knockout's agreement. (D) The comparisons, published and SHMtrace's; the published P values are computed "
      "from the per-mouse tables as printed, and the values the paper's summary bars report (Supplementary "
      "Figure S2C) are listed separately. Paralog clones are J_{H}4-paralog amplicons, which SHMtrace analyzes "
      "apart from J_{H}4; \"background explains\" is as in Figure S8."),

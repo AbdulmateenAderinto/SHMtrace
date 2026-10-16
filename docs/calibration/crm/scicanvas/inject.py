@@ -1,7 +1,7 @@
-"""Write a figure's numbers (DATA) and the shared code-plot helpers (HELPERS) into its SciCanvas builder.
+"""Write a figure's numbers (DATA) into its SciCanvas builder, between /*DATA*/.../*END*/ markers.
 
-The builders run sandboxed and read no files, and their code plots must re-run on their own inside SciCanvas, so
-both go into the builder itself, between /*DATA*/.../*END*/ and /*HELPERS*/.../*END*/ markers.
+The builders run sandboxed and read no files, so the numbers go into the builder itself. The shared plot helpers
+(plots_common.py) are not injected: build.js saves them as the figure's plot prelude.
 """
 import json
 import re
@@ -14,7 +14,5 @@ def inject(builder: Path, data) -> int:
     src = builder.read_text()
     new = re.sub(r"/\*DATA\*/.*?/\*END\*/", lambda _m: "/*DATA*/" + json.dumps(data, separators=(",", ":")) + "/*END*/",
                  src, flags=re.S)
-    helpers = (HERE / "plots_common.py").read_text()
-    new = re.sub(r"/\*HELPERS\*/.*?/\*END\*/", lambda _m: "/*HELPERS*/" + json.dumps(helpers) + "/*END*/", new, flags=re.S)
     builder.write_text(new)
     return len(new) - len(src)

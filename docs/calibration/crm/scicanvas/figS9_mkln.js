@@ -5,9 +5,8 @@
   // into DATA by mkln_data.py from the same inputs as figs/figS9_sanger_mkln.py. Panel D is laid out in
   // measured columns: each value column is right-aligned at its own edge, so a long cell cannot run into
   // the next one. Built with manuscript_corrected/figure1_scicanvas/build.js into crm/figures/FigureS9_sanger_mkln.
-  const HELPERS = /*HELPERS*/"# ruff: noqa: F821  (plt, PAGE and FONT_SIZE come from the SciCanvas plot worker and build.js's preamble)\n# Shared by the CRM code plots (SciCanvas 2.0). Prepended to each plot's code by the builders, so every plot in a\n# .scifig re-runs on its own in SciCanvas. PAGE and the rcParams scaling come from build.js's preamble: sizes below\n# are the printed sizes, in points.\nimport json  # noqa: F401  (each plot reads its numbers with json.loads)\n\nINK, MID, SOFT, FAINT = \"#1d2733\", \"#4a5562\", \"#8a96a3\", \"#cfd8df\"\nSH, PUB = \"#1f6f8b\", \"#a3621b\"           # SHMtrace, published\nCASE, CASEF = \"#274b7e\", \"#6d9ad0\"        # wild type\nKO, KOF = \"#7a4f9a\", \"#bda3d4\"            # knockout\nCTRL, CTRLF = \"#9a3439\", \"#d07a7e\"        # AID-null\nplt.rcParams.update({\"axes.edgecolor\": INK, \"xtick.color\": INK, \"ytick.color\": INK, \"axes.labelcolor\": MID,\n                     \"text.color\": INK})\n\n\ndef area(d):\n    \"\"\"Scatter size for a marker d printed points across.\"\"\"\n    return (d * PAGE) ** 2\n\n\ndef lw(w):\n    \"\"\"A line w printed points wide.\"\"\"\n    return w * PAGE\n\n\ndef plain_log(axis):\n    \"\"\"Log-axis tick labels as plain numbers (10, 100), not 10^n, whose exponents print below 6 pt.\"\"\"\n    axis.set_major_formatter(plt.FuncFormatter(lambda v, _: f\"{v:g}\"))\n    axis.set_minor_formatter(plt.NullFormatter())\n\n\ndef strip(ax, x, vals, face, edge, d=5.0, spread=0.10, marker=\"o\", zorder=3):\n    \"\"\"One group's points, spread sideways so they do not hide each other.\"\"\"\n    vals = list(vals)\n    if not vals:\n        return\n    xs = [x] if len(vals) == 1 else [x - spread + 2 * spread * k / (len(vals) - 1) for k in range(len(vals))]\n    ax.scatter(xs, vals, s=area(d), facecolor=face, edgecolor=edge, linewidth=lw(0.6), marker=marker, zorder=zorder)\n\n\ndef mean_bar(ax, x, vals, color, half=0.16):\n    vals = list(vals)\n    if vals:\n        m = sum(vals) / len(vals)\n        ax.plot([x - half, x + half], [m, m], color=color, linewidth=lw(1.3), solid_capstyle=\"butt\", zorder=4)\n"/*END*/;
-  const DATA = /*DATA*/{"A":{"WT":{"sh":[87.64,137.81,81.92],"pub":[72.94,94.79,35.48]},"Mkln1_KO":{"sh":[18.9,8.54,10.88],"pub":[8.86,11.2,6.08]},"Aicda_KO":{"sh":[0.0,2.1,2.1],"pub":[]}},"B":[{"group":"WT","kind":"Ts","sh":[20.26,19.03,26.92],"pub":[24.66,22.56,23.29]},{"group":"WT","kind":"Tv","sh":[19.61,15.04,11.54],"pub":[17.12,16.41,13.7]},{"group":"Mkln1_KO","kind":"Ts","sh":[33.33,16.67,21.43],"pub":[32.35,22.03,29.17]},{"group":"Mkln1_KO","kind":"Tv","sh":[29.63,26.19,30.95],"pub":[26.47,30.51,25.0]}],"C":{"WT":[[10.386,11.387,"A>T"],[7.246,7.66,"A>C"],[16.184,15.735,"A>G"],[6.522,8.696,"T>A"],[13.285,14.493,"T>C"],[6.763,5.176,"T>G"],[2.415,2.277,"C>A"],[10.628,9.524,"C>T"],[2.899,2.899,"C>G"],[12.802,11.594,"G>A"],[5.072,4.348,"G>T"],[5.797,6.211,"G>C"]],"Mkln1_KO":[[9.402,6.306,"A>T"],[5.983,5.405,"A>C"],[11.111,17.117,"A>G"],[8.547,6.306,"T>A"],[6.838,9.91,"T>C"],[3.419,3.604,"T>G"],[5.983,6.306,"C>A"],[13.675,7.207,"C>T"],[6.838,4.505,"C>G"],[12.821,15.315,"G>A"],[7.692,9.009,"G>T"],[7.692,9.009,"G>C"]]},"r":0.82,"D":[["Wt / Mkln1KO","7.8\u00d7","8.0\u00d7",0],["P (one-tailed t)\u1d47","0.0137","0.0038",1],["G:C Ts P","0.23","0.77",0],["G:C Tv P","0.004","0.008",0],["... S2C bars\u1d43","0.013 / 0.31","\u2013",1],["Clones, Wt / KO","110 / 227","88 / 193",0],["Paralog clones out","\u2013","85",0],["Background explains, Wt","\u2013","2-3%",0],["... Mkln1KO","\u2013","12-30%",1],["Analysis","Benchling","15 s",0]],"traces":402,"clones":309}/*END*/;
-  const W = 1400, H = 560, o = [];
+  const DATA = /*DATA*/{"A":{"WT":{"sh":[87.64,137.81,81.92],"pub":[72.94,94.79,35.48]},"Mkln1_KO":{"sh":[18.9,8.54,10.88],"pub":[8.86,11.2,6.08]},"Aicda_KO":{"sh":[0.0,2.1,2.1],"pub":[]}},"B":[{"group":"WT","kind":"Ts","sh":[20.26,19.03,26.92],"pub":[24.66,22.56,23.29]},{"group":"WT","kind":"Tv","sh":[19.61,15.04,11.54],"pub":[17.12,16.41,13.7]},{"group":"Mkln1_KO","kind":"Ts","sh":[33.33,16.67,21.43],"pub":[32.35,22.03,29.17]},{"group":"Mkln1_KO","kind":"Tv","sh":[29.63,26.19,30.95],"pub":[26.47,30.51,25.0]}],"C":{"WT":[[10.386,11.387,"A>T"],[7.246,7.66,"A>C"],[16.184,15.735,"A>G"],[6.522,8.696,"T>A"],[13.285,14.493,"T>C"],[6.763,5.176,"T>G"],[2.415,2.277,"C>A"],[10.628,9.524,"C>T"],[2.899,2.899,"C>G"],[12.802,11.594,"G>A"],[5.072,4.348,"G>T"],[5.797,6.211,"G>C"]],"Mkln1_KO":[[9.402,6.306,"A>T"],[5.983,5.405,"A>C"],[11.111,17.117,"A>G"],[8.547,6.306,"T>A"],[6.838,9.91,"T>C"],[3.419,3.604,"T>G"],[5.983,6.306,"C>A"],[13.675,7.207,"C>T"],[6.838,4.505,"C>G"],[12.821,15.315,"G>A"],[7.692,9.009,"G>T"],[7.692,9.009,"G>C"]]},"r":0.82,"r_group":{"WT":0.97,"Mkln1_KO":0.62},"D":[["Wt / Mkln1KO","7.8\u00d7","8.0\u00d7",0],["P (one-tailed t)\u1d47","0.0137","0.0038",1],["G:C Ts P","0.23","0.77",0],["G:C Tv P","0.004","0.008",0],["... S2C bars\u1d43","0.013 / 0.31","\u2013",1],["Clones, Wt / KO","110 / 227","88 / 193",0],["Paralog clones out","\u2013","85",0],["Background explains, Wt","\u2013","2-3%",0],["... Mkln1KO","\u2013","12-30%",1],["Analysis","Benchling","15 s",0]],"traces":402,"clones":309}/*END*/;
+  const W = 1400, H = 585, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#8a96a3', OUTL = '#b4bec8';
   const SH = '#1f6f8b', PUB = '#a3621b';
   const CASE = '#274b7e', CASEF = '#6d9ad0', KO = '#7a4f9a', KOF = '#bda3d4', CTRL = '#9a3439', CTRLF = '#d07a7e';
@@ -69,7 +68,7 @@
     put(pub, half, (x, y) => SQ(x, y, 11, { fill: '#ffffff', stroke: edge, strokeWidth: 1.6 }), PUB);
   };
 
-  const CODE = (data, body) => `${HELPERS}\nD = json.loads(${JSON.stringify(JSON.stringify(data))})\n${body}`;
+  const CODE = (data, body) => `D = json.loads(${JSON.stringify(JSON.stringify(data))})\n${body}`;
   const COLS = { WT: [CASE, CASEF], Mkln1_KO: [KO, KOF], Aicda_KO: [CTRL, CTRLF] };
 
   // ───────── A: frequency per mouse ─────────
@@ -86,7 +85,7 @@ ax.set_xticks(range(3), ["Wt", "Mkln1\\n−/−", "Aicda\\n−/−"])
 for lab in ax.get_xticklabels()[1:]:
     lab.set_fontstyle("italic")
 ax.set_xlim(-0.6, 2.6); ax.set_ylim(0, 160)
-ax.set_ylabel("Mutations per 10⁴ bp")
+ax.set_ylabel("Mutations per 10$^{4}$ bp")
 ax.scatter([], [], s=area(5.0), facecolor="#b9c2cc", edgecolor=INK, linewidth=lw(0.6), label="SHMtrace")
 ax.scatter([], [], s=area(4.6), facecolor="white", edgecolor=INK, linewidth=lw(0.6), marker="s", label="Published")
 ax.legend(loc="upper right", frameon=False, handletextpad=0.2, borderaxespad=0.1, labelspacing=0.3)
@@ -107,7 +106,7 @@ ax.set_ylabel("% of mutations at G:C")
 
   // ───────── C: the pooled substitution spectrum ─────────
   head('C', 734, 'Spectrum');
-  o.push(PLOT({ name: 'C: substitution spectrum', x: 716, y: 40, w: 250, h: 452, code: CODE({ C: DATA.C, r: DATA.r, col: COLS }, `
+  o.push(PLOT({ name: 'C: substitution spectrum', x: 716, y: 40, w: 250, h: 452, code: CODE({ C: DATA.C, r: DATA.r_group, col: COLS }, `
 fig, ax = plt.subplots()
 ax.plot([0, 20], [0, 20], color=SOFT, linewidth=lw(0.6), linestyle=(0, (3, 2)), zorder=1)
 for g, lab in (("WT", "Wt"), ("Mkln1_KO", "Mkln1 −/−")):
@@ -116,7 +115,9 @@ for g, lab in (("WT", "Wt"), ("Mkln1_KO", "Mkln1 −/−")):
                linewidth=lw(0.6), zorder=3, label=lab)
 ax.set_xlim(0, 20); ax.set_ylim(0, 20); ax.set_xticks([0, 10, 20]); ax.set_yticks([0, 10, 20])
 ax.set_xlabel("Published (%)"); ax.set_ylabel("SHMtrace (%)")
-ax.text(0.96, 0.04, f"r = {D['r']:.2f}", transform=ax.transAxes, ha="right", va="bottom", color=MID)
+# r per genotype, in each genotype's colour: wild type agrees closely; the knockout is limited by its tables (footnote c)
+ax.text(0.96, 0.12, f"r = {D['r']['WT']:.2f}", transform=ax.transAxes, ha="right", va="bottom", color=D["col"]["WT"][0])
+ax.text(0.96, 0.03, f"r = {D['r']['Mkln1_KO']:.2f}ᶜ", transform=ax.transAxes, ha="right", va="bottom", color=D["col"]["Mkln1_KO"][0])
 leg = ax.legend(loc="upper left", frameon=False, handletextpad=0.1, borderaxespad=0.1, labelspacing=0.2)
 leg.get_texts()[1].set_fontstyle("italic")
 `) }));
@@ -142,6 +143,7 @@ leg.get_texts()[1].set_fontstyle("italic")
     const fy = y0 + 76 + DATA.D.length * 33 + 8;
     T('ᵃ Ts / Tv as drawn in the paper’s Fig. S2C', x0, fy, { color: MID });
     T('ᵇ published column: computed from its tables', x0, fy + 25, { color: MID });
+    T('ᶜ only KO table #1 traces to its folder (K2)', x0, fy + 50, { color: MID });
   }
 
   return { id: 'crm-figS9', name: 'Figure S9', width: W, height: H, background: '#ffffff', objects: o,

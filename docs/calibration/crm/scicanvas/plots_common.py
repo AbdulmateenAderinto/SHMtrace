@@ -1,7 +1,6 @@
-# ruff: noqa: F821  (plt, PAGE and FONT_SIZE come from the SciCanvas plot worker and build.js's preamble)
-# Shared by the CRM code plots (SciCanvas 2.0). Prepended to each plot's code by the builders, so every plot in a
-# .scifig re-runs on its own in SciCanvas. PAGE and the rcParams scaling come from build.js's preamble: sizes below
-# are the printed sizes, in points.
+# ruff: noqa: F821  (plt comes from the SciCanvas plot worker)
+# Shared by the CRM code plots: the figures' plot prelude (SciCanvas 2.1), run before every plot in the app and by
+# build.js. Plots render at their printed size, so sizes below are printed points.
 import json  # noqa: F401  (each plot reads its numbers with json.loads)
 
 INK, MID, SOFT, FAINT = "#1d2733", "#4a5562", "#8a96a3", "#cfd8df"
@@ -15,12 +14,12 @@ plt.rcParams.update({"axes.edgecolor": INK, "xtick.color": INK, "ytick.color": I
 
 def area(d):
     """Scatter size for a marker d printed points across."""
-    return (d * PAGE) ** 2
+    return d * d
 
 
 def lw(w):
     """A line w printed points wide."""
-    return w * PAGE
+    return w
 
 
 def plain_log(axis):

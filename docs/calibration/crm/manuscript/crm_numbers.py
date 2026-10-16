@@ -652,11 +652,13 @@ def compute():
         N["mk_tv_pub_p"] = pfmt(float(stats.ttest_ind(ptw, ptk)[1]))
         TY = sorted(pspec_m(next(iter(pubm["mice"]))))
         xs, ys = [], []
-        for grp_s, grp_p in ((wtm, "WT"), (kom, "Mkln1_KO")):
+        for grp_s, grp_p, key in ((wtm, "WT", "mk_spec_r_wt"), (kom, "Mkln1_KO", "mk_spec_r_ko")):
             sh = {k: sum(perm[m]["spectrum"].get(k, 0) for m in grp_s) for k in TY}
             pb = {k: sum(pspec_m(m)[k] for m in pubm["mice"] if pubm["mice"][m]["group"] == grp_p) for k in TY}
-            xs += [pb[k] / sum(pb.values()) for k in TY]
-            ys += [sh[k] / sum(sh.values()) for k in TY]
+            gx, gy = [pb[k] / sum(pb.values()) for k in TY], [sh[k] / sum(sh.values()) for k in TY]
+            N[key] = f2(float(stats.pearsonr(gx, gy)[0]))
+            xs += gx
+            ys += gy
         N["mk_spec_r"] = f2(float(stats.pearsonr(xs, ys)[0]))
         N["mk_paralog"] = f"{mk['excluded'].get('contaminant', 0)}"
     # a published Sanger study from another laboratory (Thientosapol et al. 2018; external/swhel_samhd1.py)

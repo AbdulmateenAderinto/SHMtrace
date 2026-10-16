@@ -1,14 +1,13 @@
 // Build a SciCanvas figure from a builder script, outside the app (the Cell Reports Methods figures).
 //
-//   node build.js <builder.js> <out-stem>      (SCICANVAS=~/SciCanvas-merge, SciCanvas 2.0, by default)
+//   node build.js <builder.js> <out-stem>      (SCICANVAS=~/SciCanvas-merge, SciCanvas 2.1, by default)
 //
-// A copy of manuscript_corrected/figure1_scicanvas/build.js with SciCanvas 2.0's code plots added. A builder
+// A copy of manuscript_corrected/figure1_scicanvas/build.js with SciCanvas's code plots added. A builder
 // calls PLOT({ code, x, y, w, h, name }) with matplotlib code; this runs it through SciCanvas's own plot worker
-// (scripts/plot-worker.py: the same rcParams, palette and helpers the app gives it) at the size the plot
-// occupies, and places it as a code plot: an SVG asset plus the code, so the .scifig reopens in SciCanvas with
-// every plot re-runnable and its labels editable. Pages here are 1,400 units for 174 mm, so the figure's plot
-// style is set PAGE = 2.13 times the printed size (text, lines, markers), as the app renders plots at page
-// scale; the plots then print at their stated size, in the app as here.
+// (scripts/plot-worker.py: the same rcParams, palette and helpers the app gives it) at its printed size, after
+// the figure's shared plot code (plots_common.py, saved as the document's plot prelude), and places it as a code
+// plot: an SVG asset plus the code, so the .scifig reopens in SciCanvas with every plot re-runnable and its labels
+// editable. The plot style is in printed points, as in the app.
 //
 // The builder is a `() => page` function written against SciCanvas's own `Make` API, the same
 // form SciCanvas runs from its console, so it can also be pasted into the app. This loads the
@@ -140,7 +139,7 @@ function check(page) {
 // SciCanvas's own Check tab (journal.js checkFigure and every module that extends it: panel overruns,
 // line ends, legends, linked data), run with the Cell Press full-width preset.
 async function sciCheck(app, page) {
-  app.state.doc = { version: 2, pages: [page], uploads: [], assets: ASSETS, plotStyle: PLOT_STYLE,
+  app.state.doc = { version: 2, pages: [page], uploads: [], assets: ASSETS, plotStyle: PLOT_STYLE, plotPrelude: PRELUDE,
     journal: { id: 'cell', widthMM: PRINT_MM, commercial: false, guide: false } };
   app.state.pageIndex = 0;
   // images: their pixel width, so the resolution check need not load them (the SHMtrace mark is 1,024 px)
@@ -175,29 +174,24 @@ async function sciCheck(app, page) {
 }
 
 // ---------- Code plots ----------
-const PAGE = 1400 / (PRINT_MM / 25.4 * 96);          // page units per printed px: 2.13 for these figures
+// SciCanvas 2.1 renders a plot at its printed size: the page's width maps to the journal width, so a plot w page
+// units wide is drawn w * K / 96 inches wide (K = printed px per page unit) and its style is in printed points.
+// The plot records K (plot.k), which is how the app knows it was drawn for this print width.
+const K = (PRINT_MM / 25.4 * 96) / 1400;              // 0.47 for these figures
 const ASSETS = {};
-const PLOT_STYLE = { family: 'Arial', fontSize: +(7 * PAGE).toFixed(3),
+const PLOT_STYLE = { family: 'Arial', fontSize: 7, tickSize: 6.6, labelSize: 7, titleSize: 7, legendSize: 6.6, minScriptPt: 6,
+  axisLineWidth: 0.8, lineWidth: 1.4, markerSize: 4,
   palette: ['#274b7e', '#7a4f9a', '#1f6f8b', '#a3621b', '#9a3439', '#4a5562'] };
-// Make the worker's style print at its stated size: its widths and lengths are in points at page scale.
-const PLOT_PREAMBLE = `# The page prints at 174 mm from 1,400 units, so lines and markers are drawn PAGE times their printed size.
-PAGE = ${PAGE.toFixed(4)}
-for _k in ("axes.linewidth", "xtick.major.width", "ytick.major.width", "xtick.minor.width", "ytick.minor.width",
-           "xtick.major.size", "ytick.major.size", "xtick.minor.size", "ytick.minor.size", "lines.linewidth",
-           "lines.markersize", "lines.markeredgewidth", "patch.linewidth", "grid.linewidth", "hatch.linewidth",
-           "errorbar.capsize", "xtick.major.pad", "ytick.major.pad", "axes.labelpad"):
-    plt.rcParams[_k] = plt.rcParams[_k] * PAGE
-plt.rcParams["xtick.labelsize"] = plt.rcParams["ytick.labelsize"] = FONT_SIZE * 6.6 / 7
-plt.rcParams["legend.fontsize"] = FONT_SIZE * 6.6 / 7
-plt.rcParams["axes.titlesize"] = FONT_SIZE
-`;
+// The figure's shared plot code (doc.plotPrelude): run before every plot, in the app as here
+const PRELUDE = { python: fs.readFileSync(path.join(__dirname, 'plots_common.py'), 'utf8') };
 let _plotSeq = 0;
 function runPlot(code, w, h) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'crm-plot-'));
   try {
     fs.writeFileSync(path.join(dir, 'code.py'), code);
-    fs.writeFileSync(path.join(dir, 'params.json'), JSON.stringify({ width: w / 96, height: h / 96, fontSize: PLOT_STYLE.fontSize,
-      palette: PLOT_STYLE.palette, family: PLOT_STYLE.family }));
+    const { palette, family, ...sizes } = PLOT_STYLE;
+    fs.writeFileSync(path.join(dir, 'params.json'), JSON.stringify({ width: w * K / 96, height: h * K / 96, ...sizes, palette, family }));
+    fs.writeFileSync(path.join(dir, 'prelude.py'), PRELUDE.python);
     fs.writeFileSync(path.join(dir, 'data.json'), '{}');
     const worker = path.join(SCI, 'scripts', 'plot-worker.py');
     execFileSync(PYTHON, ['-c', 'import importlib.util, sys\n'
@@ -239,12 +233,11 @@ async function main() {
     if (fs.existsSync(f)) ctx.READS[k] = JSON.parse(fs.readFileSync(f, 'utf8'));
   }
   ctx.PLOT = ({ code, x, y, w, h, name = 'Python plot' }) => {
-    const full = PLOT_PREAMBLE + '\n' + code;
-    const a = plotAssetFrom(runPlot(full, w, h), (m) => app.normalizeColors(m));
+    const a = plotAssetFrom(runPlot(code, w, h), (m) => app.normalizeColors(m));
     const key = `upload:plot${Object.keys(ASSETS).length}`;
     ASSETS[key] = a;
     return { id: `plot${Object.keys(ASSETS).length}`, type: 'icon', iconId: key, x, y, w, h, rot: 0, name,
-      plot: { lang: 'python', code: full, w, h, files: [], error: null, textEdits: {} } };
+      plot: { lang: 'python', code, w, h, k: K, files: [], error: null, textEdits: {} } };
   };
   const builder = vm.runInNewContext(`(${fs.readFileSync(builderPath, 'utf8')})`, ctx);
   const page = builder();
@@ -254,7 +247,7 @@ async function main() {
   await sciCheck(app, page);
   const svg = app.pageSvgString(page);
   fs.writeFileSync(`${stem}.svg`, svg);
-  fs.writeFileSync(`${stem}.scifig`, JSON.stringify({ version: 2, pages: [page], uploads: [], assets: ASSETS, plotStyle: PLOT_STYLE,
+  fs.writeFileSync(`${stem}.scifig`, JSON.stringify({ version: 2, pages: [page], uploads: [], assets: ASSETS, plotStyle: PLOT_STYLE, plotPrelude: PRELUDE,
     journal: { id: 'cell', widthMM: PRINT_MM, commercial: false, guide: false } }));
   // vector PDF at print size (fonts embedded by Chrome), and a 1,000-dpi TIFF
   const wMM = PRINT_MM, hMM = page.height * PRINT_MM / page.width;
