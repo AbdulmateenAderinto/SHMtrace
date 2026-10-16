@@ -160,6 +160,13 @@ METHODS = [
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
           "shared between animals beyond chance (Poisson test weighted by mutation frequency across animals), "
           "control clones with excess mutations, label mismatches, and outliers in mutation load."),
+    ("p", "A Sanger clone is one molecule read once, so a call cannot be tested by counting reads. What the "
+          "AID-null clones can measure is the error itself: the share of their bases at quality \u2265 20 that "
+          "mismatch the reference, after their own germline differences are removed, per reported quality and "
+          "per position. Each library is then charged its own bases at those rates, giving the calls the "
+          "background alone would produce, reported per animal beside its calls; a position at which more than "
+          "one control clone mismatches is noted on any call made there. Nothing is removed by this: it is the "
+          "scale against which the calls are read, as the control-fitted null is for the long-read path."),
     ("p", "For the published Sanger study[@barbulescu2024], the J_{H}4 chromatograms of the four 96-well plates and "
           "the pilot plate of its second cohort were downloaded from the sequencing facility's portal. Each clone "
           "was assigned to the mouse folder it was filed under in the original analysis project, read from "
