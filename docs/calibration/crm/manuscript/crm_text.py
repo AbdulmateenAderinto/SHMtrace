@@ -322,7 +322,12 @@ RESULTS = [
           "with pooled spectra correlated at r = {mk_spec_r} (Figure S9; both studies metric by metric in "
           "Table S4). The paralog filter left out "
           "{mk_paralog} clones that the original analysis kept in its denominators; they carried almost no "
-          "mutations, so they lower frequencies without changing spectra."),
+          "mutations, so they lower frequencies without changing spectra. Counted as both original analyses "
+          "counted, every filed clone at one fixed length, SHMtrace's knockout frequencies closely matched the published "
+          "ones in both studies (Table S4). Three lineages had been filed under two mice each. The nanopore "
+          "libraries of the same mice placed one in one of those two mice and one in a third, and could not place "
+          "the last; with all three resolved by rules fixed in advance, the result was unchanged "
+          "({mk_ev_fold}-fold, p = {mk_ev_p}; Table S4)."),
 
     ("h", "Long reads add whole-amplicon maps, clones, and mutation trees"),
     ("p", "Because each nanopore read spans the entire 1,230-bp J_{H}4 amplicon, the whole product can be analyzed "

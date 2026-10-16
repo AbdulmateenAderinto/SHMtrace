@@ -4,6 +4,12 @@ Every cell is "wild type -> knockout", with an arrow for the direction and stars
 test across mice (Welch on log10 for frequency, Student t on per-mouse percentages otherwise):
 *** p < 0.001, ** p < 0.01, * p < 0.05, ns otherwise. Published values are computed from the papers'
 per-mouse tables (published/), SHMtrace's from out/sanger_<study>.json. N.R., not reported.
+
+Two rows test where the frequencies differ. "Counted as published" divides SHMtrace's unique mutations
+by every clone the sheet files under the mouse times the fixed length each study gave every clone
+(577 bp for Maea, 556 bp for Mkln1, recovered from the published tables), paralogue amplicons
+included, as the original analyses did. "Evidence-based clone set" is the sensitivity analysis of
+sanger_evidence.py (Mkln1 only; out/sanger_mkln_evidence.json).
 """
 import json
 import math
@@ -12,14 +18,19 @@ from pathlib import Path
 import numpy as np
 from scipy import stats
 
+from shmtrace import samplesheet
+
 HERE = Path(__file__).resolve().parent
+CAL = HERE.parent
 TS, TV = ("C>T", "G>A"), ("C>A", "C>G", "G>C", "G>T")
 AT = ("A>T", "A>C", "A>G", "T>A", "T>C", "T>G")
 STUDIES = {
     "cohort2": {"label": "Maea^{fl/fl}Mb1^{cre}", "ko": "Maea_KO", "pub": "published/barbulescu2024_jh4.json",
-                "bases": "GCAT", "rows_are": "From"},
+                "bases": "GCAT", "rows_are": "From", "sheet": "samplesheets/cohort2_barbulescu2024.csv",
+                "clone_bp": 577},
     "mkln": {"label": "Mkln1^{−/−}", "ko": "Mkln1_KO", "pub": "published/barbulescu2025_jh4_mkln.json",
-             "bases": "ATCG", "rows_are": "To"},
+             "bases": "ATCG", "rows_are": "To", "sheet": "samplesheets/jh4_mkln_barbulescu2025.csv",
+             "clone_bp": 556, "evidence": "out/sanger_mkln_evidence.json"},
 }
 
 
@@ -74,8 +85,23 @@ def study_columns(key):
     out = {}
     fw, fk = [per[m]["freq_x1e4"] for m in wt], [per[m]["freq_x1e4"] for m in ko]
     gw, gk = [_pub_freq(pub, m) for m in pw], [_pub_freq(pub, m) for m in pk]
-    out["Mutation frequency (×10^{−4})"] = (_cell(fw, fk, _ttest(fw, fk, log=True), "{:.0f}"),
-                                             _cell(gw, gk, _ttest(gw, gk, log=True), "{:.0f}"))
+    pub_freq = _cell(gw, gk, _ttest(gw, gk, log=True), "{:.0f}")
+    out["Mutation frequency (×10^{−4})"] = (_cell(fw, fk, _ttest(fw, fk, log=True), "{:.0f}"), pub_freq)
+    # the same mutations, counted the way the original analysis counted: every filed clone, at a fixed length
+    filed = {}
+    for r in samplesheet.load(str(CAL / s["sheet"])).used:
+        filed[r.sample] = filed.get(r.sample, 0) + 1
+    cw = [1e4 * per[m]["unique_mutations"] / (filed[m] * s["clone_bp"]) for m in wt]
+    ck = [1e4 * per[m]["unique_mutations"] / (filed[m] * s["clone_bp"]) for m in ko]
+    out["Mutation frequency counted as published (×10^{−4})"] = (
+        _cell(cw, ck, _ttest(cw, ck, log=True), "{:.0f}"), pub_freq)
+    ev = HERE / s["evidence"] if s.get("evidence") else None
+    if ev and ev.exists():
+        e = json.load(open(ev))["per_mouse"]
+        ew = [e[m]["freq_x1e4"] for m in e if e[m]["group"] == "WT"]
+        ek = [e[m]["freq_x1e4"] for m in e if e[m]["group"] == s["ko"]]
+        out["Mutation frequency, evidence-based clone set (×10^{−4})"] = (
+            _cell(ew, ek, _ttest(ew, ek, log=True), "{:.0f}"), "–")
     for name, keys in (("A:T mutations (% of all)", AT), ("G:C transitions (% of all)", TS),
                        ("G:C transversions (% of all)", TV)):
         a, b = [_share(sp[m], keys) for m in wt], [_share(sp[m], keys) for m in ko]
@@ -98,7 +124,8 @@ def study_columns(key):
 
 def table_rows():
     a, b = study_columns("cohort2"), study_columns("mkln")
-    return [[metric, *a[metric], *b[metric]] for metric in a]
+    order = list(dict.fromkeys([*b, *a]))         # the Mkln1 study has every row
+    return [[metric, *a.get(metric, ("–", "–")), *b.get(metric, ("–", "–"))] for metric in order]
 
 
 HEADER = ["Metric", "Maea: SHMtrace", "Maea: published", "Mkln1: SHMtrace", "Mkln1: published"]

@@ -296,7 +296,7 @@ def compute():
     x = [100 * c1[k] / t1 for k in keys]
     y = [100 * c2[k] / t2 for k in keys]
     N.update(s1_r=f"{stats.pearsonr(x, y)[0]:.3f}", s1_n529=f0(t1), s1_nfull=f0(t2),
-             s1_maxdiff=f1(max(abs(a - b_) for a, b_ in zip(x, y))))
+             s1_maxdiff=f1(max(abs(a - b_) for a, b_ in zip(x, y, strict=True))))
     # ---------------- targeting, clones, trees
     t = _load(OUT / "targeting_jh4.json")
     wi = [t["wt"][x]["index"] for x in ("WT2", "WT3", "WT4")]
@@ -655,6 +655,14 @@ def compute():
             ys += [sh[k] / sum(sh.values()) for k in TY]
         N["mk_spec_r"] = f2(float(stats.pearsonr(xs, ys)[0]))
         N["mk_paralog"] = f"{mk['excluded'].get('contaminant', 0)}"
+        # the evidence-based clone set (sanger_evidence.py): lineages filed under two mice resolved by nanopore
+        ev_path = OUT / "sanger_mkln_evidence.json"
+        if ev_path.exists():
+            ev = _load(ev_path)["per_mouse"]
+            ew = [ev[m]["freq_x1e4"] for m in ev if ev[m]["group"] == "WT"]
+            ek = [ev[m]["freq_x1e4"] for m in ev if ev[m]["group"] == "Mkln1_KO"]
+            N["mk_ev_fold"] = f1(float(np.mean(ew) / np.mean(ek)))
+            N["mk_ev_p"] = pfmt(float(stats.ttest_ind(np.log10(ew), np.log10(ek), equal_var=False)[1]))
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())

@@ -191,6 +191,17 @@ METHODS = [
           "and not mouse by mouse. Because these clones carry at most two mutations each, the nanopore libraries "
           "of the same three mice cannot place them: a clone is assigned to a library only when a read of that "
           "library carries three or more of its mutations, and no clone of this batch reaches that bar."),
+    ("p", "As a sensitivity analysis, the *Mkln1* clones were also analyzed as an evidence-based set, by rules "
+          "fixed before it was run and independent of the published values. Paralog clones and copies of a trace "
+          "were set aside as in the primary analysis. A lineage filed under two mice (SHMtrace's duplicate-clone "
+          "and shared-mutation checks) was looked for in the J_{H}4 nanopore libraries of the same mice, leaving "
+          "out positions mismatched in more than 0.5% of the *Aicda*^{−/−} reads; a read belonged to the "
+          "lineage if it carried more than half of the lineage's shared mutations and at least three. A lineage "
+          "with three or more such reads in exactly one library of the study's mice moved to that mouse; any other "
+          "lineage filed under two mice was set aside. A clone filed under an *Aicda*^{−/−} mouse that "
+          "SHMtrace flagged as carrying more mutations than its base qualities predict would have been set aside; "
+          "none was. Clones the original project never filed under a mouse were not used, as in the primary "
+          "analysis."),
     ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
