@@ -1,0 +1,116 @@
+{
+ "source": "Thientosapol et al., Proc Natl Acad Sci USA 115:4921-4926 (2018), doi:10.1073/pnas.1719771115, 'SAMHD1 enhances immunoglobulin hypermutation by promoting transversion mutation' (Jolly laboratory, Centenary Institute, Sydney). Table 1 'Raw mutation data', transcribed 2026-10-16 from the PMC copy (PMC5948975). Clones: GenBank MH198*-MH200*, 1,795 records, Sanger dideoxy sequencing.",
+ "analysis": "Not stated beyond the Methods; mutations collated in a 560-bp window, <=47 sorted cells per host.",
+ "matrix_orientation": "Table 1 is printed as one row per group, with columns 'From G to A,C,T', 'From C to T,G,A', 'From A to G,T,C', 'From T to C,A,G'. Counts below are keyed from>to, as printed.",
+ "window_bp": 560,
+ "note": "Table 1 counts every sequence independently (total mutations), not unique mutations: each group's total divided by its sequence count reproduces the printed mutations-per-sequence exactly. The deposit names 12 host animals in the wild-type arm where the paper reports 13; the record HOST-AT40 carries 88 clones, about twice every other host and more than the <=47 per host the Methods describe, so two hosts appear to share one name in the deposit. Group totals are otherwise as printed.",
+ "groups": {
+  "Samhd1_WT": {
+   "label": "WT or Samhd1 +/delta, GFP",
+   "hosts": 13,
+   "sequences": 565,
+   "per_sequence": 1.79,
+   "m": {
+    "G>A": 190,
+    "G>C": 74,
+    "G>T": 35,
+    "C>T": 142,
+    "C>G": 26,
+    "C>A": 27,
+    "A>G": 125,
+    "A>T": 170,
+    "A>C": 87,
+    "T>C": 64,
+    "T>A": 44,
+    "T>G": 28
+   }
+  },
+  "Samhd1_KO": {
+   "label": "Samhd1 delta/delta, GFP",
+   "hosts": 8,
+   "sequences": 354,
+   "per_sequence": 1.4,
+   "m": {
+    "G>A": 191,
+    "G>C": 12,
+    "G>T": 4,
+    "C>T": 144,
+    "C>G": 10,
+    "C>A": 2,
+    "A>G": 60,
+    "A>T": 15,
+    "A>C": 7,
+    "T>C": 32,
+    "T>A": 11,
+    "T>G": 8
+   }
+  },
+  "Msh2_Samhd1_KO": {
+   "label": "Msh2-/- Samhd1 delta/delta, GFP",
+   "hosts": 5,
+   "sequences": 213,
+   "per_sequence": 1.31,
+   "m": {
+    "G>A": 129,
+    "G>C": 11,
+    "G>T": 3,
+    "C>T": 122,
+    "C>G": 2,
+    "C>A": 5,
+    "A>G": 3,
+    "A>T": 1,
+    "A>C": 2,
+    "T>C": 1,
+    "T>A": 1,
+    "T>G": 0
+   }
+  },
+  "Msh2_KO": {
+   "label": "Msh2-/-, GFP",
+   "hosts": 10,
+   "sequences": 446,
+   "per_sequence": 1.08,
+   "m": {
+    "G>A": 183,
+    "G>C": 40,
+    "G>T": 18,
+    "C>T": 210,
+    "C>G": 5,
+    "C>A": 7,
+    "A>G": 5,
+    "A>T": 5,
+    "A>C": 3,
+    "T>C": 2,
+    "T>A": 2,
+    "T>G": 0
+   }
+  },
+  "Samhd1_KO_UGI": {
+   "label": "Samhd1 delta/delta, ugi-GFP",
+   "hosts": 5,
+   "sequences": 218,
+   "per_sequence": 2.48,
+   "m": {
+    "G>A": 235,
+    "G>C": 0,
+    "G>T": 1,
+    "C>T": 163,
+    "C>G": 0,
+    "C>A": 1,
+    "A>G": 61,
+    "A>T": 20,
+    "A>C": 12,
+    "T>C": 34,
+    "T>A": 6,
+    "T>G": 8
+   }
+  }
+ },
+ "claims_tested": [
+  "Samhd1 inactivation reduced transversions at A:T (P < 0.0001, Fig. 2B i)",
+  "Samhd1 inactivation barely changed transitions at A:T (Fig. 2B ii)",
+  "Samhd1 inactivation substantially reduced transversions at C:G (P < 0.0001, Fig. 2B iii)",
+  "Samhd1 inactivation nearly doubled transitions at C:G (P = 0.0041, Fig. 2B iv)",
+  "total Ig mutation was lower in Samhd1 delta/delta but not significantly (P = 0.07, one-way ANOVA)"
+ ]
+}

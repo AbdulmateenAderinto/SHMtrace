@@ -1,0 +1,25 @@
+# Preset: SW_HEL VH10 knock-in V region (Sanger clones, Thientosapol et al., PNAS 2018).
+name: swhel_vh
+description: >
+  Mouse SW_HEL VH10 heavy-chain V region, Sanger-sequenced clones from GenBank.
+  Germline is the iterated majority consensus of the deposited clones, so the
+  <50% rule removes any residual fixed difference.
+
+minimap2_preset: map-ont
+min_align_len: 450          # 576-bp amplicon; require most of it
+max_total_len: 1200
+max_ee_rate: 0.01
+drop_supplementary: true
+downsample_to: 500
+
+contaminant_allele_frac: 0.5
+
+# the window >=99% of the deposited clones read (positions 17-574 of the consensus)
+analysis_window: [17, 574]
+germline_freq_threshold: 0.50
+max_pvalue: 0.05
+per_base_error: 0.001
+min_variant_reads: 1
+exclude_indels: true
+end_trim_bp: 0
+density_scale: 100000
