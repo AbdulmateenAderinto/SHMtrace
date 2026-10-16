@@ -37,9 +37,12 @@
   const mid = card(30, 330, 940, 250, { stroke: TEAL, strokeWidth: 3.4 });
   o.push(Make.image(LOGO, 70, 375, 120, 120));
   T('SHMtrace', 220, 372, { fontSize: BIG, bold: true, color: TEAL });
-  T('each candidate mutation tested against', 220, 428, { fontSize: MED, color: MID });
-  T('the errors of matched AID-null libraries;', 220, 466, { fontSize: MED, color: MID });
-  T('groups compared animal by animal', 220, 504, { fontSize: MED, color: MID });
+  // the test applies to reads; a Sanger clone is one molecule read once, so it is counted against the same
+  // measured background instead (Figure 1C)
+  T('reads: each candidate mutation tested against', 220, 420, { fontSize: MED, color: MID });
+  T('the errors of matched AID-null libraries', 220, 456, { fontSize: MED, color: MID });
+  T('Sanger clones: counted against that background', 220, 492, { fontSize: MED, color: SANG });
+  T('groups compared animal by animal', 220, 528, { fontSize: MED, color: MID });
 
   // 3. outcomes
   const bw = (940 - 2 * 24) / 3, by = 630, bh = 340, outs = [];
@@ -59,10 +62,12 @@
   // b. spectrum agreement
   x = 30 + bw + 24;
   const pts = [[0.1, 0.12], [0.2, 0.17], [0.3, 0.33], [0.42, 0.38], [0.5, 0.55], [0.63, 0.6], [0.75, 0.8], [0.85, 0.9]];
-  SEG(x + 40, by + 280, x + bw - 30, by + 280, 2.4, INK); SEG(x + 40, by + 80, x + 40, by + 280, 2.4, INK);
-  SEG(x + 40, by + 280, x + bw - 40, by + 90, 2, OUTL);
-  pts.forEach(([a, b]) => E(x + 40 + a * (bw - 80), by + 280 - b * 190, 16, { fill: TEAL }));
-  TC('nanopore vs Sanger, r = 0.92', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
+  // the axis sits higher than the other panels' baselines to leave room for a two-line caption
+  SEG(x + 40, by + 248, x + bw - 30, by + 248, 2.4, INK); SEG(x + 40, by + 60, x + 40, by + 248, 2.4, INK);
+  SEG(x + 40, by + 248, x + bw - 40, by + 70, 2, OUTL);
+  pts.forEach(([a, b]) => E(x + 40 + a * (bw - 80), by + 248 - b * 178, 16, { fill: TEAL }));
+  TC('pooled substitution spectrum,', x + bw / 2, by + 268, { fontSize: SM - 4, color: MID });
+  TC('nanopore vs Sanger, r = 0.92', x + bw / 2, by + 296, { fontSize: SM - 4, color: MID });
   // c. tree
   x = 30 + 2 * (bw + 24);
   const rx = x + 40, ry = by + 190;

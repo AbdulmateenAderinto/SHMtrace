@@ -302,13 +302,22 @@ QUANT = [
 ]
 
 LEGENDS = [
-    ("Figure 1. SHMtrace calibrates every call against matched AID-null libraries",
+    ("Figure 1. SHMtrace calibrates reads against matched AID-null libraries, and counts Sanger clones against "
+     "the same measured background",
      "(A) A read-level test judges each base only by its own quality score, so sequencing errors that recur at one "
      "position (from PCR, homopolymers, or paralog reads) pass the test and are wrongly counted as SHM mutations. "
      "SHMtrace instead measures the error rate of each substitution, strand, and base quality in AID-null libraries "
      "of the same run and calls a mutation only when its support exceeds that background. ✓, correct decision; "
-     "✕, wrong decision. "
-     "(B) Inputs and read preparation. (C) Calling and automatic checks; numbered steps run in order. (D) Outputs. "
+     "✕, wrong decision. This is the route for sequencing reads. "
+     "(B) Inputs and read preparation. Steps 2 and 3 apply to every input; Sanger traces are trimmed to their "
+     "longest clean stretch at quality ≥ 20 in place of step 1, and because each clone is one molecule and every "
+     "clone is kept, step 4 does not apply to them. "
+     "(C) Calling runs on two routes, because the evidence differs. A nanopore, Illumina, or UMI-tagged library "
+     "reads one molecule many times, so each candidate is tested against the control error model and kept at a "
+     "chosen FDR (teal, steps 1–2). A Sanger clone is one molecule read once, so no per-call test is possible: "
+     "every substitution at base quality ≥ 20 is counted, and the AID-null clones give the calls the background "
+     "alone would produce, reported beside them and never subtracted (orange, steps 1–2). The routes rejoin at the "
+     "germline filter and window (step 3) and the automatic checks (step 4). (D) Outputs, shared by both routes. "
      "FDR, false-discovery rate. See also Figure S1."),
     ("Figure 2. Matched controls separate mutations from recurrent errors that look the same",
      "(A and B) Two C-to-T changes in the same Sμ wild-type library (WT3; PRJNA1481264, 2,000 reads per library): "

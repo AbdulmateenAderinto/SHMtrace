@@ -65,7 +65,7 @@ Still open from this issue: Table S2 is still labelled as covering every caller 
 | # | Issue | Status |
 |---|---|---|
 | 1 | OT1/OT2 analysis provenance | **fixed** (c5ad350); Table S2 labelling still open (C29) |
-| 2 | Platform-wide calling claim contradicts Sanger Methods | open |
+| 2 | Platform-wide calling claim contradicts Sanger Methods | **fixed** (see below) |
 | 3 | Empirical FDR presented as stronger control than established | open |
 | 4 | Noisy-control policy ("sets aside" vs "still contributes") | **partly fixed** (c5ad350): wording reconciled, three-control minimum and provenance stated. Still open: side-by-side all-controls vs exclusion results, and validation under heterogeneous nulls |
 | 5 | "Reproduced unaided" overstates the Sanger evidence | open |
@@ -91,6 +91,22 @@ Explicitly **not** contradictions, per the reviewer: the low Mkln1 knockout spec
 
 Note on provenance, checked rather than assumed: the rule was introduced on 13 Oct 2026 for the Ramos clones (a public dataset), applied unchanged to all eleven datasets, and was already fixed when the OT libraries were run on 15 Oct. It is therefore derived from data, not pre-registered, and the Methods now say so.
 
+---
+
+## Major issue 2 — the calling claim covered Sanger, which it does not (fixed)
+
+**Verified.** The Summary, eTOC, graphical abstract and Figure 1 all said, or implied, that every candidate is tested against matched AID-null error. The Sanger Methods say the opposite and are the accurate description: every substitution at base quality >= 20 is counted, and the control background is reported beside the calls — "Nothing is removed by this". The SWHEL re-analysis has no AID-null control at all.
+
+Fixed by making the two routes visible everywhere the claim appears:
+
+- **Figure 1C** is now a fork rather than one chain. A teal route for reads (control error model -> test and FDR) and an orange route for Sanger (count the mismatches -> background reported) rejoin at the shared germline filter and window (step 3) and automatic checks (step 4). Panel A notes it describes the read route; panel B says steps 2 and 3 are shared, while trace trimming replaces step 1 and depth matching cannot apply.
+- **Figure 1's title and legend** now name both routes and state that the AID-null background is reported beside Sanger calls and never subtracted.
+- **Summary**: "tests each candidate mutation in a read ... A Sanger clone is one molecule read once, so its substitutions are counted and the same controls give the background they carry." 150 words.
+- **eTOC and graphical abstract**: same split; the GA's scatter is now labelled "pooled substitution spectrum, nanopore vs Sanger, r = 0.92".
+- **Results**: the heading is now "SHMtrace calibrates reads against the AID-null controls", and a new paragraph states that no per-call test is possible for a Sanger clone, what is done instead, and that the Sanger results test trace reading, counting, bookkeeping and group comparisons rather than the control-calibrated test.
+
+Remaining from this issue: Figures S12-S13 still carry the exclusive platform claims the reviewer flagged (C15 is fixed; S12's "only estimated" singleton claim, the S10 -> S11 cross-reference and the length-gate contradiction C16 are not).
+
 ## Open decisions (user)
 
-None outstanding. Next issue to address: major issue 2 (the platform-wide calling claim vs the Sanger Methods), which needs a branch in Figure 1 and the graphical abstract.
+None outstanding.

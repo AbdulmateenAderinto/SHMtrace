@@ -14,17 +14,17 @@ AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1
          "*Correspondence: alberto.martin@utoronto.ca"]
 
 SUMMARY = (
-    "Somatic hypermutation (SHM) is usually measured by cloning amplicons and sequencing them clone by clone, "
-    "because a single long read errs at rates close to the mutation rate. Here, we describe "
-    "SHMtrace, which tests each candidate mutation against the errors measured in matched activation-induced "
-    "cytidine deaminase (AID)-deficient libraries from the same sequencing run and compares groups with the "
-    "animal, not the read, as the unit. We validated it with planted mutations, simulated B cell lineages, "
-    "and six loci from five laboratories on three platforms. It held the AID-null background to "
-    "{ctl_rec} calls per assay and separated AID-active from AID-null libraries {sep_lo}- to {sep_hi}-fold in "
-    "four of five nanopore assays, against {lf_lo}- to {lf_hi}-fold and {gen_lo}- to {gen_hi}-fold for "
-    "quality-based and uncorrected tests. Nanopore and Sanger sequencing of the same mice gave concordant "
-    "spectra, and the deposited clones of three published Sanger studies, one external, "
-    "returned their published comparisons unaided.")
+    "Somatic hypermutation (SHM) is usually measured by cloning amplicons and sequencing them one by one, "
+    "because a single read errs at rates close to the mutation rate. We describe SHMtrace, which tests each "
+    "candidate mutation in a read against errors measured in matched activation-induced cytidine deaminase "
+    "(AID)-deficient libraries from the same run, and compares groups with the animal as the unit. Sanger "
+    "clones, read once each, are instead counted against that same background. We validated it with planted "
+    "mutations, simulated lineages, and six loci from five laboratories on three platforms. It held the "
+    "AID-null background to {ctl_rec} calls per assay and separated AID-active from "
+    "AID-null libraries {sep_lo}- to {sep_hi}-fold in four of five nanopore assays, against {lf_lo}- to "
+    "{lf_hi}-fold and {gen_lo}- to {gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger "
+    "sequencing of the same mice gave concordant spectra, and three published Sanger studies were re-analyzed "
+    "from their deposited clones.")
 
 KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanopore sequencing, variant calling, "
             "negative controls, false-discovery rate, pseudoreplication, immunoglobulin, mutation trees, Sanger "
@@ -46,10 +46,10 @@ HIGHLIGHTS = [
     "Full-length reads add whole-amplicon maps, B cell clones, and mutation trees",
     "Three published Sanger studies are reproduced from their deposited clones alone",
 ]
-ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Sanger, or "
-        "Illumina reads by testing each candidate against errors measured in matched AID-null libraries. It "
-        "suppresses background across six loci and three platforms, and reproduces three published Sanger "
-        "studies from their deposited clones.")
+ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Illumina, or "
+        "Sanger data. Candidates in reads are tested against errors measured in matched AID-null libraries; "
+        "Sanger clones are counted against the same background. It suppresses background across six loci and "
+        "three platforms, and re-analyzes three published Sanger studies.")
 
 INTRO = [
     "Somatic hypermutation (SHM) diversifies immunoglobulin (Ig) genes in germinal-center B cells. It is "
@@ -91,7 +91,7 @@ INTRO = [
 ]
 
 RESULTS = [
-    ("h", "SHMtrace calibrates each call against the AID-null controls"),
+    ("h", "SHMtrace calibrates reads against the AID-null controls"),
     ("p", "SHMtrace starts from the files that a sequencing provider or core facility returns (Figures 1 and S1). Nanopore "
           "and Illumina reads are first filtered by length and expected error[@edgar2015] and aligned with "
           "minimap2[@li2018] against the target together with competing references. Reads that align better to a "
@@ -115,6 +115,16 @@ RESULTS = [
           "reference are removed as germline or parental differences. Each control is itself tested against the "
           "other controls, never against itself, so the calls made in controls are a fair estimate of the "
           "residual background."),
+    ("p", "That test needs a molecule to be read more than once, and a Sanger clone is not: it is one molecule "
+          "read once, so there is nothing to count reads over and no per-call test is possible. SHMtrace "
+          "therefore takes a second route for Sanger data (Figure 1C). Every substitution at base quality ≥ 20 "
+          "is counted once the germline filter has been applied, and the AID-null clones are used differently: "
+          "their own mismatch rate, per reported quality and per position, is charged to each library's bases to "
+          "give the calls that the background alone would produce, which is reported beside the calls rather "
+          "than subtracted from them. The germline filter, the analysis window, the automatic checks and the "
+          "animal-level comparisons are shared by both routes. The Sanger results below therefore test the trace "
+          "reading, the counting, the bookkeeping checks and the group comparisons, not the control-calibrated "
+          "test itself."),
     ("p", "Figure 2 shows the test at work on real reads. In one Sμ wild-type library from the public dataset "
           "described below ({ana_case}), two C-to-T changes looked alike. One, at position {ana_t_pos} in a WRC "
           "hotspot ({ana_t_ctx}), was carried by {ana_t_reads} reads; the other, at position {ana_e_pos} "

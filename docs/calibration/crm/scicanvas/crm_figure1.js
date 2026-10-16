@@ -49,7 +49,7 @@
     'position (PCR, homopolymers, paralog reads)', 'pass this test and are wrongly counted as', 'SHM mutations, and reads from one animal',
     'are treated as independent replicates.'], ax + 290, 104);
   // A2: control-calibrated test
-  const a2 = card(ax, 294, aw, 250, { stroke: TEAL, strokeWidth: 2 });
+  const a2 = card(ax, 294, aw, 292, { stroke: TEAL, strokeWidth: 2 });
   T('Control-calibrated test (SHMtrace)', ax + 16, 304, { fontSize: HEAD, bold: true, color: TEAL });
   pile(ax + 20, 346, 200, 6, [[0.3, [0, 2, 4], MUT], [0.75, [1, 3, 5], ERR]], 'sample');
   pile(ax + 240, 346, 120, 6, [[0.75, [0, 2, 3, 5], ERR]], 'controls');
@@ -57,7 +57,7 @@
   [['mutation', 'called', 0.3, MUT], ['error', 'rejected', 0.75, ERR]].forEach(([w, v, f, c]) => { TC(w, ax + 20 + f * 200, 488, { fontSize: SM, color: c }); TC(v, ax + 20 + f * 200, 511, { fontSize: SM, color: c }); });
   lines(['Error rates per substitution,', 'strand and base quality are', 'measured in matched AID-null',
     'libraries from the same run.', 'A call needs support beyond', 'this background (FDR ≤ 0.05),', 'and groups are compared with',
-    'one value per animal.'], ax + 378, 346);
+    'one value per animal. This is', 'the route for reads; a Sanger', 'clone is counted instead (C).'], ax + 378, 346);
 
   // ───────── B. Inputs and read preparation ─────────
   panel('B', 'Inputs and read preparation', 720, 10);
@@ -78,7 +78,7 @@
     TC(words.slice(0, half).join(' '), x + iw / 2, 176, { fontSize: SM, color: MID });
     TC(words.slice(half).join(' '), x + iw / 2, 198, { fontSize: SM, color: MID });
   });
-  const prep = card(bx, 294, bw, 250, { stroke: TEAL });
+  const prep = card(bx, 294, bw, 292, { stroke: TEAL });
   T('Read preparation', bx + 16, 304, { fontSize: HEAD, bold: true, color: TEAL });
   const prepSteps = [
     ['Length and expected-error gates', 'over-length reads and reads averaging > 0.01 errors per base'],
@@ -87,37 +87,58 @@
     ['Matched depth', 'random draw of the same number of usable reads per library'],
   ];
   prepSteps.forEach(([t, s], k) => {
-    const y = 344 + k * 48;
+    const y = 340 + k * 46;
     badge(k + 1, bx + 30, y + 16, TEAL);
     T(t, bx + 56, y, { bold: true, fontSize: SM });
     T(s, bx + 56, y + 22, { fontSize: SM, color: MID });
   });
+  // steps 2 and 3 are shared with Sanger; step 1 is replaced by trace trimming and step 4 cannot apply,
+  // because a Sanger clone is one molecule and every clone is kept
+  lines(['Sanger: traces are trimmed at quality ≥ 20 in place of step 1,',
+    'and every clone is kept, so step 4 does not apply.'], bx + 30, 532, { color: SANG });
   inCards.forEach((k) => LINK(k, 's', prep, 'n', { color: MID, style: 'elbow', headSize: 0.6 }));
 
   // ───────── C. Calling and checks ─────────
-  const cy = 566;
-  panel('C', 'Calling and quality checks', 30, cy);
-  const csteps = [
-    ['Control error model', ['per substitution, strand and', 'base quality; a margin chosen by', 'leave-one-control-out']],
-    ['Test and FDR', ['support against expected errors;', 'FDR ≤ 0.05 set from the controls;', 'controls tested against each other']],
-    ['Germline and window', ['sites at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional']],
-    ['Automatic checks', ['spectrum (C→T/G→A share),', 'positional clustering, 5-mer', 'targeting index, Sanger', 'bookkeeping flags']],
-  ];
-  const cw = (W - 60 - 3 * 18) / 4, ccards = [];
-  csteps.forEach(([t, sub], k) => {
-    const x = 30 + k * (cw + 18);
-    const c = card(x, cy + 38, cw, 152, { stroke: k === 3 ? SANG : TEAL });
-    ccards.push(c);
-    badge(k + 1, x + 24, cy + 62, k === 3 ? SANG : TEAL);
-    T(t, x + 46, cy + 50, { bold: true });
-    lines(sub, x + 14, cy + 90);
-  });
-  ccards.slice(1).forEach((c, k) => LINK(ccards[k], 'e', c, 'w', { headSize: 0.7 }));
-  // (no B-to-C connector: an elbow from B crosses the panel C title)
-  // LINK(prep, 's', ccards[0], 'n', { color: MID, style: 'elbow', headSize: 0.6 });
+  // Two routes, because the evidence differs. A nanopore, Illumina or UMI-tagged library reads one molecule
+  // many times, so each candidate can be tested against the control error model and kept at a chosen FDR. A
+  // Sanger clone is one molecule read once, so there is nothing to test: its substitutions are counted, and
+  // the AID-null clones give the background those counts carry, reported beside them rather than subtracted.
+  // The two routes rejoin at the germline filter, the window and the automatic checks.
+  const cy = 620;
+  panel('C', 'Calling: a test for reads, a count for Sanger clones', 30, cy);
+  const cw = (W - 60 - 3 * 18) / 4, colX = (k) => 30 + k * (cw + 18);
+  const R1 = cy + 58, R2 = cy + 228, CH = 132, SHH = R2 + CH - R1;
+  T('Reads — nanopore, Illumina, UMI-tagged: one molecule read many times',
+    30, cy + 32, { fontSize: SM, bold: true, color: TEAL });
+  T('Sanger traces — one molecule read once', 30, cy + 202, { fontSize: SM, bold: true, color: SANG });
+  const step = (k, y, h, title, sub, colour, n, ty) => {
+    const x = colX(k);
+    const c = card(x, y, cw, h, { stroke: colour });
+    badge(n, x + 24, y + 26, colour);
+    T(title, x + 46, y + 14, { bold: true });
+    lines(sub, x + 14, y + (ty === undefined ? 54 : ty));
+    return c;
+  };
+  const c1 = step(0, R1, CH, 'Control error model',
+    ['per substitution, strand and', 'base quality; a margin chosen', 'by leave-one-control-out'], TEAL, 1);
+  const c2 = step(1, R1, CH, 'Test and FDR',
+    ['support against expected errors;', 'FDR ≤ 0.05 set from the controls;', 'controls tested against each other'], TEAL, 2);
+  const s1 = step(0, R2, CH, 'Count the mismatches',
+    ['every substitution at base quality', '≥ 20 is counted; one read of one', 'molecule cannot be tested'], SANG, 1);
+  const s2 = step(1, R2, CH, 'Background reported',
+    ['AID-null clones give the calls the', 'error alone would make, printed', 'beside them and never removed'], SANG, 2);
+  const sh1 = step(2, R1, SHH, 'Germline and window',
+    ['sites at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional'], TEAL, 3, 118);
+  const sh2 = step(3, R1, SHH, 'Automatic checks',
+    ['spectrum (C→T/G→A share),', 'positional clustering, 5-mer', 'targeting index, Sanger', 'bookkeeping flags'], SANG, 4, 106);
+  LINK(c1, 'e', c2, 'w', { headSize: 0.7 });
+  LINK(s1, 'e', s2, 'w', { headSize: 0.7 });
+  LINK(c2, 'e', sh1, 'w', { headSize: 0.7, style: 'elbow' });
+  LINK(s2, 'e', sh1, 'w', { headSize: 0.7, style: 'elbow' });
+  LINK(sh1, 'e', sh2, 'w', { headSize: 0.7 });
 
   // ───────── D. Outputs ─────────
-  const dy = cy + 214;
+  const dy = cy + 396;
   panel('D', 'Outputs', 30, dy);
   const tw = (W - 60 - 5 * 14) / 6, tiles = [];
   const tile = (k, title, sub) => {
