@@ -337,7 +337,18 @@ SUPP_FIGS = [
      "Top, substitution matrices for each mouse's Sanger clones (re-analyzed from 447 chromatograms; base quality "
      "≥ 20). Bottom, the share of wild-type clones with a high-quality base at each J_{H}4 position and calls per 10^{3} "
      "bases read; shading, the 529-bp window used for comparison."),
-    ("Figure S8. Full-length spectra and mutation trees in each mouse, related to Figure 6",
+    ("Figure S8. A published Sanger study re-analyzed automatically, related to Figure 5",
+     [FIG / "FigureS8_sanger_cohort2.png"],
+     "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (green) and "
+     "*Aicda*^{−/−} (red) mice[@barbulescu2024], each clone assigned to the mouse it was filed under in the original "
+     "analysis. Filled symbols and blue lines, SHMtrace from the chromatograms; open squares and brown lines, the "
+     "published values, replotted from the paper's per-mouse tables (Supplementary Fig. 9b) and clone distributions "
+     "(Fig. 2g). (A) Mutations per 10^{4} bp in each mouse; lines, means. (B) The same per mouse, SHMtrace against "
+     "published; dashed line, identity. (C) Clones by mutations per clone, pooled by genotype, binned as published. "
+     "(D) G:C transitions and transversions as a share of each mouse's mutations. (E) Pooled 12-type substitution "
+     "spectra, SHMtrace against published. (F) The published comparisons and SHMtrace's, with the one-tailed "
+     "t-test used in the original study; analysis time is for the whole project from one sample sheet."),
+    ("Figure S9. Full-length spectra and mutation trees in each mouse, related to Figure 6",
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),

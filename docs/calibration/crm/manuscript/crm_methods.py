@@ -16,6 +16,8 @@ KRT = [
     ("Premium PCR (full-length amplicon) sequencing, R10.4.1, Kit 14", "Plasmidsaurus", "https://www.plasmidsaurus.com"),
     ("**Deposited data**", "", ""),
     ("J_{H}4 and N114 nanopore reads, Sanger chromatograms and SHMtrace outputs", "This paper", "{lab_sra}; {lab_data_doi}"),
+    ("J_{H}4 Sanger chromatograms, *Maea*^{fl/fl}*Mb1*^{cre} study (cohort 2)", "Barbulescu et al.[@barbulescu2024]; "
+     "this paper", "{lab_data_doi}"),
     ("Nanopore amplicons, Sμ and *Pim1*, AID-competent and *Aicda*^{−/−}", "NCBI SRA", "BioProject PRJNA1481264"),
     ("Illumina J_{H}4, *Ldha* study", "Sharma et al.[@sharma2023]", "BioProject PRJNA973112; GEO GSE232658"),
     ("Illumina CH12F3 VDJ, ectopic AID", "Wang et al.[@wang2023]", "BioProject PRJNA918596"),
@@ -158,6 +160,17 @@ METHODS = [
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
           "shared between animals beyond chance (Poisson test weighted by mutation frequency across animals), "
           "control clones with excess mutations, label mismatches, and outliers in mutation load."),
+    ("p", "For the published Sanger study[@barbulescu2024], the J_{H}4 chromatograms of the four 96-well plates and "
+          "the pilot plate of its second cohort were downloaded from the sequencing facility's portal. Each clone "
+          "was assigned to the mouse folder it was filed under in the original analysis project, read from "
+          "screen recordings of that project; four traces filed under two mice were analyzed as filed. The "
+          "published per-mouse values (sequences, nucleotides, unique mutations and 12-type substitution counts) "
+          "were transcribed from the paper's Supplementary Figure 9b and the clone distributions from its Figure "
+          "2g. Where a printed table's cells and totals differ, frequencies use the printed totals, which "
+          "reproduce the published Figure 2h, and spectra use the cells. The wild-type and *Maea*-deficient "
+          "groups were compared with the one-tailed unpaired t-test used in the original study, and with Welch "
+          "tests on log frequencies against the *Aicda*^{−/−} mice. The sample sheet and the transcribed "
+          "tables are part of Data S1."),
     ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
@@ -300,7 +313,7 @@ LEGENDS = [
      "relative to each series' mean; targeting index, permutation test. (C) Reads with a V(D)J junction by clone "
      "(dark, largest clone) and the read- and clone-weighted mutation frequencies. (D) Mutation tree of the largest "
      "Wt3 clone: square, unmutated ancestor; ticks, mutations colored by class; circles, nodes, sized and labeled "
-     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S8."),
+     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S9."),
     ("Figure 7. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
      "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
@@ -324,6 +337,8 @@ TABLE1 = [
      "3 empty-vector subclones", "Figures 2–4"),
     ("J_{H}4 Sanger, same mice", "Sanger", "J_{H}4 intron (529 bp)", "26–40 clones per Wt mouse",
      "10–11 clones per *Aicda*^{−/−} mouse", "Figure 5"),
+    ("J_{H}4 Sanger, published study[@barbulescu2024]", "Sanger", "J_{H}4 intron (529 bp)",
+     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "4 *Aicda*^{−/−} mice", "Figure S8"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
     ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (1,008 and 982 bp)",
@@ -346,7 +361,7 @@ TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Na
                "molecular identifier.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S8 and Tables S1 and S3",
+    "Document S1. Figures S1–S9 and Tables S1 and S3",
     "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

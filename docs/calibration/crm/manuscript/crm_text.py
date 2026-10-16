@@ -295,6 +295,25 @@ RESULTS = [
           "clone whose label had also been changed was flagged in 22 of 40 projects, depending on how many "
           "mutations it shared with its lineage."),
 
+    ("p", "To test whether this re-analysis can be automated end to end, we applied the Sanger mode to a second, "
+          "published J_{H}4 study: germinal-center B cells of four wild-type, four *Maea*^{fl/fl}*Mb1*^{cre} and "
+          "*Aicda*^{−/−} mice, cloned and sequenced in 96-well plates and analyzed by hand[@barbulescu2024]. "
+          "From one sample sheet that assigns each chromatogram to the mouse it was filed under in the original "
+          "analysis, SHMtrace processed the {c2_traces} chromatograms in {c2_seconds} s and recovered every "
+          "published comparison (Figure S8). Mutation frequency was {c2_fold}-fold lower in *Maea*-deficient "
+          "than in wild-type mice (published, {c2_pub_fold}-fold; one-tailed t-test as published, p = {c2_p} "
+          "and {c2_pub_p}). G:C transitions fell from {c2_ts_wt}% to {c2_ts_mk}% of mutations (published, "
+          "{c2_ts_pub_wt}% to {c2_ts_pub_mk}%; p = {c2_ts_p} and {c2_ts_pub_p}), and G:C transversions rose "
+          "from {c2_tv_wt}% to {c2_tv_mk}% ({c2_tv_pub_wt}% to {c2_tv_pub_mk}%; p = {c2_tv_p} and "
+          "{c2_tv_pub_p}). The pooled substitution spectra agreed (r = {c2_spec_r}), and the mice ranked alike "
+          "(Spearman ρ = {c2_rho}), with SHMtrace's frequencies {c2_ratio}-fold the published values on "
+          "average; the two analyses count mutations differently (every clone over the 529-bp window, against "
+          "unique sequences over a 577-bp window). The *Aicda*^{−/−} mice carried {c2_ko_calls} mutations in "
+          "{c2_ko_n} clones (p = {c2_wt_ko_p} and {c2_mk_ko_p} for wild-type and *Maea*-deficient mice "
+          "against them). As in the first collection, the clone checks flagged identical mutated clones under "
+          "different mice ({c2_dup_flags} pairs) and {c2_filed_twice} traces filed under two mice, which were "
+          "analyzed as filed and reported rather than removed."),
+
     ("h", "Long reads add whole-amplicon maps, clones, and mutation trees"),
     ("p", "Because each nanopore read spans the entire 1,230-bp J_{H}4 amplicon, the whole product can be analyzed "
           "(Figure 6A). Over the reliably covered positions 90–1,230, Wt libraries carried {full_fold} times the "
@@ -302,7 +321,7 @@ RESULTS = [
           "first 450 bp, and the number of mutations declined about {full_decline}-fold between the first and "
           "last 250 bp, consistent with the decline of SHM about 1 kb from the V(D)J junction[@lebecque1990]. "
           "Extending the analysis to the full interval did not change the mutation spectrum, which matched the "
-          "spectrum of the Sanger window (r = {s1_r}; Figure S8)."),
+          "spectrum of the Sanger window (r = {s1_r}; Figure S9)."),
     ("p", "Mutations in Wt libraries favored the positions that the S5F model considers most mutable. The "
           "targeting index, the mean S5F mutability at mutated positions relative to the window, was {s5f_wt} "
           "(p ≤ {s5f_wt_p}, permutation test), and mutations per position increased {s5f_dose}-fold from the least "

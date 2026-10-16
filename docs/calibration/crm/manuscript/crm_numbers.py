@@ -560,6 +560,62 @@ def compute():
     N.update(ind_jh4_hp=pct(r["by_kind_ge3"]["del1_hp"]), ind_jh4_ins2=pct(r["by_kind_ge3"]["ins2"]),
              ind_jh4_long=pct(r["by_kind_ge3"]["dellong"]),
              ind_draws=word(_load(OUT / "indel_spike_jh4.json")["draws"]))
+    # a published Sanger study re-analysed automatically (Barbulescu et al. 2024, cohort 2; sanger_cohort2.py)
+    f = OUT / "sanger_cohort2.json"
+    if f.exists():
+        c2 = _load(f)
+        pub = _load(CRM / "published/barbulescu2024_jh4.json")
+        per = c2["per_mouse"]
+        B4 = "GCAT"
+        def pspec(m):  # noqa: E306
+            mat = pub["mice"][m]["matrix"]
+            return {f"{B4[i]}>{B4[j]}": mat[i][j] for i in range(4) for j in range(4) if i != j}
+        def gcs(sp):  # noqa: E306
+            tot = sum(sp.values())
+            return (100 * (sp.get("C>T", 0) + sp.get("G>A", 0)) / tot,
+                    100 * sum(sp.get(k, 0) for k in ("C>A", "C>G", "G>C", "G>T")) / tot)
+        mice = list(pub["mice"])
+        g_of = lambda m: per[m]["group"]  # noqa: E731
+        sh_f = {m: per[m]["freq_x1e4"] for m in per}
+        pb_f = {m: 1e4 * pub["mice"][m]["unique_mutations"] / pub["mice"][m]["nt"] for m in mice}
+        wt = [m for m in mice if g_of(m) == "WT"]
+        mk = [m for m in mice if g_of(m) == "Maea_KO"]
+        mean = lambda d, ms: float(np.mean([d[m] for m in ms]))  # noqa: E731
+        N["c2_traces"] = f"{c2['traces']}"
+        N["c2_clones"] = f"{c2['clones_analysed']}"
+        N["c2_seconds"] = f"{c2['seconds']:.0f}"
+        N["c2_fold"] = f1(mean(sh_f, wt) / mean(sh_f, mk))
+        N["c2_pub_fold"] = f1(mean(pb_f, wt) / mean(pb_f, mk))
+        N["c2_p"] = pfmt(float(stats.ttest_ind([sh_f[m] for m in wt], [sh_f[m] for m in mk], alternative="greater")[1]))
+        N["c2_pub_p"] = f"{pub['fig2h_p']['WT_vs_Maea_KO']}"
+        ts = {m: gcs(per[m]["spectrum"]) for m in wt + mk}
+        tsp = {m: gcs(pspec(m)) for m in wt + mk}
+        for k, i in (("ts", 0), ("tv", 1)):
+            N[f"c2_{k}_wt"] = f"{np.mean([ts[m][i] for m in wt]):.0f}"
+            N[f"c2_{k}_mk"] = f"{np.mean([ts[m][i] for m in mk]):.0f}"
+            N[f"c2_{k}_p"] = pfmt(float(stats.ttest_ind([ts[m][i] for m in wt], [ts[m][i] for m in mk])[1]))
+            N[f"c2_{k}_pub_wt"] = f"{np.mean([tsp[m][i] for m in wt]):.0f}"
+            N[f"c2_{k}_pub_mk"] = f"{np.mean([tsp[m][i] for m in mk]):.0f}"
+        N["c2_ts_pub_p"], N["c2_tv_pub_p"] = f"{pub['fig2i_p']['Ts']}", f"{pub['fig2i_p']['Tv']}"
+        N["c2_rho"] = f2(float(stats.spearmanr([pb_f[m] for m in mice], [sh_f[m] for m in mice])[0]))
+        N["c2_ratio"] = f1(10 ** float(np.mean([math.log10(sh_f[m] / pb_f[m]) for m in mice])))
+        types = sorted(pspec(mice[0]))
+        xs, ys = [], []
+        for grp in (wt, mk):
+            sh = {t_: sum(per[m]["spectrum"].get(t_, 0) for m in grp) for t_ in types}
+            pb = {t_: sum(pspec(m)[t_] for m in grp) for t_ in types}
+            xs += [pb[t_] / sum(pb.values()) for t_ in types]
+            ys += [sh[t_] / sum(sh.values()) for t_ in types]
+        N["c2_spec_r"] = f2(float(stats.pearsonr(xs, ys)[0]))
+        grp = {x["group"]: x for x in c2["project"]["groups"]}
+        ko = [sh_f[m] for m in per if per[m]["group"] == "Aicda_KO"]
+        N["c2_ko_freq"] = f1(float(np.mean(ko)))
+        N["c2_ko_n"] = f"{sum(per[m]['clones'] for m in per if per[m]['group'] == 'Aicda_KO')}"
+        N["c2_ko_calls"] = word(sum(s["unique_mutations"] for s in c2["project"]["samples"] if s["group"] == "Aicda_KO"))
+        N["c2_wt_ko_p"] = pfmt(grp["WT"]["mutation_frequency_x1e3_p_welch_log_vs_Aicda_KO"])
+        N["c2_mk_ko_p"] = pfmt(grp["Maea_KO"]["mutation_frequency_x1e3_p_welch_log_vs_Aicda_KO"])
+        N["c2_dup_flags"] = f"{sum(1 for x in c2['project']['qc']['flags'] if x['check'] == 'duplicate_clone')}"
+        N["c2_filed_twice"] = word(sum(1 for x in c2["project"]["qc"]["flags"] if x["check"] == "duplicate_file") // 2)
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())
