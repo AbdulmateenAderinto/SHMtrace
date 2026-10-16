@@ -1,4 +1,7 @@
-"""Figure S12: how SHMtrace turns reads into calls - the decisions, the equations, and real data.
+"""Figure S13, the matplotlib draft: how SHMtrace turns reads into calls.
+
+The published Figure S13 is built in SciCanvas (scicanvas/figS13_engine.js), from the numbers that
+scicanvas/engine_data.py takes from this module; running this file draws the draft into out/.
 
 Six stages, each with what it does, the rule it applies, and a panel of data from the J_H4
 libraries showing that stage working. Everything plotted is read from out/intuition_jh4.json
@@ -10,7 +13,7 @@ import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from matplotlib.patches import FancyBboxPatch
-from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, save, setup
+from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, setup
 
 D = json.load(open(DATA / "intuition_jh4.json"))
 ACCT = json.load(open(DATA.parents[1] / "figures/jh4_shmtrace/table_s1.json"))
@@ -238,7 +241,7 @@ def main():
         _stage_box(fig.add_subplot(gs[i, 0]), num, title, body, eq)
         ax = fig.add_subplot(gs[i, 1])
         panel(ax)
-    save(fig, "FigureS12_engine")
+    fig.savefig(DATA / "FigureS13_engine_matplotlib.png", dpi=300)
 
 
 if __name__ == "__main__":

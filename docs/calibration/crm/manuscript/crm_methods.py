@@ -155,8 +155,8 @@ METHODS = [
           "the window, with a one-sided permutation p value from 2,000 random sets of positions; the model was "
           "exported from SHazaM 1.2.0. Positional clustering flags any 10-base window containing more calls than a "
           "Poisson distribution allows (Bonferroni correction across windows, p < 10^{−3}). An overview of the "
-          "analysis is given in Figure S11, and each stage, the rule it applies and that rule working on the "
-          "J_{H}4 libraries in Figure S12. Sanger chromatograms "
+          "analysis is given in Figure S12, and each stage, the rule it applies and that rule working on the "
+          "J_{H}4 libraries in Figure S13. Sanger chromatograms "
           "are assigned to animals through a sample sheet and trimmed to their longest stretch of base quality "
           "≥ 20 that aligns cleanly, and every substitution at quality ≥ 20 is counted after the germline filter. "
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
@@ -372,7 +372,7 @@ TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Na
                "molecular identifier.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S12 and Tables S1, S3 and S4",
+    "Document S1. Figures S1–S13 and Tables S1, S3 and S4",
     "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

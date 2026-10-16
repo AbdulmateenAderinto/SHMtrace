@@ -380,16 +380,26 @@ SUPP_FIGS = [
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
-    ("Figure S11. An overview of SHMtrace, related to STAR Methods",
-     [FIG / "FigureS11_overview.png"],
+    ("Figure S11. What Sanger clones and nanopore reads each measure, related to Figures 5 and 6",
+     [FIG / "FigureS11_platforms.png"],
+     "Top, one unit of data from each platform on one base-pair scale. A Sanger clone is one molecule read once "
+     "over the 529-bp window that the clones read cleanly, so each clone's mutations are known exactly and "
+     "sequencing errors are rare. A nanopore read spans the whole 1,230-bp amplicon but carries more errors than "
+     "mutations, so a mutation is called where more reads carry it than the *Aicda*^{\u2212/\u2212} controls "
+     "explain, and mutations seen in a single read are estimated in aggregate. Bottom, what only Sanger clones "
+     "give, what only nanopore reads give, and what both give in the six mice of Figure 5, with the agreement "
+     "measured there. Sanger error rate: mismatches at base quality \u2265 20 in the AID-null clones of the "
+     "two published studies of Figures S8 and S9."),
+    ("Figure S12. An overview of SHMtrace, related to STAR Methods",
+     [FIG / "FigureS12_overview.png"],
      "From libraries to group tests. Reads or chromatograms are assigned to animals through a sample sheet, "
      "gated and aligned competitively against the target, its paralog and any contaminant; the AID-null controls "
      "measure the background, each candidate is tested against it, and the controls, called against one another as "
      "decoys, set the threshold. Results are summarised per animal and compared between groups with one value per "
-     "animal. Bookkeeping checks are reported beside the results and never applied. Figure S12 gives the rule and "
+     "animal. Bookkeeping checks are reported beside the results and never applied. Figure S13 gives the rule and "
      "equation behind each step."),
-    ("Figure S12. How SHMtrace turns reads into calls, related to STAR Methods",
-     [FIG / "FigureS12_engine.png"],
+    ("Figure S13. How SHMtrace turns reads into calls, related to STAR Methods",
+     [FIG / "FigureS13_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
      "libraries. (A) The fate of every delivered read, per library: gated by length or expected error, sent "
      "elsewhere by competitive alignment, or usable (Figure S1 separates the gates). (B) Each read's identity "

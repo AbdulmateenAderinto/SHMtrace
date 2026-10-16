@@ -437,7 +437,7 @@ DISCUSSION = [
     "decline of mutation is visible without tiling. Because the V(D)J junction identifies clones, an expanded "
     "or jackpotted clone no longer dominates the mutation frequency. In addition, the mutations within a clone "
     "can be ordered into a tree. Sanger sequencing of the same mice, re-analyzed from the chromatograms, agreed "
-    "with nanopore sequencing on spectrum, position, and hotspot use. The re-analysis also showed that the "
+    "with nanopore sequencing on spectrum, position, and hotspot use; what each platform measures that the other cannot is set out in Figure S11. The re-analysis also showed that the "
     "weakest link in the traditional assay is bookkeeping, which SHMtrace now checks explicitly.",
     "Several features make SHMtrace practical for routine use. The analysis starts from delivered reads, the "
     "number of reads removed at each step is reported, the random draw of reads is reproducible from a fixed "
