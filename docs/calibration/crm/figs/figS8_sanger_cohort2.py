@@ -1,4 +1,8 @@
-"""Figure S8: a published Sanger study re-analysed automatically (Barbulescu et al., 2024, J_H4, cohort 2).
+"""Figure S8, the matplotlib draft: a published Sanger study re-analysed automatically
+(Barbulescu et al., 2024, J_H4, cohort 2).
+
+The published Figure S8 is built in SciCanvas (scicanvas/figS8_cohort2.js), from the numbers that
+scicanvas/cohort2_data.py takes from this module; running this file draws the draft into out/.
 
 A    mutation frequency per mouse: SHMtrace from the chromatograms against the published values
 B    the same per mouse, SHMtrace against published (log-log), with the identity line
@@ -16,7 +20,7 @@ import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from scipy import stats
-from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, setup
 
 PUB = json.load(open(Path(__file__).resolve().parents[1] / "published/barbulescu2024_jh4.json"))
 RES = json.load(open(DATA / "sanger_cohort2.json"))
@@ -218,7 +222,7 @@ def main():
     ax.plot([0, 1.0], [0.875, 0.875], color=SOFT, lw=0.5, transform=ax.transAxes)
     ax.set_title("Published tests, recovered", fontsize=7)
     letter(ax, "F", dx=-0.05)
-    save(fig, "FigureS8_sanger_cohort2")
+    fig.savefig(DATA / "FigureS8_sanger_cohort2_matplotlib.png", dpi=300)
     return {"spearman": float(stats.spearmanr(xs, ys)[0]), "ratio": float(ratio), "spec_r": float(r),
             "sh_fold": float(sh_f[0]), "sh_p": float(sh_f[1]), "pub_fold": float(pb_f[0]), "ts_p": float(ts_sh),
             "tv_p": float(tv_sh)}
