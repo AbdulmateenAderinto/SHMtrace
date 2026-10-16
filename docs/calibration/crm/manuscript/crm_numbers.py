@@ -9,6 +9,7 @@ spike-ins, simulations, public data), the Sanger calls, and the simulation outpu
 REPLICATES_AND_POWER and UMI (data-independent).
 """
 import json
+import math
 import statistics
 import sys
 from collections import defaultdict
@@ -445,6 +446,33 @@ def compute():
                  sum(c["af"] >= 0.2 and c["filter"] == "PASS" for c in cands), sum(c["af"] >= 0.2 for c in cands)),
              cs_real_reads=f"{min(c['alt_reads'] for c in cands)}–{max(c['alt_reads'] for c in cands)}",
              cs_real_naf=f"{100 * max(c['normal_af'] for c in cands):.1f}")
+    # the CH12 AID off-targets OT1 and OT2 (PRJNA1481264, second pass; run_ircm_offtargets.py)
+    OFF = Path.home() / "Nanoshm/public_data/PRJNA1481264"
+    for k in ("ot1", "ot2"):
+        f = OFF / f"offtarget_{k}_2000.json"
+        if not f.exists():
+            continue
+        o = _load(f)
+        by = defaultdict(list)
+        for s in o["samples"]:
+            by[s["group"]].append(s)
+        geo_off = lambda g, by=by: statistics.geometric_mean(  # noqa: E731
+            [max(s["mutation_frequency_x1e3"] or 0, 1e-6) for s in by[g]])
+        N[f"{k}_wt"] = series(s["unique_mutations"] for s in by["vehicle"])
+        N[f"{k}_dko"] = series(s["unique_mutations"] for s in by["dKO"])
+        N[f"{k}_ko"] = series(s["unique_mutations"] for s in by["AID_KO"])
+        N[f"{k}_fold"] = f"{geo_off('vehicle') / geo_off('AID_KO'):,.0f}"
+        # the double knockout is at the Aicda-/- level, so a fold against it is meaningless: test instead
+        lg = lambda g, by=by: [math.log10(max(s["mutation_frequency_x1e3"] or 0, 1e-4))  # noqa: E731
+                               for s in by[g]]
+        N[f"{k}_p_dko"] = pfmt(float(stats.ttest_ind(lg("vehicle"), lg("dKO"), equal_var=False)[1]))
+        N[f"{k}_dko_vs_ko"] = f"{geo_off('dKO') / geo_off('AID_KO'):.1f}"
+        vs = [v for s in by["vehicle"] for v in o["variants"] if v["sample"] == s["sample"]]
+        N[f"{k}_gc"] = pct(sum(v["ref"] in "CG" for v in vs) / len(vs))
+        N[f"{k}_n"] = f0(len(vs))
+        g = next(x for x in o["groups"] if x["group"] == "vehicle")
+        N[f"{k}_p"] = pfmt(g["mutation_frequency_x1e3_p_welch_log_vs_AID_KO"])
+        N[f"{k}_p_dens"] = pfmt(g["unique_density_x1e5_p_welch_log_vs_AID_KO"])
     # Figure 2 and Figures S2 and S6: anatomy of a call, the control FDR, where real SHM sits, the background along
     # the amplicon and reported quality against measured error (intuition_data.py, fig2_call.py)
     from bisect import bisect_right

@@ -18,7 +18,10 @@ from pathlib import Path
 ROOT = Path.home() / "Nanoshm/public_data/PRJNA1481264"
 BIN = Path.home() / "miniforge3/envs/lofreq/bin"
 N = 6000
-LOCI = {"Igh_Su": "Igh_Su_LPS_AID_KO", "Pim1": "Pim1_LPS_AID_KO"}
+LOCI = {"Igh_Su": "Igh_Su_LPS_AID_KO", "Pim1": "Pim1_LPS_AID_KO",
+        # the loci of the second pass; each reference is the consensus of that locus's own Aicda-/- reads
+        "Cd83": "Cd83_LPS_AID_KO_r2", "Ly6e": "Ly6e_LPS_AID_KO_r2",
+        "OT1": "OT1_CH12_AID_KO_r1", "OT2": "OT2_CH12_AID_KO_r1", "OT3": "OT3_CH12_AID_KO"}
 
 
 def reads(path):

@@ -19,7 +19,8 @@ LABEL = {"recommended": "SHMtrace", "geneious": "Geneious rule", "lofreq": "LoFr
          "deepsomatic_permissive": "DeepSomatic (vsc_min_fraction_snps 0.005, vsc_min_count_snps 2)"}
 SETS = {"jh4": "J_H4 intron, this study", "n114": "N114 V region, this study", "su_lps": "Smu, LPS (PRJNA1481264)",
         "su_ch12": "Smu, CH12 (PRJNA1481264)", "pim1": "Pim1, LPS (PRJNA1481264), 2,000 reads",
-        "pim1_deep": "Pim1, LPS (PRJNA1481264), all usable reads"}
+        "pim1_deep": "Pim1, LPS (PRJNA1481264), all usable reads",
+        "ot1": "OT1, CH12 (PRJNA1481264)", "ot2": "OT2, CH12 (PRJNA1481264)"}
 wb = Workbook()
 ws = wb.active
 ws.title = "Real libraries"

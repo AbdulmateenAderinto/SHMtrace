@@ -18,9 +18,13 @@ FIGS = DATA.parents[1] / "figures"
 SHOW = ["recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive"]
 SHORT = {"recommended": "SHMtrace", "geneious": "Geneious", "lofreq": "LoFreq",
          "lofreq_nobaq": "LoFreq −BAQ", "lofreq_permissive": "LoFreq perm."}
-SHORTSET = {"jh4": "J$_H$4", "n114": "N114", "su_lps": "Sμ LPS", "su_ch12": "Sμ CH12", "pim1": "Pim1"}
-SETS = [("jh4", "J$_H$4 intron (ONT)"), ("n114", "N114 V region (ONT)"), ("su_lps", "Sμ, LPS blasts (ONT)"),
-        ("su_ch12", "Sμ, CH12 (ONT)"), ("pim1", "Pim1, LPS blasts (ONT)")]
+SHORTSET = {"jh4": "J$_H$4", "n114": "N114", "su_lps": "Sμ LPS", "su_ch12": "Sμ CH12", "pim1": "Pim1",
+            "ot1": "OT1", "ot2": "OT2"}
+# the per-library panels (A-E) show the five loci of the first pass; the summary panels F and G take every
+# dataset, including the two CH12 AID off-targets added later
+PANEL_SETS = [("jh4", "J$_H$4 intron (ONT)"), ("n114", "N114 V region (ONT)"), ("su_lps", "Sμ, LPS blasts (ONT)"),
+              ("su_ch12", "Sμ, CH12 (ONT)"), ("pim1", "Pim1, LPS blasts (ONT)")]
+SETS = PANEL_SETS + [("ot1", "OT1, CH12 (ONT)"), ("ot2", "OT2, CH12 (ONT)")]
 
 
 def load(key):
@@ -48,7 +52,8 @@ def main():
     row1 = outer[0].subgridspec(1, 5, wspace=0.42)
     row2 = outer[1].subgridspec(1, 3, wspace=0.55, width_ratios=[1, 1, 0.85])
     avail = [(k, t) for k, t in SETS if load(k)]
-    for i, (key, title) in enumerate(avail):
+    panels = [(k, t) for k, t in PANEL_SETS if load(k)]
+    for i, (key, title) in enumerate(panels):
         ax = fig.add_subplot(row1[0, i])
         rows = load(key)
         floor = min(1e5 / r["bases"] for r in rows) * 0.5

@@ -250,6 +250,16 @@ RESULTS = [
     ("p", "*Pim1*, where AID acts weakly, marked the limit of detection. At 2,000 reads, no caller convincingly "
           "separated AID-competent from *Aicda*^{−/−} libraries (SHMtrace {pim1_rec_fold}-fold with {pim1_rec_ctl} "
           "control calls; Geneious rule {pim1_gen_fold}-fold with {pim1_gen_ctl} control calls). {pim1_deep}"),
+    ("p", "Two AID off-targets in CH12 cells, OT1 and OT2, test the same calibration where AID acts weakly and "
+          "a genetic perturbation predicts the answer[@seija2026]. SHMtrace called {ot1_wt} unique variants in "
+          "the three AID-competent OT1 libraries and {ot1_ko} in the three *Aicda*^{−/−} libraries "
+          "({ot1_fold}-fold; p = {ot1_p} on frequency and {ot1_p_dens} on density), and {ot2_wt} against "
+          "{ot2_ko} at OT2 ({ot2_fold}-fold; p = {ot2_p} and {ot2_p_dens}). The calls carried an AID signature "
+          "({ot1_gc}% and {ot2_gc}% at G:C over {ot1_n} and {ot2_n} calls). Deleting the histone readers MLLT1 "
+          "and MLLT3, which concentrate AID at these loci, returned both to the *Aicda*^{−/−} level "
+          "({ot1_dko} and {ot2_dko} calls; {ot1_dko_vs_ko}- and {ot2_dko_vs_ko}-fold the control libraries; "
+          "p = {ot1_p_dko} and {ot2_p_dko} against the AID-competent libraries), reproducing the published "
+          "effect from the reads alone."),
     ("p", "The leave-one-control-out margin behaved as intended (Figure 4H). Taken at face value, the control "
           "error rates allowed {loco_jh4_face}% of held-out J_{H}4 tests and {loco_n114_face}% of N114 tests to "
           "reach p < 0.01 at the samples' depth. The chosen margins ({loco_margins}) brought each to 1% or below "

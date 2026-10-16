@@ -171,7 +171,12 @@ METHODS = [
           "performed for each held-out control. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, "
           "validated with vdb-validate, and subsampled to 6,000 reads (seed 0). The reference for each locus was "
           "the majority consensus of its first *Aicda*^{−/−} library, built with minimap2 and SAMtools consensus "
-          "and iterated to convergence."),
+          "and iterated to convergence. The OT1 and OT2 off-targets of the same BioProject were added later and "
+          "analyzed the same way, at 2,000 reads, with references built by the same consensus procedure "
+          "(1,008 and 982 bp, converged in two iterations). Other loci of that BioProject were set aside: "
+          "*Cd83* and *Ly6e* yielded no calls in any library, including at 30,000 reads, and the remaining "
+          "cell contexts provide two libraries per group or a single *Aicda*^{−/−} library, which is below "
+          "what the control-based test and the animal-level comparison need."),
     ("p", "Two somatic callers that compare a case library with a matched normal, ClairS 0.5.1[@zheng2026] and "
           "DeepSomatic 1.9.0[@park2026], and two germline callers, Clair3 2.0.3[@zheng2022] and DeepVariant "
           "1.9.0[@poplin2018], were run from their official Docker images on the same planted mutations, using "
@@ -321,6 +326,8 @@ TABLE1 = [
      "10–11 clones per *Aicda*^{−/−} mouse", "Figure 5"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
+    ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (1,008 and 982 bp)",
+     "3 CH12 wild type, 3 *Mllt1*/*Mllt3* double knockout", "3 *Aicda*^{−/−} each", "Figure 4"),
     ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-null mice",
      "Figure 7"),
     ("PRJNA918596[@wang2023]", "Illumina", "VDJ (229 bp)", "AID, R50E, R174E/R178E (4 each)",

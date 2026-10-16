@@ -36,6 +36,10 @@ MANUAL = {
     "zheng2026": "Zheng, Z., Chen, L., Su, J., Yu, X., He, M., Lee, Y.-L., Lam, T.-W., and Luo, R. (2026). ClairS: a "
                  "deep-learning method for long-read tumor–normal pair somatic small variant calling. Nat. Methods "
                  "23, 1507–1520. 10.1038/s41592-026-03152-4.",
+    # Seija et al.: MLLT1/MLLT3 concentrate AID (Crossref; Cell Press style, first 10 authors then et al.)
+    "seija2026": "Seija, N., Gannon, S., Häfner, K., Gemeinhardt, T., Ridani, J., Alvarez, D., Provencher, M., "
+                 "Subramani, P., Poitras, C., Piskor, E., et al. (2026). Histone readers MLLT1 and MLLT3 "
+                 "concentrate AID to confer locus specificity. Nature. 10.1038/s41586-026-11087-1.",
     # Perez-Duran et al.: ectopic AID in non-B cells (authors, volume and pages from Crossref)
     "perezduran2012": "Pérez-Durán, P., Belver, L., de Yébenes, V.G., Delgado, P., Pisano, D.G., and Ramiro, "
                       "A.R. (2012). UNG shapes the specificity of AID-induced somatic hypermutation. J. Exp. "
