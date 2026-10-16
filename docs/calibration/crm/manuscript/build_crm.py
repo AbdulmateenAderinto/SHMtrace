@@ -357,8 +357,9 @@ SUPP_FIGS = [
     ("Figure S10. How SHMtrace turns reads into calls, related to STAR Methods",
      [FIG / "FigureS10_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
-     "libraries. (A) The fate of every delivered read under the length and expected-error gates and competitive "
-     "alignment, per library. (B) Each read's identity to the J_{H}4 target against its identity to the "
+     "libraries. (A) The fate of every delivered read, per library: gated by length or expected error, sent "
+     "elsewhere by competitive alignment, or usable (Figure S1 separates the gates). (B) Each read's identity "
+     "to the J_{H}4 target against its identity to the "
      "paralogue; a read is analyzed at whichever it matches better. (C) Reported base quality against the error "
      "measured in the *Aicda*^{\u2212/\u2212} controls, with the rate the quality score promises (dashed). "
      "(D) Two candidates at the same depth in the same library, one called and one not, with the reads carrying "

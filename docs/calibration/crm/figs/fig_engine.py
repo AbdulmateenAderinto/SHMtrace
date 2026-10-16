@@ -64,24 +64,26 @@ def _stage_box(ax, num, title, body, eq):
 
 
 def panel1(ax):
-    """The fate of every delivered read, measured in the six J_H4 libraries."""
-    parts = [("too_long", "over-length", "#5f6b75"), ("low_quality", "expected error > 0.01", "#9aa5b1"),
-             ("not_target", "unmapped or paralogue", "#d9952b"), ("chimeric", "chimeric", "#c0392b"),
-             ("short_alignment", "alignment too short", "#e6b98a"),
-             ("paralogue_alleles", "paralogue alleles", "#6a4c93"), ("usable", "usable", ACC)]
+    """The fate of every delivered read, measured in the six J_H4 libraries.
+
+    Collapsed to the three decisions this figure is about; Figure S1 breaks the gates apart.
+    """
+    parts = [("gated", ("too_long", "low_quality"), "#9aa5b1"),
+             ("not the target", ("not_target", "chimeric", "short_alignment", "paralogue_alleles"), "#d9952b"),
+             ("usable", ("usable",), ACC)]
     libs = list(ACCT)
     for i, lib in enumerate(libs):
         a, left = ACCT[lib], 0
-        for key, lab, col in parts:
-            v = 100 * a[key] / a["delivered"]
+        for lab, keys, col in parts:
+            v = 100 * sum(a[k] for k in keys) / a["delivered"]
             ax.bar(i, v, bottom=left, color=col, width=0.74, lw=0, label=lab if i == 0 else None)
             left += v
     ax.set_xticks(range(len(libs)), libs, fontsize=4.6, rotation=35, ha="right")
     ax.set_ylim(0, 100)
     ax.set_ylabel("% of delivered reads", fontsize=5.6)
     ax.tick_params(labelsize=5)
-    ax.legend(fontsize=4.1, loc="upper center", bbox_to_anchor=(0.5, -0.30), ncol=2, handlelength=0.8,
-              handletextpad=0.3, labelspacing=0.2, columnspacing=0.8)
+    ax.legend(fontsize=4.4, loc="upper center", bbox_to_anchor=(0.5, -0.26), ncol=3, handlelength=0.8,
+              handletextpad=0.3, columnspacing=0.9)
     ax.set_title("The fate of every read", fontsize=6.2, pad=4)
 
 
