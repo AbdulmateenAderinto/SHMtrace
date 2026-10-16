@@ -297,7 +297,7 @@ RESULTS = [
 
     ("p", "To test whether this re-analysis can be automated end to end, we applied the Sanger mode to a second, "
           "published J_{H}4 study: germinal-center B cells of four wild-type, four *Maea*^{fl/fl}*Mb1*^{cre} and "
-          "*Aicda*^{−/−} mice, cloned and sequenced in 96-well plates and analyzed by hand[@barbulescu2024]. "
+          "*Aicda*^{−/−} mice, cloned and sequenced in 96-well plates and analyzed with SHMTool[@barbulescu2024,@maccarthy2009]. "
           "From one sample sheet that assigns each chromatogram to the mouse it was filed under in the original "
           "analysis, SHMtrace processed the {c2_traces} chromatograms in {c2_seconds} s and recovered every "
           "published comparison (Figure S8). Mutation frequency was {c2_fold}-fold lower in *Maea*-deficient "

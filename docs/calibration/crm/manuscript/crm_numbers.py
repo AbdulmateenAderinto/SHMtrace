@@ -577,7 +577,10 @@ def compute():
         mice = list(pub["mice"])
         g_of = lambda m: per[m]["group"]  # noqa: E731
         sh_f = {m: per[m]["freq_x1e4"] for m in per}
-        pb_f = {m: 1e4 * pub["mice"][m]["unique_mutations"] / pub["mice"][m]["nt"] for m in mice}
+        # the paper's own plotted values (its source data) where they exist, else its printed tables
+        src = pub.get("source_data", {})
+        pb_f = {m: src.get("fig2h_x1e4", {}).get(m, 1e4 * pub["mice"][m]["unique_mutations"] / pub["mice"][m]["nt"])
+                for m in mice}
         wt = [m for m in mice if g_of(m) == "WT"]
         mk = [m for m in mice if g_of(m) == "Maea_KO"]
         mean = lambda d, ms: float(np.mean([d[m] for m in ms]))  # noqa: E731
@@ -589,7 +592,8 @@ def compute():
         N["c2_p"] = pfmt(float(stats.ttest_ind([sh_f[m] for m in wt], [sh_f[m] for m in mk], alternative="greater")[1]))
         N["c2_pub_p"] = f"{pub['fig2h_p']['WT_vs_Maea_KO']}"
         ts = {m: gcs(per[m]["spectrum"]) for m in wt + mk}
-        tsp = {m: gcs(pspec(m)) for m in wt + mk}
+        tsp = {m: tuple(src["fig2i_ts_tv_pct"][m]) if m in src.get("fig2i_ts_tv_pct", {}) else gcs(pspec(m))
+               for m in wt + mk}
         for k, i in (("ts", 0), ("tv", 1)):
             N[f"c2_{k}_wt"] = f"{np.mean([ts[m][i] for m in wt]):.0f}"
             N[f"c2_{k}_mk"] = f"{np.mean([ts[m][i] for m in mk]):.0f}"

@@ -150,7 +150,7 @@ def main():
              ("Paralog clones removed", "–", f"{RES['excluded'].get('contaminant', 0)}"),
              ("Background explains, Wt", "–", _bg_share("WT")),
              ("  ...   Mkln1$^{-/-}$", "–", _bg_share("Mkln1_KO")),
-             ("Analysis", "hand-edited", f"{RES['seconds']:.0f} s")]
+             ("Analysis", "Benchling", f"{RES['seconds']:.0f} s")]
     for k, (a, b, c) in enumerate(lines):
         y = 0.96 - k * 0.088
         w = "bold" if k == 0 else "normal"

@@ -25,6 +25,7 @@ from figS8_sanger_cohort2 import (  # noqa: E402
     gc,
     one_tailed,
     pub_freq,
+    pub_gc,
     pub_spec,
 )
 
@@ -40,6 +41,8 @@ def main():
     # A: frequency per mouse, SHMtrace against published
     A = {g: {"sh": [round(per[m]["freq_x1e4"], 2) for m in mine[g]],
              "pub": [round(pub_freq(m), 2) for m in pub_g[g]]} for g in GROUPS}
+    # the AID-null mice are only in the paper's source data (Fig. 2h), not in its tables
+    A["Aicda_KO"]["pub"] = [round(v, 2) for v in PUB.get("source_data", {}).get("fig2h_aicda_x1e4", [])]
 
     # B: per mouse, SHMtrace against published; mice are matched by the sheet's names, which are the paper's
     xs = [pub_freq(m) for m in MICE]
@@ -62,7 +65,7 @@ def main():
     for g in ("WT", "Maea_KO"):
         for kind, i in (("Ts", 0), ("Tv", 1)):
             D.append({"group": g, "kind": kind, "sh": [round(gc(per[m]["spectrum"])[i], 2) for m in mine[g]],
-                      "pub": [round(gc(pub_spec(m))[i], 2) for m in pub_g[g]]})
+                      "pub": [round(pub_gc(m)[i], 2) for m in pub_g[g]]})
 
     # E: pooled 12-type spectrum
     E = {}
@@ -92,7 +95,7 @@ def main():
          ["Background explains, Wt", "–", _bg_share("WT"), 0],
          ["...                 Maea", "–", _bg_share("Maea_KO"), 1],
          ["Lineages under 2+ mice", "–", f"{len(lineages)} ({sum(x['n_clones'] for x in lineages)} clones)", 0],
-         ["Analysis", "hand-edited", f"{RES['seconds']:.0f} s", 0]]
+         ["Analysis", "SHMTool", f"{RES['seconds']:.0f} s", 0]]
     data = {"A": A, "B": B, "C": C, "D": D, "E": E, "r": round(r, 2), "F": F}
     src = BUILDER.read_text()
     new = re.sub(r"/\*DATA\*/.*?/\*END\*/", lambda _m: "/*DATA*/" + json.dumps(data, separators=(",", ":")) + "/*END*/",

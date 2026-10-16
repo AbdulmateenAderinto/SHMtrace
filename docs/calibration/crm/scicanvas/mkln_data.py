@@ -73,7 +73,7 @@ def main():
         ["Paralog clones out", "–", f"{RES['excluded'].get('contaminant', 0)}", 0],
         ["Background explains, Wt", "–", _bg_share("WT"), 0],
         ["...                 Mkln1KO", "–", _bg_share("Mkln1_KO"), 1],
-        ["Analysis", "hand-edited", f"{RES['seconds']:.0f} s", 0],
+        ["Analysis", "Benchling", f"{RES['seconds']:.0f} s", 0],
     ]
     data = {"A": panelA, "B": panelB, "C": panelC, "r": round(r, 2), "D": panelD,
             "traces": RES["traces"], "clones": RES["clones_analysed"]}

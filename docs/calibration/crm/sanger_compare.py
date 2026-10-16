@@ -55,7 +55,18 @@ def _pub_spec(pub, m, bases, rows_are):
             for i in range(4) for j in range(4) if i != j}
 
 
+def _pub_gc(pub, m, sp, keys):
+    """A published G:C share: the paper's plotted per-mouse value (Fig. 2i source data) where it exists."""
+    src = pub.get("source_data", {}).get("fig2i_ts_tv_pct", {})
+    if m in src and keys in (TS, TV):
+        return src[m][0 if keys == TS else 1]
+    return _share(sp, keys)
+
+
 def _pub_freq(pub, m):
+    src = pub.get("source_data", {}).get("fig2h_x1e4", {})
+    if m in src:
+        return src[m]
     x = pub["mice"][m]
     return 1e4 * x["f_mut"] if "f_mut" in x else 1e4 * x["unique_mutations"] / x["nt"]
 
@@ -105,7 +116,7 @@ def study_columns(key):
     for name, keys in (("A:T mutations (% of all)", AT), ("G:C transitions (% of all)", TS),
                        ("G:C transversions (% of all)", TV)):
         a, b = [_share(sp[m], keys) for m in wt], [_share(sp[m], keys) for m in ko]
-        c, d = [_share(ps[m], keys) for m in pw], [_share(ps[m], keys) for m in pk]
+        c, d = [_pub_gc(pub, m, ps[m], keys) for m in pw], [_pub_gc(pub, m, ps[m], keys) for m in pk]
         out[name] = (_cell(a, b, _ttest(a, b), "{:.0f}%"), _cell(c, d, _ttest(c, d), "{:.0f}%"))
     for name, k in (("G:C mutations at WRC/GYW (%)", "pct_GC_in_WRC_GYW"),
                     ("A:T mutations at WA/TW (%)", "pct_AT_in_WA_TW")):

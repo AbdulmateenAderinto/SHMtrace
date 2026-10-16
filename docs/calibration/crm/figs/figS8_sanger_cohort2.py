@@ -40,8 +40,18 @@ def pub_spec(m):
 
 
 def pub_freq(m):
+    """The paper's own plotted frequency (Fig. 2h source data); the printed table if there is none."""
+    src = PUB.get("source_data", {}).get("fig2h_x1e4", {})
+    if m in src:
+        return src[m]
     x = PUB["mice"][m]
     return 1e4 * x["unique_mutations"] / x["nt"]
+
+
+def pub_gc(m):
+    """G:C transitions and transversions, % of mutations: the Fig. 2i source data, else the printed table."""
+    src = PUB.get("source_data", {}).get("fig2i_ts_tv_pct", {})
+    return tuple(src[m]) if m in src else gc(pub_spec(m))
 
 
 def gc(sp):
@@ -148,7 +158,7 @@ def main():
         e, f = GCOL[g]
         for kind, idx in (("Ts", 0), ("Tv", 1)):
             sh = [gc(per[m]["spectrum"])[idx] for m in per if per[m]["group"] == g]
-            pb = [gc(pub_spec(m))[idx] for m in MICE if PUB["mice"][m]["group"] == g]
+            pb = [pub_gc(m)[idx] for m in MICE if PUB["mice"][m]["group"] == g]
             for dx, vals, mk, fc, col in ((-0.17, sh, "o", f, SH_C), (0.17, pb, "s", "white", PUB_C)):
                 ax.scatter(pos + dx + np.linspace(-0.05, 0.05, len(vals)), vals, s=11, marker=mk, facecolor=fc,
                            edgecolor=e, lw=0.6, zorder=3)
@@ -211,7 +221,7 @@ def main():
              ("Background explains, Wt", "–", _bg_share("WT")),
              ("  ...   Maea", "–", _bg_share("Maea_KO")),
              ("Shared-clone flags", "–", f"{sum(1 for f in RES['project']['qc']['flags'] if f['check'] == 'duplicate_clone')}"),
-             ("Analysis", "hand-edited", f"{RES['seconds']:.0f} s")]
+             ("Analysis", "SHMTool", f"{RES['seconds']:.0f} s")]
     for k, (a, b, c) in enumerate(lines):
         y = 0.96 - k * 0.096
         w = "bold" if k == 0 else "normal"

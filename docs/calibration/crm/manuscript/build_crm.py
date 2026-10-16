@@ -283,7 +283,8 @@ def main(outdir):
                      "convention to SHMtrace's mutations. The evidence-based clone set (Mkln1 only) moves or sets "
                      "aside the clones whose filing the sequences contradict, by rules fixed in advance (STAR "
                      "Methods). "
-                     "Published values are computed from the papers' per-mouse tables, the *Mkln1* tables read as "
+                     "Published values are the Maea paper's Source Data (frequency and G:C shares) or computed from the papers' "
+                     "per-mouse tables (the other rows, and every Mkln1 row), the *Mkln1* tables read as "
                      "printed. Maea, *Maea*^{fl/fl}*Mb1*^{cre} (Barbulescu et al., 2024); Mkln1, *Mkln1*^{\u2212/\u2212} "
                      "(Barbulescu et al., 2025). N.R., not reported.")
     s.save(out / "Document_S1.docx")
