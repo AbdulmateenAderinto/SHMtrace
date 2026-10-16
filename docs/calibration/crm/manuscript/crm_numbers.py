@@ -505,10 +505,10 @@ def compute():
             au[f"Exp{e}_{arm}_AID"]["pct_transition_at_GC"] for e in (1, 2, 3)) / 100)
         N[f"mo_{arm.lower()}_calls"] = f0(sum(ms[f"Exp{e}_{arm}_AID"]["unique_mutations"] for e in (1, 2, 3)))
         N[f"mo_{arm.lower()}_dead"] = f0(sum(ms[f"Exp{e}_{arm}_AIDE58Q"]["unique_mutations"] for e in (1, 2, 3)))
-        g = lambda k: statistics.geometric_mean(   # noqa: E731
+        g = lambda k, arm=arm: statistics.geometric_mean(   # noqa: E731
             [max(ms[f"Exp{e}_{arm}_{k}"]["mutation_frequency_x1e3"] or 0, 1e-6) for e in (1, 2, 3)])
         N[f"mo_{arm.lower()}_fold"] = f0(g("AID") / g("AIDE58Q"))
-        gr = lambda k: statistics.geometric_mean(  # noqa: E731
+        gr = lambda k, arm=arm: statistics.geometric_mean(  # noqa: E731
             [au[f"Exp{e}_{arm}_{k}"]["freq_x1e3"] for e in (1, 2, 3)])
         N[f"mo_{arm.lower()}_fold_raw"] = f1(gr("AID") / gr("AIDE58Q"))
     N["mo_dead_ts"] = (f'{min(au[f"Exp{e}_{a}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}'
