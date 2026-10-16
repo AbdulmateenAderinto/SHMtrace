@@ -6,8 +6,6 @@ Reads what figs/figS9_sanger_mkln.py reads (out/sanger_mkln.json and the transcr
 reduces each panel to the numbers it plots, and writes them into figS9_mkln.js between the DATA markers,
 so the builder stays one file that can also be pasted into SciCanvas.
 """
-import json
-import re
 import sys
 from pathlib import Path
 
@@ -16,7 +14,9 @@ from scipy import stats
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "figs"))
+sys.path.insert(0, str(HERE))
 from figS9_sanger_mkln import PUB, RES, TYPES, _bg_share, gc, pub_spec  # noqa: E402
+from inject import inject  # noqa: E402
 
 BUILDER = HERE / "figS9_mkln.js"
 GROUPS = ("WT", "Mkln1_KO", "Aicda_KO")
@@ -63,7 +63,7 @@ def main():
     panelD = [
         ["Wt / Mkln1KO", f"{np.mean(pbf['WT']) / np.mean(pbf['Mkln1_KO']):.1f}×",
          f"{np.mean(shf['WT']) / np.mean(shf['Mkln1_KO']):.1f}×", 0],
-        ["P (one-tailed t)", f"{t2(pbf['WT'], pbf['Mkln1_KO'], alternative='greater'):.4f}",
+        ["P (one-tailed t)ᵇ", f"{t2(pbf['WT'], pbf['Mkln1_KO'], alternative='greater'):.4f}",
          f"{t2(shf['WT'], shf['Mkln1_KO'], alternative='greater'):.4f}", 1],
         ["G:C Ts P", f"{t2(p_of(0, 'WT'), p_of(0, 'Mkln1_KO')):.2f}", f"{t2(g_of(0, 'WT'), g_of(0, 'Mkln1_KO')):.2f}", 0],
         ["G:C Tv P", f"{t2(p_of(1, 'WT'), p_of(1, 'Mkln1_KO')):.3f}", f"{t2(g_of(1, 'WT'), g_of(1, 'Mkln1_KO')):.3f}", 0],
@@ -72,16 +72,13 @@ def main():
          f"{sum(per[m]['clones'] for m in mine['WT'])} / {sum(per[m]['clones'] for m in mine['Mkln1_KO'])}", 0],
         ["Paralog clones out", "–", f"{RES['excluded'].get('contaminant', 0)}", 0],
         ["Background explains, Wt", "–", _bg_share("WT"), 0],
-        ["...                 Mkln1KO", "–", _bg_share("Mkln1_KO"), 1],
+        ["... Mkln1KO", "–", _bg_share("Mkln1_KO"), 1],
         ["Analysis", "Benchling", f"{RES['seconds']:.0f} s", 0],
     ]
     data = {"A": panelA, "B": panelB, "C": panelC, "r": round(r, 2), "D": panelD,
             "traces": RES["traces"], "clones": RES["clones_analysed"]}
-    src = BUILDER.read_text()
-    new = re.sub(r"/\*DATA\*/.*?/\*END\*/", lambda _m: "/*DATA*/" + json.dumps(data, separators=(",", ":")) + "/*END*/",
-                 src, flags=re.S)
-    BUILDER.write_text(new)
-    print(f"{BUILDER.name}: data {len(new) - len(src):+d} bytes; r = {r:.2f}; {len(panelD)} rows in D")
+    n = inject(BUILDER, data)
+    print(f"{BUILDER.name}: data {n:+d} bytes; r = {r:.2f}; {len(panelD)} rows in D")
 
 
 if __name__ == "__main__":

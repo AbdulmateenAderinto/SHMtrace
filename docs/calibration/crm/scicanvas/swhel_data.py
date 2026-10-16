@@ -8,13 +8,16 @@ plots, and writes them into figS10_swhel.js between the DATA markers.
 """
 import collections
 import json
-import re
+import sys
 from pathlib import Path
 
 import numpy as np
 from scipy import stats
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from inject import inject  # noqa: E402
+
 CRM = HERE.parent
 RES = json.load(open(CRM.parent / "external/out/swhel_samhd1.json"))
 PUB = json.load(open(CRM / "published/thientosapol2018_swhel.json"))
@@ -93,11 +96,8 @@ def main():
             f"(B); {sum(per[m]['clones'] for g in ORDER for m in mice[g]):,} clones, "
             f"{sum(len(mice[g]) for g in ORDER)} animals, {RES['seconds']:.0f} s.")
     data = {"A": A, "B": B, "r": round(r, 4), "C": C, "D": D, "foot": foot}
-    src = BUILDER.read_text()
-    new = re.sub(r"/\*DATA\*/.*?/\*END\*/", lambda _m: "/*DATA*/" + json.dumps(data, separators=(",", ":")) + "/*END*/",
-                 src, flags=re.S)
-    BUILDER.write_text(new)
-    print(f"{BUILDER.name}: data {len(new) - len(src):+d} bytes; r = {r:.4f}; "
+    n = inject(BUILDER, data)
+    print(f"{BUILDER.name}: data {n:+d} bytes; r = {r:.4f}; "
           f"{sum(sum(tot[g].values()) for g in ORDER)} mutations")
 
 

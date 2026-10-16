@@ -89,7 +89,7 @@
 
   // ───────── B: SHMtrace against published, per mouse (log-log) ─────────
   {
-    const x0 = 520, x1 = 776, y0 = 56, y1 = 386, lg = Math.log10, dom = [lg(8), lg(400)];
+    const x0 = 520, x1 = 776, y0 = 56, y1 = 386, lg = Math.log10, dom = [lg(9), lg(180)];
     head('B', x0 - 34, 'Agreement by mouse');
     const [X, Y] = frame(x0, y0, x1, y1, dom, dom, [], ['SHMtrace (per 10⁴ bp)']);
     [10, 100].forEach((v) => {
@@ -174,7 +174,8 @@
     L(x0, y0 + 30, shR, y0 + 30, SOFT, 1.6);
     DATA.F.forEach(([lab, pub, sh, indent], k) => {
       const y = y0 + 44 + k * 32;
-      if (lab.startsWith('...')) run([['...        '], ['Maea', { italic: true }]], x0 + indent * 14, y, { color: INK });
+      if (lab.startsWith('...')) run([['...\u00a0\u00a0'], ['Maea', { italic: true }]], x0 + indent * 14, y, { color: INK });
+      else if (lab.startsWith('Wt / Maea')) run([['Wt / '], ['Maea', { italic: true }], ['\u00a0' + lab.slice(10)]], x0 + indent * 14, y, { color: INK });
       else T(lab, x0 + indent * 14, y, { color: INK });
       TR(pub, pubR, y, { color: PUB });
       TR(sh, shR, y, { color: SH });
