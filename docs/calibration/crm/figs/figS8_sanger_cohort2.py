@@ -49,6 +49,13 @@ def one_tailed(a, b):
     return stats.ttest_ind(a, b, alternative="greater").pvalue
 
 
+def _bg_share(group):
+    """The share of a group's calls that the AID-null clones' own error rate accounts for."""
+    v = [RES["per_mouse"][m]["expected_false_pct"] for m in RES["per_mouse"]
+         if RES["per_mouse"][m]["group"] == group and RES["per_mouse"][m]["expected_false_pct"] is not None]
+    return f"{min(v):.0f}-{max(v):.0f}%" if v else "-"
+
+
 def main():
     setup()
     per = RES["per_mouse"]
@@ -197,10 +204,12 @@ def main():
              ("Mice, Wt / Maea / null", "4 / 4 / 3", "4 / 4 / 4"),
              ("Clones (Wt and Maea)", str(sum(PUB['mice'][m]['sequences'] for m in MICE)),
               str(sum(per[m]['clones'] for m in per if per[m]['group'] != 'Aicda_KO'))),
+             ("Background explains, Wt", "–", _bg_share("WT")),
+             ("  ...   Maea", "–", _bg_share("Maea_KO")),
              ("Shared-clone flags", "–", f"{sum(1 for f in RES['project']['qc']['flags'] if f['check'] == 'duplicate_clone')}"),
              ("Analysis", "hand-edited", f"{RES['seconds']:.0f} s")]
     for k, (a, b, c) in enumerate(lines):
-        y = 0.96 - k * 0.105
+        y = 0.96 - k * 0.096
         w = "bold" if k == 0 else "normal"
         kw = dict(fontsize=5.6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
         ax.text(0.0, y, a, color=INK, **kw)

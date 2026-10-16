@@ -39,14 +39,21 @@ def gc(sp):
             100 * sum(sp.get(k, 0) for k in TV) / tot if tot else None)
 
 
+def _bg_share(group):
+    """The share of a group's calls that the AID-null clones' own error rate accounts for."""
+    v = [RES["per_mouse"][m]["expected_false_pct"] for m in RES["per_mouse"]
+         if RES["per_mouse"][m]["group"] == group and RES["per_mouse"][m]["expected_false_pct"] is not None]
+    return f"{min(v):.0f}-{max(v):.0f}%" if v else "-"
+
+
 def main():
     setup()
     per = RES["per_mouse"]
     pub_mice = list(PUB["mice"])
     pub_g = {m: PUB["mice"][m]["group"] for m in pub_mice}
     fig = plt.figure(figsize=(FULL, 62 * MM))
-    gs = gridspec.GridSpec(1, 4, figure=fig, left=0.065, right=0.99, top=0.84, bottom=0.2, wspace=0.55,
-                           width_ratios=[1.05, 1.0, 0.92, 1.6])
+    gs = gridspec.GridSpec(1, 4, figure=fig, left=0.065, right=0.99, top=0.84, bottom=0.2, wspace=0.62,
+                           width_ratios=[1.05, 1.0, 0.95, 1.55])
 
     # A: frequency per mouse
     ax = fig.add_subplot(gs[0, 0])
@@ -84,7 +91,7 @@ def main():
     ax.set_xticks(range(4), ticks)
     ax.set_ylim(0, 40)
     ax.set_ylabel("% of mutations at G:C")
-    ax.set_title("G:C transitions and transversions", fontsize=7)
+    ax.set_title("G:C Ts and Tv", fontsize=7)
     letter(ax, "B", dx=-0.3)
 
     # C: pooled spectrum
@@ -108,7 +115,7 @@ def main():
     ax.set_ylabel("SHMtrace (%)")
     ax.set_title("Substitution spectrum", fontsize=7)
     ax.legend(loc="lower right", fontsize=5.2, handletextpad=0.2)
-    letter(ax, "C", dx=-0.32)
+    letter(ax, "C", dx=-0.26)
 
     # D: what was recovered
     ax = fig.add_subplot(gs[0, 3])
@@ -132,9 +139,11 @@ def main():
               f" / {sum(PUB['mice'][m]['sequences'] for m in pub_mice if pub_g[m] == 'Mkln1_KO')}",
               f"{sum(per[m]['clones'] for m in wt)} / {sum(per[m]['clones'] for m in mk)}"),
              ("Paralog clones removed", "–", f"{RES['excluded'].get('contaminant', 0)}"),
+             ("Background explains, Wt", "–", _bg_share("WT")),
+             ("  ...   Mkln1$^{-/-}$", "–", _bg_share("Mkln1_KO")),
              ("Analysis", "hand-edited", f"{RES['seconds']:.0f} s")]
     for k, (a, b, c) in enumerate(lines):
-        y = 0.95 - k * 0.113
+        y = 0.95 - k * 0.102
         w = "bold" if k == 0 else "normal"
         kw = dict(fontsize=5.6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
         ax.text(0.0, y, a, color=INK, **kw)

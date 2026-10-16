@@ -347,7 +347,9 @@ SUPP_FIGS = [
      "published; dashed line, identity. (C) Clones by mutations per clone, pooled by genotype, binned as published. "
      "(D) G:C transitions and transversions as a share of each mouse's mutations. (E) Pooled 12-type substitution "
      "spectra, SHMtrace against published. (F) The published comparisons and SHMtrace's, with the one-tailed "
-     "t-test used in the original study; analysis time is for the whole project from one sample sheet."),
+     "t-test used in the original study; \"background explains\" is the share of each group's calls that the "
+     "*Aicda*^{\u2212/\u2212} clones' own error rate accounts for (STAR Methods), and the analysis time is for "
+     "the whole project from one sample sheet."),
     ("Figure S9. Full-length spectra and mutation trees in each mouse, related to Figure 6",
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "

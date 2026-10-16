@@ -54,12 +54,16 @@ def run(key="cohort2"):
                   "freq_x1e4": 1e4 * s["unique_mutations"] / s["frequency_bases"] if s["frequency_bases"] else 0,
                   "freq_all_x1e4": 10 * (s["mutation_frequency_x1e3"] or 0),
                   "unique_mutations": s["unique_mutations"], "bases": s["frequency_bases"],
+                  # what the AID-null clones' own error rate would produce in this library
+                  "expected_false_calls": s.get("expected_false_calls"),
+                  "expected_false_pct": s.get("expected_false_pct"),
                   "load_bins": [sum(v for k, v in load.items() if lo <= k <= hi) for lo, hi in BINS],
                   "spectrum": sp,
                   "gc_ts_pct": 100 * sum(sp.get(k, 0) for k in TS) / tot if tot else None,
                   "gc_tv_pct": 100 * sum(sp.get(k, 0) for k in TV) / tot if tot else None}
     qc = Counter(f["check"] for f in pub["qc"]["flags"])
     json.dump({"seconds": seconds, "traces": len(rows), "clones_analysed": pub["qc"]["clones_analysed"],
+               "background": pub.get("sanger_background"),
                "excluded": Counter(e["reason"] for e in pub["qc"]["excluded"]), "qc_flags": qc,
                "per_mouse": per, "project": pub}, out_path.open("w"), default=str)
     print(f"{len(rows)} traces, {pub['qc']['clones_analysed']} clones analysed in {seconds:.0f} s; QC flags {dict(qc)}")
