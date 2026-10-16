@@ -330,6 +330,11 @@ def run(details: dict, samples: list[dict], ref: str, lo: int, hi: int, minq: in
                              "reason": rec.get("fate", ""), **prov(q)})
 
     flags.sort(key=lambda f: (SEVERITY_ORDER[f["severity"]], f["check"], f["sample"], f["clone"]))
+    # what ties each pair together, as [1-based position, base], so a person (or a check against
+    # another library of the same mice) can see the lineage rather than only its size
+    for r in pairs:
+        if r["a"] in clones and r["b"] in clones:
+            r["shared_mutations"] = sorted([p, b] for p, b in clones[r["a"]]["muts"] & clones[r["b"]]["muts"])
     summary = Counter((f["check"], f["severity"]) for f in flags)
     return {"flags": flags, "excluded": excluded, "pairs": pairs,
             "duplicate_groups": duplicate_groups(flags, clones),
@@ -373,8 +378,10 @@ def duplicate_groups(flags: list[dict], clones: dict) -> list[dict]:
         kind = set()
         for c in cs:
             kind |= kinds.get(find(c), set())
+        sets = [clones[c]["muts"] for c in cs if c in clones]
         out.append({"clones": cs, "n_clones": len(cs), "samples": samples, "n_samples": len(samples),
                     "checks": sorted(kind),
+                    "shared_mutations": sorted([p, b] for p, b in set.intersection(*sets)) if sets else [],
                     "mutations": max((clones[c]["load"] for c in cs if c in clones), default=0),
                     "severity": "problem" if len(samples) > 1 else "check"})
     out.sort(key=lambda g: (-g["n_samples"], -g["n_clones"], g["clones"][0]))
