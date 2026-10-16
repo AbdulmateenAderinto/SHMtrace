@@ -1,6 +1,6 @@
 {
   "source": "Barbulescu et al., J Immunol (2025), vkaf201. Supplementary Figure S2A (per-mouse J_H4 tables) and S2C (G:C Ts/Tv P values), transcribed 2026-10-16 from the supplementary figures PDF.",
-  "matrix_orientation": "rows = To (A, T, C, G), columns = From (A, T, C, G); diagonal is null",
+  "matrix_orientation": "rows = From (A, T, C, G), columns = To (A, T, C, G); diagonal is null. The printed tables label the columns From and the rows To, but only this reading reproduces the paper's own Supplementary Figure S2C bars (Wt G:C Ts 28%, Mkln1-/- 17%)",
   "bases": ["A", "T", "C", "G"],
   "mice": {
     "Wt1": {"group": "WT", "label": "Wt mouse #1", "sequences": 36, "f_mut": 7.2941e-3, "unique_mutations": 146,
