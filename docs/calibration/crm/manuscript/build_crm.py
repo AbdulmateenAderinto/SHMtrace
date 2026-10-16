@@ -354,6 +354,19 @@ SUPP_FIGS = [
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
+    ("Figure S10. How SHMtrace turns reads into calls, related to STAR Methods",
+     [FIG / "FigureS10_engine.png"],
+     "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
+     "libraries. (A) The fate of every delivered read under the length and expected-error gates and competitive "
+     "alignment, per library. (B) Each read's identity to the J_{H}4 target against its identity to the "
+     "paralogue; a read is analyzed at whichever it matches better. (C) Reported base quality against the error "
+     "measured in the *Aicda*^{\u2212/\u2212} controls, with the rate the quality score promises (dashed). "
+     "(D) Two candidates at the same depth in the same library, one called and one not, with the reads carrying "
+     "the change in the wild-type and in the control libraries. (E) Candidates kept against the p-value "
+     "threshold for a wild-type library and for the held-out controls used as decoys, and the threshold their "
+     "crossing sets. (F) Unique-variant density per animal, the value the group tests use. Plotted from "
+     "`intuition_jh4.json`, the per-library read accounting and the bundled example library; the equations are "
+     "the ones the code applies."),
 ]
 
 if __name__ == "__main__":

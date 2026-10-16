@@ -1,4 +1,4 @@
-"""Figure S10: a second published Sanger study re-analysed automatically (Barbulescu et al., 2025, Mkln1).
+"""A second published Sanger study re-analysed automatically (Barbulescu et al., 2025, Mkln1).
 
 A    mutation frequency per mouse: SHMtrace from the chromatograms against the published values
 B    G:C transitions and transversions per mouse, as in the published Supplementary Figure S2C
@@ -152,7 +152,7 @@ def main():
     ax.plot([0, 0.98], [0.86, 0.86], color=SOFT, lw=0.5, transform=ax.transAxes)
     ax.set_title("Published tests", fontsize=7)
     letter(ax, "D", dx=-0.04)
-    save(fig, "FigureS10_sanger_mkln")
+    save(fig, "Figure_Mkln1_sanger")
     return {"spec_r": float(r), "fold_sh": float(np.mean(shf(wt)) / np.mean(shf(mk))),
             "fold_pub": float(np.mean(pbf("WT")) / np.mean(pbf("Mkln1_KO"))), "p_sh": float(p_sh),
             "ts_p": float(ts_sh), "tv_p": float(tv_sh)}
