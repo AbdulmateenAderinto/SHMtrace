@@ -36,10 +36,19 @@ def geo(xs):
     return 10 ** np.mean(np.log10(xs))
 
 
-def separation(rows, mode):
+# OT1 and OT2 carry a third biological group beside wild type, the MLLT1/MLLT3 double knockout, which is
+# expected to sit at the control level. Pooling it into the case group would average the perturbation together
+# with wild type and hide the very effect the panel is meant to show, so these two datasets get one row per
+# AID-competent group. Every other dataset has a single case group.
+SPLIT = {"ot1": [("OT1 Wt", "WT"), ("OT1 dKO", "dKO")], "ot2": [("OT2 Wt", "WT"), ("OT2 dKO", "dKO")]}
+
+
+def separation(rows, mode, prefix=None):
+    """Geometric-mean case density over control density, for one AID-competent group (prefix) or for all."""
     rs = [r for r in rows if r["mode"] == mode]
     dens = lambda r: r["density_x1e5"] if r["calls"] else 1e5 / r["bases"]   # noqa: E731
-    case = [dens(r) for r in rs if not r["control"]]
+    case = [dens(r) for r in rs
+            if not r["control"] and (prefix is None or r["sample"].startswith(prefix))]
     ctrl = [dens(r) for r in rs if r["control"]]
     return geo(case) / geo(ctrl), sum(r["calls"] for r in rs if r["control"]), len(ctrl)
 
@@ -51,7 +60,9 @@ def main():
                               hspace=0.62, height_ratios=[1, 0.95, 0.72])
     row1 = outer[0].subgridspec(1, 5, wspace=0.42)
     row2 = outer[1].subgridspec(1, 3, wspace=0.55, width_ratios=[1, 1, 0.85])
-    avail = [(k, t) for k, t in SETS if load(k)]
+    # rows of F and G: one per dataset, except OT1/OT2 which contribute one row per AID-competent group
+    avail = [(k, lbl, pre) for k, _t in SETS if load(k)
+             for lbl, pre in SPLIT.get(k, [(SHORTSET[k], None)])]
     panels = [(k, t) for k, t in PANEL_SETS if load(k)]
     for i, (key, title) in enumerate(panels):
         ax = fig.add_subplot(row1[0, i])
@@ -84,21 +95,38 @@ def main():
     for p, (idx, title, which) in enumerate(((0, "Separation, case / control", 0), (1, "Calls in AID-null controls", 1))):
         ax = fig.add_subplot(row2[0, idx])
         mat = np.full((len(avail), len(SHOW)), np.nan)
-        for i, (key, _t) in enumerate(avail):
+        # G counts calls in a dataset's control libraries, which do not depend on the case group, so a dataset
+        # split across two rows in F reports them once, on its first row
+        seen = set()
+        for i, (key, _lbl, pre) in enumerate(avail):
             for j, c in enumerate(SHOW):
-                fold, ctl_calls, n_ctl = separation(load(key), c)
-                mat[i, j] = fold if which == 0 else ctl_calls
+                fold, ctl_calls, n_ctl = separation(load(key), c, pre)
+                if which == 0:
+                    mat[i, j] = fold
+                elif key not in seen:
+                    mat[i, j] = ctl_calls
+            seen.add(key)
         show = np.log10(np.clip(mat, 1, None)) if which == 0 else mat
         cmap = "Blues" if which == 0 else "Reds"
         ax.imshow(show, cmap=cmap, aspect="auto", vmin=0, vmax=np.nanmax(show) * 1.15)
         for i in range(mat.shape[0]):
             for j in range(mat.shape[1]):
                 v = mat[i, j]
+                if np.isnan(v):
+                    continue
                 txt = (f"{v:.0f}" if v >= 10 else f"{v:.1f}") if which == 0 else f"{v:.0f}"
                 dark = show[i, j] > np.nanmax(show) * 0.6
                 ax.text(j, i, txt, ha="center", va="center", fontsize=5.3, color="white" if dark else INK)
         ax.set_xticks(range(len(SHOW)), [SHORT[c] for c in SHOW], rotation=55, ha="right")
-        ax.set_yticks(range(len(avail)), [SHORTSET[k] for k, _t in avail])
+        # F is per case group ("OT1 Wt", "OT1 dKO"); G is per dataset, so a split dataset is named once
+        if which == 0:
+            labs = [lbl for _k, lbl, _p in avail]
+        else:
+            first, labs = set(), []
+            for k, _lbl, _p in avail:
+                labs.append("" if k in first else SHORTSET[k])
+                first.add(k)
+        ax.set_yticks(range(len(avail)), labs)
         ax.tick_params(length=0)
         for s in ax.spines.values():
             s.set_visible(False)

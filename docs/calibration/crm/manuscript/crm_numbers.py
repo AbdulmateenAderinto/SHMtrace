@@ -10,6 +10,7 @@ REPLICATES_AND_POWER and UMI (data-independent).
 """
 import json
 import math
+import re
 import statistics
 import sys
 from collections import Counter, defaultdict
@@ -456,17 +457,25 @@ def compute():
         by = defaultdict(list)
         for s in o["samples"]:
             by[s["group"]].append(s)
-        geo_off = lambda g, by=by: statistics.geometric_mean(  # noqa: E731
-            [max(s["mutation_frequency_x1e3"] or 0, 1e-6) for s in by[g]])
+        # controls left out of the decoys by the noisy-control rule, named so the text can report them
+        drop = [m.group(1) for n in o.get("notes", [])
+                if (m := re.search(r"Control (\S+) is far noisier", n))]
+        N[f"{k}_ctl_drop"] = series(drop) if drop else ""
         N[f"{k}_wt"] = series(s["unique_mutations"] for s in by["vehicle"])
         N[f"{k}_dko"] = series(s["unique_mutations"] for s in by["dKO"])
         N[f"{k}_ko"] = series(s["unique_mutations"] for s in by["AID_KO"])
-        N[f"{k}_fold"] = f"{geo_off('vehicle') / geo_off('AID_KO'):,.0f}"
-        # the double knockout is at the Aicda-/- level, so a fold against it is meaningless: test instead
+        # No fold is quoted for these libraries. Controls with no calls would have to be floored before a ratio
+        # could be taken, and the floor, not the data, would then set its size; the groups are compared by their
+        # densities and a test on them instead (the reviewer's point; see REVIEW_RESPONSE.md, major issue 1).
+        grp = {g["group"]: g for g in o["groups"]}
+        for g, tag in (("vehicle", "wt"), ("dKO", "dko"), ("AID_KO", "ko")):
+            N[f"{k}_{tag}_dens"] = f2(grp[g]["unique_density_x1e5_mean"])
+            N[f"{k}_{tag}_sd"] = f2(grp[g]["unique_density_x1e5_sd"])
+        # the double knockout is at the Aicda-/- level, so it is tested against both the controls and the vehicle
         lg = lambda g, by=by: [math.log10(max(s["mutation_frequency_x1e3"] or 0, 1e-4))  # noqa: E731
                                for s in by[g]]
         N[f"{k}_p_dko"] = pfmt(float(stats.ttest_ind(lg("vehicle"), lg("dKO"), equal_var=False)[1]))
-        N[f"{k}_dko_vs_ko"] = f"{geo_off('dKO') / geo_off('AID_KO'):.1f}"
+        N[f"{k}_p_dko_ko"] = pfmt(grp["dKO"]["unique_density_x1e5_p_welch_log_vs_AID_KO"])
         vs = [v for s in by["vehicle"] for v in o["variants"] if v["sample"] == s["sample"]]
         N[f"{k}_gc"] = pct(sum(v["ref"] in "CG" for v in vs) / len(vs))
         N[f"{k}_n"] = f0(len(vs))
