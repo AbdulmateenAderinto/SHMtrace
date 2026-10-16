@@ -9,6 +9,7 @@ spike-ins, simulations, public data), the Sanger calls, and the simulation outpu
 REPLICATES_AND_POWER and UMI (data-independent).
 """
 import json
+import statistics
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -487,6 +488,42 @@ def compute():
         m, b = (sum(v[i] for qq, v in q.items() if int(qq) >= 40) for i in (0, 1))
         hiq.append(m / b)
     N.update(q40_lo=f"{min(hiq) * 1e5:.0f}", q40_hi=f"{max(hiq) * 1e5:.0f}")
+    # ectopic AID in non-B cells (PRJNA170048, Perez-Duran et al.): the dead-AID control reveals the
+    # UNG-dependent spectrum that every-mismatch counting blurs (out/public/morange)
+    mo = _load(OUT / "public/morange/project.json")
+    au = _load(OUT / "public/morange/authors_counts.json")["libraries"]
+    mv = defaultdict(list)
+    for v in mo["variants"]:
+        mv[v["sample"]].append(v)
+    ms = {s["sample"]: s for s in mo["samples"]}
+    for arm in ("Control", "Ugi", "UNG"):
+        vs = [v for e in (1, 2, 3) for v in mv[f"Exp{e}_{arm}_AID"]]
+        gc = [v for v in vs if v["ref"] in "CG"]
+        N[f"mo_{arm.lower()}_ts"] = pct(sum((v["ref"], v["alt"]) in (("C", "T"), ("G", "A"))
+                                            for v in gc) / len(gc))
+        N[f"mo_{arm.lower()}_ts_raw"] = pct(statistics.mean(
+            au[f"Exp{e}_{arm}_AID"]["pct_transition_at_GC"] for e in (1, 2, 3)) / 100)
+        N[f"mo_{arm.lower()}_calls"] = f0(sum(ms[f"Exp{e}_{arm}_AID"]["unique_mutations"] for e in (1, 2, 3)))
+        N[f"mo_{arm.lower()}_dead"] = f0(sum(ms[f"Exp{e}_{arm}_AIDE58Q"]["unique_mutations"] for e in (1, 2, 3)))
+        g = lambda k: statistics.geometric_mean(   # noqa: E731
+            [max(ms[f"Exp{e}_{arm}_{k}"]["mutation_frequency_x1e3"] or 0, 1e-6) for e in (1, 2, 3)])
+        N[f"mo_{arm.lower()}_fold"] = f0(g("AID") / g("AIDE58Q"))
+        gr = lambda k: statistics.geometric_mean(  # noqa: E731
+            [au[f"Exp{e}_{arm}_{k}"]["freq_x1e3"] for e in (1, 2, 3)])
+        N[f"mo_{arm.lower()}_fold_raw"] = f1(gr("AID") / gr("AIDE58Q"))
+    N["mo_dead_ts"] = (f'{min(au[f"Exp{e}_{a}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}'
+                       f'–{max(au[f"Exp{e}_{a}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}')
+    allv = [v for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG") for v in mv[f"Exp{e}_{a}_AID"]]
+    N["mo_calls"] = f0(len(allv))
+    N["mo_gc"] = pct(sum(v["ref"] in "CG" for v in allv) / len(allv))
+    N["mo_wrc"] = (f'{min(ms[f"Exp{e}_{a}_AID"]["pct_GC_in_WRC_GYW"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}'
+                   f'–{max(ms[f"Exp{e}_{a}_AID"]["pct_GC_in_WRC_GYW"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}')
+    N["mo_raw_lo"] = f2(min(au[f"Exp{e}_{a}_AIDE58Q"]["freq_x1e3"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")))
+    N["mo_raw_hi"] = f2(max(au[f"Exp{e}_{a}_AIDE58Q"]["freq_x1e3"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")))
+    N["mo_noisy_calls"] = f0(ms["Exp3_Control_AIDE58Q"]["unique_mutations"])
+    N["mo_noisy_gc"] = f1(ms["Exp3_Control_AIDE58Q"]["pct_GC"])
+    N["mo_noisy_gc_raw"] = f1(au["Exp3_Control_AIDE58Q"]["pct_GC"])
+    N["mo_clean_gc_raw"] = (f'{au["Exp1_Control_AIDE58Q"]["pct_GC"]:.0f} and {au["Exp2_Control_AIDE58Q"]["pct_GC"]:.0f}')
     # indels planted into held-out nanopore controls (indel_spike.py)
     for k in ("jh4", "n114"):
         r = indel_spike.summary(k)

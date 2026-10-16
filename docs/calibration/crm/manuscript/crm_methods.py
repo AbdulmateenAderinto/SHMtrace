@@ -20,6 +20,8 @@ KRT = [
     ("Illumina J_{H}4, *Ldha* study", "Sharma et al.[@sharma2023]", "BioProject PRJNA973112; GEO GSE232658"),
     ("Illumina CH12F3 VDJ, ectopic AID", "Wang et al.[@wang2023]", "BioProject PRJNA918596"),
     ("Illumina Ramos IGH VDJ, HMCES", "Wu et al.[@wu2022]", "BioProject PRJNA820976"),
+    ("Illumina mOrange reporter, ectopic AID in NIH-3T3 cells", "Pérez-Durán et al.[@perezduran2012]",
+     "BioProject PRJNA170048; GEO GSE39108"),
     ("R10 nanopore reads with dual UMIs, ZymoBIOMICS operons", "Karst et al.[@karst2021]", "github.com/SorenKarst/longread_umi"),
     ("**Experimental models: Cell lines**", "", ""),
     ("N114 hybridoma", "Martin et al.[@martin2002]", "N/A"),
@@ -202,7 +204,13 @@ METHODS = [
     ("p", "PRJNA973112 (J_{H}4, positions 53–122, 5,000 merged read pairs per mouse), PRJNA918596 (CH12F3 VDJ, "
           "positions 21–249, 5,000 reads per replicate), and PRJNA820976 (Ramos VDJ, positions 26–446, 20,000 "
           "reads per clone, with indel calling) were analyzed with the same analysis engine and Illumina settings, "
-          "using the AID-null groups as controls and the S5F model. The CH12F3 and Ramos references were the "
+          "using the AID-null groups as controls and the S5F model. PRJNA170048 (mOrange reporter, positions "
+          "75–693 of the original numbering, 200,000 of the first 600,000 reads per library, about 10,600 reads "
+          "per position) was analyzed the same way, with the catalytically dead AID-E58Q-ER libraries of the "
+          "empty-vector arm as controls and the dead-AID libraries of the other two arms left as samples; its "
+          "reference was rebuilt from the position and reference-nucleotide columns of the study's own "
+          "supplementary table, and the same table's per-position counts were used for the comparison with "
+          "every-mismatch counting. The CH12F3 and Ramos references were the "
           "majority consensus of the control reads. Because these libraries are sequenced far beyond one read per "
           "molecule, mutation frequency rather than unique-variant density was compared. UMI consensus was "
           "evaluated on 4,259 R10 reads of rRNA operons carrying 18-nt UMIs at both ends[@karst2021]. Reads were "
@@ -295,7 +303,11 @@ LEGENDS = [
      "vector (PRJNA918596; n = 4). (C) Spectrum and targeting of AID and R174E/R178E calls; the mutant's calls cluster "
      "at positions {ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
      "(PRJNA820976; n = 6). (E) Error per base of UMI consensus against raw R10 reads by reads per molecule "
-     "(rRNA operons[@karst2021]; 103 molecules). See also Table S2."),
+     "(rRNA operons[@karst2021]; 103 molecules). (F) Share of transitions among mutations at C:G in NIH-3T3 "
+     "cells expressing AID-ER and an mOrange reporter (PRJNA170048), by the repair context set by a third "
+     "vector: SHMtrace's calls against every mismatch at quality > 20, as counted in the original study; "
+     "shaded, the same share in the catalytically dead AID-E58Q-ER libraries (mean of three experiments each). "
+     "See also Table S2."),
 ]
 
 TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
@@ -316,6 +328,9 @@ TABLE1 = [
     ("PRJNA820976[@wu2022]", "Illumina", "IGH VDJ (421 bp)", "6 Wt, 6 HMCES-KO clones", "3 AID-KO clones",
      "Figure 7"),
     ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
+     "Figure 7"),
+    ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (679 bp)",
+     "AID-ER in NIH-3T3 cells, 3 experiments x 3 repair contexts", "catalytically dead AID-E58Q-ER",
      "Figure 7"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "Figures 3 and 5"),

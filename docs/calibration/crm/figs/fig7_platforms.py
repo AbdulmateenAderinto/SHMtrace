@@ -5,8 +5,11 @@ B  CH12F3 Ung-/-Msh2-/-Aicda-/- (PRJNA918596): mutation frequency per replicate 
 C  spectrum and targeting of AID and R174E/R178E calls
 D  Ramos (PRJNA820976): deletions and insertions per clone
 E  UMI consensus on R10 reads (Karst et al.): error per base by reads per molecule
+F  ectopic AID in non-B cells (PRJNA170048): transitions among C:G mutations with and without the
+   catalytically dead AID control, in three repair contexts
 """
 import json
+from collections import defaultdict
 
 import numpy as np
 from matplotlib import gridspec
@@ -35,7 +38,7 @@ def strip(ax, groups, values, colors, floor):
 def main():
     setup()
     fig = plt.figure(figsize=(FULL, 112 * MM))
-    gs = gridspec.GridSpec(2, 6, figure=fig, left=0.085, right=0.99, top=0.93, bottom=0.17, wspace=1.25, hspace=0.95)
+    gs = gridspec.GridSpec(2, 6, figure=fig, left=0.075, right=0.975, top=0.93, bottom=0.17, wspace=1.35, hspace=0.95)
     # A
     ax = fig.add_subplot(gs[0, 0:2])
     p = json.load(open(PUB / "ldha/project.json"))
@@ -81,7 +84,7 @@ def main():
     ax.legend(fontsize=5.2, loc="upper center", bbox_to_anchor=(0.5, -0.3), ncol=3, handlelength=1, columnspacing=0.7)
     letter(ax, "C", dx=-0.42)
     # D
-    ax = fig.add_subplot(gs[1, 0:3])
+    ax = fig.add_subplot(gs[1, 0:2])
     p = json.load(open(PUB / "hmces/project.json"))
     groups = [("WT", "Wt", CASEF, CASE), ("HMCES_KO", "HMCES-KO", "#b9a3d6", "#6a4c93"), ("AID_KO", "AID-KO", CTRLF, CTRL)]
     for j, kind in enumerate(("deletions", "insertions")):
@@ -90,14 +93,14 @@ def main():
             x = j * 3.6 + i
             ax.bar(x, np.mean(v), 0.75, color=f, edgecolor=e, lw=0.6)
             ax.scatter(x + np.linspace(-0.2, 0.2, len(v)), v, s=7, color=e, zorder=3)
-    ax.set_xticks([0, 1, 2, 3.6, 4.6, 5.6], ["Wt", "HMCES\nKO", "AID\nKO"] * 2)
+    ax.set_xticks([0, 1, 2, 3.6, 4.6, 5.6], ["Wt", "HMCES\nKO", "AID\nKO"] * 2, fontsize=5.4)
     ax.text(1, -0.36, "deletions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
     ax.text(4.6, -0.36, "insertions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
     ax.set_ylabel("Events per clone (20,000 reads)")
     ax.set_title("Indels in Ramos, Illumina (Wu et al.)", fontsize=7)
-    letter(ax, "D", dx=-0.16)
+    letter(ax, "D", dx=-0.3, dy=1.1)
     # E
-    ax = fig.add_subplot(gs[1, 3:6])
+    ax = fig.add_subplot(gs[1, 2:4])
     u = json.load(open(CAL / "umi_karst/results.json"))["summary"]
     bins = ["3-4", "5-9", "10-19", "20-+"]
     x = np.arange(len(bins))
@@ -115,7 +118,33 @@ def main():
     ax.set_ylabel("Error per base (%)")
     ax.set_title(f"UMI consensus, R10 reads ({u['molecules_3plus_reads']} molecules)", fontsize=7)
     ax.legend(fontsize=5.3, loc="lower left")
-    letter(ax, "E", dx=-0.16)
+    letter(ax, "E", dx=-0.26, dy=1.1)
+    # F: the dead-AID control reveals the UNG-dependent spectrum
+    ax = fig.add_subplot(gs[1, 4:6])
+    mo = json.load(open(PUB / "morange/project.json"))
+    au = json.load(open(PUB / "morange/authors_counts.json"))["libraries"]
+    arms = ("Ugi", "Control", "UNG")
+    V = defaultdict(list)
+    for v in mo["variants"]:
+        V[v["sample"]].append(v)
+    ours, theirs, dead = [], [], []
+    for arm in arms:
+        vs = [v for e in (1, 2, 3) for v in V[f"Exp{e}_{arm}_AID"]]
+        gc = [v for v in vs if v["ref"] in "CG"]
+        ours.append(100 * sum((v["ref"], v["alt"]) in (("C", "T"), ("G", "A")) for v in gc) / len(gc))
+        theirs.append(np.mean([au[f"Exp{e}_{arm}_AID"]["pct_transition_at_GC"] for e in (1, 2, 3)]))
+        dead.append(np.mean([au[f"Exp{e}_{arm}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3)]))
+    x = np.arange(3)
+    ax.axhspan(min(dead), max(dead), color=CTRL, alpha=0.13, lw=0)
+    ax.text(0.04, np.mean(dead), "dead-AID background", fontsize=5, color=CTRL, ha="left", va="center")
+    ax.plot(x, theirs, marker="s", ms=3.4, lw=1, color=MID, mfc="white", label="every mismatch, Q > 20")
+    ax.plot(x, ours, marker="o", ms=3.4, lw=1.2, color=CASE, label="SHMtrace calls")
+    ax.set_xticks(x, ["Ugi\n(UNG off)", "empty", "UNG\n(extra)"], fontsize=5.4)
+    ax.set_ylim(-4, 104)
+    ax.set_ylabel("Transitions at C:G (%)")
+    ax.set_title("Ectopic AID, non-B cells (Pérez-Durán)", fontsize=6.6)
+    ax.legend(fontsize=5.2, loc="lower left", handlelength=1.5, borderaxespad=0.3)
+    letter(ax, "F", dx=-0.3, dy=1.1)
     save(fig, "Figure7")
 
 

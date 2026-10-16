@@ -36,6 +36,10 @@ MANUAL = {
     "zheng2026": "Zheng, Z., Chen, L., Su, J., Yu, X., He, M., Lee, Y.-L., Lam, T.-W., and Luo, R. (2026). ClairS: a "
                  "deep-learning method for long-read tumor–normal pair somatic small variant calling. Nat. Methods "
                  "23, 1507–1520. 10.1038/s41592-026-03152-4.",
+    # Perez-Duran et al.: ectopic AID in non-B cells (authors, volume and pages from Crossref)
+    "perezduran2012": "Pérez-Durán, P., Belver, L., de Yébenes, V.G., Delgado, P., Pisano, D.G., and Ramiro, "
+                      "A.R. (2012). UNG shapes the specificity of AID-induced somatic hypermutation. J. Exp. "
+                      "Med. 209, 1379–1389. 10.1084/jem.20112253.",
     # DeepVariant and DeepSomatic: authors, volumes and pages from Crossref (Cell Press: first 10 authors, et al.)
     "poplin2018": "Poplin, R., Chang, P.-C., Alexander, D., Schwartz, S., Colthurst, T., Ku, A., Newburger, D., "
                   "Dijamco, J., Nguyen, N., Afshar, P.T., et al. (2018). A universal SNP and small-indel variant "

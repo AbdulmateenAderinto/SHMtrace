@@ -336,7 +336,7 @@ RESULTS = [
           "that did not resemble AID activity ({hmces_ko3_gc}% at G:C), whereas the other two control clones had "
           "none. When used as a decoy, such a control raises the significance threshold until no substitution "
           "passes in any other clone. SHMtrace therefore sets aside a control that is far noisier than the other "
-          "controls and names it in the report; this was the only control set aside in any dataset analyzed here. "
+          "controls and names it in the report; it did so in one other dataset (Figure 7F). "
           "With that control set aside, Wt and HMCES-deficient clones carried {hm_calls} substitutions each, "
           "{hmces_gc_range}% of them at G:C, as expected for AID. When the clone was instead analyzed as a sample, "
           "the corresponding values were {hmk3_calls} substitutions and {hmk3_gc}% at G:C."),
@@ -345,6 +345,23 @@ RESULTS = [
           "most residual errors in homopolymer indels. Substitution errors fell to about 1 in 10,000 bases with "
           "10 or more reads per molecule (Figure 7E), which is 100-fold below the mutation frequency of Wt "
           "J_{H}4."),
+    ("p", "Finally, we re-analyzed a system in which AID acts outside a B cell and its own catalytically dead "
+          "mutant is the control: NIH-3T3 fibroblasts expressing AID-ER or AID-E58Q-ER together with an "
+          "mOrange reporter, in three repair contexts set by a third vector (empty, the UNG inhibitor Ugi, or "
+          "UNG itself), sequenced as 36-bp fragments[@perezduran2012]. Counting every mismatch at quality > 20, "
+          "as the original study did, the dead-AID libraries carried {mo_raw_lo}–{mo_raw_hi} mutations per "
+          "10^{3} bases of sequencing error, so AID exceeded its own dead mutant only "
+          "{mo_control_fold_raw}-fold in the empty arm. Calibrated against the dead-AID libraries of the same "
+          "experiments, SHMtrace called {mo_calls} mutations across the nine AID libraries, all of them at G:C "
+          "and {mo_wrc}% in WRC/GYW motifs, and {mo_ugi_dead} and {mo_ung_dead} in the dead-AID libraries of "
+          "the Ugi and UNG arms, which were analyzed as samples. The separation rose to {mo_control_fold}-, "
+          "{mo_ugi_fold}-, and {mo_ung_fold}-fold in the empty, Ugi, and UNG arms. Removing the background also "
+          "recovered the repair biology that it obscures (Figure 7F): among the called C:G mutations, "
+          "transitions made up {mo_ugi_ts}% when UNG was inhibited, {mo_control_ts}% in the empty arm, and "
+          "{mo_ung_ts}% when UNG was overexpressed, a swing that every-mismatch counting compresses to "
+          "{mo_ugi_ts_raw}%, {mo_control_ts_raw}%, and {mo_ung_ts_raw}% because the dead-AID background sits at "
+          "{mo_dead_ts}% transitions in every arm. With three experiments per arm, and one noisy control among "
+          "them, the animal-level tests did not reach significance despite these differences."),
 ]
 
 DISCUSSION = [
