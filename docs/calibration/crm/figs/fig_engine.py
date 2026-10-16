@@ -1,4 +1,4 @@
-"""Figure S10: how SHMtrace turns reads into calls - the decisions, the equations, and real data.
+"""Figure S11: how SHMtrace turns reads into calls - the decisions, the equations, and real data.
 
 Six stages, each with what it does, the rule it applies, and a panel of data from the J_H4
 libraries showing that stage working. Everything plotted is read from out/intuition_jh4.json
@@ -238,7 +238,7 @@ def main():
         _stage_box(fig.add_subplot(gs[i, 0]), num, title, body, eq)
         ax = fig.add_subplot(gs[i, 1])
         panel(ax)
-    save(fig, "FigureS10_engine")
+    save(fig, "FigureS11_engine")
 
 
 if __name__ == "__main__":

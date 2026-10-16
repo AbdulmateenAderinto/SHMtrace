@@ -616,6 +616,45 @@ def compute():
         N["c2_mk_ko_p"] = pfmt(grp["Maea_KO"]["mutation_frequency_x1e3_p_welch_log_vs_Aicda_KO"])
         N["c2_dup_flags"] = f"{sum(1 for x in c2['project']['qc']['flags'] if x['check'] == 'duplicate_clone')}"
         N["c2_filed_twice"] = word(sum(1 for x in c2["project"]["qc"]["flags"] if x["check"] == "duplicate_file") // 2)
+    # the second published Sanger study: Barbulescu et al. (2025), Mkln1 (sanger_cohort2.py mkln)
+    f = OUT / "sanger_mkln.json"
+    if f.exists():
+        mk = _load(f)
+        pubm = _load(CRM / "published/barbulescu2025_jh4_mkln.json")
+        perm = mk["per_mouse"]
+        B5 = "ATCG"
+        def pspec_m(m):  # noqa: E306  (rows = To, columns = From, as printed)
+            mat = pubm["mice"][m]["matrix"]
+            return {f"{B5[j]}>{B5[i]}": mat[i][j] for i in range(4) for j in range(4) if i != j}
+        def tv_m(sp):  # noqa: E306
+            tot = sum(sp.values())
+            return 100 * sum(sp.get(k, 0) for k in ("C>A", "C>G", "G>C", "G>T")) / tot
+        wtm = [m for m in perm if perm[m]["group"] == "WT"]
+        kom = [m for m in perm if perm[m]["group"] == "Mkln1_KO"]
+        pw = [1e4 * pubm["mice"][m]["f_mut"] for m in pubm["mice"] if pubm["mice"][m]["group"] == "WT"]
+        pk = [1e4 * pubm["mice"][m]["f_mut"] for m in pubm["mice"] if pubm["mice"][m]["group"] == "Mkln1_KO"]
+        shw, shk = [perm[m]["freq_x1e4"] for m in wtm], [perm[m]["freq_x1e4"] for m in kom]
+        N["mk_traces"] = f"{mk['traces']}"
+        N["mk_fold"] = f1(float(np.mean(shw) / np.mean(shk)))
+        N["mk_pub_fold"] = f1(float(np.mean(pw) / np.mean(pk)))
+        N["mk_p"] = pfmt(float(stats.ttest_ind(shw, shk, alternative="greater")[1]))
+        N["mk_pub_p"] = pfmt(float(stats.ttest_ind(pw, pk, alternative="greater")[1]))
+        tvw, tvk = [tv_m(perm[m]["spectrum"]) for m in wtm], [tv_m(perm[m]["spectrum"]) for m in kom]
+        ptw = [tv_m(pspec_m(m)) for m in pubm["mice"] if pubm["mice"][m]["group"] == "WT"]
+        ptk = [tv_m(pspec_m(m)) for m in pubm["mice"] if pubm["mice"][m]["group"] == "Mkln1_KO"]
+        N["mk_tv_wt"], N["mk_tv_ko"] = f"{np.mean(tvw):.0f}", f"{np.mean(tvk):.0f}"
+        N["mk_tv_p"] = pfmt(float(stats.ttest_ind(tvw, tvk)[1]))
+        N["mk_tv_pub_wt"], N["mk_tv_pub_ko"] = f"{np.mean(ptw):.0f}", f"{np.mean(ptk):.0f}"
+        N["mk_tv_pub_p"] = pfmt(float(stats.ttest_ind(ptw, ptk)[1]))
+        TY = sorted(pspec_m(next(iter(pubm["mice"]))))
+        xs, ys = [], []
+        for grp_s, grp_p in ((wtm, "WT"), (kom, "Mkln1_KO")):
+            sh = {k: sum(perm[m]["spectrum"].get(k, 0) for m in grp_s) for k in TY}
+            pb = {k: sum(pspec_m(m)[k] for m in pubm["mice"] if pubm["mice"][m]["group"] == grp_p) for k in TY}
+            xs += [pb[k] / sum(pb.values()) for k in TY]
+            ys += [sh[k] / sum(sh.values()) for k in TY]
+        N["mk_spec_r"] = f2(float(stats.pearsonr(xs, ys)[0]))
+        N["mk_paralog"] = f"{mk['excluded'].get('contaminant', 0)}"
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())

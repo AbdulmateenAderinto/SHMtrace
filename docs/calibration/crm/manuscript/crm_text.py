@@ -314,6 +314,15 @@ RESULTS = [
           "different mice ({c2_dup_flags} pairs) and {c2_filed_twice} traces filed under two mice, which were "
           "analyzed as filed and reported rather than removed."),
 
+    ("p", "The same automated re-analysis of the *Mkln1* study[@barbulescu2025], whose clones were filed in "
+          "per-mouse folders of the original analysis, read {mk_traces} chromatograms and found mutation frequency "
+          "{mk_fold}-fold lower in *Mkln1*^{−/−} than in wild-type mice (published, {mk_pub_fold}-fold; "
+          "p = {mk_p} and {mk_pub_p}) and G:C transversions rising from {mk_tv_wt}% to {mk_tv_ko}% of mutations "
+          "(published per-mouse tables, {mk_tv_pub_wt}% to {mk_tv_pub_ko}%; p = {mk_tv_p} and {mk_tv_pub_p}), "
+          "with pooled spectra correlated at r = {mk_spec_r} (Figure S9). The paralog filter left out "
+          "{mk_paralog} clones that the original analysis kept in its denominators; they carried almost no "
+          "mutations, so they lower frequencies without changing spectra."),
+
     ("h", "Long reads add whole-amplicon maps, clones, and mutation trees"),
     ("p", "Because each nanopore read spans the entire 1,230-bp J_{H}4 amplicon, the whole product can be analyzed "
           "(Figure 6A). Over the reliably covered positions 90–1,230, Wt libraries carried {full_fold} times the "
@@ -321,7 +330,7 @@ RESULTS = [
           "first 450 bp, and the number of mutations declined about {full_decline}-fold between the first and "
           "last 250 bp, consistent with the decline of SHM about 1 kb from the V(D)J junction[@lebecque1990]. "
           "Extending the analysis to the full interval did not change the mutation spectrum, which matched the "
-          "spectrum of the Sanger window (r = {s1_r}; Figure S9)."),
+          "spectrum of the Sanger window (r = {s1_r}; Figure S10)."),
     ("p", "Mutations in Wt libraries favored the positions that the S5F model considers most mutable. The "
           "targeting index, the mean S5F mutability at mutated positions relative to the window, was {s5f_wt} "
           "(p ≤ {s5f_wt_p}, permutation test), and mutations per position increased {s5f_dose}-fold from the least "

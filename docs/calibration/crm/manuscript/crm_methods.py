@@ -156,7 +156,7 @@ METHODS = [
           "exported from SHazaM 1.2.0. Positional clustering flags any 10-base window containing more calls than a "
           "Poisson distribution allows (Bonferroni correction across windows, p < 10^{−3}). Each stage of the "
           "analysis, the rule it applies and that rule working on the J_{H}4 libraries are shown together in "
-          "Figure S10. Sanger chromatograms "
+          "Figure S11. Sanger chromatograms "
           "are assigned to animals through a sample sheet and trimmed to their longest stretch of base quality "
           "≥ 20 that aligns cleanly, and every substitution at quality ≥ 20 is counted after the germline filter. "
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
@@ -322,7 +322,7 @@ LEGENDS = [
      "relative to each series' mean; targeting index, permutation test. (C) Reads with a V(D)J junction by clone "
      "(dark, largest clone) and the read- and clone-weighted mutation frequencies. (D) Mutation tree of the largest "
      "Wt3 clone: square, unmutated ancestor; ticks, mutations colored by class; circles, nodes, sized and labeled "
-     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S9."),
+     "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S10."),
     ("Figure 7. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
      "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
@@ -348,6 +348,8 @@ TABLE1 = [
      "10–11 clones per *Aicda*^{−/−} mouse", "Figure 5"),
     ("J_{H}4 Sanger, published study[@barbulescu2024]", "Sanger", "J_{H}4 intron (529 bp)",
      "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "4 *Aicda*^{−/−} mice", "Figure S8"),
+    ("J_{H}4 Sanger, published study[@barbulescu2025]", "Sanger", "J_{H}4 intron (529 bp)",
+     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–66 clones each", "3 *Aicda*^{−/−} mice", "Figure S9"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
     ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (1,008 and 982 bp)",
@@ -370,7 +372,7 @@ TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Na
                "molecular identifier.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S10 and Tables S1 and S3",
+    "Document S1. Figures S1–S11 and Tables S1 and S3",
     "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

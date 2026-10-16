@@ -350,12 +350,24 @@ SUPP_FIGS = [
      "t-test used in the original study; \"background explains\" is the share of each group's calls that the "
      "*Aicda*^{\u2212/\u2212} clones' own error rate accounts for (STAR Methods), and the analysis time is for "
      "the whole project from one sample sheet."),
-    ("Figure S9. Full-length spectra and mutation trees in each mouse, related to Figure 6",
+    ("Figure S9. A second published Sanger study re-analyzed automatically, related to Figure 5",
+     [FIG / "FigureS9_sanger_mkln.png"],
+     "J_{H}4 clones of germinal-center B cells from three wild-type (blue), three *Mkln1*^{\u2212/\u2212} "
+     "(purple) and three *Aicda*^{\u2212/\u2212} (red) mice[@barbulescu2025], each clone assigned to the mouse "
+     "folder it was filed under in the original analysis. Filled symbols, SHMtrace from the chromatograms; open "
+     "squares, the published values, replotted from the paper's per-mouse tables (Supplementary Figure S2A). "
+     "(A) Unique mutations per 10^{4} bases sequenced, per mouse; lines, means. (B) G:C transitions and "
+     "transversions as a share of each mouse's mutations. (C) Pooled 12-type substitution spectra, SHMtrace "
+     "against published. (D) The comparisons, published and SHMtrace's; the published P values are computed "
+     "from the per-mouse tables as printed, and the values the paper's summary bars report (Supplementary "
+     "Figure S2C) are listed separately. Paralog clones are J_{H}4-paralog amplicons, which SHMtrace analyzes "
+     "apart from J_{H}4; \"background explains\" is as in Figure S8."),
+    ("Figure S10. Full-length spectra and mutation trees in each mouse, related to Figure 6",
      [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
      "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
-    ("Figure S10. How SHMtrace turns reads into calls, related to STAR Methods",
-     [FIG / "FigureS10_engine.png"],
+    ("Figure S11. How SHMtrace turns reads into calls, related to STAR Methods",
+     [FIG / "FigureS11_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
      "libraries. (A) The fate of every delivered read, per library: gated by length or expected error, sent "
      "elsewhere by competitive alignment, or usable (Figure S1 separates the gates). (B) Each read's identity "

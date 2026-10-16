@@ -1,4 +1,4 @@
-"""A second published Sanger study re-analysed automatically (Barbulescu et al., 2025, Mkln1).
+"""Figure S9: a second published Sanger study re-analysed automatically (Barbulescu et al., 2025, Mkln1).
 
 A    mutation frequency per mouse: SHMtrace from the chromatograms against the published values
 B    G:C transitions and transversions per mouse, as in the published Supplementary Figure S2C
@@ -28,9 +28,9 @@ TS, TV = ("C>T", "G>A"), ("C>A", "C>G", "G>C", "G>T")
 
 
 def pub_spec(m):
-    """{'A>T': n, ...} for a published mouse; its matrix is rows = From, columns = To (see the JSON)."""
+    """{'A>T': n, ...} for a published mouse; its matrix is rows = To, columns = From, as printed."""
     mat = PUB["mice"][m]["matrix"]
-    return {f"{B[i]}>{B[j]}": mat[i][j] for i in range(4) for j in range(4) if i != j}
+    return {f"{B[j]}>{B[i]}": mat[i][j] for i in range(4) for j in range(4) if i != j}
 
 
 def gc(sp):
@@ -127,14 +127,19 @@ def main():
     p_sh = stats.ttest_ind(shf(wt), shf(mk), alternative="greater").pvalue
     ts_sh = stats.ttest_ind([gc(per[m]["spectrum"])[0] for m in wt], [gc(per[m]["spectrum"])[0] for m in mk]).pvalue
     tv_sh = stats.ttest_ind([gc(per[m]["spectrum"])[1] for m in wt], [gc(per[m]["spectrum"])[1] for m in mk]).pvalue
-    ko = [per[m]["freq_x1e4"] for m in per if per[m]["group"] == "Aicda_KO"]
+    pw_ts = [gc(pub_spec(m))[0] for m in pub_mice if pub_g[m] == "WT"]
+    pk_ts = [gc(pub_spec(m))[0] for m in pub_mice if pub_g[m] == "Mkln1_KO"]
+    pw_tv = [gc(pub_spec(m))[1] for m in pub_mice if pub_g[m] == "WT"]
+    pk_tv = [gc(pub_spec(m))[1] for m in pub_mice if pub_g[m] == "Mkln1_KO"]
+    p_pub = stats.ttest_ind(pbf("WT"), pbf("Mkln1_KO"), alternative="greater").pvalue
     lines = [("", "Published", "SHMtrace"),
              ("Wt / Mkln1$^{-/-}$", f"{np.mean(pbf('WT')) / np.mean(pbf('Mkln1_KO')):.1f}×",
               f"{np.mean(shf(wt)) / np.mean(shf(mk)):.1f}×"),
-             ("  P (one-tailed t)", "–", f"{p_sh:.4f}"),
-             ("G:C Ts P", f"{PUB['figS2c_p']['Wt_vs_Mkln1']['Ts']}", f"{ts_sh:.4f}"),
-             ("G:C Tv P", f"{PUB['figS2c_p']['Wt_vs_Mkln1']['Tv']}", f"{tv_sh:.2f}"),
-             ("Aicda$^{-/-}$, ×10$^{-4}$", "–", f"{np.mean(ko):.1f}"),
+             ("  P (one-tailed t)", f"{p_pub:.4f}", f"{p_sh:.4f}"),
+             ("G:C Ts P", f"{stats.ttest_ind(pw_ts, pk_ts).pvalue:.2f}", f"{ts_sh:.2f}"),
+             ("G:C Tv P", f"{stats.ttest_ind(pw_tv, pk_tv).pvalue:.3f}", f"{tv_sh:.3f}"),
+             ("  ... S2C bars", f"{PUB['figS2c_p']['Wt_vs_Mkln1']['Ts']} / "
+              f"{PUB['figS2c_p']['Wt_vs_Mkln1']['Tv']}$^{{a}}$", "–"),
              ("Clones, Wt / KO", f"{sum(PUB['mice'][m]['sequences'] for m in pub_mice if pub_g[m] == 'WT')}"
               f" / {sum(PUB['mice'][m]['sequences'] for m in pub_mice if pub_g[m] == 'Mkln1_KO')}",
               f"{sum(per[m]['clones'] for m in wt)} / {sum(per[m]['clones'] for m in mk)}"),
@@ -143,16 +148,18 @@ def main():
              ("  ...   Mkln1$^{-/-}$", "–", _bg_share("Mkln1_KO")),
              ("Analysis", "hand-edited", f"{RES['seconds']:.0f} s")]
     for k, (a, b, c) in enumerate(lines):
-        y = 0.95 - k * 0.102
+        y = 0.96 - k * 0.088
         w = "bold" if k == 0 else "normal"
         kw = dict(fontsize=5.6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
         ax.text(0.0, y, a, color=INK, **kw)
         ax.text(0.62, y, b, color=PUB_C if k else INK, ha="center", **kw)
         ax.text(0.88, y, c, color=SH_C if k else INK, ha="center", **kw)
-    ax.plot([0, 0.98], [0.86, 0.86], color=SOFT, lw=0.5, transform=ax.transAxes)
+    ax.plot([0, 0.98], [0.895, 0.895], color=SOFT, lw=0.5, transform=ax.transAxes)
     ax.set_title("Published tests", fontsize=7)
+    ax.text(0.0, -0.06, "$^{a}$ Ts / Tv; fit the tables only transposed", transform=ax.transAxes,
+            fontsize=4.8, color=MID, va="top")
     letter(ax, "D", dx=-0.04)
-    save(fig, "Figure_Mkln1_sanger")
+    save(fig, "FigureS9_sanger_mkln")
     return {"spec_r": float(r), "fold_sh": float(np.mean(shf(wt)) / np.mean(shf(mk))),
             "fold_pub": float(np.mean(pbf("WT")) / np.mean(pbf("Mkln1_KO"))), "p_sh": float(p_sh),
             "ts_p": float(ts_sh), "tv_p": float(tv_sh)}
