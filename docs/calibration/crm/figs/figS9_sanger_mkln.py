@@ -1,4 +1,8 @@
-"""Figure S9: a second published Sanger study re-analysed automatically (Barbulescu et al., 2025, Mkln1).
+"""Figure S9, the matplotlib draft: a second published Sanger study re-analysed automatically
+(Barbulescu et al., 2025, Mkln1).
+
+The published Figure S9 is built in SciCanvas (scicanvas/figS9_mkln.js), from the numbers that
+scicanvas/mkln_data.py takes from this module; running this file draws the draft into out/.
 
 A    mutation frequency per mouse: SHMtrace from the chromatograms against the published values
 B    G:C transitions and transversions per mouse, as in the published Supplementary Figure S2C
@@ -14,7 +18,7 @@ import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from scipy import stats
-from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, setup
 
 PUB = json.load(open(Path(__file__).resolve().parents[1] / "published/barbulescu2025_jh4_mkln.json"))
 RES = json.load(open(DATA / "sanger_mkln.json"))
@@ -159,7 +163,7 @@ def main():
     ax.text(0.0, -0.06, "$^{a}$ Ts / Tv; fit the tables only transposed", transform=ax.transAxes,
             fontsize=4.8, color=MID, va="top")
     letter(ax, "D", dx=-0.04)
-    save(fig, "FigureS9_sanger_mkln")
+    fig.savefig(DATA / "FigureS9_sanger_mkln_matplotlib.png", dpi=300)
     return {"spec_r": float(r), "fold_sh": float(np.mean(shf(wt)) / np.mean(shf(mk))),
             "fold_pub": float(np.mean(pbf("WT")) / np.mean(pbf("Mkln1_KO"))), "p_sh": float(p_sh),
             "ts_p": float(ts_sh), "tv_p": float(tv_sh)}
