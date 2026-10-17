@@ -446,6 +446,8 @@ TABLE1 = [
      "Figure 7"),
     ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
      "Figure 7"),
+    ("SW_{HEL} Sanger, published study[@thientosapol2018]", "Sanger (GenBank)", "SW_{HEL} V_{H}10 (558 bp)",
+     "*Samhd1*, *Msh2* and double mutants, UGI arm; 1,795 clones", "none", "Figure S10"),
     ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (619 bp)",
      "AID-ER in NIH-3T3 cells, 3 experiments x 3 repair contexts", "catalytically dead AID-E58Q-ER",
      "Figure 7"),
@@ -453,7 +455,8 @@ TABLE1 = [
      "Figures 3 and 5"),
 ]
 TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique "
-               "molecular identifier. Lengths are of the analysis window, positions given in STAR Methods; the mOrange "
+               "molecular identifier. Loci and laboratories are counted from this table: ten SHM target loci from seven "
+               "laboratories, the rRNA operons excluded as not an SHM target. Lengths are of the analysis window, positions given in STAR Methods; the mOrange "
                "window lies within a 679-bp amplicon.")
 
 SUPPLEMENT = [

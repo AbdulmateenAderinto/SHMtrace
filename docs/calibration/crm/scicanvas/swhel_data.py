@@ -89,7 +89,9 @@ def main():
          ["A:T transitions", "unchanged", "unchanged" if C[1]["p"] >= 0.05 else "changed " + stars(C[1]["p"])],
          ["C:G transversions", "down ****", "down " + stars(C[2]["p"])],
          ["C:G transitions", "up **", "up " + stars(C[3]["p"])],
-         ["Total mutation", "lower, ns", "lower " + stars(pf)]]
+         # the paper tested total mutation by one-way ANOVA, SHMtrace by Welch on per-animal log frequency: the
+         # same direction under two different tests, which the panel marks rather than presenting as a match
+         ["Total mutationᵃ", "lower, ns", "lower " + stars(pf)]]
     pub_m = sum(sum(PUB["groups"][g]["m"].values()) for g in ORDER)
     sh_m = sum(sum(tot[g].values()) for g in ORDER)
     foot = (f"{sh_m:,} of the {pub_m:,} mutations the paper counts; r = {r:.4f} over the 60 spectrum cells of "

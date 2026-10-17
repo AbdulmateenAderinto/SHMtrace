@@ -19,7 +19,7 @@ SUMMARY = (
     "candidate mutation in a read against errors measured in matched activation-induced cytidine deaminase "
     "(AID)-deficient libraries from the same run, and compares groups with the animal as the unit. Sanger "
     "clones, read once each, are counted against that background. We validated it with planted "
-    "mutations, simulated lineages, and six loci from five laboratories on three platforms. It held the "
+    "mutations, simulated lineages, and ten loci from seven laboratories on three platforms. It held the "
     "AID-null background to {ctl_rec} calls per assay and separated AID-active from "
     "AID-null libraries {sep_lo}- to {sep_hi}-fold in four of five nanopore assays, against {lf_lo}- to "
     "{lf_hi}-fold and {gen_lo}- to {gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger "
@@ -48,7 +48,7 @@ HIGHLIGHTS = [
 ]
 ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Illumina, or "
         "Sanger data. Candidates in reads are tested against errors measured in matched AID-null libraries; "
-        "Sanger clones are counted against the same background. It suppresses background across six loci and "
+        "Sanger clones are counted against the same background. It suppresses background across ten loci and "
         "three platforms, and re-analyzes three published Sanger studies.")
 
 INTRO = [
@@ -85,7 +85,7 @@ INTRO = [
     "Here, we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
     "same sequencing run, compares groups with the animal as the unit, and runs the complete workflow from "
     "delivered reads or Sanger chromatograms to group statistics. We validated SHMtrace with planted mutations, "
-    "simulated B cell lineages, six loci from five laboratories, three sequencing platforms, Sanger "
+    "simulated B cell lineages, ten loci from seven laboratories, three sequencing platforms, Sanger "
     "sequencing of the same mice, and the deposited clones of three published Sanger studies, and we compared it with LoFreq[@wilm2012], with the long-read somatic callers "
     "ClairS[@zheng2026] and DeepSomatic[@park2026] and germline callers Clair3[@zheng2022] and "
     "DeepVariant[@poplin2018], and with the uncorrected test used in Geneious[@kearse2012].",

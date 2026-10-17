@@ -152,3 +152,22 @@ and S14), and the Figure S13 legend notes it can remove a real mutation shared b
 
 Still open from this issue: SHMtrace does not yet *recover* such mutations, only report them. A clone-aware
 exemption (a change confined to one junction-defined lineage) would be the fix, and is not attempted here.
+
+---
+
+## Remaining numbered inconsistencies (fixed)
+
+- **C23 "six loci".** Checked against git history: when the phrase was written (ed190f8, 13 Oct), Table 1 had exactly
+  six SHM target loci (J_H4, N114, Smu, Pim1, CH12 VDJ, Ramos IGH VDJ) from five sources. OT1, OT2, mOrange and SWHEL
+  V_H10 were added later, and two laboratories with them, so the count went stale. The same rule now gives ten loci
+  from seven laboratories on three platforms (Summary, eTOC, Introduction). Table 1 states the rule and gains the
+  SWHEL row it lacked.
+- **C25.** Figure S10D marks the total-mutation row (a) and footnotes that the two columns use different tests
+  (one-way ANOVA in the paper, Welch on per-animal log frequency here); the legend says they agree in direction, not
+  inference.
+- **C30.** Figure 1A no longer attributes pseudoreplication to read-level callers; panel A is about error
+  calibration only, and group comparison stays in panel D. Both FDR mentions in Figure 1 now say "estimated".
+- **C11.** `make_review_package.py` rebuilds the package from the current files: PDFs converted fresh, every image
+  copied from crm/figures (the files the supplement embeds), Table S4 rendered from the supplement page itself.
+
+All 31 numbered items are now addressed.

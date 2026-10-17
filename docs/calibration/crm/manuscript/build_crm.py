@@ -398,7 +398,8 @@ SUPP_FIGS = [
      "against the paper's Table 1. (B) The 12 substitution types in each of the five arms, as a share of that "
      "arm's mutations. (C) The four classes the paper tests, one point per animal for SHMtrace and the published "
      "value as an open square; stars, two-tailed t-test across animals. (D) Each published claim against what "
-     "SHMtrace finds. Unlike Figures S8 and S9 this study deposits sequences rather than chromatograms, so the "
+     "SHMtrace finds; for total mutation (a) the two columns use different tests, the paper's one-way ANOVA and "
+     "SHMtrace's Welch test on per-animal log frequency, so they agree in direction but not in inference. Unlike Figures S8 and S9 this study deposits sequences rather than chromatograms, so the "
      "chromatogram reading and the bookkeeping checks are not exercised; it has no *Aicda*^{\u2212/\u2212} arm, "
      "and Sanger error (about 2 in 10^{5} bases, measured in the AID-null clones of those two studies) is some "
      "500-fold below the mutation frequency here."),
