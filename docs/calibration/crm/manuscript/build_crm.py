@@ -221,6 +221,14 @@ def main(outdir):
     mw = word_count(main_blocks)
     print(f"{path}\nsummary {sw} words; main text (introduction to limitations) {mw} words; references {len(m.order)}")
     assert mw < 7000, "main text over 7,000 words"
+    # details only the authors can supply are left as "[description]": name them rather than let a placeholder
+    # reach a reviewer unnoticed (lab_details.py holds them)
+    import lab_details
+    still = lab_details.missing()
+    if still:
+        print(f"submission blockers: {len(still)} laboratory detail(s) still to supply")
+        for d in still:
+            print("  -", d)
 
     # ---- highlights, eTOC, motivation (separate file)
     h = Manuscript(line_numbers=False)

@@ -555,7 +555,14 @@ RESOURCE = [
      "deposited at {lab_data_doi} and are publicly available as of the date of publication; accession numbers are "
      "listed in the key resources table. The public datasets analyzed are listed in Table 1 and the key resources "
      "table. SHMtrace (v{shmtrace_version}), including the desktop application, and all analysis and figure code have been "
-     "deposited at {lab_code_doi} and are publicly available as of the date of publication. Any additional "
+     "deposited at {lab_code_doi} and are publicly available as of the date of publication. The deposit carries a "
+     "file manifest with SHA-256 checksums, the sample sheets, the per-library read accounting, and the "
+     "intermediate tables each figure reads. It also carries a record of the environment the analyses were run "
+     "in (interpreter, package and external-tool versions, and the commit the manuscript was built from) and a "
+     "table giving, for every figure, table and quoted number, the command that produced it with its inputs and "
+     "outputs, so that each displayed value can be traced to one file without reading the prose. Alignment uses "
+     "the mappy bindings; the LoFreq comparison uses the standalone minimap2 executable, and the key resources "
+     "table gives both versions. Any additional "
      "information required to reanalyze the data reported in this paper is available from the lead contact upon "
      "request."),
 ]
@@ -567,6 +574,7 @@ CONTRIB = ("Conceptualization, A.A. and A.M.; methodology, A.A.; software, A.A.;
            "A.A.; investigation, A.A.; data curation, A.A.; writing – original draft, A.A.; writing – review & "
            "editing, A.A. and A.M.; visualization, A.A.; supervision, A.M.; funding acquisition, A.M.")
 INTERESTS = "The authors declare no competing interests."
-AI_DECL = ("During the preparation of this work, the authors used Anthropic Claude to assist with code drafting, "
-           "language editing and figure layout. After using this tool, the authors reviewed and edited the content "
+AI_DECL = ("During the preparation of this work, the authors used Anthropic Claude to assist with drafting the "
+           "analysis and figure code, language editing and figure layout. "
+           "After using this tool, the authors reviewed and edited the content "
            "as needed and take full responsibility for the content of the published article.")

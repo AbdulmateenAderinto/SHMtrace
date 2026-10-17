@@ -292,8 +292,9 @@ CONTRIB = ("Conceptualization, A.A. and A.M.; methodology, A.A.; software, A.A.;
            "original draft, A.A.; writing – review & editing, A.A. and A.M.; supervision, A.M.; funding "
            "acquisition, A.M.")
 INTERESTS = "The authors declare no competing interests."
-AI_DECL = ("During the preparation of this work, the authors used Anthropic Claude to assist with code drafting, "
-           "language editing and figure layout. After using this tool, the authors reviewed and edited the content "
+AI_DECL = ("During the preparation of this work, the authors used Anthropic Claude to assist with drafting the "
+           "analysis and figure code, language editing and figure layout. "
+           "After using this tool, the authors reviewed and edited the content "
            "as needed and take full responsibility for the content of the published article.")
 
 LEGENDS = [

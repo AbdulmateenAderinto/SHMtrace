@@ -75,7 +75,7 @@ Still open from this issue: Table S2 is still labelled as covering every caller 
 | 9 | Cross-platform concordance supports similarity, not equivalence | **fixed** (e54003f) |
 | 10 | Independent units and benchmark uncertainty | **fixed** (see below) |
 | 11 | Biological QC identifies suspicious calls, does not prove origin | open |
-| 12 | Reproducibility archive and Methods incomplete | open |
+| 12 | Reproducibility archive and Methods incomplete | **fixed** apart from 11 laboratory details only the authors can supply |
 
 Inconsistency table C01-C31 and the figure-by-figure plan are tracked in the review itself; items resolved here are C01-C07 (cause identified) and C30 (Figure 1 conflation, pending issue 2).
 
@@ -235,3 +235,39 @@ does not hold at these group sizes; a group with no calls keeps rate zero rather
 frequency and clone-weighted frequency for every library, with a footnote saying they are not interchangeable.
 
 Still open from this issue: Figure 7F does not yet show experiment-level points with their pairing.
+
+
+---
+
+## Major issue 12 — the archive and the missing Methods (fixed, except what only the authors have)
+
+**The archive was further along than the review package could show.** The data deposit (Ver19) already carries a
+file manifest with SHA-256 checksums, sample manifests, FASTQ and GenBank validation, read accounting, and a
+folder per analysis. The reviewer saw only the manuscript, so this was invisible.
+
+What was genuinely missing, and is now added:
+
+- **`ARCHIVE_ENVIRONMENT.txt`**: interpreter, package versions, external tools with their reported versions, and
+  the commit the manuscript was built from.
+- **`ARCHIVE.md`**: one row per analysis giving the command, its inputs and its outputs, for all 18 analyses
+  behind the figures, tables and quoted numbers. `make_archive_manifest.py` regenerates both and checks each
+  output exists, so a stale row reads "missing" instead of passing silently. All 18 are present.
+- **Resource availability** now points at both, and states which alignment path each analysis uses (mappy
+  bindings for SHMtrace, the standalone minimap2 executable for the LoFreq comparison), settling minor 15.
+- **The Methods gaps the reviewer listed**: the error-rate floor and shrinkage (pooled rate as a floor, each
+  position's own count shrunk toward it with m = 500), the probability floor (half a pseudo-count for a class
+  the controls never showed, so no p value is exactly zero), the indel caller (class rate as floor, site rate
+  shrunk toward it, margin fitted as for substitutions, Benjamini-Hochberg, quality >= 30, three reads minimum),
+  UMI consensus (3 edits per tag end, directional merging, groups of three or more) and the single-read
+  quality-eligibility correction. The bootstrap was specified under issue 10.
+- **Every build now lists the remaining submission blockers** by name instead of leaving a placeholder to be
+  noticed by eye.
+
+**Still outstanding, and only the authors can supply them (11):** GL7 catalogue number and RRID; proteinase K
+catalogue number; Monarch kit catalogue number; the Aicda-/- MGI RRID; FACS buffer composition; lysis buffer,
+volume and incubation; lysate volume per PCR; the SRA BioProject; the data deposit DOI; the SHMtrace Zenodo DOI;
+and the companion article citation once accepted. These are not guessed: catalogue numbers and RRIDs would be
+fabricated if invented, so they are left as named placeholders that the build reports.
+
+The AI-use declaration now says the assistance covered drafting the analysis and figure code, language editing
+and figure layout, which is what it covered.
