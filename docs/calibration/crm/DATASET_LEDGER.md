@@ -16,6 +16,7 @@ No `AGENTS.md` exists in either the workspace or the repository; none was applie
 | Germline-policy demonstration | synthetic, no download | what the 50% rule does to selected variants | `crm/out/germline_policy/`, below |
 | E1 Bassan 2021, AID-diversified TCR | figshare 12803501, 12 SAM / 228 MB | variant recovery against a known ancestral construct | `crm/out/tcr/`, below |
 | E5 Devilder 2019, anti-HLA-A2 clones | supplement DOCX, 53 KB | calls against an independent published annotation | `crm/out/devilder/`, below |
+| E2 Liu 2018, diversifying base editors | SRP159221, 386 files / 1.02 GB | whether the spectrum separates AID from an APOBEC | `crm/out/liu/`, below |
 
 Both are written up in `PUBLIC_VALIDATION.md`, including why the GSE77788 drug effect is not claimed.
 
@@ -71,6 +72,37 @@ What this does not test: it is a curated collection of *selected* clones, so it 
 frequencies, no unselected distribution, no replication and no technical error rate, and none are computed.
 It exercises reference handling and substitution identification, not the error model or the false-discovery
 calibration.
+
+## E2, Liu 2018: the spectrum separates the mutators, the transition share does not
+
+The deposit edits one 238-bp EGFP amplicon with a panel of deaminases delivered the same way, three
+replicates each, plus a no-editor arm. Pairs merge cleanly (97.8%), so the ordinary Illumina path applies.
+The contrast was fixed before looking at any result: DBE-AIDmono against DBE-humanA3a, in wild-type and in
+UNG/MSH2-null 293T, with NC as the control. Motif shares are descriptive and were never used to choose what
+to call.
+
+| background | measure | AID (3 reps) | A3A (3 reps) | Welch p |
+|---|---|---|---|---|
+| wild-type 293T | **WRC/GYW share** | **56.5%** (46.9–65.2) | **14.4%** (7.1–21.6) | **0.004** |
+| wild-type 293T | C→T or G→A | 44.7% (39.8–52.1) | 17.9% (13.3–20.3) | 0.007 |
+| wild-type 293T | frequency /10³ | 0.66 | 0.56 | 0.32 |
+| UNG/MSH2-null | **WRC/GYW share** | **37.1%** (35.2–39.6) | **20.0%** (17.3–22.0) | **0.0009** |
+| UNG/MSH2-null | C→T or G→A | 78.1% (71.3–83.5) | 75.6% (64.0–84.1) | 0.74 |
+| UNG/MSH2-null | frequency /10³ | 3.8 | 3.6 | 0.77 |
+
+The no-editor arm gave **0, 0 and 1** calls in 20,000 reads each, so the background control holds on an
+independent laboratory's construct.
+
+Two things worth taking from this. The **motif preference separates the two deaminases in both backgrounds**,
+with non-overlapping replicate ranges. The **transition share does not**: it separates them in wild-type
+cells but collapses in the repair-null background, where both sit near 78%, because losing uracil excision
+and mismatch repair drives C→T regardless of which enzyme made the uracil. The same loss raises the mutation
+frequency about five-fold for both mutators, so frequency identifies the repair background, not the enzyme.
+A spectrum check that rested on the transition share alone would therefore have mistaken an APOBEC for AID in
+repair-deficient cells; the motif check would not.
+
+Depth caveat: three of the twelve editor libraries supplied fewer than 20,000 usable reads (4,792–12,518),
+which is recorded per sample in `liu_mutators.json`.
 
 ## Eligible, not yet run — engineered AID diversification
 
