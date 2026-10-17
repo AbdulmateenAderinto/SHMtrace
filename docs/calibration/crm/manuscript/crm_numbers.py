@@ -343,10 +343,26 @@ def compute():
     N["wt2_clone_reads"] = str(wt2["reads"])
     # ---------------- depth series
     for k in ("jh4", "n114"):
-        d = _load(FIG / f"depth_shmtrace/{k}.json")
         case = ("WT2", "WT3", "WT4") if k == "jh4" else ("C1", "D3", "D5")
-        mx = {x: max(d[dep][x]["calls"] for dep in d) for x in case}
-        N[f"depth_{k}_500"] = pct(np.mean([d["500"][x]["calls"] / mx[x] for x in case]))
+        dr = OUT / f"depth_draws_{k}.json"
+        if dr.exists():
+            # repeated draws: the share each library had reached at 500 reads, averaged over draws, and the
+            # spread over draws, so the figure's and the text's numbers come from the same runs
+            runs = _load(dr)["runs"]
+            per = {}
+            for r in runs:
+                per.setdefault((r["sample"], r["depth"]), []).append(r["calls"])
+            shares = []
+            for x in case:
+                mx = max(np.mean(v) for (sx, _d), v in per.items() if sx == x)
+                shares += [c / mx for c in per[(x, 500)]]
+            N[f"depth_{k}_500"] = pct(np.mean(shares))
+            N[f"depth_{k}_500_range"] = f"{pct(min(shares))}–{pct(max(shares))}"
+        else:
+            d = _load(FIG / f"depth_shmtrace/{k}.json")
+            mx = {x: max(d[dep][x]["calls"] for dep in d) for x in case}
+            N[f"depth_{k}_500"] = pct(np.mean([d["500"][x]["calls"] / mx[x] for x in case]))
+            N[f"depth_{k}_500_range"] = "one draw per depth"
     # ---------------- N114
     np_ = _load(FIG / "n114_shmtrace/project.json")
     NS = {x["sample"]: x for x in np_["samples"]}

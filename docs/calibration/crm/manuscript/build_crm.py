@@ -377,9 +377,14 @@ SUPP_FIGS = [
     ("Figure S4. N114 V-region results and per-library spectra, related to Figure 4",
      [MC / "Figure4_hybridoma_combined.png", MC / "FigureS6_individual_JH4_ONT_matrices.png",
       MC / "FigureS7_individual_N114_matrices.png"],
-     "Top, N114 unique-variant density per subclone (n = 3 per vector; empty-vector subclones without calls at one "
-     "event) and pooled spectra. Middle and bottom, From → To substitution matrices for each J_{H}4 mouse and N114 "
-     "subclone; each cell gives unique variants and their share of the sample's calls."),
+     "This figure is assembled from three separately lettered panels, so a letter appears more than once; each is "
+     "identified here by its position. Top (its A–C), N114 unique-variant density per subclone (A; n = 3 per "
+     "vector; empty-vector subclones without calls drawn at one event) and the pooled From → To substitution "
+     "matrices of the pMX-*Aicda* (B) and empty-vector (C) subclones. Middle, the same matrices for each J_{H}4 "
+     "mouse, lettered by genotype (its A, the 3 wild-type mice; B, the 3 *Aicda*^{−/−} mice); bottom, for each "
+     "N114 subclone (its A, pMX-*Aicda*; B, empty vector). In every matrix each cell gives unique variants and "
+     "their share of that sample's calls. The only quantitative axis is the top panel's, and it is "
+     "unique-variant density, not mutation frequency."),
     ("Figure S5. Sequencing depth and unique-variant discovery, related to Figure 4",
      [MC / "FigureS3_depth_discovery_density.png", MC / "FigureS4_saturation.png"],
      "Each library was analyzed at 30–1,000 reads (one random draw of usable reads per depth), with controls "
