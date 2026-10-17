@@ -8,6 +8,7 @@ Data: out/intuition_<dataset>.json (intuition_data.py).
 import json
 
 import numpy as np
+from scipy import stats
 from matplotlib import pyplot as plt
 from style import DATA, HALF, INK, MM, SOFT, save, setup
 
@@ -16,10 +17,18 @@ SETS = {"jh4": ("J$_H$4 (this study)", "#274b7e", "o"), "n114": ("N114 (this stu
 BIN, MIN_BASES = 2, 2000
 
 
+def cp(m, n):
+    """95% Clopper-Pearson interval for m mismatches in n bases."""
+    lo = stats.beta.ppf(0.025, m, n - m + 1) if m else 0.0
+    hi = stats.beta.ppf(0.975, m + 1, n - m) if m < n else 1.0
+    return lo, hi
+
+
 def main():
     setup()
-    fig, ax = plt.subplots(figsize=(HALF, 70 * MM))
-    fig.subplots_adjust(left=0.17, right=0.97, top=0.9, bottom=0.16)
+    fig, (ax, axn) = plt.subplots(2, 1, figsize=(HALF, 92 * MM), sharex=True,
+                                  gridspec_kw={"height_ratios": [3, 1.1], "hspace": 0.12})
+    fig.subplots_adjust(left=0.17, right=0.97, top=0.95, bottom=0.12)
     out = {}
     for key, (label, col, mk) in SETS.items():
         q = json.load(open(DATA / f"intuition_{key}.json"))["quality"]
@@ -28,9 +37,18 @@ def main():
             k = int(qq) // BIN * BIN
             mm[k] = mm.get(k, 0) + m
             n[k] = n.get(k, 0) + b
-        ks = [k for k in sorted(n) if n[k] >= MIN_BASES and mm[k]]
-        xs, ys = [k + BIN / 2 for k in ks], [mm[k] / n[k] for k in ks]
+        ks = [k for k in sorted(n) if n[k] >= MIN_BASES]
+        seen = [k for k in ks if mm[k]]
+        xs, ys = [k + BIN / 2 for k in seen], [mm[k] / n[k] for k in seen]
         ax.plot(xs, ys, marker=mk, ms=2.6, lw=0.8, color=col, label=label)
+        ci = [cp(mm[k], n[k]) for k in ks]
+        ax.fill_between([k + BIN / 2 for k in ks], [max(c[0], 1e-6) for c in ci], [c[1] for c in ci], color=col,
+                        alpha=0.12, lw=0, step=None)
+        # bins with no mismatch: only an upper bound
+        zero = [k for k in ks if not mm[k]]
+        ax.scatter([k + BIN / 2 for k in zero], [cp(0, n[k])[1] for k in zero], marker="v", s=7, color=col,
+                   linewidths=0, zorder=3)
+        axn.plot([k + BIN / 2 for k in ks], [n[k] for k in ks], marker=mk, ms=1.8, lw=0.6, color=col)
         tot_m, tot_b = sum(m for qq, (m, b) in q.items() if int(qq) >= 20), sum(b for qq, (m, b) in q.items()
                                                                                  if int(qq) >= 20)
         out[key] = tot_m / tot_b
@@ -38,11 +56,14 @@ def main():
     ax.plot(qs, 10 ** (-qs / 10), color=INK, lw=0.7, ls="--", label="what the quality score promises")
     ax.set_yscale("log")
     ax.set_xlim(0, 50)
-    ax.set_ylim(1e-5, 1)
-    ax.set_xlabel("Reported base quality")
+    ax.set_ylim(1e-6, 1)
     ax.set_ylabel("Mismatch rate in AID-null controls")
     ax.legend(fontsize=5.2, loc="lower left", handlelength=1.6, borderaxespad=0.3)
     ax.grid(True, which="major", color=SOFT, lw=0.2, alpha=0.5)
+    axn.set_yscale("log")
+    axn.set_ylabel("Control bases\nper bin", fontsize=6)
+    axn.set_xlabel("Reported base quality")
+    axn.grid(True, which="major", color=SOFT, lw=0.2, alpha=0.5)
     save(fig, "FigureS2")
     json.dump({"error_q20plus": out}, open(DATA / "figS2_numbers.json", "w"), indent=1)
 

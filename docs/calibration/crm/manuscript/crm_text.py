@@ -515,8 +515,8 @@ DISCUSSION = [
     "number of reads removed at each step is reported, the random draw of reads is reproducible from a fixed "
     "seed, and a desktop application provides the same analysis with reports that a non-specialist can read. "
     "The power calculation also makes a practical point clear: between-animal variation, not sequencing depth, "
-    "limits SHM experiments. With the between-animal variation observed in Wt J_{H}4, detecting a two-fold "
-    "change between AID-proficient groups requires more than ten animals per group.",
+    "limits SHM experiments. With the variation observed in Wt J_{H}4, detecting a two-fold change between "
+    "AID-proficient groups requires about twenty animals per group (Figure S3B).",
 ]
 LIMITATIONS = (
     "This study has limitations that temper its conclusions. SHMtrace requires AID-null control libraries "

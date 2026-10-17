@@ -337,21 +337,36 @@ STATS = [
 
 SUPP_FIGS = [
     ("Figure S1. Detailed workflow and read accounting, related to Figure 1",
-     CAL / "manuscript_corrected/figure1_scicanvas/out/Figure_workflow_detailed_preview.png",
+     FIG / "FigureS1_workflow_preview.png",
      "(A) Experimental design for the J_{H}4 and N114 assays. (B and C) Read preparation and variant calling as run by "
-     "SHMtrace from the delivered reads. (D) The Sanger route. (E) The fate of every delivered read per library; line, "
-     "the 500 reads analyzed."),
+     "SHMtrace from the delivered reads, the read route of Figure 1C; changes carried by half the reads or more are "
+     "set aside as likely germline, a heuristic (STAR Methods). (D) The Sanger route of Figure 1C: a clone is one "
+     "molecule read once, so every substitution at quality ≥ 20 is counted rather than tested, over the clones "
+     "analyzed × the 529-bp window, and the AID-null clones' rate is reported beside the calls, not subtracted. "
+     "(E) The fate of every delivered read per library; line, the 500 reads analyzed."),
     ("Figure S2. Reported base quality against the error measured in AID-null controls, related to Figure 2",
      FIG / "FigureS2.png",
-     "Mismatch rate among the AID-null control bases of each reported quality (bins of two quality values with "
-     "at least 2,000 bases; germline sites excluded) for the four nanopore loci, sequenced in three runs; dashed "
-     "line, the rate a quality score promises, 10^{−Q/10}."),
+     "Top, mismatch rate among the AID-null control bases of each reported quality (bins of two quality values "
+     "with at least 2,000 bases; germline sites excluded) for the four nanopore loci; shading, 95% Clopper–Pearson "
+     "interval; downward triangles, bins without a mismatch, drawn at the interval's upper bound; dashed line, the "
+     "rate a quality score promises, 10^{−Q/10}. Bottom, the control bases in each bin, on which the intervals "
+     "rest; above Q40 they thin out and the rates become uncertain. Each curve uses only its own locus's "
+     "controls, the ones SHMtrace calibrates that locus against. Runs: J_{H}4, all six libraries from one "
+     "sequencing order (DHJGKB); N114, all six from another (75K3B3); Sμ and *Pim1*, PRJNA1481264, whose records "
+     "do not state which libraries shared a flow cell."),
     ("Figure S3. Single-read estimate, power and UMI consensus on simulated libraries, related to Figure 3",
      FIG / "FigureS3.png",
      "(A) Change in the aggregate single-read estimate against one-read mutations planted into held-out J_{H}4 "
-     "control libraries (three controls; three replicates per amount); dashed line, identity. (B) Power at α = 0.05 "
-     "to detect a two-fold change with the animal-level test, by animals per group, from the J_{H}4 wild-type pilot "
-     "(1,000 simulated experiments per point). (C) False calls per library with and without UMI consensus in "
+     "control libraries (three controls; three replicates per amount); dashed line, identity. (B) Power to detect a "
+     "two-fold difference between two AID-proficient groups at α = 0.05, two-sided, with the Welch test on log "
+     "rates, by animals per group, simulated from the J_{H}4 wild-type pilot (3 mice, 500 reads each; 1,000 "
+     "experiments per point; negative-binomial counts with the pilot's clumping, animals log-normal with the "
+     "pilot's between-animal coefficient of variation, CV). Dotted line, 80% power; for unique density the "
+     "estimate reaches it at about 24 animals per group, so the plotted range does not by itself identify the "
+     "number required. Shading, the same curve with the CV at the lower end of its 95% interval from 3 mice (0.44) "
+     "and at twice the estimate (1.9), a stated pessimistic case: with 2 degrees of freedom the interval's upper "
+     "end is effectively unbounded, so the CV, not the simulation, is what limits this calculation. "
+     "(C) False calls per library with and without UMI consensus in "
      "simulated UMI libraries built from real control reads (three held-out controls)."),
     ("Figure S4. N114 V-region results and per-library spectra, related to Figure 4",
      [MC / "Figure4_hybridoma_combined.png", MC / "FigureS6_individual_JH4_ONT_matrices.png",

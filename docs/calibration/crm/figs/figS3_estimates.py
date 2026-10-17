@@ -1,7 +1,8 @@
 """Figure S3: single-read estimate, power, and UMI consensus on simulated libraries.
 
 A  single-read estimate: change in the estimate against one-read mutations planted (J_H4, 3 held-out controls)
-B  power at alpha 0.05 to detect a 2-fold change, by animals per group (J_H4 Wt pilot; REPLICATES_AND_POWER.md)
+B  power at alpha 0.05 to detect a 2-fold change, by animals per group (J_H4 Wt pilot; power_s3.py), with a band
+   for the uncertainty of a CV estimated from three mice
 C  UMI consensus against every read: false calls and recall of single-molecule mutations (umi_sim)
 """
 import json
@@ -36,23 +37,30 @@ def main():
     ax.set_ylabel("Change in single-read estimate")
     ax.set_title("Single-read estimate", fontsize=7)
     letter(ax, "A", dx=-0.3)
-    # B (from the power calculation in REPLICATES_AND_POWER.md, J_H4 Wt pilot, 1,000 simulations per cell)
+    # B: power from the J_H4 wild-type pilot (power_s3.py), with the pilot CV's own uncertainty
     ax = fig.add_subplot(gs[0, 1])
-    animals = [3, 5, 8, 10]
-    series = {"unique density (CV 0.95)": ([0.10, 0.21, 0.34, 0.45], "#1f6f8b"),
-              "clone-weighted (CV 1.0)": ([0.09, 0.19, 0.33, 0.42], "#274b7e"),
-              "read-weighted (CV 2.0)": ([0.06, 0.12, 0.16, 0.21], "#9aa5b1")}
-    for lab, (ys, col) in series.items():
-        ax.plot(animals, ys, marker="o", ms=3, color=col, lw=1, label=lab)
+    pw = json.load(open(DATA / "power_s3.json"))
+    animals = pw["animals"]
+    cols = {"density": "#1f6f8b", "clone_weighted": "#274b7e", "frequency": "#9aa5b1"}
+    d = pw["measures"]["density"]
+    ax.fill_between(animals, d["power_cv_double"], d["power_cv_low"], color=cols["density"], alpha=0.15, lw=0)
+    for m, col in cols.items():
+        r = pw["measures"][m]
+        ax.plot(animals, r["power"], marker="o", ms=2.4, color=col, lw=1, label=f"{r['label']} (CV {r['cv']:.2f})")
+    # where the unique-density estimate reaches 80%
+    n80 = float(np.interp(0.8, d["power"], animals))
     ax.axhline(0.8, color=INK, ls=":", lw=0.6)
-    ax.text(9.9, 0.74, "80% power", fontsize=5.3, color=MID, ha="right")
-    ax.set_ylim(0, 1.25)
+    ax.annotate(f"≈{n80:.0f} mice", (n80, 0.8), (n80 * 1.35, 0.6), fontsize=5.2, color=cols["density"],
+                arrowprops={"arrowstyle": "-", "lw": 0.5, "color": cols["density"]})
+    ax.set_xscale("log")
+    ax.set_xticks(animals, [str(a) for a in animals], fontsize=5.4)
+    ax.minorticks_off()
+    ax.set_ylim(0, 1.32)
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax.set_xticks(animals)
     ax.set_xlabel("Animals per group")
     ax.set_ylabel("Power, 2-fold change")
     ax.set_title("Power (J$_H$4 wild-type pilot)", fontsize=7)
-    ax.legend(fontsize=5.3, loc="upper left", bbox_to_anchor=(0, 1.02))
+    ax.legend(fontsize=5, loc="upper left", bbox_to_anchor=(0, 1.02), handlelength=1.4)
     letter(ax, "B", dx=-0.3)
     # C
     ax = fig.add_subplot(gs[0, 2])
