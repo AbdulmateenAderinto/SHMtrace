@@ -232,6 +232,22 @@ heavy editing degrades it: the amplicon carrying most of the signal has a weakes
 84.8% here, against 96.9% in the less heavily edited footprint arm. The counts are therefore a trend, not a
 calibrated yield.
 
+### The reporter-footprint pair (single sgRNA ± UGI): not usable for the repair contrast
+
+This looked like a chance to test, in a second system, the repair-context effect E2 showed - that losing
+uracil excision drives the transition share up whichever enzyme made the uracil. It does not survive
+inspection. The two libraries differ in three ways at once:
+
+| | no UGI (`SRR3620780`) | + UGI (`SRR3620777`) |
+|---|---|---|
+| layout | single-end, one file | paired, two files |
+| read length | 300 bp | 251 bp |
+| dominant amplicons | `ACGTCTATAT`, `CCTGACCTAC`, `CCCCTTGAAC` | `GCCCTATGTC` (96% of reads) |
+
+They share `GCCCTATGTC`, so a comparison could be forced onto it using R1 of the paired library over the
+common span. But with one library per condition, and UGI confounded with layout, chemistry and amplicon
+composition, any spectrum difference would have three other explanations. No number is reported from it.
+
 The project's off-target arm has two mock replicates and would support a calibrated analysis, but it is
 genome-wide fragmented material and would have to be forced through amplicon-shaped gates. It was
 deliberately not downloaded (17 of the 19.3 GB); a fragmented-read route is a separate capability.

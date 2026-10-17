@@ -24,9 +24,9 @@ Still open:
   complete normally in the foreground. Their outputs now match the ledger. The cause was not chased down;
   if you background them, check the output rather than trusting the exit.
 - The TAM **saturation arm** is done (`crm/tam_saturation.py`): 0, 32, 37 and 66 localised sites for 3, 5, 7
-  and 10 guides. What remains unanalysed in that project is the `reporter-footprint` pair
-  (`SRR3620777`/`SRR3620780`, single sgRNA with and without UGI), which would add a repair-context contrast
-  to the localisation result.
+  and 10 guides. The `reporter-footprint` pair was inspected and rejected: UGI is confounded
+  with read layout, read length and amplicon composition, with one library per condition (see the ledger).
+  Nothing in SRP075898 remains analysable without the fragmented-read route.
 - **7.7 GB of partly-fetched off-target runs sit in `~/Nanoshm/public_data/SRP075898/`** from before the
   download was restricted to the amplicon arms. They are not used by anything here and are re-fetchable from
   `manifest.tsv`; delete them if you want the space back. The run accessions are in `off_runs.txt` beside
