@@ -171,3 +171,30 @@ exemption (a change confined to one junction-defined lineage) would be the fix, 
   copied from crm/figures (the files the supplement embeds), Table S4 rendered from the supplement page itself.
 
 All 31 numbered items are now addressed.
+
+---
+
+## Major issue 7 — the three measures were not defined, and one was misdescribed (fixed)
+
+**Verified, including an error the reviewer did not see.** A new STAR Methods section, "What each mutation measure
+counts", gives each measure explicitly with a worked example (wild-type J_H4 library Wt2, 500 reads, 529-bp window):
+
+| Measure | Definition | Wt2 |
+|---|---|---|
+| Unique-variant density | D / B x 10^5; B is base observations (covered positions x mean depth), not reference positions | 221 / 263,865 = 83.8 x 10^-5 |
+| Read-weighted frequency | sum of each read's called sites / (reads x window) x 10^3 | 747 / 264,500 = 2.82 x 10^-3 |
+| Clone-weighted frequency | mutations in >= half a clone's reads, over clones x window, x 10^3 | 207 / (24 x 529) = 16.3 x 10^-3 |
+
+The section also states that "unique" means distinct within a library and not of independent origin, and that
+unique-variant density falls with depth at a constant mutation rate, so it is compared only at matched depth.
+
+**The error.** Four places said the Sanger frequency divides by "the bases each clone read at base quality >= 20".
+It does not: `frequency_bases` is clones x 529, a fixed length per clone, verified against `out/sanger_mkln.json`
+(every mouse's bases equal clones x 529 exactly). SHMtrace therefore uses the same *kind* of denominator as the
+published studies; what differs is the length (529 against 556 and 577) and which clones are counted (paralog
+amplicons and QC failures excluded). The Table S4 footnote, the Results, and Figure S12 now say that, which also
+makes the "counted as published" row mean what it says: the same mutations over the published denominator.
+
+Figure 5A is retitled "Within-platform genotype contrasts", since its two densities are not on a common scale.
+
+Still open from this issue: Figure 3F does not yet state its truth denominator at each depth.

@@ -334,8 +334,7 @@ RESULTS = [
           "from {c2_tv_wt}% to {c2_tv_mk}% ({c2_tv_pub_wt}% to {c2_tv_pub_mk}%; p = {c2_tv_p} and "
           "{c2_tv_pub_p}). The pooled substitution spectra agreed (r = {c2_spec_r}), and the mice ranked alike "
           "(Spearman ρ = {c2_rho}), with SHMtrace's frequencies {c2_ratio}-fold the published values on "
-          "average, counted as the original study counted them: unique mutations over the nucleotides each "
-          "clone read. The *Aicda*^{−/−} mice carried {c2_ko_calls} mutations in "
+          "average, counted as that study counted them: over its clones times its fixed 577-bp length. The *Aicda*^{−/−} mice carried {c2_ko_calls} mutations in "
           "{c2_ko_n} clones (p = {c2_wt_ko_p} and {c2_mk_ko_p} for wild-type and *Maea*-deficient mice "
           "against them). As in the first collection, the clone checks flagged identical mutated clones under "
           "different mice ({c2_dup_flags} pairs) and {c2_filed_twice} traces filed under two mice, which were "
@@ -381,7 +380,7 @@ RESULTS = [
           "study deposits sequences rather than chromatograms, it tests the calling, the spectrum and the group "
           "statistics but not the trace reading."),
     ("p", "Where the original analyses counted every filed clone at one fixed length, as the tools they used "
-          "require, SHMtrace counts the bases each clone actually read and sets paralog amplicons aside; "
+          "require, SHMtrace uses the clones it analyzes times the 529-bp shared window, setting paralogs aside; "
           "applying the published convention to SHMtrace's own mutations brought the knockout frequencies close "
           "to the published values in both J_{H}4 studies, though not the wild-type ones (Table S4)."),
 

@@ -81,7 +81,7 @@
   card(c1, 'From the Sanger clones here', SANG, '#fbf4ec', '#e2c8a6');
   let y = cy + 52;
   y = item(c1, y, 'Each molecule\'s own mutations', ['the mutation load of every clone, the share of',
-    'clones mutated, and frequency as published:', 'unique mutations over the bases each clone read'], SANG);
+    'clones mutated, and frequency as published:', 'unique mutations over clones \u00d7 a fixed length'], SANG);
   y = item(c1, y, 'Bookkeeping checks', ['copied traces, clones filed under two mice,',
     'mutated clones filed as controls, mislabeled', 'tubes (Figure 5E)'], SANG);
   y = item(c1, y, 'Error reported, not subtracted', ['the AID-null clones\' error rate (about 20 per',
