@@ -432,7 +432,7 @@ SUPP_FIGS = [
      "Every mismatch at quality ≥ 20 (germline sites excluded) in each of the 500 reads of a wild-type (C) and an "
      "*Aicda*^{−/−} (D) J_{H}4 library; colored, at sites SHMtrace called; gray, other mismatches. Reads are sorted "
      "by clone (dotted lines between the largest clones) and by mutation load."),
-    ("Figure S7. Sanger re-analysis, related to Figure 5",
+    ("Figure S7. Sanger re-analysis, related to Figure 5 (page 1 of 2)",
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
      "Top, substitution matrices for each mouse's Sanger clones (base quality ≥ 20). Bottom, the share of "
      "wild-type clones with a high-quality base at each J_{H}4 position and calls per 10^{3} bases read; shading, "
@@ -443,7 +443,13 @@ SUPP_FIGS = [
      "quality ≥ 20, 11 did not map to J_{H}4, and 3 aligned over too short a stretch), leaving 134 clones: 37, 40 "
      "and 26 from the wild-type mice (103) and 11, 10 and 10 from the *Aicda*^{−/−} mice (31). Every drop is a "
      "property of the trace, applied before any mutation is counted; the bookkeeping checks are reported beside "
-     "the results and never remove a clone (Figure 5E)."),
+     "the results and never remove a clone (next page)."),
+    ("Figure S7. Sanger bookkeeping checks, related to Figure 5 (page 2 of 2)",
+     [FIG / "FigureS7_bookkeeping.png"],
+     "Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects, one of each error type "
+     "planted per project; numbers, flagged/planted. Whole-lineage misfiling is counted per clone (125 clones). "
+     "A misfiled clone whose label was also changed is flagged only when it shares enough mutations with its "
+     "lineage. No flag was raised on the 6,018 correctly filed clones."),
     ("Figure S8. A published Sanger study re-analyzed automatically, related to Figure 5",
      [FIG / "FigureS8_sanger_cohort2.png"],
      "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (purple) and "

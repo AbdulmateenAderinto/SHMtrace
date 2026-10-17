@@ -301,9 +301,10 @@ RESULTS = [
           "the distribution of mutations along the intron (r = {r_pos} in 25-bp bins; Figure 5C) and the use of "
           "AID hotspots (Figure 5D). G:C mutations fell at WRC/GYW motifs in {hot_gc_s}% (Sanger) and "
           "{hot_gc_o}% (nanopore) of cases, and A:T mutations at WA/TW motifs in {hot_at_s}% and {hot_at_o}%, "
-          "compared with {hot_gc_exp}% and {hot_at_exp}% of such sites in the window. A repeated-measures test "
-          "found no platform-by-substitution-type interaction (p = {interaction_p}); with three mice this shows no "
-          "detectable difference, not equivalence. The absolute densities "
+          "compared with {hot_gc_exp}% and {hot_at_exp}% of such sites in the window. Mouse by mouse, a "
+          "repeated-measures test found no platform-by-substitution-type interaction (p = {interaction_p}; "
+          "Figure 5E); with three mice this shows no detectable difference, not equivalence, and nanopore gave a "
+          "{pm_gcts} percentage-point lower share of G:C transitions in each mouse. The absolute densities "
           "differ by design, because a Sanger clone is one molecule read once, whereas nanopore densities count "
           "unique mutations among 500 reads; densities should therefore be compared within, not between, "
           "platforms."),
@@ -313,7 +314,7 @@ RESULTS = [
           "traces, clones shared between animals beyond chance, mutated clones filed under controls, and "
           "mislabeled tubes. In 40 simulated projects with one of each error planted, every copied or re-typed "
           "trace, contaminated control, and misfiled clone with its label intact was flagged, as were all 125 "
-          "clones of misfiled lineages, with no flag on 6,018 correctly filed clones (Figure 5E). A misfiled "
+          "clones of misfiled lineages, with no flag on 6,018 correctly filed clones (Figure S7). A misfiled "
           "clone whose label had also been changed was flagged in 22 of 40 projects, depending on how many "
           "mutations it shared with its lineage."),
 

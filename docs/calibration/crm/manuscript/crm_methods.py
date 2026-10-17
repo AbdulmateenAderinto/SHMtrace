@@ -522,7 +522,9 @@ LEGENDS = [
      "share, uncorrected for base composition because both platforms cover the same window, of each of 12 substitution types ({n_sanger} Sanger, {n_ont} nanopore calls, 3 wild-type mice); dashed line, "
      "identity; r, Pearson with 95% CI. (C) Share of calls in 25-bp bins along the 529-bp window. (D) Share of G:C "
      "calls at WRC/GYW and of A:T calls at WA/TW; bars, mean of 3 mice; points, mice; dashed lines, the window's "
-     "share of such sites. (E) Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects. "
+     "share of such sites. (E) Each wild-type mouse's calls in four substitution classes, Sanger (S) against "
+     "nanopore (N); lines join the same mouse; p, platform × type interaction over the 12 types (repeated "
+     "measures, mice as subjects). Pooled over the mice, these calls give panel B exactly. "
      "See also Figures S7–S10 and Tables S4 and S5."),
     ("Figure 6. Long reads add whole-amplicon maps, clones and mutation trees",
      "(A) Unique variants per 10^{5} bases in 50-bp bins over J_{H}4 positions 90–1,230; thin lines, wild-type mice; "

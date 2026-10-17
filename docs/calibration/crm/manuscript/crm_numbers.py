@@ -284,6 +284,8 @@ def compute():
     N.update(r_spec=f2(sp["pearson"]["r"]), r_spec_ci=f"{sp['pearson']['ci'][0]:.2f}–{sp['pearson']['ci'][1]:.2f}",
              slope=f2(sp["pearson"]["slope"]), interaction_p=f2(sp["rm_anova_interaction"]["p"]),
              sidak_min=f2(sp["paired_sidak_min"]), n_sanger=f0(sp["sanger_unique"]), n_ont=f0(sp["ont_unique"]))
+    pm = _load(CRM / "out/fig5_per_mouse.json")["summary"]["gc_ts_diff"]   # crm/fig5_per_mouse.py
+    N["pm_gcts"] = f"{min(-x for x in pm):.0f}–{max(-x for x in pm):.0f}"
     be = st["beyond"]
     N["r_pos"] = f2(be["positional_r"])
     hs, ho = np.mean([m[0] for m in be["hotspot"]["sanger"]]), np.mean([m[0] for m in be["hotspot"]["ont"]])

@@ -4,7 +4,8 @@ A    unique-variant density per mouse, Sanger clones and nanopore reads (529-bp 
 B    pooled 12-type substitution spectrum, Sanger against nanopore (three Wt mice)
 C    where calls fall along the window (25-bp bins)
 D    hotspot use: G:C calls at WRC/GYW and A:T calls at WA/TW, against the window's share of such sites
-E    the Sanger pipeline's bookkeeping checks on simulated projects with planted filing errors
+E    the same comparison mouse by mouse: four substitution classes, Sanger against nanopore
+     (the bookkeeping checks that were panel E are Figure S7, page 2: figS7_bookkeeping.py)
 """
 import json
 
@@ -107,31 +108,38 @@ def main():
     ax.set_title("Hotspot use", fontsize=7)
     from matplotlib.patches import Patch
     ax.legend(handles=[Patch(color=SANG_C, label="Sanger"), Patch(color=ONT_C, label="Nanopore"),
-                       plt.Line2D([], [], color=INK, ls="--", lw=0.7, label="sites in window")],
+                       plt.Line2D([], [], color=INK, ls="--", lw=0.7, label="sites")],
               fontsize=5.2, loc="upper left", ncol=3, bbox_to_anchor=(-0.05, 1.02), columnspacing=0.6, handlelength=1.2)
     ax.set_ylim(0, 112)
     ax.set_yticks([0, 20, 40, 60, 80, 100])
     letter(ax, "D", dx=-0.3)
-    # E: Sanger bookkeeping checks
-    ax = fig.add_subplot(gs[1, 2:])
-    det = json.load(open(CAL / "sanger_validation_summary.json"))["summary"]["detection"]
-    names = {"control_contaminant": "mutated clone filed under a control", "file_copy": "copied trace file",
-             "retyped_copy": "re-typed copy under another animal", "misfiled_labelled": "misfiled clone, label intact",
-             "lineage_misfiled": "whole lineage misfiled", "misfiled_relabelled": "misfiled clone, label changed too"}
-    keys = list(names)
-    vals = [eval(det[k].replace("/", "/")) for k in keys]
-    y = np.arange(len(keys))
-    ax.barh(y, [100 * v for v in vals], color="#a3621b", height=0.62)
-    for yy, k, v in zip(y, keys, vals, strict=False):
-        ax.text(100 * v + 1.5, yy, det[k], va="center", fontsize=5.5)
-    ax.set_yticks(y, [names[k] for k in keys])
-    ax.invert_yaxis()
-    ax.set_xlim(0, 118)
-    ax.set_xticks([0, 25, 50, 75, 100])
-    ax.set_xlabel("Planted errors flagged (%)")
-    ax.set_title("Sanger bookkeeping checks (40 simulated projects)", fontsize=7)
-    ax.text(1.0, -0.32, "no flags on 6,018 correctly filed clones", transform=ax.transAxes, ha="right", fontsize=5.5, color=MID)
-    letter(ax, "E", dx=-0.62)
+    # E: the same comparison mouse by mouse (crm/fig5_per_mouse.py, which checks it pools back to panel B)
+    ax = fig.add_subplot(gs[1, 1:])
+    pm = json.load(open(DATA / "fig5_per_mouse.json"))
+    marks = {"WT2": "o", "WT3": "s", "WT4": "^"}
+    for i, cls in enumerate(pm["classes"]):
+        x0 = i * 3
+        ax.axvspan(x0 - 0.6, x0 + 1.6, color="#f3f1ec", lw=0, zorder=0)
+        for m in pm["mice"]:
+            a, b = pm["share"]["sanger"][m][i], pm["share"]["ont"][m][i]
+            ax.plot([x0, x0 + 1], [a, b], color=SOFT, lw=0.7, zorder=1)
+            ax.scatter([x0], [a], s=13, marker=marks[m], color=SANG_C, edgecolor="white", lw=0.3, zorder=3)
+            ax.scatter([x0 + 1], [b], s=13, marker=marks[m], color=ONT_C, edgecolor="white", lw=0.3, zorder=3)
+        ax.text(x0 + 0.5, 47.5, cls.replace(" ", "\n", 1), ha="center", va="top", fontsize=5.5)
+    ax.set_xticks([x for i in range(4) for x in (i * 3, i * 3 + 1)], ["S", "N"] * 4, fontsize=5.5)
+    ax.set_xlim(-0.8, 10.8)
+    ax.set_ylim(0, 48)
+    for t in ax.get_xticklabels():
+        t.set_color(SANG_C if t.get_text() == "S" else ONT_C)
+    ax.set_ylabel("Share of calls (%)", labelpad=1)
+    ax.set_title("The same comparison, mouse by mouse", fontsize=7)
+    for m, mk in marks.items():
+        ax.scatter([], [], s=12, marker=mk, color=MID, label=f"Wt {m[-1]}")
+    ax.legend(loc="lower left", fontsize=5.2, ncol=3, handletextpad=0.1, columnspacing=0.8, frameon=False)
+    ax.text(1.0, -0.2, "S, Sanger; N, nanopore. Platform × type interaction over 12 types, "
+            f"p = {pm['summary']['rm_anova_interaction_p']:.2f}", transform=ax.transAxes, ha="right",
+            fontsize=5.5, color=MID)
+    letter(ax, "E", dx=-0.1)
     save(fig, "Figure5")
 
 

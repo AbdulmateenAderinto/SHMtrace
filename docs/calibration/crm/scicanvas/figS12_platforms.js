@@ -83,7 +83,7 @@
   y = item(c1, y, 'Each molecule\'s own mutations', ['the mutation load of every clone, the share of',
     'clones mutated, and frequency as published:', 'unique mutations over clones \u00d7 a fixed length'], SANG);
   y = item(c1, y, 'Bookkeeping checks', ['copied traces, clones filed under two mice,',
-    'mutated clones filed as controls, mislabeled', 'tubes (Figure 5E)'], SANG);
+    'mutated clones filed as controls, mislabeled', 'tubes (Figure S7)'], SANG);
   y = item(c1, y, 'Error reported, not subtracted', ['the AID-null clones\' error rate (about 20 per',
     '10⁵ bases at Q ≥ 20 in both published studies),', 'and how many of each animal\'s calls it explains'], SANG);
 
