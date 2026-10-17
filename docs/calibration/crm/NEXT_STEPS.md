@@ -4,37 +4,32 @@ Branch `public-validation-2026-10`. Written 17 October 2026 so this can be picke
 every candidate and its status is `DATASET_LEDGER.md`; the two completed datasets are written up in
 `PUBLIC_VALIDATION.md`.
 
-## State at the last checkpoint (17 Oct, evening)
+## State at the last checkpoint (17 Oct, late)
 
-Done and committed:
+Done and committed, all on branch `public-validation-2026-10`:
 
-- **Germline policy.** `ancestral_reference` implemented, tests first
-  (`tests/test_ancestral_reference.py`, six tests); 305 tests pass, `ruff check src` clean. The patch table
-  and the scope deliberately left out are in `DATASET_LEDGER.md`.
-- **E1 Bassan TCR.** Reference reconstructed exactly from CIGAR+MD (1,785 bp, zero disagreements); eleven
-  libraries called; policy sensitivity measured. `crm/out/tcr/`.
-- **E5 Devilder clones.** All 42 annotated clusters reproduce the authors' nucleotide mutation lists
-  exactly. `crm/out/devilder/`.
+| | dataset | outcome |
+|---|---|---|
+| policy | — | `ancestral_reference`, tests first; 305 tests pass |
+| E1 | Bassan TCR | reference reconstructed exactly; 11 libraries called; policy sensitivity measured |
+| E5 | Devilder clones | 42/42 annotated clusters reproduce the published mutation lists |
+| E2 | Liu base editors | motif separates AID from A3A where the transition share fails |
+| E6 | Ma TAM reporter | guide-dependent localisation; single-control calibration shown to invert |
+| E3 | Chen TRACE | **blocked**: archive resolves assay but not condition; evidence in the ledger |
 
-In flight:
+Still open:
 
-- **E2 Liu SRP159221.** All 386 files downloaded (1.02 GB). `crm/liu_mutators.py` was running at the
-  checkpoint; rerun it if `crm/out/liu/liu_mutators.json` is absent. The prespecified contrast is fixed in
-  the script's `ARMS`: DBE-AIDmono against DBE-humanA3a, in wild-type and UNG/MSH2-null 293T, with the NC
-  arm as control. Pairs merge cleanly here (97.8%, a 238-bp EGFP amplicon), unlike GSE77788.
+- **`crm/tam_reporter.py` has not been run end to end since the last fix.** Its raw-rate table and the
+  calibrated contrast were both produced and are recorded in `DATASET_LEDGER.md`, but the script's own
+  `tam_reporter.json` is stale. Rerun it (it takes roughly 40 minutes at `DEPTH = 50_000`; lower `DEPTH` if
+  that is inconvenient) so the JSON matches the ledger.
+- The TAM amplicon arms are still downloading into `~/Nanoshm/public_data/SRP075898/` (3.5 GB of amplicon
+  runs; the 17 GB off-target arm is deliberately excluded). The footprint and saturation arms are not yet
+  analysed and would extend the localisation result with a guide titration.
+- Nothing from this pass is in the manuscript yet. The main text is at 6,999 of 7,000 words, so any Results
+  sentence needs words cut elsewhere; see the word-budget note in `PUBLIC_VALIDATION.md`.
 
-Not started: **E3** (Chen TRACE, PRJNA555784, 2.36 GB, 55 paired runs grouped as On-target / Targeted /
-MEK1 screen / Off-target / T7 variants), **E6** (Ma TAM, SRP075898, 19.3 GB).
-
-Two traps already hit, worth not repeating:
-
-- `curl` inside a `while read` loop eats stdin and silently truncates a download. Both manifests carry
-  expected sizes; the loops redirect `curl < /dev/null` and verify size. Downloading with
-  `xargs -P 8` is roughly ten times faster than the sequential loop.
-- The SRP159221 labels are inconsistent about separators (`DBE_AID_mono` against `DBE-AIDmono `, some with a
-  trailing space). `crm/liu_mutators.py` lists them exactly as deposited; do not normalise them blindly.
-
-## Completed in this pass## Completed in this pass
+## Completed in this pass## Completed in this pass## Completed in this pass
 
 ```bash
 PY=~/Nanoshm/nanoshm_v0.2/.venv/bin/python
