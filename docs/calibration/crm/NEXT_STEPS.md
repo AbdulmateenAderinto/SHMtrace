@@ -4,6 +4,23 @@ Branch `public-validation-2026-10`. Written 17 October 2026 so this can be picke
 every candidate and its status is `DATASET_LEDGER.md`; the two completed datasets are written up in
 `PUBLIC_VALIDATION.md`.
 
+## State at the last checkpoint (17 Oct, mid-session)
+
+- **Germline policy: done and committed.** `ancestral_reference` is implemented, tests first
+  (`tests/test_ancestral_reference.py`, six tests); 305 tests pass. See `DATASET_LEDGER.md` for the patch
+  table and the scope deliberately left out (indels, Sanger germline, lineage_sim keep the default rule).
+- **E1 Bassan TCR: downloaded and prepared.** `crm/tcr_prepare.py` reconstructs `hT27` exactly from CIGAR+MD
+  (1,785 bp, zero disagreements). Reads extracted to
+  `~/Nanoshm/public_data/TCR_figshare_12803501/fastq/`. `crm/tcr_bassan.py` was running at the checkpoint;
+  if its output is missing, rerun it.
+- **E2 Liu SRP159221: downloading** into `~/Nanoshm/public_data/SRP159221/` (386 files, ~1.02 GB). The
+  manifest with expected sizes is `manifest.tsv` there; the fetch loop skips files already at the right size,
+  so it is safe to rerun to completion.
+- **E5, E3, E6: not started.**
+
+A warning worth keeping: `curl` inside a `while read` loop eats stdin and silently truncates the download.
+Both manifests therefore carry expected sizes and the loops redirect `curl < /dev/null` and verify the size.
+
 ## Completed in this pass
 
 ```bash
