@@ -20,8 +20,9 @@ BUILD, FIGS = CRM / "build", CRM / "figures"
 PKG = BUILD / "SHMtrace_review_package"
 SOFFICE = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
 FIGURES = ["GraphicalAbstract_preview", "Figure1_preview", "Figure2", "Figure3", "Figure4", "Figure5", "Figure6",
-           "Figure7", "FigureS2", "FigureS3", "FigureS6", "FigureS8_sanger_cohort2", "FigureS9_sanger_mkln",
-           "FigureS10_swhel", "FigureS12_platforms", "FigureS13_overview", "FigureS14_engine"]
+           "Figure7", "FigureS1_workflow_preview", "FigureS2", "FigureS3", "FigureS5", "FigureS6",
+           "FigureS8_sanger_cohort2", "FigureS9_sanger_mkln", "FigureS10_swhel", "FigureS12_platforms",
+           "FigureS13_overview", "FigureS14_engine", "FigureS15"]
 
 
 def run(*cmd, cwd=None):

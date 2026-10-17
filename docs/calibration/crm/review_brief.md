@@ -15,7 +15,7 @@ is not included.
 candidate mutation is tested against the errors measured in matched AID-null (*Aicda*⁻/⁻) libraries sequenced in the
 same run, and groups are compared with the animal, not the read, as the unit. The paper validates it with:
 - planted mutations and simulated B cell lineages;
-- six loci from five laboratories on three platforms (nanopore, Sanger, Illumina);
+- ten loci from seven laboratories on three platforms (nanopore, Sanger, Illumina);
 - nanopore against Sanger sequencing of the same mice;
 - automatic re-analysis of three published Sanger studies from their deposited clones: two from the authors'
   laboratory and one external (Thientosapol et al. 2018, PNAS).
@@ -26,13 +26,13 @@ same run, and groups are compared with the animal, not the read, as the unit. Th
 |---|---|
 | `01_Manuscript.pdf` | Main text, figures 1-7 with legends, STAR Methods, references |
 | `01_Manuscript.txt` | The same as plain text (layout preserved), for easier quoting |
-| `02_Supplement_Document_S1.pdf` | Document S1: supplementary figures S1-S14 and tables S1, S3, S4 |
+| `02_Supplement_Document_S1.pdf` | Document S1: supplementary figures S1-S15 and tables S1, S3, S4, S5 |
 | `02_Supplement_Document_S1.txt` | The same as plain text |
 | `03_Highlights_eTOC_Motivation.txt` | Highlights, eTOC blurb, Motivation statement |
 | `04_Table_S2_benchmark.xlsx` | Table S2, the benchmark spreadsheet |
 | `figures/` | Full-resolution images of the main figures, the graphical abstract, most supplementary figures and Table S4, for close inspection |
 
-Figures S1, S4, S5, S7 and S11 appear only inside Document S1.
+Figures S4, S7 and S11 appear only inside Document S1.
 
 ## What to check
 
