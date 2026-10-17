@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="305.801575pt" height="136.062992pt" viewBox="0 0 305.801575 136.062992" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-17T12:01:04.453046</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 136.062992 
+L 305.801575 136.062992 
+L 305.801575 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 137.610709 99.325984 
+L 290.511496 99.325984 
+L 290.511496 19.048819 
+L 137.610709 19.048819 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 137.610709 22.697781 
+L 267.187647 22.697781 
+L 267.187647 30.748872 
+L 137.610709 30.748872 
+z
+" clip-path="url(#pc9bc0c5143)" style="fill: #a3621b"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 137.610709 35.683411 
+L 267.187647 35.683411 
+L 267.187647 43.734502 
+L 137.610709 43.734502 
+z
+" clip-path="url(#pc9bc0c5143)" style="fill: #a3621b"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 137.610709 48.669041 
+L 267.187647 48.669041 
+L 267.187647 56.720132 
+L 137.610709 56.720132 
+z
+" clip-path="url(#pc9bc0c5143)" style="fill: #a3621b"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 137.610709 61.654671 
+L 267.187647 61.654671 
+L 267.187647 69.705762 
+L 137.610709 69.705762 
+z
+" clip-path="url(#pc9bc0c5143)" style="fill: #a3621b"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 137.610709 74.640301 
+L 267.187647 74.640301 
+L 267.187647 82.691392 
+L 137.610709 82.691392 
+z
+" clip-path="url(#pc9bc0c5143)" style="fill: #a3621b"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 137.610709 87.625932 
+L 208.878025 87.625932 
+L 208.878025 95.677022 
+L 137.610709 95.677022 
+z
+" clip-path="url(#pc9bc0c5143)" style="fill: #a3621b"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <defs>
+       <path id="m0a91149601" d="M 0 0 
+L 0 2.5 
+" style="stroke: #1d2733; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#m0a91149601" x="137.610709" y="99.325984" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: middle; fill: #1d2733" x="137.610709" y="109.694148" transform="rotate(-0 137.610709 109.694148)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2">
+      <g>
+       <use xlink:href="#m0a91149601" x="170.004943" y="99.325984" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: middle; fill: #1d2733" x="170.004943" y="109.694148" transform="rotate(-0 170.004943 109.694148)">25</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3">
+      <g>
+       <use xlink:href="#m0a91149601" x="202.399178" y="99.325984" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: middle; fill: #1d2733" x="202.399178" y="109.694148" transform="rotate(-0 202.399178 109.694148)">50</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m0a91149601" x="234.793413" y="99.325984" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: middle; fill: #1d2733" x="234.793413" y="109.694148" transform="rotate(-0 234.793413 109.694148)">75</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5">
+      <g>
+       <use xlink:href="#m0a91149601" x="267.187647" y="99.325984" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: middle; fill: #1d2733" x="267.187647" y="109.694148" transform="rotate(-0 267.187647 109.694148)">100</text>
+     </g>
+    </g>
+    <g id="text_6">
+     <text style="font-size: 6.5px; font-family: 'Arial'; text-anchor: middle; fill: #1d2733" x="214.061102" y="119.689021" transform="rotate(-0 214.061102 119.689021)">Planted errors flagged (%)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_6">
+      <defs>
+       <path id="m38a8e066f1" d="M 0 0 
+L -2.5 0 
+" style="stroke: #1d2733; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#m38a8e066f1" x="137.610709" y="26.723326" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="131.610709" y="28.907408" transform="rotate(-0 131.610709 28.907408)">mutated clone filed under a control</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_7">
+      <g>
+       <use xlink:href="#m38a8e066f1" x="137.610709" y="39.708956" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="131.610709" y="41.893038" transform="rotate(-0 131.610709 41.893038)">copied trace file</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m38a8e066f1" x="137.610709" y="52.694587" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="131.610709" y="54.878669" transform="rotate(-0 131.610709 54.878669)">re-typed copy under another animal</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_9">
+      <g>
+       <use xlink:href="#m38a8e066f1" x="137.610709" y="65.680217" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="131.610709" y="67.864299" transform="rotate(-0 131.610709 67.864299)">misfiled clone, label intact</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#m38a8e066f1" x="137.610709" y="78.665847" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_11">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="131.610709" y="80.849929" transform="rotate(-0 131.610709 80.849929)">whole lineage misfiled</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_11">
+      <g>
+       <use xlink:href="#m38a8e066f1" x="137.610709" y="91.651477" style="fill: #1d2733; stroke: #1d2733; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <text style="font-size: 6px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="131.610709" y="93.835559" transform="rotate(-0 131.610709 93.835559)">misfiled clone, label changed too</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_9">
+    <path d="M 137.610709 99.325984 
+L 137.610709 19.048819 
+" style="fill: none; stroke: #1d2733; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 137.610709 99.325984 
+L 290.511496 99.325984 
+" style="fill: none; stroke: #1d2733; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="269.131301" y="28.146666" transform="rotate(-0 269.131301 28.146666)">40/40</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="269.131301" y="41.132296" transform="rotate(-0 269.131301 41.132296)">40/40</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="269.131301" y="54.117926" transform="rotate(-0 269.131301 54.117926)">40/40</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="269.131301" y="67.103556" transform="rotate(-0 269.131301 67.103556)">40/40</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="269.131301" y="80.089187" transform="rotate(-0 269.131301 80.089187)">125/125</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="210.821679" y="93.074817" transform="rotate(-0 210.821679 93.074817)">22/40</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 5.5px; font-family: 'Arial'; text-anchor: end; fill: #4a5562" x="290.511496" y="133.042394" transform="rotate(-0 290.511496 133.042394)">no flags on 6,018 correctly filed clones</text>
+   </g>
+   <g id="text_20">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'Arial'; text-anchor: end; fill: #1d2733" x="290.511496" y="13.048819" transform="rotate(-0 290.511496 13.048819)">Sanger bookkeeping checks, 40 simulated projects</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pc9bc0c5143">
+   <rect x="137.610709" y="19.048819" width="152.900787" height="80.277165"/>
+  </clipPath>
+ </defs>
+</svg>
