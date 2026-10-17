@@ -343,6 +343,15 @@ STATS = [
     ("Leave-one-control-out margin", "held-out control tests with p < 0.01 at the samples' depth",
      "J_{H}4 {loco_jh4_face}% at 1×, {loco_jh4_final}% at {loco_jh4_margin}×; N114 {loco_n114_face}% at 1×, "
      "{loco_n114_final}% at {loco_n114_margin}×"),
+    # minor 14: the sensitive mode's claims, with the default beside them so the trade is visible
+    ("Sensitive mode (FDR 0.20) vs default (0.05), J_{H}4 spike-ins",
+     "single-read recall; overall recall; observed FDR; false calls per library",
+     "{sens_jh4_1}% vs {sp_jh4_1}%; {sens_jh4_all}% vs {sp_jh4_recall}%; {sens_jh4_fdr} vs {sp_jh4_fdr}; "
+     "{sens_jh4_fp} vs {sp_jh4_fp}"),
+    ("Sensitive mode (FDR 0.20) vs default (0.05), N114 spike-ins",
+     "single-read recall; overall recall; observed FDR; false calls per library",
+     "{sens_n114_1}% vs {sp_n114_1}%; {sens_n114_all}% vs {sp_n114_recall}%; {sens_n114_fdr} vs "
+     "{sp_n114_fdr}; {sens_n114_fp} vs {sp_n114_fp}"),
     # the two comparisons that did not reach significance, reported as an effect with an interval:
     # not reaching significance is not evidence of no effect, and the interval says what is still possible
     ("*Ldha*-deleted vs Wt (Illumina J_{H}4, mutation frequency)", "Welch interval on log_{10}; Mann–Whitney p; n = 7 vs 7",

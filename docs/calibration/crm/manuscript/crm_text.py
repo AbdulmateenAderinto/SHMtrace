@@ -141,7 +141,7 @@ RESULTS = [
           "bootstrap, a Welch test on log rates, and a permutation test (Figure 1D). Each analysis also reports "
           "the substitution spectrum, positional clustering of calls, a 5-mer targeting index based on the SHazaM "
           "S5F model[@yaari2013], an aggregate estimate of mutations carried by single reads, clones identified "
-          "by their V(D)J junction, mutation trees, repair-pathway indices, and a power calculation. The same "
+          "by their V(D)J junction, mutation trees, motif shares, and a power calculation. The same "
           "analysis engine runs from the command line and from a desktop application."),
 
     ("h", "Planted mutations and simulated lineages define recall and false calls"),

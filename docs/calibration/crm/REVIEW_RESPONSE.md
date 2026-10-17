@@ -486,3 +486,61 @@ by the identical rule. Corrected in both the Results and the Methods.
 **Still not claimed.** These are simulations on one locus, built from three *Aicda*-/- libraries of one
 sequencing run; the artifact conditions rest on 5 runs each, with correspondingly wide intervals. An
 independent sequencing run would test the thresholds further, and the Limitations say so.
+
+
+---
+
+## Minor issues 1-15
+
+| # | Issue | Status |
+|---|---|---|
+| 1 | Correspondence address truncated | **fixed** earlier: the `.ca` address is escaped so the asterisk no longer eats it |
+| 2 | Incomplete sentence in the Discussion | **fixed** earlier, with the reviewer's own replacement |
+| 3 | AID-null controls vs biological pseudoreplication | **already separate**: the Introduction says the controls address the first problem and animal-level design the second |
+| 4 | Unqualified claim that SHM is measured by cloning | **fixed**: scoped to genomic reporter loci, with repertoire and UMI-consensus sequencing acknowledged |
+| 5 | "the weakest link ... is bookkeeping" | **fixed** earlier |
+| 6 | "uracils can only be copied" | **fixed** earlier: now "are expected to be copied as C→T or G→A" |
+| 7 | Absence of effect inferred from non-significance | **fixed**: effects and intervals now in Table S3 |
+| 8 | Figures 3/7 legends: define every mark and test | **fixed**: 7D bars defined, 7F band replaced by per-experiment points, all four group tests in 3G named two-sided |
+| 9 | "clone" ambiguous between bacterial and B cell | **fixed**: both defined in STAR Methods |
+| 10 | Cell lines: authentication, mycoplasma, transduction vs subclone | **partly fixed**: transduction and subcloning already described (Table 1 footnote a); authentication and mycoplasma are now named blockers |
+| 11 | Sex per mouse | **blocker**: the Methods give age, background and "both sexes"; per-mouse sex is now a named blocker |
+| 12 | Benchmark framing | **fixed**: germline callers already framed as expected negative-range comparators; the somatic callers now carry the same chemistry caveat as LoFreq |
+| 13 | Runtime: hardware, scope, human effort | **fixed**: hardware recorded from the machine, scope stated, curation already excluded |
+| 14 | Sensitive mode and repair indices | **fixed**: sensitive mode now has a table row showing its cost; "repair-pathway indices" was an over-claim and is corrected |
+| 15 | minimap2 vs mappy versions | **fixed** under issue 12 |
+
+### The ones worth reading
+
+**4.** The Motivation claimed somatic hypermutation "is still measured mostly by cloning PCR products and
+sequencing colonies one at a time" as a statement about the field. It is now a statement about genomic
+reporter loci such as the J_H4 intron, and says that repertoire sequencing and UMI consensus scale far
+better but are aimed at expressed, antigen-selected V regions rather than a short non-coding amplicon from
+genomic DNA.
+
+**7.** Two claims leaned on significance. The *Ldha* result said "no detectable difference"; Table S3 now
+gives 1.23-fold [95% CI 0.46-3.30], an interval spanning a two-fold decrease to a three-fold increase, so
+the comparison establishes much less than "no difference". The repair-context sentence said the
+experiment-level tests "did not reach significance despite these differences", and that was simply wrong:
+the transition share at C:G falls from 95% under UNG inhibition to 4% under UNG overexpression, and paired
+within experiment that swing is 92 points (95% CI 74-110, p = 0.002). The manuscript was understating its
+own result.
+
+**9.** The field uses "clone" for two different things and so did the paper. A *Sanger clone* is one
+bacterial colony, a unit of sequencing that says nothing about which B cell the molecule came from; a
+*B cell clone* is a lineage defined by a shared V(D)J junction, which is what the clone-weighted frequency
+and the mutation trees use. The Methods now say this, and note that the Sanger window (positions 101-629)
+does not reach the junction at position 53, so lineages cannot be identified in those clones at all --
+checked against the preset and the Sanger output, not assumed.
+
+**14.** "Repair-pathway indices" appears nowhere in the code. What SHMtrace reports is the share of calls
+at G:C, the share that are transitions, and the shares in WRC/GYW and WA/TW motifs: spectrum and sequence
+context, not a mechanistic decomposition. The Results now say "motif shares", and the Methods state plainly
+that the products of uracil excision, mismatch repair and replication over uracil overlap, so a spectrum
+alone does not separate them; where this paper discusses repair the pathway is set by genotype or vector,
+not inferred. The sensitive mode's claims now have a table row that shows the cost as well as the gain:
+on J_H4, single-read recall rises from 30% to 72%, and false calls per library from 2.4 to 11.9.
+
+**10 and 11** need the authors. Three new named blockers: per-mouse sex, how the N114 hybridoma was
+authenticated, and its mycoplasma status -- each phrased so that "not done" is an acceptable answer, since
+the review asks for an explicit statement either way. The build now lists 14 blockers.

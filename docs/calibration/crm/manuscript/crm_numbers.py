@@ -398,7 +398,7 @@ def compute():
     for k in ("jh4", "n114"):
         r = spike(k, "recommended_fdr20", "_sensitive")
         N.update({f"sens_{k}_1": pct(r["by"][1]), f"sens_{k}_fdr": f"{r['fdr']:.2f}",
-                  f"sens_{k}_fp": f1(r["fp"])})
+                  f"sens_{k}_fp": f1(r["fp"]), f"sens_{k}_all": pct(r["recall"])})
         assert r["by"][1] > spike(k, "geneious")["by"][1], "the text says sensitive beats the Geneious rule"
     # ClairS (somatic, with a matched normal) and Clair3 (germline) on the same planted mutations
     # (spikein.py --clairs / --clair3), ClairS on clean high-fraction plants (clairs_highaf.py) and on the

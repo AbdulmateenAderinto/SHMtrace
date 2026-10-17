@@ -7,6 +7,9 @@ number in the text and the same number in a figure always come from one file.
 The environment this was last recorded in is in `ARCHIVE_ENVIRONMENT.txt`:
 
 ```
+platform macOS-26.6.2-arm64-arm-64bit-Mach-O
+cpu Apple M2 Pro (12 cores)
+memory 32 GB
 python 3.13.12
 numpy 2.5.4
 scipy 1.18.1
@@ -20,7 +23,7 @@ edlib (not installed)
 minimap2 2.30-r1287
 samtools samtools 1.21
 lofreq (not on PATH)
-git 6c43de852547a934022639dfac5c22a72d7c6cd9 (uncommitted changes present)
+git cc507bcdd601468e482f33aca28aa597742d5546 (uncommitted changes present)
 ```
 
 | Produces | Command | Inputs | Outputs | Output present |

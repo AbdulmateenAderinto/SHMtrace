@@ -81,8 +81,28 @@ ANALYSES = [
 ]
 
 
+def hardware() -> list[str]:
+    """The machine the recorded runtimes were measured on, read from the system, not typed in."""
+    import platform
+    rows = [f"platform {platform.platform()}"]
+    try:
+        cpu = subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True,
+                             timeout=10).stdout.strip()
+        cores = subprocess.run(["sysctl", "-n", "hw.ncpu"], capture_output=True, text=True,
+                               timeout=10).stdout.strip()
+        mem = subprocess.run(["sysctl", "-n", "hw.memsize"], capture_output=True, text=True,
+                             timeout=10).stdout.strip()
+        if cpu:
+            rows.append(f"cpu {cpu}" + (f" ({cores} cores)" if cores else ""))
+        if mem.isdigit():
+            rows.append(f"memory {int(mem) // 1024 ** 3} GB")
+    except Exception:
+        rows.append("cpu (not read)")
+    return rows
+
+
 def environment() -> str:
-    out = [f"python {sys.version.split()[0]}"]
+    out = [*hardware(), f"python {sys.version.split()[0]}"]
     for p in PKGS:
         try:
             out.append(f"{p} {md.version(p)}")

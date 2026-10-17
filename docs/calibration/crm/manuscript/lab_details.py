@@ -35,6 +35,11 @@ DETAILS = {
     "wt_source": ("C57BL/6 source", "Bred in house (wild-type littermates)"),
     "wt_rrid": ("C57BL/6 RRID", "N/A (bred in house)"),
     "aicda_rrid": ("Aicda-/- RRID (MGI)", None),
+    # per-mouse sex: the Methods give "both sexes"; reporting guidelines ask for the sex of each animal
+    "mouse_sex": ("sex of each of the 6 J_{H}4 mice (e.g. Wt2 M, Wt3 F, ...)", None),
+    # cell lines: authentication and mycoplasma status, or an explicit statement that they were not done
+    "n114_auth": ("how the N114 hybridoma was authenticated, or 'not authenticated'", None),
+    "n114_myco": ("N114 mycoplasma testing result and date, or 'not tested'", None),
     # primers
     # Barbulescu 2025 Table S1 (Jh4-F/Jh4-R, with EcoRI/SpeI tails); 85%/81% of Wt3 nanopore reads carry them
     "jh4_primers": ("J_{H}4 primer sequences",
