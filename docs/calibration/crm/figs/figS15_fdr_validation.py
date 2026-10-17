@@ -61,6 +61,13 @@ def paired(ax, runs, signal, value, ylabel, title, as_rate=False, depth=500, con
 def main():
     setup()
     runs = json.load(open(DATA / "fdr_validation.json"))["runs"]
+    # the all-null cells are repeated many more times (fdr_null_reps.py): with five runs and no discovery
+    # the interval on "any discovery" runs to 52%, which is not worth quoting
+    extra = DATA / "fdr_null_reps.json"
+    if extra.exists():
+        runs = runs + json.load(open(extra))["runs"]
+    est = DATA / "fdr_estimator.json"
+    max_runs = json.load(open(est))["runs"] if est.exists() else []
     fig = plt.figure(figsize=(FULL, 102 * MM))
     gs = gridspec.GridSpec(2, 2, figure=fig, left=0.085, right=0.985, top=0.9, bottom=0.14, wspace=0.34,
                            hspace=0.72)
@@ -97,6 +104,7 @@ def main():
     ax.axhline(5, color=CTRL, lw=0.7, ls="--")
     ax.text(3.45, 6.5, "5% target", fontsize=5, color=CTRL, ha="right")
     ax.set_xticks(xs, [LABEL[n] for n in ORDER], fontsize=4.8)
+    ax.set_ylim(0, None)
     ax.set_ylabel("False-discovery proportion (%)")
     ax.set_title("Libraries with planted mutations: each library's own FDP", fontsize=6.6)
     ax.scatter([], [], s=5, color=ON, label="rule on")
@@ -123,6 +131,22 @@ def main():
     ax.text(0.5, 1.004, "with two controls there is no majority to judge against, so it never fires",
             transform=ax.transAxes, ha="center", va="bottom", fontsize=4.9, color=MID)
     letter(ax, "D", dx=-0.22)
+    if max_runs:
+        rows = []
+        for noise in ("none", "one_noisy", "case_only"):
+            mean_rs = pick(runs, signal="polyclonal", noise=noise, exclude_noisy=True, depth=500, controls=3)
+            max_rs = [r for r in max_runs if r["signal"] == "polyclonal" and r["noise"] == noise]
+            if mean_rs and max_rs:
+                rows.append((noise,
+                             float(np.mean([r["true_calls"] for r in mean_rs])),
+                             float(np.mean([r["true_calls"] for r in max_rs])),
+                             100 * float(np.mean([r["fdp"] for r in mean_rs])),
+                             100 * float(np.mean([r["fdp"] for r in max_rs]))))
+        json.dump([{"noise": n, "true_mean": a, "true_max": b, "fdp_mean_pct": c, "fdp_max_pct": d}
+                   for n, a, b, c, d in rows], open(DATA / "figS15_estimator.json", "w"), indent=1)
+        print("estimator (mean vs max):")
+        for n, a, b, c, d in rows:
+            print(f"  {n:10s} true {a:6.1f} -> {b:6.1f}   FDP {c:4.1f}% -> {d:4.1f}%")
     save(fig, "FigureS15")
 
     # the numbers the legend and the response quote

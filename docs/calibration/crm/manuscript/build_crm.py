@@ -518,6 +518,29 @@ SUPP_FIGS = [
      "crossing sets. (F) Unique-variant density per animal, the value the group tests use. Plotted from "
      "`intuition_jh4.json`, the per-library read accounting and the bundled example library; the equations are "
      "the ones the code applies."),
+    ("Figure S15. The calling procedure tested end to end on fresh simulations, related to STAR Methods",
+     FIG / "FigureS15.png",
+     "Fresh libraries built from AID-null J_{H}4 reads and run through the complete procedure, so the margin, "
+     "the control-based threshold and the noisy-control rule are all exercised. The case library is built from "
+     "one *Aicda*^{\u2212/\u2212} library's reads; the controls are two further *Aicda*^{\u2212/\u2212} libraries, each "
+     "split in two, so no control shares a molecule with the case. Three controls and 500 reads unless stated; "
+     "20 runs per all-null condition, 5 otherwise. Teal, the noisy-control rule on, as used throughout the "
+     "paper; amber, the same libraries with it off. "
+     "(A) The share of all-null libraries, which carry no planted mutation, in which anything at all was "
+     "called; bars, 95% Clopper\u2013Pearson intervals. Every call in such a library is false, so one call makes "
+     "its false-discovery proportion 1, which is why this, and not the mean, is the measure that matters here. "
+     "(B) The same libraries summarised as mean false calls, the quantity a caller comparison usually reports: "
+     "a small mean can coexist with most libraries discovering something. (C) Libraries with planted mutations, "
+     "about 400 true calls each: the false-discovery proportion of each library, with its mean; dashed line, "
+     "the 5% the threshold targets. (D) The runs in which a control was set aside, under a heterogeneous null. "
+     "The rule compares a control with the median of the others, so it needs at least two others, that is three "
+     "controls; with two it never fires and the more variable library is only named. "
+     "Three results bear on the limits stated in the Discussion. An artifact carried by the case and by no "
+     "control is called every time, whatever the rule does: calibration cannot see what the controls never "
+     "show. The same artifact shared with the controls is largely removed. And the rule's fold comparison "
+     "degenerates when the other controls are clean, because five times a median of zero is zero, so a control "
+     "with at least five held-out candidates is set aside whenever its peers have none; this is why it also "
+     "fires on undoctored controls in some runs."),
 ]
 
 if __name__ == "__main__":
