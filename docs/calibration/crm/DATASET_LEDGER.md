@@ -17,6 +17,7 @@ No `AGENTS.md` exists in either the workspace or the repository; none was applie
 | E1 Bassan 2021, AID-diversified TCR | figshare 12803501, 12 SAM / 228 MB | variant recovery against a known ancestral construct | `crm/out/tcr/`, below |
 | E5 Devilder 2019, anti-HLA-A2 clones | supplement DOCX, 53 KB | calls against an independent published annotation | `crm/out/devilder/`, below |
 | E2 Liu 2018, diversifying base editors | SRP159221, 386 files / 1.02 GB | whether the spectrum separates AID from an APOBEC | `crm/out/liu/`, below |
+| E6 Ma 2016, TAM reporter | SRP075898 amplicon arms, 3.5 GB | guide-dependent localisation | `crm/out/tam/`, below |
 
 Both are written up in `PUBLIC_VALIDATION.md`, including why the GSE77788 drug effect is not claimed.
 
@@ -130,6 +131,47 @@ below shows why).
 | Xu 2022, RAD52/IgD | PRJNA789895, 23 runs | Illumina junctions despite a PacBio-sounding description; verify the sequenced controls |
 | SWIBRID 2025 | PRJNA1190672, 109 ONT runs | a junction comparator; re-analyses Vincendeau, so not an independent cohort |
 | Wu 2026, inducible AID | PRJNA1337487, 659 AMPLICON runs / ~50 GB | run titles do not identify a replicated AID-off series; needs BioSample resolution first |
+
+## E6, Ma 2016 (TAM): guide-dependent localisation, and a limitation confirmed
+
+The reporter arm has four libraries - no editor (mock), AID alone, dCas9-AIDX with one sgRNA against EGFP,
+and dCas9-AIDX with a pool - one per condition, so nothing is replicated and no group statistic is computed.
+
+Two things had to be resolved before any number meant anything:
+
+- **The mock is not what its label says.** ENA calls `SRR3608504` SINGLE, but it exports three FASTQ files:
+  spots 1-809,813 are a paired block and 809,814-1,292,558 are single-end, together matching the run's
+  stated 1,292,558 reads. The other three libraries are single-end only, so the single-end block is used and
+  the paired block excluded, rather than mixing two preparations.
+- **The libraries are multiplexed.** Five amplicons share each file, each with its own start. A single
+  position-wise consensus over a whole library averages different sequences together - it gave a worst-case
+  consensus of 27.8%, which is what first exposed the problem. Built per amplicon instead, four of the five
+  reach 86-93% and one reaches 62%, which is flagged rather than used confidently.
+
+Mismatches per 1,000 bases at Q ≥ 30, against each amplicon's own reference:
+
+| library | ACGTCTATAT | CCCCTTGAAC | **CCTGACCTAC** | GCCCTATGTC | TTTTCTCCCA |
+|---|---|---|---|---|---|
+| mock (no editor) | 9.5 | 2.6 | **5.5** | 1.5 | 3.0 |
+| AID alone | 10.5 | 3.1 | **4.2** | 2.1 | 17.3 |
+| dCas9-AIDX + sgRNA | 20.4 | 2.1 | **22.6** | 2.0 | 17.1 |
+| dCas9-AIDX + pool | 11.1 | 2.8 | **20.6** | 1.3 | 30.3 |
+
+At `CCTGACCTAC` the two **tethered** arms raise the rate about four-fold over mock while **untethered AID
+does not** (4.2 against mock's 5.5). That is guide dependence, not merely editor dependence, and two
+amplicons (`CCCCTTGAAC`, `GCCCTATGTC`) stay flat in every arm as internal negatives. The `TTTTCTCCCA`
+column is raised by every editor including untethered AID, and is also the amplicon whose consensus is
+weakest, so it is not relied on.
+
+**Why these are raw rates and not calls.** The arm has a single no-editor library. SHMtrace fits its error
+model from the controls, so with one control there is nothing to calibrate against, and the calibrated path
+returns no calls in the editor arms despite the four-fold raw excess. That is the manuscript's own stated
+requirement for two or more AID-null controls, met here by an independent dataset rather than by assertion.
+The rates above still contain sequencing error and are descriptive, not mutation calls.
+
+The project's off-target arm has two mock replicates and would support a calibrated analysis, but it is
+genome-wide fragmented material and would have to be forced through amplicon-shaped gates. It was
+deliberately not downloaded (17 of the 19.3 GB); a fragmented-read route is a separate capability.
 
 ## E3, Chen 2020 (TRACE): downloaded, then blocked on metadata
 

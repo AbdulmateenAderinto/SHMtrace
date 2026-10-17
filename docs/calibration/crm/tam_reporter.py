@@ -78,6 +78,37 @@ def build_references(run, out_path, per_amplicon=6000):
     return refs, dict(n), weakest
 
 
+def raw_rates(refs, min_q=30, limit=150_000):
+    """Mismatches per 1,000 bases against each amplicon's own reference, with no model in the way.
+
+    This exists because the calibrated path cannot be used on this arm: it has one no-editor library, and the
+    error model is fit from the controls, so with a single control it has nothing to calibrate against. A
+    plain rate is interpretable without that machinery, and is reported as what it is - a descriptive rate
+    that still contains sequencing error, not a mutation call.
+    """
+    out = {}
+    for run, name, _w, _c in REPORTER:
+        mism, bases = collections.Counter(), collections.Counter()
+        n = 0
+        for _nm, seq, qual in io_utils.read_fastq(str(DATA / f"{run}.fastq.gz")):
+            n += 1
+            if n > limit:
+                break
+            k = seq[:20]
+            ref = refs.get(k)
+            if ref is None:
+                continue
+            for i, (b, q) in enumerate(zip(seq, qual, strict=False)):
+                if i >= len(ref) or ord(q) - 33 < min_q:
+                    continue
+                bases[k] += 1
+                if b != ref[i]:
+                    mism[k] += 1
+        out[name] = {f"amp_{k}": round(1000 * mism[k] / bases[k], 3)
+                     for k in refs if bases[k] > 10_000}
+    return out
+
+
 def main():
     missing = [r for r, *_ in REPORTER if not (DATA / f"{r}.fastq.gz").exists()]
     if missing:
@@ -91,42 +122,44 @@ def main():
     out = {"dataset": "SRP075898 (Ma et al. 2016, Nat Methods)",
            "read_handling": "single-end block only; the mock's paired block is excluded",
            "replication": "one library per condition; no group statistic is computed",
-           "amplicons": {f"amp_{a}": {"bp": len(s_), "weakest_consensus_pct": round(100 * weakest[a], 1)}
-                         for a, s_ in refs.items()},
-           "depth": DEPTH, "results": {}}
-    # one project per amplicon; the other amplicons are competing references, which is how the pipeline
-    # assigns a read to the sequence it actually came from
-    for a in refs:
-        single = OUT / f"ref_{a}.fasta"
-        single.write_text(f">amp_{a}\n" + "\n".join(refs[a][i:i + 70] for i in range(0, len(refs[a]), 70))
-                          + "\n")
-        others = OUT / f"others_{a}.fasta"
-        others.write_text("".join(f">amp_{b}\n{refs[b]}\n" for b in refs if b != a))
-        samples = [{"name": name, "path": str(DATA / f"{run}.fastq.gz"), "group": name, "control": ctrl}
-                   for run, name, _w, ctrl in REPORTER]
-        cfg = {"name": f"TAM amp_{a}", "region": "generic_amplicon", "platform": "illumina",
-               "reference": str(single), "contaminants": [str(others)], "depth": DEPTH, "samples": samples,
-               "overrides": {"analysis_window": [10, len(refs[a]) - 10], "end_trim_bp": 0,
-                             "min_align_len": 200, "max_total_len": 400, "exclude_indels": True, "jobs": 1}}
-        pub = project.public(project.run_project(cfg))
-        rows = {}
-        for s_ in pub["samples"]:
-            calls = sorted(v["pos"] for v in pub["variants"] if v["sample"] == s_["sample"])
-            rows[s_["sample"]] = {"condition": what[s_["sample"]], "reads": s_["reads"],
-                                  "unique_mutations": s_["unique_mutations"],
-                                  "mutation_frequency_x1e3": s_["mutation_frequency_x1e3"],
-                                  "pct_CT_GA": s_.get("pct_CT_GA"), "called_positions": calls}
-            if len(calls) >= 4:
-                q1, q3 = calls[len(calls) // 4], calls[(3 * len(calls)) // 4]
-                rows[s_["sample"]]["interquartile_span_bp"] = q3 - q1
-                rows[s_["sample"]]["median_position"] = calls[len(calls) // 2]
-        out["results"][f"amp_{a}"] = rows
-        print(f"\namp_{a} ({len(refs[a])} bp)", flush=True)
-        for name, v in rows.items():
-            span = v.get("interquartile_span_bp")
-            print(f"   {name:20s} reads {v['reads']:>6} unique {v['unique_mutations']:>4} "
-                  f"freq/1e3 {v['mutation_frequency_x1e3']:>8} C>T/G>A {str(v['pct_CT_GA']):>6}"
-                  + (f"  middle half within {span} bp" if span else ""), flush=True)
+           "amplicons": {f"amp_{a_}": {"bp": len(s_), "weakest_consensus_pct": round(100 * weakest[a_], 1)}
+                         for a_, s_ in refs.items()},
+           "depth": DEPTH}
+    raw = raw_rates(refs)
+    print("\nmismatches per 1,000 bases at Q>=30, against each amplicon's own reference:", flush=True)
+    amps = sorted({a for v in raw.values() for a in v})
+    print("   " + "library".ljust(20) + "".join(a[:14].ljust(16) for a in amps), flush=True)
+    for name in (n for _r, n, _w, _c in REPORTER):
+        print("   " + name.ljust(20) + "".join(str(raw[name].get(a, "-")).ljust(16) for a in amps), flush=True)
+    # the calibrated path, for contrast, on the amplicon with the clearest raw signal
+    target = max(amps, key=lambda a: raw["dCas9_AIDX_sgRNA"].get(a, 0) - raw["mock"].get(a, 0))
+    key = target.replace("amp_", "")
+    # the single reference and its competitors, written for this run
+    (OUT / f"ref_{key}.fasta").write_text(
+        f">amp_{key}\n" + "\n".join(refs[key][i:i + 70] for i in range(0, len(refs[key]), 70)) + "\n")
+    (OUT / f"others_{key}.fasta").write_text(
+        "".join(f">amp_{b_}\n{refs[b_]}\n" for b_ in refs if b_ != key))
+    samples = [{"name": name, "path": str(DATA / f"{run}.fastq.gz"), "group": name, "control": ctrl}
+               for run, name, _w, ctrl in REPORTER]
+    cfg = {"name": f"TAM {target}", "region": "generic_amplicon", "platform": "illumina",
+           "reference": str(OUT / f"ref_{key}.fasta"), "contaminants": [str(OUT / f"others_{key}.fasta")],
+           "depth": DEPTH, "samples": samples,
+           "overrides": {"analysis_window": [10, len(refs[key]) - 10], "end_trim_bp": 0,
+                         "min_align_len": 200, "max_total_len": 400, "exclude_indels": True, "jobs": 1}}
+    pub = project.public(project.run_project(cfg))
+    calibrated = {s_["sample"]: {"condition": what[s_["sample"]], "reads": s_["reads"],
+                                 "unique_mutations": s_["unique_mutations"],
+                                 "mutation_frequency_x1e3": s_["mutation_frequency_x1e3"]}
+                  for s_ in pub["samples"]}
+    out["raw_mismatch_per_1e3"] = raw
+    out["calibrated_run"] = {"amplicon": target, "controls": 1,
+                             "note": "one no-editor library, so the error model has a single control; "
+                                     "reported for contrast with the raw rates, not as a calibrated result",
+                             "samples": calibrated}
+    print(f"\ncalibrated path on {target} (one control):", flush=True)
+    for name, v in calibrated.items():
+        print(f"   {name:20s} unique {v['unique_mutations']:>4}  freq/1e3 {v['mutation_frequency_x1e3']}",
+              flush=True)
     json.dump(out, open(OUT / "tam_reporter.json", "w"), indent=1, default=str)
 
 
