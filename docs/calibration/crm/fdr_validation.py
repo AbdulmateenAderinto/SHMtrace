@@ -113,7 +113,7 @@ def write_fastq(path, reads):
             fh.write(f"@{name}\n{seq}\n+\n{qual}\n")
 
 
-def run_cell(signal, n_controls, noise, exclude, depth, seed, workdir):
+def run_cell(signal, n_controls, noise, exclude, depth, seed, workdir, estimate="mean"):
     """One simulated experiment, run end to end by the real pipeline."""
     rng = random.Random(seed)
     p = project.build_params({"region": REGION, "mode": "recommended"})
@@ -150,7 +150,7 @@ def run_cell(signal, n_controls, noise, exclude, depth, seed, workdir):
         write_fastq(paths[n], ctl[n])
     proj = {"name": "fdr", "region": REGION, "reference": REFERENCE, "contaminants": CONTAM,
             "mode": "recommended", "depth": depth,
-            "overrides": {"exclude_noisy_decoys": exclude},
+            "overrides": {"exclude_noisy_decoys": exclude, "control_decoy_estimate": estimate},
             "samples": [{"name": "CASE", "path": case_path, "group": "CASE"}]
                        + [{"name": n, "path": paths[n], "group": "CTRL", "control": True} for n in names]}
     try:
@@ -171,7 +171,7 @@ def run_cell(signal, n_controls, noise, exclude, depth, seed, workdir):
     s_call = row.get("summary", {}).get("calling", {}) if isinstance(row.get("summary"), dict) else {}
     return {
         "signal": signal, "controls": n_controls, "noise": noise, "exclude_noisy": exclude,
-        "depth": depth, "seed": seed, "control_names": names,
+        "depth": depth, "seed": seed, "control_names": names, "estimate": estimate,
         "planted": len(truth_set), "discoveries": len(called), "true_calls": tp, "false_calls": fp,
         # the false-discovery proportion of this one library: 1 whenever an all-null library discovers anything
         "fdp": round(fp / len(called), 4) if called else 0.0,
