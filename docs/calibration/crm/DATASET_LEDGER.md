@@ -68,37 +68,69 @@ technical comparisons, not AID validation, and are not counted toward the AID da
 variants at controlled frequencies and three clean control libraries, and runs the production project
 workflow. Results (`crm/out/germline_policy/demo.json`):
 
-| Acquired variant | default (0.50) | `germline_freq_threshold = 1.01` |
+| Acquired variant, case only | default (0.50) | `germline_freq_threshold = 1.01` |
 |---|---|---|
 | 20% of reads | recovered | recovered |
-| 50% | **removed as germline** | recovered |
-| 90% | **removed as germline** | recovered |
-| 95%, 98%, 99.5% | (not run) | recovered |
-| 100% (fixed) | **not called** | **not called** |
+| 50%, 90%, 95%, 98%, 99.5% | **removed as germline** | recovered |
+| 100% (fixed) | **removed as germline** | recovered |
 
-Two separate behaviours, not one:
+So the rule does exactly what it says, and it is **visible**: every removed site is reported per sample as
+`high_fraction_sites`, with position, allele, reads, depth and frequency. For a selected population this
+removes exactly the variant selection enriched, which is the problem for the engineered datasets.
 
-1. **The frequency rule** removes acquired variants from 50% up. This is at least *visible*: the removed sites
-   are reported per sample as `high_fraction_sites`, with position, allele, reads and depth. For a selected
-   population this erases exactly the variant selection enriched.
-2. **Exact fixation is invisible.** A variant carried by every read is never called, under either setting, and
-   does **not** appear in the removed list. Raising the threshold does not recover it. This is the more
-   serious of the two, because nothing in the output says a position was dropped.
+A **baseline mismatch** — a fixed difference from the deposited reference carried by the controls as well as
+the case — is correctly not called at either threshold, because the control-calibrated test sees the same
+thing on both sides. The control calibration already handles that case; the germline rule is not what
+protects against it.
 
-Raising the threshold is also not a safe general interface: `null_model.py:416` uses the same parameter to
-exclude fixed differences from the error model, so a value above 1 would feed genuine fixed differences into
-the background estimate. The threshold is read in nine places (`config.py:78`, `variants.py:346` and `:516`,
-`indels.py:177` and `:218`, `project.py:223` and `:247`, `null_model.py:416`, `phasing.py:84`,
-`lineage_sim.py:372`), so it is not a single-site switch.
+*(An earlier version of this section reported that fixation was silently invisible. That was an artefact of
+the demonstration script, which planted an alternate base that happened to equal the reference at that
+position, so no variant existed there. The script now derives each alternate from the reference base. The
+corrected behaviour is the table above: fixation is removed by the rule, and reported.)*
 
-`germline_vcf.py` does not solve this: it *subtracts* known germline sites supplied as a VCF. There is no
-existing configuration that says "this reference is the known ancestor, so do not infer germline from
+Raising the threshold above 1 does recover the acquired variants, and in the baseline-mismatch test it did not
+inflate the control calls. It is still not the right interface: `germline_freq_threshold` is read in nine
+places (`config.py:78`, `variants.py:346` and `:516`, `indels.py:177` and `:218`, `project.py:223` and `:247`,
+`null_model.py:416`, `phasing.py:84`, `lineage_sim.py:372`), including the null model's exclusion of fixed
+differences from the error estimate, so a value above 1 changes more than calling and says nothing about
+intent. Whether that pooled-background effect is material has **not** been demonstrated.
+
+`germline_vcf.py` does not solve this either: it *subtracts* known germline sites supplied as a VCF. There is
+no existing configuration that says "this reference is the known ancestor, so do not infer germline from
 frequency". The only existing opt-out, `germline_on` in `variants.py:319`, is reachable only by the Sanger
 model with too few clones.
 
-**No code change has been made.** The smallest justified change, for the authors to approve, is an opt-in
-`ancestral_reference` policy that (a) turns the frequency rule off for calling and phasing, (b) leaves the
-null model excluding fixed differences as it does now, and (c) makes fixation callable and reported rather
-than silent. It needs regression coverage first: the demonstration above is the starting point, plus a
-baseline reference mismatch, partial coverage and reverse-complement orientation, and proof that the
-physiological presets are unchanged.
+## The patch: `ancestral_reference`
+
+Added at the authors' direction, tests first (`tests/test_ancestral_reference.py`, six tests). Default
+`False`, so every preset and existing project is untouched.
+
+| File | Original | Change |
+|---|---|---|
+| `config.py:79` | — | `ancestral_reference: bool = False`, with the reasoning in a comment |
+| `variants.py:319` | `germline_on = True`, only the Sanger path could clear it | `germline_on = not p.ancestral_reference`, and a note is added to the sample when it is off |
+| `phasing.py:84` | candidate fraction bounded above by `germline_freq_threshold` | bound becomes 2.0 under the policy, so a selected variant at fixation can still be phased |
+| `null_model.py:416` | a control allele at or above the threshold is excluded from the error model | under the policy it is kept, as a position-specific rate |
+
+The last one was not in the original design and was forced by a failing test. Leaving the null model alone
+made a **baseline mismatch** — a fixed difference from the deposited reference that the controls carry too —
+into a false positive: with the frequency rule off, nothing stopped the case being called for carrying what
+its own controls carry. Keeping those control alleles in the error model restores the right answer, because
+the controls are the un-diversified baseline. This is why
+`test_baseline_mismatch_is_not_called_either_way` exists.
+
+Verified behaviour (`crm/germline_policy_demo.py`, and the tests):
+
+| | default (0.50) | `ancestral_reference` |
+|---|---|---|
+| acquired at 20% | recovered | recovered |
+| acquired at 50–99.5% | removed, and reported | recovered |
+| acquired at 100% | removed, and reported | recovered |
+| baseline difference shared with controls | not called | not called |
+| reverse-complement reads, partial coverage | — | recovered |
+| physiological presets | unchanged | unchanged (option defaults off) |
+
+**Scope deliberately left out.** `indels.py` keeps the frequency rule under the policy: the datasets this was
+built for (AID-diversified receptors, base-editor substrates) are substitution experiments, and widening the
+change to indels would need its own evidence. `project.py`'s Sanger germline and `lineage_sim.py` are
+likewise untouched. Anyone enabling the policy for an indel-bearing experiment should read this first.

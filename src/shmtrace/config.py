@@ -76,6 +76,14 @@ class Params:
     # ---- variant calling ----------------------------------------------------
     analysis_window: tuple[int, int] | None = None  # 1-based inclusive; None = whole ref
     germline_freq_threshold: float = 0.50  # positions with an alt >= this are germline -> removed
+    # Opt-in, for experiments whose reference is the construct that went into the cells (an engineered
+    # receptor, a base-editor substrate). There, a change acquired during diversification can be driven
+    # high or to fixation by selection, and inferring germline from frequency would delete exactly the
+    # variant the experiment is about. With this on, the frequency rule is off for calling and phasing.
+    # It does not change the error model, which still keeps fixed differences out of the background, and
+    # it does not change what a baseline difference shared with the controls does: the control-calibrated
+    # test already declines to call that. Leave it off for physiological SHM.
+    ancestral_reference: bool = False
     max_pvalue: float = 0.05               # keep variants with p <= this
     per_base_error: float = 0.001          # null error rate for the binomial variant test
     min_variant_reads: int = 1             # minimum supporting reads
