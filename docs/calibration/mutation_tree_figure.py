@@ -98,8 +98,8 @@ def draw(ax, tree, ref, title):
     for i, n in nodes.items():
         share = len(n.reads) / total
         ax.scatter([x[i]], [y[i]], s=25 + 700 * share, color="white", edgecolor="#2E3A46", lw=1.1, zorder=4)
-        # above the node: inside the circle it was unreadable once the circle grew with the read share
-        ax.text(x[i], y[i] + 0.012 * span + 0.055 * (share ** 0.5) * span + 0.1, f"{len(n.reads)}", fontsize=7.5,
+        # above the node: the y axis is inverted, so "above" is a smaller y
+        ax.text(x[i], y[i] - 0.1 - 0.35 * (share ** 0.5), f"{len(n.reads)}", fontsize=7.5,
                 color="#2E3A46", ha="center", va="bottom", zorder=5)
     ax.set_ylim(max(y.values()) + 1.0, min(y.values()) - 1.9)
     ax.set_xlim(-0.12 * span, span * 1.12)

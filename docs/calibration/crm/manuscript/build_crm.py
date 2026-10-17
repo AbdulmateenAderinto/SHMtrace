@@ -386,11 +386,21 @@ SUPP_FIGS = [
      "their share of that sample's calls. The only quantitative axis is the top panel's, and it is "
      "unique-variant density, not mutation frequency."),
     ("Figure S5. Sequencing depth and unique-variant discovery, related to Figure 4",
-     [MC / "FigureS3_depth_discovery_density.png", MC / "FigureS4_saturation.png"],
-     "Each library was analyzed at 30–1,000 reads (one random draw of usable reads per depth), with controls "
-     "calibrated at the same depth. Top, unique variants and density against depth (geometric mean ± geometric SD, "
-     "n = 3 per group). Bottom, calls at each depth relative to each AID-active sample's maximum (mean ± SD); at 500 "
-     "reads, {depth_jh4_500}% (J_{H}4) and {depth_n114_500}% (N114)."),
+     FIG / "FigureS5.png",
+     "Every library was analyzed at 30–1,000 reads, and the whole analysis was repeated five times at each "
+     "depth with a different random draw of usable reads, the AID-null controls redrawn and recalibrated at "
+     "that depth each time, so the spread shown is the spread a single run would have had. (A and B) J_{H}4 "
+     "unique variants and unique-variant density against depth; (C and D) the same for N114. Points, the five "
+     "draws of each library; lines, their mean; blue, AID-active libraries, red, AID-null. A library with no "
+     "calls has a density of zero, which has no logarithm: those draws are drawn on the \"0\" row below the "
+     "dotted break rather than floored to a small number, and they are common (J_{H}4 KO1 and KO3 called nothing "
+     "at any depth in any draw). Density falls with depth because its numerator, distinct calls, saturates while "
+     "its denominator keeps growing, so a density is only comparable at a stated depth. (E) What 500 reads, the "
+     "depth used throughout, had reached in each AID-active library: calls at 500 reads as a percentage of that "
+     "library's mean at 1,000, the largest depth tested; points, draws; bars, means; {depth_jh4_500}% (J_{H}4) "
+     "and {depth_n114_500}% (N114) on average. This is a comparison with the largest depth tested here, not "
+     "evidence that discovery has reached an asymptote. At 30 reads one draw is not informative: J_{H}4 Wt2 "
+     "gave between 7 and 60 calls across its five draws, against 212 to 244 at 500 reads."),
     ("Figure S6. The background along the amplicon and in each read, related to Figure 4",
      FIG / "FigureS6.png",
      "(A and B) Mismatches at base quality ≥ 20 at every position of the analysis window, germline sites "
