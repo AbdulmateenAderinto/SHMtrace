@@ -581,6 +581,17 @@ def compute():
         gr = lambda k, arm=arm: statistics.geometric_mean(  # noqa: E731
             [au[f"Exp{e}_{arm}_{k}"]["freq_x1e3"] for e in (1, 2, 3)])
         N[f"mo_{arm.lower()}_fold_raw"] = f1(gr("AID") / gr("AIDE58Q"))
+    # the repair-context swing as an effect with an interval, paired within experiment (minor 7)
+    try:
+        _sh = np.array(json.load(open(OUT / "fig7_morange.json"))["shmtrace"], dtype=float)
+        _d = _sh[:, 0] - _sh[:, 2]                      # Ugi minus UNG, one value per experiment
+        _se = _d.std(ddof=1) / len(_d) ** 0.5
+        _tc = stats.t.ppf(0.975, len(_d) - 1)
+        N["mo_arm_diff"] = f"{_d.mean():.0f}"
+        N["mo_arm_ci"] = f"{_d.mean() - _tc * _se:.0f}–{_d.mean() + _tc * _se:.0f}"
+        N["mo_arm_p"] = "paired t, p = " + pfmt(float(stats.ttest_rel(_sh[:, 0], _sh[:, 2]).pvalue))
+    except (OSError, ValueError, KeyError):
+        N["mo_arm_diff"] = N["mo_arm_ci"] = N["mo_arm_p"] = "[rebuild Figure 7]"
     N["mo_dead_ts"] = (f'{min(au[f"Exp{e}_{a}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}'
                        f'–{max(au[f"Exp{e}_{a}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG")):.0f}')
     allv = [v for e in (1, 2, 3) for a in ("Control", "Ugi", "UNG") for v in mv[f"Exp{e}_{a}_AID"]]

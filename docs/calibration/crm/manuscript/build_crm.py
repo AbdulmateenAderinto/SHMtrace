@@ -60,6 +60,15 @@ def public_numbers():
     n["ldha_nwt"], n["ldha_nko"] = len(f["WT"]), len(f["AID_KO"])
     from scipy import stats
     n["ldha_p_ko"] = f"{stats.mannwhitneyu(f['WT'], f['LDHA_KO']).pvalue:.2f}"
+    # the effect and its interval: failing to reach significance is not evidence of no difference
+    lw, lk = np.log10([x for x in f["WT"] if x > 0]), np.log10([x for x in f["LDHA_KO"] if x > 0])
+    se = (lw.var(ddof=1) / len(lw) + lk.var(ddof=1) / len(lk)) ** 0.5
+    dof = ((lw.var(ddof=1) / len(lw) + lk.var(ddof=1) / len(lk)) ** 2
+           / ((lw.var(ddof=1) / len(lw)) ** 2 / (len(lw) - 1)
+              + (lk.var(ddof=1) / len(lk)) ** 2 / (len(lk) - 1)))
+    d, tcrit = lk.mean() - lw.mean(), stats.t.ppf(0.975, dof)
+    n["ldha_fold_ko"] = f"{10 ** d:.2f}"
+    n["ldha_ci_ko"] = f"{10 ** (d - tcrit * se):.2f}–{10 ** (d + tcrit * se):.2f}"
     # CH12F3
     p = json.load(open(OUT / "public/ch12/project.json"))
     t = {(x["group"], x["metric"]): x for x in p["animal_tests"]}
@@ -334,6 +343,12 @@ STATS = [
     ("Leave-one-control-out margin", "held-out control tests with p < 0.01 at the samples' depth",
      "J_{H}4 {loco_jh4_face}% at 1×, {loco_jh4_final}% at {loco_jh4_margin}×; N114 {loco_n114_face}% at 1×, "
      "{loco_n114_final}% at {loco_n114_margin}×"),
+    # the two comparisons that did not reach significance, reported as an effect with an interval:
+    # not reaching significance is not evidence of no effect, and the interval says what is still possible
+    ("*Ldha*-deleted vs Wt (Illumina J_{H}4, mutation frequency)", "Welch interval on log_{10}; Mann–Whitney p; n = 7 vs 7",
+     "{ldha_fold_ko}-fold [95% CI {ldha_ci_ko}]; p = {ldha_p_ko}"),
+    ("Repair context, transitions at C:G (NIH-3T3, SHMtrace calls)",
+     "one value per experiment; n = 3 per arm", "{mo_ugi_ts}% (Ugi) vs {mo_ung_ts}% (UNG); {mo_arm_p}"),
     ("Spike-in FDR, control-based vs Benjamini–Hochberg", "observed false/(true + false) calls",
      "J_{H}4 {sp_jh4_fdr} vs {sp_jh4_bh_fdr}; N114 {sp_n114_fdr} vs {sp_n114_bh_fdr} (other C3 library: "
      "{c31_fdr} vs {c31_bh_fdr})"),

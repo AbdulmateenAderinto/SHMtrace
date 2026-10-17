@@ -30,8 +30,10 @@ KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanop
             "negative controls, false-discovery rate, pseudoreplication, immunoglobulin, mutation trees, Sanger "
             "sequencing")
 MOTIVATION = (
-    "Somatic hypermutation is still measured mostly by cloning PCR products and sequencing colonies one at a "
-    "time, which is slow and samples few molecules. Long nanopore reads could replace cloning, but their "
+    "At genomic reporter loci such as the J_{H}4 intron, somatic hypermutation is still measured mostly by "
+    "cloning PCR products and sequencing colonies one at a time, which is slow and samples few molecules. "
+    "Repertoire sequencing and UMI consensus scale far better, but they are aimed at expressed, "
+    "antigen-selected V regions rather than at a short non-coding reporter amplified from genomic DNA. Long nanopore reads could replace cloning, but their "
     "per-read error rate is close to the mutation rate of interest, and general-purpose variant callers judge "
     "each base by its quality score rather than by the errors a given library actually makes. We therefore "
     "built SHMtrace to calibrate each call against matched AID-null libraries sequenced in the same run, to "
@@ -61,10 +63,11 @@ INTRO = [
     "lesions[@dinoia2002,@rada2004,@rada2002,@zeng2001]. In mice, the most widely used reporter is the intron "
     "downstream of J_{H}4, a non-coding region that mutates like a V gene but is not subject to antigen "
     "selection[@jolly1997,@lebecque1990].",
-    "The standard assay has changed little in decades. Amplicons are cloned into bacteria and sequenced colony "
+    "This assay has changed little in decades. Amplicons are cloned into bacteria and sequenced colony "
     "by colony, which takes days of hands-on work and yields tens of sequences per animal[@sible2021]. "
-    "High-throughput alternatives exist, but short reads fragment the amplicon and lose the linkage between "
-    "mutations on the same molecule[@martin2023]. Long reads from Oxford Nanopore Technologies (ONT) now reach "
+    "Repertoire and consensus sequencing scale better but read expressed V regions, not this genomic "
+    "reporter, and short reads fragment the amplicon, losing the linkage between mutations on one "
+    "molecule[@martin2023]. Long reads from Oxford Nanopore Technologies (ONT) now reach "
     "modal accuracies above 99% with R10.4.1 flow cells[@zhang2023,@sereika2022,@sanderson2024] and have been "
     "used to sequence Ig genes where consensus sequencing can absorb errors[@minervini2021,@subassatish2022]. "
     "Calling rare substitutions from single reads across a polyclonal population is harder. A wild-type J_{H}4 "
@@ -82,13 +85,13 @@ INTRO = [
     "matter of design, one value per animal. "
     "Existing SHM software summarizes mutations once they have been called[@maccarthy2009,@gupta2015,@yaari2013] "
     "but does not use these controls to decide which differences are mutations.",
-    "Here, we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
-    "same sequencing run, compares groups with the animal as the unit, and runs the complete workflow from "
-    "delivered reads or Sanger chromatograms to group statistics. We validated SHMtrace with planted mutations, "
-    "simulated B cell lineages, ten loci from seven laboratories, three sequencing platforms, Sanger "
-    "sequencing of the same mice, and the deposited clones of three published Sanger studies, and we compared it with LoFreq[@wilm2012], with the long-read somatic callers "
-    "ClairS[@zheng2026] and DeepSomatic[@park2026] and germline callers Clair3[@zheng2022] and "
-    "DeepVariant[@poplin2018], and with the uncorrected test used in Geneious[@kearse2012].",
+    "Here we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
+    "same run, compares groups with the animal as the unit, and runs the whole workflow from "
+    "delivered reads or chromatograms to group statistics. We validated it with planted mutations, "
+    "simulated lineages, ten loci from seven laboratories, three platforms, Sanger "
+    "sequencing of the same mice, and the deposited clones of three published Sanger studies, and compared it against LoFreq[@wilm2012], the long-read somatic callers "
+    "ClairS[@zheng2026] and DeepSomatic[@park2026], the germline callers Clair3[@zheng2022] and "
+    "DeepVariant[@poplin2018], and the uncorrected Geneious test[@kearse2012].",
 ]
 
 RESULTS = [
@@ -460,8 +463,8 @@ RESULTS = [
           "transitions made up {mo_ugi_ts}% when UNG was inhibited, {mo_control_ts}% in the empty arm, and "
           "{mo_ung_ts}% when UNG was overexpressed, a swing that every-mismatch counting compresses to "
           "{mo_ugi_ts_raw}%, {mo_control_ts_raw}%, and {mo_ung_ts_raw}% because the dead-AID background sits at "
-          "{mo_dead_ts}% transitions in every arm. With three experiments per arm, and one noisy control among "
-          "them, the experiment-level tests did not reach significance despite these differences."),
+          "{mo_dead_ts}% transitions in every arm. Paired within experiment, the swing was {mo_arm_diff} points "
+          "(95% CI {mo_arm_ci}; {mo_arm_p}), each share resting on few calls."),
 ]
 
 DISCUSSION = [
