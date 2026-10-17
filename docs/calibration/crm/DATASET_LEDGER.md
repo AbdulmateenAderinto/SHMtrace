@@ -131,6 +131,27 @@ below shows why).
 | SWIBRID 2025 | PRJNA1190672, 109 ONT runs | a junction comparator; re-analyses Vincendeau, so not an independent cohort |
 | Wu 2026, inducible AID | PRJNA1337487, 659 AMPLICON runs / ~50 GB | run titles do not identify a replicated AID-off series; needs BioSample resolution first |
 
+## E3, Chen 2020 (TRACE): downloaded, then blocked on metadata
+
+All 110 files were fetched (1.1 GB) and inspected before this was called. The blocker is not the reads.
+
+The archive resolves the **assay** but not the **condition**. Every run's `sample_alias` is a figure label
+(`FigS5`, `Fig2A_and_2B`, `Fig2`, `FigS3`, `Fig1H`), `sample_title` is "Human sample from Homo sapiens", and
+`library_name` is a bare index (1, 3, 6, 7, 10, 13…). Nothing names the editor, the target, the induction,
+the drug or the replicate. The paper's data-availability statement gives only the BioProject, and the saved
+text carries no table mapping a library index to a condition. Assignments were not guessed.
+
+What the reads themselves do settle, and it is worth recording:
+
+- The groups sequence **different constructs**: the MEK1-screen reads carry the T7 promoter
+  (`TAATACGACTCACTATAG`), the Fig2A_and_2B reads are lentiviral backbone, the off-target reads are genomic.
+- Runs exporting **three FASTQ files** are not three replicates. In `SRR9722420` the `_1`/`_2` files hold
+  147-bp pairs and the unsuffixed file holds 302-bp reads with *different* spot ids, so the third file is
+  unpaired singletons.
+
+To unblock: a library-index-to-condition table from the authors or a supplementary file that carries one.
+Without it the deposit supports no prespecified contrast, and inventing one would be worse than leaving it.
+
 ## Blocked, with evidence
 
 | Dataset | Why |
