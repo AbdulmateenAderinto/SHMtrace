@@ -15,8 +15,9 @@ AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1
 
 SUMMARY = (
     "Somatic hypermutation (SHM) at genomic reporter loci is often measured by cloning amplicons and sequencing "
-    "colonies. We describe SHMtrace, which tests candidate substitutions in read libraries against errors measured "
-    "in matched activation-induced cytidine deaminase (AID)-deficient controls and compares biological replicates. "
+    "colonies, because single reads err at rates close to the mutation rate. We describe SHMtrace, which tests "
+    "candidate substitutions in read libraries against errors measured in matched activation-induced cytidine "
+    "deaminase (AID)-deficient controls from the same run and compares biological replicates. "
     "Sanger mismatches are counted at a quality threshold, with background reported separately. We evaluated "
     "SHMtrace using planted mutations, simulated lineages, and ten loci from seven laboratories across three "
     "platforms. It retained {ctl_rec} AID-null calls per assay and separated AID-active from AID-null libraries "

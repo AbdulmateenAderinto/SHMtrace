@@ -46,7 +46,7 @@ def main():
     ax.text(2.9, -0.27, "Nanopore reads", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, color=ONT_C)
     ax.set_ylabel("Unique variants per 10$^5$ bases")
     # the two densities are not on a common scale (STAR Methods), so the panel is read within a platform
-    ax.set_title("Genotype contrasts", fontsize=7)
+    ax.set_title("Within-platform contrasts", fontsize=7)
     letter(ax, "A", dx=-0.3)
     # B: spectrum scatter
     ax = fig.add_subplot(gs[0, 1])
