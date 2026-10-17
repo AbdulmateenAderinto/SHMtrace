@@ -14,8 +14,41 @@ No `AGENTS.md` exists in either the workspace or the repository; none was applie
 | Vincendeau 2022, PacBio CSR | PRJNA831666, 12 runs / 58 MB | the junction module; XLF-dependent microhomology recovered | `crm/out/switch_pacbio/`, Figure S16 |
 | Compagno 2017, Illumina Sμ | GSE77788 / PRJNA311552, 18 runs / 540 MB | control calibration on an independent lab and platform | `crm/out/public_smu/`, Figure S17 |
 | Germline-policy demonstration | synthetic, no download | what the 50% rule does to selected variants | `crm/out/germline_policy/`, below |
+| E1 Bassan 2021, AID-diversified TCR | figshare 12803501, 12 SAM / 228 MB | variant recovery against a known ancestral construct | `crm/out/tcr/`, below |
 
 Both are written up in `PUBLIC_VALIDATION.md`, including why the GSE77788 drug effect is not claimed.
+
+## E1, Bassan 2021: what it showed
+
+Reference `hT27` reconstructed exactly from the deposit's CIGAR+MD tags: 1,785 bp, matching the header, with
+zero disagreements between reads and no ambiguous base. The headers also answer two of the prompt's
+questions: the reads are CCS aligned with `bwa mem -x pacbio`, so they are not subreads, and read names are
+`movie/zmw/ccs`, which identify a ZMW and not a molecular UMI.
+
+Eleven libraries were usable at 6,000 reads each. `11_h12_HA` holds 19 reads and is excluded by count.
+
+| sample | unique positions | mutation frequency /10³ | C→T or G→A |
+|---|---|---|---|
+| **h5_wt (the available baseline)** | **182** | **0.079** | 61% |
+| h5_MHA / h5_HA / h5_HAHA | 39 / 9 / 11 | 0.56 / 0.59 / 0.59 | 36 / 22 / 27% |
+| h7_HA / h7_HAHA | 28 / 47 | 1.44 / 1.77 | 32 / 23% |
+| h8_MHA / h8_HA / h8_HAHE | 66 / 54 / 57 | 1.10 / 0.81 / 0.94 | 35 / 33 / 26% |
+| h12_MHA / h12_HAHE | 47 / 49 | 0.69 / 0.79 | 36 / 53% |
+
+The baseline carries the **most** positions and by far the **lowest** frequency: many scattered rare
+differences, against 7–23× higher mutation frequency at fewer positions in the diversified populations. That
+is what selection on a diversified pool looks like, and it is the comparison this deposit can support.
+
+What it cannot support: there is one baseline library and it belongs to founder h5, so no false-discovery
+rate is claimed and `1_h5_wt` is not treated as a matched AID-off control for h7, h8 or h12. Selected
+endpoint frequencies are not intrinsic mutation rates.
+
+**Policy sensitivity, measured rather than assumed.** Re-running three libraries with
+`ancestral_reference` on and off changed one of them: h7_HAHA gave 29 called positions with the policy and 27
+without, the two differences being variants the frequency rule removed as germline. The other libraries were
+identical. So on this deposit the policy recovers real variants but the effect is small, because most
+selected variants here sit below 50%. It remains the right default for this class of experiment, and the
+claim is kept to what was measured.
 
 ## Eligible, not yet run — engineered AID diversification
 

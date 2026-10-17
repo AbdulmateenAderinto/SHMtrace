@@ -93,6 +93,26 @@ def linkage(details, called, top=6):
             for c, n in combos.most_common(top) if c]
 
 
+def policy_sensitivity(keep, depth=2000):
+    """What the ancestral_reference policy changes on this deposit, rather than in principle.
+
+    The prompt asks for a bounded sensitivity analysis, and the answer matters: if every selected variant
+    sits below the 50% rule, the policy is a precaution that changes nothing here, and saying otherwise
+    would overstate it.
+    """
+    out = {}
+    for policy in (True, False):
+        cfg = build(keep)
+        cfg["depth"] = depth
+        cfg["overrides"]["ancestral_reference"] = policy
+        pub = project.public(project.run_project(cfg))
+        out["on" if policy else "off"] = {
+            s["sample"]: {"unique_mutations": s["unique_mutations"],
+                          "removed_by_frequency_rule": s.get("high_fraction_sites_removed")}
+            for s in pub["samples"]}
+    return {"depth": depth, "runs": out}
+
+
 def main():
     if not (OUT / "hT27.fasta").exists():
         sys.exit("run crm/tcr_prepare.py first")
@@ -113,7 +133,15 @@ def main():
            "window": WINDOW, "depth": DEPTH, "baseline_sample": BASELINE,
            "excluded_low_yield": dropped, "samples": rows,
            "baseline_unique_mutations": base.get("unique_mutations")}
+    sens = policy_sensitivity([k for k in keep if k[0] in ("1_h5_wt", "6_h7_HAHA", "7_h8_MHA")])
+    out["policy_sensitivity"] = sens
     json.dump(out, open(OUT / "tcr_bassan.json", "w"), indent=1, default=str)
+    on, off = sens["runs"]["on"], sens["runs"]["off"]
+    diff = {k: (on[k]["unique_mutations"], off[k]["unique_mutations"]) for k in on
+            if on[k]["unique_mutations"] != off[k]["unique_mutations"]}
+    print(f"\npolicy sensitivity at depth {sens['depth']}: "
+          + ("no sample changed" if not diff else
+             ", ".join(f"{k} {a} with the policy vs {b} without" for k, (a, b) in diff.items())))
     print(f"excluded for low yield: {dropped}")
     print(f"{'sample':12s} {'reads':>6} {'unique':>7} {'freq/1e3':>9}  C>T/G>A%")
     for name, v in sorted(rows.items()):
