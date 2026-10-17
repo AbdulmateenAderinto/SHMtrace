@@ -384,15 +384,28 @@ SUPP_FIGS = [
      FIG / "FigureS6.png",
      "(A and B) Mismatches at base quality ≥ 20 at every position of the analysis window, germline sites "
      "excluded, in each AID-null library (red) and averaged over the AID-active libraries (blue); J_{H}4, 500 "
-     "reads per library; Sμ (PRJNA1481264), 2,000. r, Spearman correlation between pairs of controls. (C and D) "
+     "reads per library; Sμ (PRJNA1481264), 2,000. Insets, the controls alone on their own scale, on which the "
+     "small recurrent artifacts are visible. r, Spearman correlation between pairs of controls: the controls "
+     "agree only weakly position by position, one explaining 1–4% (J_{H}4) and 9–20% (Sμ) of another's "
+     "variation. Recurrent artifacts are therefore a tendency of the chemistry and sequence context rather than "
+     "a fixed per-position fingerprint, which is why the error model pools over substitution type, strand and "
+     "base quality and shrinks each position towards that pooled rate instead of trusting its own count "
+     "(STAR Methods). (C and D) "
      "Every mismatch at quality ≥ 20 (germline sites excluded) in each of the 500 reads of a wild-type (C) and an "
      "*Aicda*^{−/−} (D) J_{H}4 library; colored, at sites SHMtrace called; gray, other mismatches. Reads are sorted "
      "by clone (dotted lines between the largest clones) and by mutation load."),
     ("Figure S7. Sanger re-analysis, related to Figure 5",
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
-     "Top, substitution matrices for each mouse's Sanger clones (re-analyzed from 447 chromatograms; base quality "
-     "≥ 20). Bottom, the share of wild-type clones with a high-quality base at each J_{H}4 position and calls per 10^{3} "
-     "bases read; shading, the 529-bp window used for comparison."),
+     "Top, substitution matrices for each mouse's Sanger clones (base quality ≥ 20). Bottom, the share of "
+     "wild-type clones with a high-quality base at each J_{H}4 position and calls per 10^{3} bases read; shading, "
+     "the 529-bp window used for comparison. From traces to clones: of the 447 chromatograms in the laboratory's "
+     "eight J_{H}4 sequencing orders, 184 are filed to these six mice in the sample sheet; 2 are excluded there "
+     "with a stated reason (never filed with a mouse); of the 182 analyzed, 48 yielded no clone (22 aligned "
+     "better to the J_{H}4 paralogue or another contaminant, 12 had no stretch of ≥ 20 consecutive bases at "
+     "quality ≥ 20, 11 did not map to J_{H}4, and 3 aligned over too short a stretch), leaving 134 clones: 37, 40 "
+     "and 26 from the wild-type mice (103) and 11, 10 and 10 from the *Aicda*^{−/−} mice (31). Every drop is a "
+     "property of the trace, applied before any mutation is counted; the bookkeeping checks are reported beside "
+     "the results and never remove a clone (Figure 5E)."),
     ("Figure S8. A published Sanger study re-analyzed automatically, related to Figure 5",
      [FIG / "FigureS8_sanger_cohort2.png"],
      "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (purple) and "

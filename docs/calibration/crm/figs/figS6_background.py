@@ -1,4 +1,8 @@
-"""Figure S6: the background is position-specific, and the reads show what is called.
+"""Figure S6: where the background sits along the amplicon, and what the reads behind a call look like.
+
+The controls agree only weakly position by position (Spearman r = 0.12-0.45, so one control explains a few
+per cent of another's variation), which is why the error model pools over substitution type, strand and base
+quality and shrinks each position towards that pooled rate rather than trusting a position's own count.
 
 A-B  mismatch rate (base quality >= 20, germline sites excluded) at every position of the window in each
      AID-null control and in the AID-active libraries (mean), J_H4 and Smu; r, Spearman between controls
@@ -34,8 +38,20 @@ def profile_panel(ax, key, title):
     for (c, r), col in zip(ctl.items(), CTRL_SHADES, strict=False):
         ax.plot(xs, r, color=col, lw=0.7, label=f"{c} (AID-null)")
     rs = [spearmanr(ctl[a], ctl[b], nan_policy="omit")[0] for a, b in combinations(ctl, 2)]
-    ax.text(0.99, 0.95, f"between controls: Spearman r = {min(rs):.2f}–{max(rs):.2f}", transform=ax.transAxes,
-            ha="right", va="top", fontsize=5.6, color=INK)
+    ax.text(0.99, 0.95, f"between controls: Spearman r = {min(rs):.2f}–{max(rs):.2f}\n"
+            f"(one control explains {100 * min(rs) ** 2:.0f}–{100 * max(rs) ** 2:.0f}% of another's variation)",
+            transform=ax.transAxes, ha="right", va="top", fontsize=5.6, color=INK, linespacing=1.3)
+    # the controls on their own scale: the AID-active curve is an order of magnitude higher and hides them
+    ins = ax.inset_axes([0.055, 0.40, 0.42, 0.32], facecolor="white", zorder=5)
+    ins.patch.set_alpha(1.0)
+    for (c, r), col in zip(ctl.items(), CTRL_SHADES, strict=False):
+        ins.plot(xs, r, color=col, lw=0.5)
+    ins.set_xlim(lo, hi)
+    ins.set_ylim(0, np.nanpercentile(np.concatenate(list(ctl.values())), 99.9) * 1.15)
+    ins.tick_params(labelsize=4.4, length=1.5, pad=1)
+    ins.set_title("controls only, own scale", fontsize=4.8, color=MID, pad=1.5)
+    for sp in ins.spines.values():
+        sp.set_linewidth(0.4)
     ax.set_xlim(lo, hi)
     ax.set_ylim(0, np.nanpercentile(np.concatenate([*ctl.values(), case]), 99.7) * 1.25)
     ax.set_xlabel(f"{title} position")
