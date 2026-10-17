@@ -14,7 +14,7 @@ Done and committed, all on branch `public-validation-2026-10`:
 | E1 | Bassan TCR | reference reconstructed exactly; 11 libraries called; policy sensitivity measured |
 | E5 | Devilder clones | 42/42 annotated clusters reproduce the published mutation lists |
 | E2 | Liu base editors | motif separates AID from A3A where the transition share fails |
-| E6 | Ma TAM reporter + footprint | the mutation position follows the guide (8.6-369x at distinct sites); single-control calibration shown to invert |
+| E6 | Ma TAM, three arms | position follows the guide (8.6-369x at distinct sites); sites scale with guide number (0/32/37/66); single-control calibration shown to invert |
 | E3 | Chen TRACE | **blocked**: archive resolves assay but not condition; evidence in the ledger |
 
 Still open:
@@ -23,8 +23,10 @@ Still open:
   silently part-way when started with `nohup ... &`, always at the point where merging starts, and both
   complete normally in the foreground. Their outputs now match the ledger. The cause was not chased down;
   if you background them, check the output rather than trusting the exit.
-- The TAM **saturation arm** (3, 5, 7 and 10 sgRNAs, four libraries) is downloaded and not yet analysed. It
-  is the natural extension of the footprint result: a guide titration on the same locus.
+- The TAM **saturation arm** is done (`crm/tam_saturation.py`): 0, 32, 37 and 66 localised sites for 3, 5, 7
+  and 10 guides. What remains unanalysed in that project is the `reporter-footprint` pair
+  (`SRR3620777`/`SRR3620780`, single sgRNA with and without UGI), which would add a repair-context contrast
+  to the localisation result.
 - **7.7 GB of partly-fetched off-target runs sit in `~/Nanoshm/public_data/SRP075898/`** from before the
   download was restricted to the amplicon arms. They are not used by anything here and are re-fetchable from
   `manifest.tsv`; delete them if you want the space back. The run accessions are in `off_runs.txt` beside
