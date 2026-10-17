@@ -3,8 +3,10 @@
 A  unique variants along the whole J_H4 amplicon (positions 90-1,230), per Wt mouse and the AID-null controls
 B  AID targeting: calls per position by 5-mer mutability quintile (SHazaM HH_S5F), Wt calls against
    every Aicda-/- mismatch (sequencing error)
-C  clones from the V(D)J junction: each mouse's reads by clone, and the read- against clone-weighted rate
-D  the reads of one Wt3 clone ordered into a mutation tree
+C  clones from the V(D)J junction: each mouse's 500 reads by clone, the reads whose junction could not be read,
+   and the read- against clone-weighted rate
+D  a read-level reconstruction: the reads of one Wt3 clone ordered into a mutation tree, with the share of
+   reads that fit no single path
 """
 import csv
 import json
@@ -130,19 +132,22 @@ def main():
         clones[r["sample"]].append(int(r["reads"]))
     for i, s in enumerate(("WT2", "WT3", "WT4")):
         sizes = sorted(clones[s], reverse=True)
-        tot = sum(sizes)
+        e = ex[s]
+        tot = e["reads"]                     # every analyzed read, so the unreadable junctions show
         left = 0
         for k, z in enumerate(sizes):
             ax.barh(i, 100 * z / tot, left=left, height=0.6, color=CASE if k == 0 else "#9fc0d8",
                     edgecolor="white", lw=0.3)
             left += 100 * z / tot
-        e = ex[s]
+        ax.barh(i, 100 - left, left=left, height=0.6, color="white", edgecolor=SOFT, lw=0.4, hatch="////")
+        ax.text(left / 2, i - 0.42, f"junction read in {100 * e['reads_with_junction'] / tot:.0f}%",
+                fontsize=4.8, color=MID, ha="center", va="bottom")
         ax.text(101, i, f"{e['mutation_frequency_x1e3']:.1f} → {e['clone_weighted_frequency_x1e3']:.1f}",
                 va="center", fontsize=5.5, color=MID)
     ax.set_yticks(range(3), ["Wt2", "Wt3", "Wt4"])
     ax.set_xlim(0, 140)
     ax.set_xticks([0, 25, 50, 75, 100])
-    ax.set_xlabel("Reads with a junction, by clone (%)")
+    ax.set_xlabel("Reads, by clone (% of 500)")
     ax.set_ylim(2.5, -1.0)
     ax.text(101, -0.72, "per 10$^3$ bp, read-\n→ clone-weighted", fontsize=5, color=SOFT, va="center")
     ax.set_title("Clones from the V(D)J junction", fontsize=7)
@@ -151,8 +156,13 @@ def main():
     ax = fig.add_subplot(gs[1, 1:])
     tr = json.load(open(CAL / "figures/mutation_trees/trees.json"))["wt3_figure_clone"]
     draw_tree(ax, tr["nodes"])
-    ax.set_title(f"One Wt3 clone: {tr['reads']} reads, {round(100 * tr['fit'])}% of mutated reads fit one tree",
-                 fontsize=7)
+    # every read of this clone carries the founding node, so fit is a share of all its reads
+    carriers = max(n["reads"] for n in tr["nodes"])
+    n_fit = round(tr["fit"] * carriers)
+    ax.set_title(f"Read-level reconstruction of one Wt3 clone ({tr['reads']} reads)", fontsize=7, pad=10)
+    ax.text(0.5, 1.01, f"{n_fit} of {carriers} reads ({round(100 * tr['fit'])}%) fit one path, {carriers - n_fit} do "
+            f"not; numbers, reads carrying each node (nested)", transform=ax.transAxes, fontsize=5.2, color=MID,
+            ha="center", va="bottom")
     hs = [plt.Line2D([], [], color=c, lw=1.6, label=lab) for lab, c in CLASS.values()]
     ax.legend(handles=hs, fontsize=5.3, loc="lower right", ncol=3, handlelength=1)
     letter(ax, "D", dx=-0.06)

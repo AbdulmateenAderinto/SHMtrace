@@ -170,8 +170,8 @@ RESULTS = [
           "its {cs_real_cand} candidates, including {cs_real_hi_pass} of the {cs_real_hi} carried by 20% or more "
           "of reads, a level at which it recalled nearly all clean planted mutations. One untested "
           "explanation is that models trained on human genomes, in which somatic variants are sparse along each "
-          "read, discount reads that carry many mutations. Real SHM rarely reaches the allele "
-          "fractions at which these callers work: of the {af_n} calls SHMtrace made in the AID-active libraries of "
+          "read, discount reads that carry many mutations. SHM rarely reaches the allele "
+          "fractions where these callers recovered planted mutations: of the {af_n} calls SHMtrace made in the AID-active libraries of "
           "the four loci, {af_lt1}% were carried by fewer than 1% of reads, {af_lt5}% by fewer than 5%, and "
           "{af_lt20}% by fewer than 20% (Figure 2E). {germ_recall}, as expected for "
           "germline callers, which look for variants carried by about half or all of the reads (Table S2)."),

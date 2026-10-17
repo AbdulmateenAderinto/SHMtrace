@@ -44,6 +44,18 @@ def spike_summary(key):
     return out
 
 
+def spike_by_control(key, caller):
+    """Recall by planted read count for each held-out control (pooled over sites and replicates):
+    {k: [recall per control]}, the spread behind the pooled curve."""
+    rows = [r for r in json.load(open(DATA / f"spikein_{key}.json"))["rows"] if r["caller"] == caller]
+    per = defaultdict(lambda: defaultdict(lambda: [0, 0]))
+    for r in rows:
+        for k, (got, n) in r["recall_by_reads"].items():
+            per[int(k)][r["control"]][0] += got
+            per[int(k)][r["control"]][1] += n
+    return {k: [g / n for g, n in v.values() if n] for k, v in sorted(per.items())}
+
+
 SPIKE_READS = 500                # reads per spike-in library (spikein.py)
 
 
@@ -68,22 +80,29 @@ def by_fraction(caller):
 def main():
     setup()
     fig = plt.figure(figsize=(FULL, 128 * MM))
-    outer = gridspec.GridSpec(2, 1, figure=fig, left=0.065, right=0.99, top=0.88, bottom=0.08, hspace=0.55)
+    outer = gridspec.GridSpec(2, 1, figure=fig, left=0.065, right=0.975, top=0.87, bottom=0.08, hspace=0.6)
     top = outer[0].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1.15, 1])
-    bottom = outer[1].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1.45, 0.95])
+    bottom = outer[1].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1.35, 1.1])
     # A, B: recall by planted read count
     for i, key in enumerate(("jh4", "n114")):
         ax = fig.add_subplot(top[i])
         s = spike_summary(key)
-        for c in SHOW:
+        for j, c in enumerate(SHOW):
             lab, col, mk = CALLERS[c]
             ks = list(s[c]["by_k"])
             ax.plot(range(len(ks)), [s[c]["by_k"][k] for k in ks], marker=mk, ms=3, color=col, lw=1, label=lab)
+            # range over the three held-out controls, offset so the callers' bars do not overlap
+            spread = spike_by_control(key, c)
+            dx = (j - 2) * 0.07
+            ax.vlines([i + dx for i in range(len(ks))], [min(spread[k]) for k in ks], [max(spread[k]) for k in ks],
+                      color=col, lw=0.7, alpha=0.8)
         ax.set_xticks(range(len(ks)), [str(k) for k in ks])
         ax.set_ylim(-0.03, 1.03)
         ax.set_xlabel("Reads carrying the planted mutation")
         ax.set_ylabel("Recall")
-        ax.set_title(f"{DATASET_LABEL[key]} spike-ins", fontsize=7)
+        ax.set_title(f"{DATASET_LABEL[key]} spike-ins", fontsize=7, pad=9)
+        ax.text(0.5, 1.005, f"FDR: SHMtrace {s['recommended']['fdr']:.2f}, Geneious {s['geneious']['fdr']:.2f}",
+                transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, color=MID)
         letter(ax, "AB"[i], dx=-0.32)
     handles = [plt.Line2D([], [], color=CALLERS[c][1], marker=CALLERS[c][2], ms=3.5, lw=1, label=CALLERS[c][0])
                for c in SHOW]
@@ -114,11 +133,18 @@ def main():
     lin = json.load(open(DATA / "lineage_sim_jh4/lineage_sim.json"))["summary"]
     ax = fig.add_subplot(top[3])
     bins = ["1", "2", "3-5", "6-10", ">10"]
-    for scen, ls in (("polyclonal", "-"), ("low", "--")):
+    runs = json.load(open(DATA / "lineage_sim_jh4/lineage_sim.json"))["runs"]
+    for scen, ls, dx0 in (("polyclonal", "-", -0.05), ("low", "--", 0.05)):
         for mode in ("recommended", "geneious"):
             r = next(x for x in lin if x["scenario"] == scen and x["mode"] == mode)
             ax.plot(range(5), [r["recall_by_support"][b] for b in bins], ls=ls, marker=CALLERS[mode][2], ms=3,
                     color=CALLERS[mode][1], lw=1)
+            # range over the three simulated libraries
+            per = [x["recall_by_support"] for x in runs if x["scenario"] == scen and x["mode"] == mode]
+            lo = [min(p[b]["recall"] for p in per if p[b]["planted"]) for b in bins]
+            hi = [max(p[b]["recall"] for p in per if p[b]["planted"]) for b in bins]
+            dx = dx0 + (0.02 if mode == "geneious" else -0.02)
+            ax.vlines([i + dx for i in range(5)], lo, hi, color=CALLERS[mode][1], lw=0.7, alpha=0.8)
     ax.set_xticks(range(5), ["1", "2", "3–5", "6–10", ">10"])
     ax.set_ylim(-0.03, 1.03)
     ax.set_xlabel("Reads carrying the mutation")
@@ -141,8 +167,17 @@ def main():
         est = [next(x for x in lin if x["scenario"] == s and x["mode"] == "recommended")[f"est_{kind}_weighted_x1e3"] for s in scen]
         ax.bar(xs + (j - 0.5) * 0.36, est, 0.34, color=col, label=f"{kind}-weighted")
         ax.scatter(xs + (j - 0.5) * 0.36, tru, marker="_", s=60, color=INK, linewidth=1.2, zorder=3)
+        # each simulated library: a stem from its own truth to its estimate, since the truth varies by library
+        for i, sc in enumerate(scen):
+            rs = [x for x in runs if x["scenario"] == sc and x["mode"] == "recommended"]
+            px = xs[i] + (j - 0.5) * 0.36 + np.linspace(-0.09, 0.09, len(rs))
+            ax.vlines(px, [x[f"true_{kind}_weighted_x1e3"] for x in rs], [x[f"est_{kind}_weighted_x1e3"] for x in rs],
+                      color=INK, lw=0.5, zorder=4)
+            ax.scatter(px, [x[f"est_{kind}_weighted_x1e3"] for x in rs], s=3, color="white", edgecolor=INK,
+                       linewidth=0.4, zorder=5)
     ax.set_xticks(xs, ["poly-\nclonal", "expanded\nclone", "low\nload"])
-    ax.set_ylim(0, 21)
+    ax.set_ylim(0, 27)
+    ax.set_yticks([0, 5, 10, 15, 20])
     ax.set_ylabel("Mutations per 10$^3$ bp")
     ax.set_title("Clones: estimate and truth", fontsize=7)
     ax.scatter([], [], marker="_", s=40, color=INK, label="truth")
@@ -157,12 +192,18 @@ def main():
     depths = [125, 250, 500, 1000]
     for amp, scen_, ls in (("JH4", "polyclonal", "-"), ("N114", "subclonal", "--")):
         for name, (e, t, col) in metrics.items():
-            ys = []
+            ys, lo, hi = [], [], []
             for d in depths:
                 rs = [r for r in q if r["amplicon"] == amp and r["scenario"] == scen_ and r["depth"] == d
                       and r["mode"] == "recommended" and r.get(t)]
-                ys.append(np.mean([r[e] / r[t] for r in rs]))
+                v = [r[e] / r[t] for r in rs]
+                ys.append(np.mean(v))
+                lo.append(min(v))
+                hi.append(max(v))
             ax.plot(depths, ys, ls=ls, marker="o", ms=2.5, color=col, lw=1, label=name if amp == "JH4" else None)
+            # range over the three held-out controls
+            off = 1.04 if amp == "N114" else 0.96
+            ax.vlines([d * off for d in depths], lo, hi, color=col, lw=0.7, alpha=0.8)
     ax.axhline(1, color=SOFT, lw=0.6, ls=":")
     ax.set_xscale("log")
     ax.set_xticks(depths, [str(d) for d in depths])
@@ -201,7 +242,7 @@ def main():
     spiked = spike_summary("jh4")["recommended"]["by_k"]
     lab, col, mk = CALLERS["recommended"]
     ax.plot([100 * k / SPIKE_READS for k in spiked], list(spiked.values()), marker=mk, ms=3, color=col, lw=1)
-    ax.text(5.3, 1.0, lab, fontsize=5.8, color=col, va="center")
+    ax.text(2.2, 1.04, lab, fontsize=5.8, color=col, va="bottom", ha="center")
     for caller, (tx, ty, ha) in (("clairs", (4.4, 0.06, "right")), ("deepsomatic", (1.9, 0.765, "center"))):
         spike, clean = by_fraction(caller)
         lab, col, mk = CALLERS[caller]
@@ -212,8 +253,9 @@ def main():
     ax.set_xscale("log")
     ax.set_xticks([0.2, 1, 5, 20], ["0.2", "1", "5", "20"])
     ax.minorticks_off()
-    ax.set_xlim(0.15, 30)
-    ax.set_ylim(-0.03, 1.03)
+    ax.set_xlim(0.15, 35)
+    ax.set_ylim(-0.03, 1.12)
+    ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_xlabel("Reads with the mutation (%)")
     ax.set_ylabel("Recall")
     ax.set_title("Somatic callers on J$_H$4", fontsize=7)
