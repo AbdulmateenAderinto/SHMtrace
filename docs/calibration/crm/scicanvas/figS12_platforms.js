@@ -38,24 +38,34 @@
   lines(['529-bp window that the clones read cleanly;',
     '447 chromatograms from the six mice of Figure 5'], sx, 212);
 
-  // nanopore: every read spans the amplicon; errors outnumber mutations in any one read
+  // nanopore: eight real reads of wild-type library WT3 (out/intuition_jh4.json, raster; two each from its
+  // clones 0, 1 and 3, one from clone 2 and one read without a junction), with their called mutations at their
+  // true positions. Errors are drawn at the rate measured in the AID-null controls over the window, 0.138% per
+  // base at all qualities, 14.6% of them at Q >= 20, at the expected counts (13 and 2 over these reads), at random
+  // positions (seed 450, chosen so no error lands within 12 bp of a mutation); open, Q < 20; filled, Q >= 20.
   const nx = 730, nX = (v) => nx + 70 + v / AMP * pw;
   head(nx, nx + 650, 'NANOPORE: CLONING-FREE AMPLICONS', 'every read spans the 1,230-bp amplicon', TEAL);
   I('s-nanopore-sequencing-strand-through-pore', nx + 34, 140, 58);
   // the 529-bp window both platforms are compared over, as brackets above and below the reads
   [80, 211].forEach((yy) => R(nX(WIN[0]), yy, nX(WIN[1]) - nX(WIN[0]), 2.4, { fill: SOFT }));
-  const errs = [[0.07, 0.33, 0.61, 0.9], [0.21, 0.52, 0.78], [0.12, 0.44, 0.69, 0.95], [0.29, 0.58, 0.84],
-    [0.05, 0.38, 0.73], [0.16, 0.49, 0.88], [0.26, 0.64, 0.92], [0.1, 0.41, 0.8]];
-  const muts = { 0: [210, 380], 1: [210, 380], 2: [210], 4: [210, 380], 5: [520], 6: [210] };
-  errs.forEach((ev, r) => {
+  const READS = [[52, 1230, [107, 136, 143, 166, 222, 316, 320, 368, 508], [[458, 0], [486, 0], [574, 0]]],
+    [52, 1230, [107, 138, 144, 166, 275, 290, 320, 323, 368, 403, 422, 425, 442, 446, 474], [[1147, 0]]],
+    [51, 1230, [138, 139, 160, 252, 261, 479], []], [51, 1230, [138, 139, 160, 252, 261, 479], []],
+    [56, 1227, [139, 160, 165, 209, 307, 363, 383, 395, 422, 455, 488, 490, 550, 559, 565, 566], [[469, 0], [888, 0]]],
+    [56, 1230, [139, 160, 165, 166, 209, 307, 363, 383, 395, 422, 455, 488, 490, 517, 550, 559, 565, 566],
+      [[675, 0], [902, 0], [1096, 0], [1181, 0]]],
+    [63, 1230, [107, 146, 147, 151, 157, 160, 166, 167, 182, 217, 273, 275, 279, 285, 300, 320, 330, 368, 428, 431,
+      490, 557], [[914, 0], [1007, 1]]],
+    [1, 1230, [445], [[587, 1]]]];
+  READS.forEach(([a, b, mut, err], r) => {
     const y = 88 + r * 15;
-    R(nX(0), y, pw, 7, { fill: FAINT, radius: 3.5 });
-    ev.forEach((f) => E(nX(f * AMP), y + 3.5, 10, { fill: ERR }));
-    (muts[r] || []).forEach((p) => E(nX(p), y + 3.5, 10, { fill: MUT }));
+    R(nX(a), y, nX(b) - nX(a), 7, { fill: FAINT, radius: 3.5 });
+    mut.forEach((p) => E(nX(p), y + 3.5, 7, { fill: MUT }));
+    err.forEach(([p, hq]) => E(nX(p), y + 3.5, 9, hq ? { fill: ERR } : { fill: '#ffffff', stroke: ERR, strokeWidth: 1.6 }));
   });
   TC('529-bp window', (nX(WIN[0]) + nX(WIN[1])) / 2, 216, { color: SOFT });
-  lines(['500 reads per library. A mutation is called where more reads carry it',
-    'than the controls explain; those in one read that are not called are estimated together.'], nx, 240);
+  lines(['Eight wild-type reads; errors at the rate the controls show: 1 base in 700,',
+    'mostly at low quality (open), and 1 in 5,000 at Q ≥ 20 (filled).'], nx, 246);
   E(sx + 8, 271, 10, { fill: MUT }); T('mutation', sx + 20, 261, { color: MUT });
   E(sx + 110, 271, 10, { fill: ERR }); T('sequencing error', sx + 122, 261, { color: ERR });
 
