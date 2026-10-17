@@ -5,7 +5,7 @@ touched, and what is still open. `README.md` in this folder lists the analyses; 
 that are easy to get wrong.
 
 Repository root is `~/Nanoshm/nanoshm_v0.2`. Everything below is relative to `docs/calibration/` unless
-said otherwise. Current HEAD when this was written: `2d93766`, working tree clean.
+said otherwise. Updated after the 17 Oct co-author review was adopted (patch `3317fd9` and follow-up commits).
 
 ---
 
@@ -55,10 +55,11 @@ The text and the numbers cannot drift: every result in the prose is a `{placehol
    paper reuse images from it. When one of those needed changing, the fix was to **copy the builder into
    `crm/` and edit the copy** — see `crm/scicanvas/figS1_workflow.js`, which is this article's own copy of
    the detailed workflow figure. Do the same rather than editing the original.
-2. **The main text is capped at 7,000 words** and currently sits at **6,999**. `build_crm.py` asserts this
+2. **The main text is capped at 7,000 words** and currently sits at **6,975**. `build_crm.py` asserts this
    and fails the build if exceeded. The count covers Introduction → Limitations only. **Figure legends,
    STAR Methods, tables and the Motivation are not counted**, so detail belongs there.
-   Summary ≤ 150 (now 149), eTOC ≤ 50 (now 50), four highlights ≤ 85 characters each.
+   Summary ≤ 150 (now 139), eTOC ≤ 50 (now 43), four highlights ≤ 85 characters each. The documents are
+   **US Letter**; `docbuild.figure_block` reads the page height from the document, so do not hard-code one.
 3. **Do not invent catalogue numbers, RRIDs, accessions or DOIs.** Fourteen such details are unknown and
    are tracked in `lab_details.py`; the build prints them as "submission blockers" on every run. Leave them
    as placeholders.
@@ -175,7 +176,7 @@ cd ~/Nanoshm/nanoshm_v0.2 && $PY -m pytest -q          # 292 tests
 $PY -m ruff check src                                   # clean
 ```
 
-`ruff check src` is clean and must stay that way. `ruff check .` reports ~472 errors: about 320 are in
+`ruff check src` is clean and must stay that way. `ruff check .` reports ~466 errors: 320 are in
 `manuscript_corrected/scripts/` (the JIM submission, which must not be modified) and the rest are
 pre-existing in `docs/calibration/` — mostly unsorted imports and unused loop variables in the older figure
 scripts (`fig4_controls.py`, `fig5_sanger.py`, `fig7_platforms.py`, `star_figs.py`, `resolve_refs.py`).
@@ -193,26 +194,28 @@ unless the method changed. `ARCHIVE.md` lists the command behind every one.
 
 ## 6. Where the review stands
 
-`REVIEW_RESPONSE.md` is the authority. Summary as of `2d93766`:
+`REVIEW_RESPONSE.md` is the authority. Summary after the 17 Oct co-author review:
 
 - **All 12 major issues**: addressed. Issues 3 and 4 ended with `crm/fdr_validation.py` + `fdr_estimator.py`
-  + `fdr_null_reps.py`, 220 runs of the real pipeline on fresh libraries, reported as **Figure S15**.
-- **All 31 numbered inconsistencies (C01–C31)**: addressed, bar C29 (see below).
+  + `fdr_null_reps.py`, 220 runs of `run_project` on resampled AID-null reads, reported as **Figure S15**. The
+  co-author review found four defects in that harness; they are fixed and every run was regenerated. The
+  numbers in the text come from `validation_summary.py`, not from prose.
+- **All 31 numbered inconsistencies (C01–C31)**: addressed, including C29 (Table S2's About sheet).
 - **All 15 minors**: closed, except what only the authors can supply.
 - **Figure-by-figure plan**: complete, Figures 1–7 and S1–S15.
 
 ### Genuinely still open
 
-1. **C29** — Table S2 is still labelled as covering every caller and dataset, and its OT rows come from the
-   caller-comparison run rather than `run_project`. It needs a column or note separating the two.
-   (`REVIEW_RESPONSE.md` line ~59.)
+1. **One independently prepared validation run.** The co-author review's main remaining suggestion: the
+   stress tests resample three existing AID-null libraries from one run, so they test the procedure
+   conditionally, not its transfer to a new preparation.
 2. **Issue 11** — biological QC flags suspicious calls but does not prove origin; a clone-aware recovery
    step was discussed but not built. (line ~153.)
 3. **The 14 submission blockers** in `lab_details.py`. Printed on every build. Four are deposit
    identifiers (SRA BioProject, data DOI, Zenodo DOI, companion citation); the rest are catalogue numbers,
    RRIDs, bench details, per-mouse sex and the N114 authentication/mycoplasma status.
-4. **The AI-use declaration** says the assistance covered "drafting the analysis and figure code, language
-   editing and figure layout". That is the authors' statement to make — it should be confirmed, not
+4. **The AI-use declaration** now names Anthropic Claude and OpenAI Codex and says the assistance covered
+   "drafting the analysis and figure code, language editing and figure layout". That is the authors' statement to make — it should be confirmed, not
    inherited.
 5. **The reviewer's proposed replacement Summary** (in the review, front-matter section) was deliberately
    not adopted; the current Summary is 149 words and already carries the two-route fix. The authors' call.
@@ -223,9 +226,11 @@ unless the method changed. `ARCHIVE.md` lists the command behind every one.
   estimate; **Sanger clones are counted at Q ≥ 20 with the background reported beside them, never
   subtracted**. Figure 1C is a fork for this reason. Any sentence implying one procedure for all platforms
   is wrong.
-- **`run_project` and `benchmark_real.py` are different procedures.** `run_project` is the method —
-  threshold selection plus the noisy-control rule — and is authoritative for biology. `benchmark_real.py`
-  is a caller-comparison harness with a leave-one-out null. Figure 4's panels come from the latter and its
+- **`run_project` and `benchmark_real.py` are different procedures, and both select a control-based
+  threshold.** `run_project` is the method and is authoritative for biology: one project-level margin and
+  decoy collection, the tested control's own decoy removed, and the noisy-decoy exclusion rule.
+  `benchmark_real.py` is a caller-comparison harness that calibrates the margin and threshold within each
+  library's peer-control set and applies no noisy-decoy exclusion. Figure 4's panels come from the latter and its
   legend says so. Do not mix their numbers.
 
 ---
@@ -233,10 +238,17 @@ unless the method changed. `ARCHIVE.md` lists the command behind every one.
 ## 7. Conventions worth keeping
 
 - Figure legends live in `crm_methods.py` (main figures) and `build_crm.py` (supplementary). They are not
-  word-capped, so when the main text must stay at 6,999 words, detail goes to the legend.
+  word-capped, so when the main text is near its 7,000-word cap, detail goes to the legend.
 - Every figure change is verified by *looking at the rendered PNG*, not by assuming the code is right.
   Several real problems here were only visible that way: labels overlapping data, a clipped annotation, a
   node count drawn inside its own circle, a legend running off the page.
 - When a claim is checked against the code or the data and turns out to be wrong, the fix is to correct the
-  claim, not to soften it. Two examples from the last pass: "repair-pathway indices" (no such output
-  exists) and "did not reach significance" (the result was significant, p = 0.002).
+  claim, not to soften it. Example: "did not reach significance" (the result was significant, p = 0.002).
+- Check a negative claim with a search broad enough to find the thing under any name. "Repair-pathway
+  indices exist nowhere in the code" was asserted from a search for the word "pathway" in two files;
+  `src/shmtrace/repair.py` exists and calls them repair-route indices. It is not used by the project
+  workflow, which is the accurate reason the paper does not report it.
+- Check assumptions about the environment before building on them: pagination was sized for A4 when the
+  documents are US Letter. Read such values from the source rather than typing them.
+- A test harness gets the same scrutiny as the method. The FDR stress test shipped with four defects that a
+  regression test per behaviour would have caught; `tests/test_crm_review.py` now holds those tests.

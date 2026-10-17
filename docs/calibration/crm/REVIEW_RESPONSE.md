@@ -16,7 +16,7 @@ The manuscript reads OT1/OT2 from two different pipelines:
 | Consumer | Source file | Produced by | What it is |
 |---|---|---|---|
 | Results text (`crm_numbers.py:449-475`) | `~/Nanoshm/public_data/PRJNA1481264/offtarget_ot{1,2}_2000.json` | `run_ircm_offtargets.py` → `project.run_project` | The full method: decoy-based FDR threshold selection **and** noisy-control QC |
-| Figure 4 (`figs/fig4_controls.py:30`) and Table S2 (`make_tables.py`) | `out/benchmark_real_ot{1,2}.json` | `benchmark_real.py` | A **caller-comparison harness**: plain leave-one-control-out null, no threshold selection, no control QC, so SHMtrace, Geneious and LoFreq see identical reads |
+| Figure 4 (`figs/fig4_controls.py:30`) and Table S2 (`make_tables.py`) | `out/benchmark_real_ot{1,2}.json` | `benchmark_real.py` | A **caller-comparison harness**: each library is fitted against its peer controls and the margin and control-based threshold are calibrated within that peer set; no shared project-level margin or decoy collection, no noisy-decoy exclusion. SHMtrace, Geneious and LoFreq see identical reads. *(Corrected 17 Oct: this cell originally said "no threshold selection", which was wrong — the harness does select a control-based threshold.)* |
 
 Both use the same window, depth 2,000, `recommended` mode and `qcal` error model. They differ in procedure, so they legitimately give different numbers. Neither is "wrong"; they answer different questions. The error is presenting them as one analysis.
 
@@ -56,7 +56,7 @@ Done in c5ad350:
 - The paragraph states that control KO2 was left out of the decoys at OT1, so that threshold rests on two controls.
 - The Figure 4 legend defines both OT groups and says panels A-I come from the caller-comparison run while the text's OT counts come from the full pipeline.
 
-Still open from this issue: Table S2 is still labelled as covering every caller and dataset (C29), and its OT rows come from the caller-comparison run; the table needs a column or note naming the run behind each row.
+Closed 17 Oct (C29): Table S2's About sheet now states that the Real-libraries sheet covers the five calling settings of Figure 4, that the somatic and germline callers are in the Spike-ins sheet, how the harness calibrates its threshold, and that the OT1/OT2 counts in the text come from `run_project`.
 
 ---
 
@@ -66,7 +66,7 @@ Still open from this issue: Table S2 is still labelled as covering every caller 
 |---|---|---|
 | 1 | OT1/OT2 analysis provenance | **fixed** (c5ad350); Table S2 labelling still open (C29) |
 | 2 | Platform-wide calling claim contradicts Sanger Methods | **fixed** (see below) |
-| 3 | Empirical FDR presented as stronger control than established | **fixed**: wording, the Benjamini-Hochberg reason corrected, and the whole procedure tested on fresh simulations (Figure S15) |
+| 3 | Empirical FDR presented as stronger control than established | **fixed**: wording, the Benjamini-Hochberg reason corrected, and the whole procedure tested on resampled control reads (Figure S15; harness defects found by the 17 Oct co-author review fixed and all 220 runs regenerated) |
 | 4 | Noisy-control policy ("sets aside" vs "still contributes") | **fixed**: wording reconciled, minimum and provenance stated, and all-controls vs exclusion run side by side on identical libraries under heterogeneous nulls (Figure S15) |
 | 5 | "Reproduced unaided" overstates the Sanger evidence | **fixed** (e54003f) |
 | 6 | SWHEL host identity and change of statistical test | **fixed** (e54003f) |
@@ -283,8 +283,9 @@ Worked through in the review's own order. Figures are built with the project `.v
 system interpreter's 3.10 cannot render Figure 2's underlined sequence context.
 
 ### Figure 2
-- **Q >= 20 labelled.** Panels A and B counted alt reads at any base quality while the test counts only bases at
-  quality >= 20. Each count now gives both (165: 20 reads, 19 at Q >= 20; KO2's and KO3's single reads there are
+- **Q >= 20 labelled.** *(Corrected 17 Oct: the read-route test uses every base quality — `min_base_quality` is 0 — so
+  the Q >= 20 counts are a descriptive subset, not what the test counts. Figure 2 now calls the line a reference.)*
+  Panels A and B counted alt reads at any base quality; Each count now gives both (165: 20 reads, 19 at Q >= 20; KO2's and KO3's single reads there are
   below Q20 and never entered the test). The axis says "any quality" and the Q20 line in C is labelled.
 - **Panel E retitled** "Allele fractions of SHMtrace calls".
 - **The shaded band.** It ran 10-60% and read "somatic callers work here", which claimed a general operating
@@ -433,6 +434,12 @@ all-null cells, 30 for the estimator arm.
 
 ### What it found
 
+*(Rerun 17 Oct, after the co-author review found four defects in `fdr_validation.py`: the "shared" artifact
+shared positions but not alleles, reverse reads were returned forward-oriented, the two-control condition used
+two halves of one library, and artifacts could overwrite planted truth. All 220 runs were regenerated with the
+fixes and reproduce the reviewer's independent rerun exactly. The figures below replace the earlier ones; the
+earlier outputs are kept in `out/pre_review_2026-10-17/`.)*
+
 **The measures the review asked for, which the paper did not report.** All-null libraries, 500 reads,
 3 controls:
 
@@ -443,40 +450,42 @@ all-null cells, 30 for the estimator arm.
 | one made noisy | on | 0/25 (95% upper 14%) | 25/25 | 0.00 |
 | one made noisy | off | 0/25 (95% upper 14%) | 0/25 | 0.00 |
 | artifact in case only | either | 5/5 | 0/5 | 6.00 |
-| artifact shared | either | 4/5 | 0/5 | 1.20 |
+| artifact shared | either | 0/5 (95% upper 52%) | 0/5 | 0.00 |
 
-The first two columns make the review's point exactly: a mean of 1.2 false calls looks small, but 4 of 5 of
-those libraries discovered something, and in a library with nothing to find one call is a false-discovery
-proportion of 1. Both are now reported.
+Before the fixes the shared row read 4/5 with 1.20 false calls. That came from the allele bug: the controls
+carried a different substitution from the case at the same positions, so they could not represent it. With the
+same allele in every library, the controls remove the artifact in every run.
 
 **Three findings.**
 
-1. **An artifact the controls do not carry is called every time**, under either setting, in every run. The
-   controls cannot measure what they never show, and no threshold repairs it. Shared with the controls, the
-   same artifact is largely removed (6.00 to 1.20 false calls). This is the limitation the Discussion already
-   stated; it is now quantified rather than asserted.
-2. **With real mutations present the per-library FDP stays near target** -- 3.8% with the controls as
-   delivered, 2.9% with one noisy, 2.9% shared -- and rises above 5% only when the case carries an artifact
-   the controls lack (5.9%). Six false calls among no true calls is an FDP of 1; the same six among four
-   hundred is under 2%, which is why the per-library proportion and the pooled ratio are both given.
+1. **An artifact the controls do not carry is called every time**, under either setting, in every run (6 of 6
+   planted sites). The controls cannot measure what they never show, and no threshold repairs it. The same
+   artifact shared with the controls is removed in all five runs. The case-only result is the limitation the
+   Discussion states; it is now quantified rather than asserted.
+2. **With real mutations present the per-library FDP stays near the target** -- 3.8% with the controls as
+   delivered, 3.0% with one noisy control, 3.7% with a shared artifact -- and exceeds 5% only when the case
+   carries an artifact the controls lack (5.1%). Six false calls among no true calls is an FDP of 1; the same
+   six among four hundred is under 2%, which is why the per-library proportion and the pooled ratio are both
+   given. Five resamples per cell do not establish a 5% bound.
 3. **The rule's fold comparison degenerates when the peers are clean.** Five times a median of zero is zero,
    so a control with at least five held-out candidates is set aside whenever its peers have none, however
-   mild its excess. It fired on undoctored controls in 3 of 25 all-null runs for this reason. The Methods now
-   say so, and the rule names every library it sets aside.
+   mild its excess. It fired on undoctored controls in 3 of 25 all-null runs, and in 2 of 5 runs in several
+   mutation-bearing cells, for this reason.
 
 **The rule, side by side.** Where one control carried the artifact it was set aside in all 25 runs, and no
-all-null library called anything with the rule on or off: in the condition the rule was written for it
-neither gained nor cost measurably at this depth. With planted mutations it recovered about 3 true calls of
-400 (393.0 vs 389.6) for +0.1 percentage points of FDP. The one all-null false discovery in 50 runs came
-with the rule on, in a run where it had set aside a control -- the trade the review anticipated, visible but
-not separable from chance at this number of runs. With two controls it never fires, as the minimum requires.
+all-null library called anything with the rule on or off. With planted mutations the rule recovered about 2
+true calls of 400 (396.0 vs 394.2), with the per-library FDP 3.0% against 2.8%: the counts are **not**
+identical with and without it, as an earlier version of the Methods said. The one all-null false discovery in
+50 runs came with the rule on, in a run where it had set aside a control -- the trade the review anticipated,
+visible but not separable from chance at this number of runs. With two controls -- now one partition of each
+source library, KO2a and KO3a -- it never fires, as the minimum requires.
 
 **Decoy-tail sensitivity** (`crm/fdr_estimator.py`). SHMtrace averages the held-out controls at each
 threshold; requiring the threshold to satisfy the noisiest control is the conservative alternative already
-in the code. Measured rather than argued: the conservative choice lowers mean FDP from 3.8% to 2.5% and
-costs about 14 of 403 true calls (~3%). Where the case carries an artifact the controls lack it helps little
-(5.9% to 5.1%), because no summary of the decoys can represent an artifact the decoys do not contain. The
-choice is a modest trade, not what decides the failure mode.
+in the code. The conservative choice lowers mean FDP from 3.8% to 2.5% and costs about 14 of 403 true calls
+(~3%). Where the case carries an artifact the controls lack it helps little (5.1% to 4.1%), because no summary
+of the decoys can represent an artifact the decoys do not contain. It is a modest trade of sensitivity for
+specificity, not what decides the failure mode.
 
 **Benjamini-Hochberg.** The manuscript said the p values are "discrete and conservative, so rather than rely
 on their distribution, as Benjamini-Hochberg does". That is not the objection, as the review says: BH
@@ -536,7 +545,11 @@ and the mutation trees use. The Methods now say this, and note that the Sanger w
 does not reach the junction at position 53, so lineages cannot be identified in those clones at all --
 checked against the preset and the Sanger output, not assumed.
 
-**14.** "Repair-pathway indices" appears nowhere in the code. What SHMtrace reports is the share of calls
+**14.** *(Corrected 17 Oct: the original wording here said "repair-pathway indices" appear nowhere in the code. That was
+wrong — `src/shmtrace/repair.py` computes repair-route indices and a spectral decomposition. It is not used by
+the project workflow, so the change below stands, but for that reason, not because the code is absent. Figure 1
+still carried a "Repair-route indices… decomposition" tile; that is now "Spectrum and motif shares".)*
+What the project workflow reports is the share of calls
 at G:C, the share that are transitions, and the shares in WRC/GYW and WA/TW motifs: spectrum and sequence
 context, not a mechanistic decomposition. The Results now say "motif shares", and the Methods state plainly
 that the products of uracil excision, mismatch repair and replication over uracil overlap, so a spectrum
@@ -547,3 +560,42 @@ on J_H4, single-read recall rises from 30% to 72%, and false calls per library f
 **10 and 11** need the authors. Three new named blockers: per-mouse sex, how the N114 hybridoma was
 authenticated, and its mycoplasma status -- each phrased so that "not done" is an acceptable answer, since
 the review asks for an explicit statement either way. The build now lists 14 blockers.
+
+---
+
+## 17 Oct co-author review (adopted)
+
+Source: `SHMtrace_review_and_edits.zip`, a patch against `83a908c` with a written review, an edit log of 92
+changes, and regenerated outputs. Its claims were checked against the code before anything was applied; the
+patch is committed unmodified as `3317fd9` so its provenance stays separate.
+
+**Confirmed and fixed.** Four defects in `fdr_validation.py` (above); a one-position window offset in
+`benchmark_real.py`, which affected J_H4 and N114 only -- for the other five datasets the end trim sets the
+window and the two shifts cancel, checked numerically; the benchmark harness described as selecting no
+threshold when it does; eight hand-placed points in the graphical abstract beside a measured r; a Figure 1
+tile advertising repair-route decomposition; a Figure 2 claim that Q >= 20 bases are the only ones the test
+counts (the read route uses every quality); a Methods sentence saying the rule left mutation counts
+unchanged; and document pagination sized for A4 on US Letter pages.
+
+**Several of those errors were mine**, from the issue 3/4, figure-by-figure and minor-issue passes. Entries
+above that stated them as fact are corrected in place and marked.
+
+**Verified by rerunning, not copied in.** The FDR validation (220 runs) and the J_H4 and N114 benchmarks were
+regenerated here with the patched code. Every result field matches the reviewer's outputs: 220/220 validation
+runs and 60/60 benchmark rows. Table S2 matches sheet for sheet.
+
+**Two deviations from the patch.**
+- *Figure 5A title.* The patch shortened "Within-platform genotype contrasts" to "Genotype contrasts" because it
+  collided with panel B. The collision was real, but "within-platform" is the first review's requested wording
+  (issue 5), so the title is now "Within-platform contrasts", which clears panel B.
+- *Summary.* The patch's rewrite (149 to 124 words) is adopted but had dropped the motivating clause and
+  "from the same run". Both are restored; the Summary is 139 words.
+
+**For the authors.** The AI-use declaration now names OpenAI Codex as well as Anthropic Claude, which is
+accurate now that Codex's changes are adopted, but it is the authors' statement to confirm.
+
+**Still open from that review**, as limitations rather than defects: one independently prepared validation
+run would test transfer more strongly than resampling three existing libraries; the summary's mean depth is
+rounded before a denominator is rebuilt from it, a small precision loss deferred because fixing it means
+refreshing every affected metric; and the review's optional suggestions (provenance columns in exported
+tables, an opt-in control and downsampling sensitivity report, a related-junction confusability test).
