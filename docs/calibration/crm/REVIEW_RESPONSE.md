@@ -599,3 +599,31 @@ run would test transfer more strongly than resampling three existing libraries; 
 rounded before a denominator is rebuilt from it, a small precision loss deferred because fixing it means
 refreshing every affected metric; and the review's optional suggestions (provenance columns in exported
 tables, an opt-in control and downsampling sensitivity report, a related-junction confusability test).
+
+## 17 Oct figure revision (author requests)
+
+Requested by the author after the co-author package: fewer words and more drawing in Figures 1 and S13, a
+more interesting Figure 5E, and Illumina in Figure S12.
+
+- **Figure 1.** Panels A-C carry the ideas as drawings: base quality cannot separate a mutation from a
+  recurrent error (both sit at high Q); the controls can (reads with the change, sample against controls);
+  the four read-preparation steps and every calling card get a glyph. Panel D was already drawn and is
+  unchanged. The legend, which holds the detail, is unchanged.
+- **Figure 5E** is now the platform comparison mouse by mouse: each wild-type mouse's calls in four
+  substitution classes, Sanger against nanopore, from `crm/fig5_per_mouse.py`, which stops unless the
+  per-mouse calls pool back to Figure 5B's spectrum exactly. The text adds that the interaction test is per
+  mouse and that nanopore gave a 3-8 percentage-point lower share of G:C transitions in each mouse. The
+  bookkeeping bars that were 5E are Figure S7 page 2; the text and Figure S12 now cite S7 for them.
+- **Figure S12** gains an Illumina band: pair merging drawn to scale on two public libraries (the whole
+  143-bp J_H4 fragment read twice; a 31-bp overlap on the 269-bp CH12F3 fragment), what happens to agreeing
+  and disagreeing bases, and how much of the locus one read covers on each platform. The numbers come from
+  `crm/scicanvas/s12_illumina.py`, which re-merges the first 20,000 pairs with `io_utils.merge_pair`. That
+  also showed that PRJNA973112 and PRJNA918596 carry a flat Q30 on every base; STAR Methods now say so.
+- **Figure S13** keeps its four columns; each card's paragraph is replaced by a drawing and one or two lines,
+  and the legend takes over what the figure no longer spells out.
+
+Main text 6,994 words. Not changed, and raised with the author instead: Figure 6B's labelling (explained to
+the author; a clearer axis label was offered), and why per-molecule load was not used for 5E: reads sample clones by
+size, so per-mouse load distributions differ between platforms even though the mice rank the same way
+(HANDOVER, item 5).
+
