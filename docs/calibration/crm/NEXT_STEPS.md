@@ -4,24 +4,37 @@ Branch `public-validation-2026-10`. Written 17 October 2026 so this can be picke
 every candidate and its status is `DATASET_LEDGER.md`; the two completed datasets are written up in
 `PUBLIC_VALIDATION.md`.
 
-## State at the last checkpoint (17 Oct, mid-session)
+## State at the last checkpoint (17 Oct, evening)
 
-- **Germline policy: done and committed.** `ancestral_reference` is implemented, tests first
-  (`tests/test_ancestral_reference.py`, six tests); 305 tests pass. See `DATASET_LEDGER.md` for the patch
-  table and the scope deliberately left out (indels, Sanger germline, lineage_sim keep the default rule).
-- **E1 Bassan TCR: downloaded and prepared.** `crm/tcr_prepare.py` reconstructs `hT27` exactly from CIGAR+MD
-  (1,785 bp, zero disagreements). Reads extracted to
-  `~/Nanoshm/public_data/TCR_figshare_12803501/fastq/`. `crm/tcr_bassan.py` was running at the checkpoint;
-  if its output is missing, rerun it.
-- **E2 Liu SRP159221: downloading** into `~/Nanoshm/public_data/SRP159221/` (386 files, ~1.02 GB). The
-  manifest with expected sizes is `manifest.tsv` there; the fetch loop skips files already at the right size,
-  so it is safe to rerun to completion.
-- **E5, E3, E6: not started.**
+Done and committed:
 
-A warning worth keeping: `curl` inside a `while read` loop eats stdin and silently truncates the download.
-Both manifests therefore carry expected sizes and the loops redirect `curl < /dev/null` and verify the size.
+- **Germline policy.** `ancestral_reference` implemented, tests first
+  (`tests/test_ancestral_reference.py`, six tests); 305 tests pass, `ruff check src` clean. The patch table
+  and the scope deliberately left out are in `DATASET_LEDGER.md`.
+- **E1 Bassan TCR.** Reference reconstructed exactly from CIGAR+MD (1,785 bp, zero disagreements); eleven
+  libraries called; policy sensitivity measured. `crm/out/tcr/`.
+- **E5 Devilder clones.** All 42 annotated clusters reproduce the authors' nucleotide mutation lists
+  exactly. `crm/out/devilder/`.
 
-## Completed in this pass
+In flight:
+
+- **E2 Liu SRP159221.** All 386 files downloaded (1.02 GB). `crm/liu_mutators.py` was running at the
+  checkpoint; rerun it if `crm/out/liu/liu_mutators.json` is absent. The prespecified contrast is fixed in
+  the script's `ARMS`: DBE-AIDmono against DBE-humanA3a, in wild-type and UNG/MSH2-null 293T, with the NC
+  arm as control. Pairs merge cleanly here (97.8%, a 238-bp EGFP amplicon), unlike GSE77788.
+
+Not started: **E3** (Chen TRACE, PRJNA555784, 2.36 GB, 55 paired runs grouped as On-target / Targeted /
+MEK1 screen / Off-target / T7 variants), **E6** (Ma TAM, SRP075898, 19.3 GB).
+
+Two traps already hit, worth not repeating:
+
+- `curl` inside a `while read` loop eats stdin and silently truncates a download. Both manifests carry
+  expected sizes; the loops redirect `curl < /dev/null` and verify size. Downloading with
+  `xargs -P 8` is roughly ten times faster than the sequential loop.
+- The SRP159221 labels are inconsistent about separators (`DBE_AID_mono` against `DBE-AIDmono `, some with a
+  trailing space). `crm/liu_mutators.py` lists them exactly as deposited; do not normalise them blindly.
+
+## Completed in this pass## Completed in this pass
 
 ```bash
 PY=~/Nanoshm/nanoshm_v0.2/.venv/bin/python
