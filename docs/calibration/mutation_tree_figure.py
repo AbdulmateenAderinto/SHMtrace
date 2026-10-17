@@ -90,23 +90,24 @@ def draw(ax, tree, ref, title):
                 xm = x0 + (m + 0.5) * (x[c] - x0) / k
                 col = CLASS[mclass(ref[pos - 1], alt)][1]
                 ax.plot([xm, xm], [y[c] - 0.16, y[c] + 0.16], color=col, lw=2.2, zorder=3)
-                ax.text(xm, y[c] - 0.2, f"{ref[pos - 1]}{pos}{alt}", rotation=60, fontsize=5.6, color=col,
+                ax.text(xm, y[c] - 0.2, f"{ref[pos - 1]}{pos}{alt}", rotation=60, fontsize=7.2, color=col,
                         ha="left", va="bottom", rotation_mode="anchor", zorder=5)
     ax.scatter([0], [y[0]], s=90, marker="s", color="#2E3A46", zorder=4)
-    ax.text(-0.02 * span, y[0] + 0.45, f"ancestor\n{tree['reads_at'].get(0, 0)} reads", ha="right", va="top",
-            fontsize=6.5, color="#2E3A46")
+    ax.text(-0.02 * span, y[0] - 0.3, f"ancestor\n{tree['reads_at'].get(0, 0)} reads", ha="right", va="bottom",
+            fontsize=7.5, color="#2E3A46", linespacing=1.2)
     for i, n in nodes.items():
         share = len(n.reads) / total
         ax.scatter([x[i]], [y[i]], s=25 + 700 * share, color="white", edgecolor="#2E3A46", lw=1.1, zorder=4)
-        ax.text(x[i] + 0.012 * span + 0.05 * (share ** 0.5) * span, y[i], f"{len(n.reads)}", fontsize=6.3,
-                color="#2E3A46", ha="left", va="center", zorder=5)
-    ax.set_ylim(max(y.values()) + 0.8, min(y.values()) - 1.6)
+        # above the node: inside the circle it was unreadable once the circle grew with the read share
+        ax.text(x[i], y[i] + 0.012 * span + 0.055 * (share ** 0.5) * span + 0.1, f"{len(n.reads)}", fontsize=7.5,
+                color="#2E3A46", ha="center", va="bottom", zorder=5)
+    ax.set_ylim(max(y.values()) + 1.0, min(y.values()) - 1.9)
     ax.set_xlim(-0.12 * span, span * 1.12)
     ax.set_xlabel("Mutations accumulated since the clone's unmutated ancestor")
     ax.set_yticks([])
     for s_ in ("top", "right", "left"):
         ax.spines[s_].set_visible(False)
-    ax.set_title(title, fontsize=9.5, loc="left", fontweight="bold")
+    ax.set_title(title, fontsize=10.5, loc="left", fontweight="bold")
 
 
 def n114_reads():
@@ -230,7 +231,7 @@ def contrast_figure(wt3_tree, wt3_reads, jh4_ref, jh4_units, n114, n114_ref):
 
 def per_mouse_figure(trees, ref, suffix=""):
     """One tree per Wt mouse: its most branched clone, deepest as the tie-break."""
-    fig, axes = plt.subplots(3, 1, figsize=(12, 15), gridspec_kw={"height_ratios": [
+    fig, axes = plt.subplots(3, 1, figsize=(13.5, 17), gridspec_kw={"height_ratios": [
         max(2, len([n for n in t["nodes"] if not n.children])) for _m, _c, t in trees]})
     for ax, (m, cid, t), letter in zip(axes, trees, "ABC", strict=True):
         deep = max((mutation_tree.depth(t, n.id) for n in t["nodes"]), default=0)
@@ -242,8 +243,9 @@ def per_mouse_figure(trees, ref, suffix=""):
                           label="node: mutations on one branch; area and number, reads carrying it"))
     fig.legend(handles=handles, loc="lower center", ncol=4, frameon=False, fontsize=8.5)
     fig.subplots_adjust(bottom=0.06, top=0.97, left=0.06, right=0.98, hspace=0.45)
-    for ext in ("png", "pdf"):
-        fig.savefig(OUT / f"mutation_trees_by_mouse{suffix}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+    for ext in ("png", "pdf", "svg"):
+        fig.savefig(OUT / f"mutation_trees_by_mouse{suffix}.{ext}", dpi=400, bbox_inches="tight",
+                    facecolor="white")
 
 
 def main(depth=500):
