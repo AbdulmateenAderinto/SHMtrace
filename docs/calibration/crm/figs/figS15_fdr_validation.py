@@ -16,17 +16,24 @@ from matplotlib import pyplot as plt
 from scipy import stats
 from style import CTRL, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 
-LABEL = {"none": "controls as\ndelivered", "one_noisy": "one control\nnoisy",
-         "case_only": "artifact in case,\nnot in controls", "shared": "artifact in case\nand controls"}
+LABEL = {"none": "unmodified\nbackground", "one_noisy": "one noisy\ncontrol",
+         "case_only": "case-only\nartifact", "shared": "shared\nartifact"}
 ORDER = ("none", "one_noisy", "case_only", "shared")
 ON, OFF = "#1f6f8b", "#c08a3e"          # rule on / rule off
 
 
-def wilson(k, n):
+def clopper_pearson(k, n):
     if not n:
         return 0.0, 0.0, 0.0
     lo, hi = stats.beta.ppf(0.025, k, n - k + 1) if k else 0.0, stats.beta.ppf(0.975, k + 1, n - k) if k < n else 1.0
     return k / n, lo, hi
+
+
+def read_runs(path):
+    data = json.load(open(path))
+    if data.get("revision_provenance", {}).get("complete") is False:
+        raise RuntimeError(f"{path.name} is still being regenerated")
+    return data["runs"]
 
 
 def pick(runs, **kw):
@@ -41,7 +48,7 @@ def paired(ax, runs, signal, value, ylabel, title, as_rate=False, depth=500, con
             rs = pick(runs, signal=signal, noise=noise, exclude_noisy=excl, depth=depth, controls=controls)
             if as_rate:
                 k = sum(1 for r in rs if r["any_discovery"])
-                p, lo, hi = wilson(k, len(rs))
+                p, lo, hi = clopper_pearson(k, len(rs))
                 ys.append(100 * p)
                 los.append(100 * (p - lo))
                 his.append(100 * (hi - p))
@@ -52,42 +59,38 @@ def paired(ax, runs, signal, value, ylabel, title, as_rate=False, depth=500, con
                 his.append(np.std(v) / max(1, len(v)) ** 0.5 if v else 0)
         ax.bar(xs + (j - 0.5) * 0.38, ys, 0.36, color=col, label=lab)
         ax.errorbar(xs + (j - 0.5) * 0.38, ys, yerr=[los, his], fmt="none", ecolor=INK, lw=0.6, capsize=1.2)
-    ax.set_xticks(xs, [LABEL[n] for n in ORDER], fontsize=4.8)
+    ax.set_xticks(xs, [LABEL[n] for n in ORDER], fontsize=6)
     ax.set_ylabel(ylabel)
     ax.set_title(title, fontsize=6.6)
 
 
 def main():
     setup()
-    runs = json.load(open(DATA / "fdr_validation.json"))["runs"]
+    runs = read_runs(DATA / "fdr_validation.json")
     # the all-null cells are repeated many more times (fdr_null_reps.py): with five runs and no discovery
     # the interval on "any discovery" runs to 52%, which is not worth quoting
     extra = DATA / "fdr_null_reps.json"
     if extra.exists():
-        runs = runs + json.load(open(extra))["runs"]
+        runs = runs + read_runs(extra)
     est = DATA / "fdr_estimator.json"
-    max_runs = json.load(open(est))["runs"] if est.exists() else []
-    fig = plt.figure(figsize=(FULL, 102 * MM))
-    gs = gridspec.GridSpec(2, 2, figure=fig, left=0.085, right=0.985, top=0.9, bottom=0.14, wspace=0.34,
-                           hspace=0.72)
+    max_runs = read_runs(est) if est.exists() else []
+    fig = plt.figure(figsize=(FULL, 134 * MM))
+    gs = gridspec.GridSpec(2, 2, figure=fig, left=0.105, right=0.985, top=0.90, bottom=0.13, wspace=0.43,
+                           hspace=0.78)
     # A: the chance of any discovery in a library with nothing to find
     ax = fig.add_subplot(gs[0, 0])
     paired(ax, runs, "null", None, "Libraries with any call (%)",
-           "All-null libraries: any discovery at all", as_rate=True)
+           "All-null resamples: any discovery", as_rate=True)
     ax.axhline(5, color=SOFT, lw=0.6, ls=":")
-    ax.text(3.45, 6, "5%", fontsize=5, color=MID, ha="right")
+    ax.text(3.45, 6, "5%", fontsize=6, color=MID, ha="right")
     ax.set_ylim(0, 112)
-    ax.legend(fontsize=5.2, loc="upper left", handlelength=1.2)
-    ax.text(0.5, 1.004, "every call here is false, so one call makes this library's FDP 1",
-            transform=ax.transAxes, ha="center", va="bottom", fontsize=4.9, color=MID)
+    ax.legend(fontsize=6, loc="upper left", handlelength=1.2)
     letter(ax, "A", dx=-0.22)
     # B: the same libraries, summarised the way the manuscript used to
     ax = fig.add_subplot(gs[0, 1])
     paired(ax, runs, "null", "false_calls", "False calls per library",
-           "The same libraries, as a mean")
-    ax.legend(fontsize=5.2, loc="upper left", handlelength=1.2)
-    ax.text(0.5, 1.004, "a small mean can still mean most libraries discover something",
-            transform=ax.transAxes, ha="center", va="bottom", fontsize=4.9, color=MID)
+           "Mean false calls in the same resamples")
+    ax.legend(fontsize=6, loc="upper left", handlelength=1.2)
     letter(ax, "B", dx=-0.22)
     # C: libraries with real mutations: each library's own false-discovery proportion
     ax = fig.add_subplot(gs[1, 0])
@@ -101,14 +104,14 @@ def main():
                 ax.scatter(x + np.linspace(-0.08, 0.08, len(v)), v, s=5, color=col, linewidths=0, zorder=3)
                 ax.plot([x - 0.13, x + 0.13], [np.mean(v)] * 2, color=INK, lw=1.1, zorder=4)
     ax.axhline(5, color=CTRL, lw=0.7, ls="--")
-    ax.text(3.45, 6.5, "5% target", fontsize=5, color=CTRL, ha="right")
-    ax.set_xticks(xs, [LABEL[n] for n in ORDER], fontsize=4.8)
+    ax.text(3.45, 6.5, "5% target", fontsize=6, color=CTRL, ha="right")
+    ax.set_xticks(xs, [LABEL[n] for n in ORDER], fontsize=6)
     ax.set_ylim(0, None)
     ax.set_ylabel("False-discovery proportion (%)")
-    ax.set_title("Libraries with planted mutations: each library's own FDP", fontsize=6.6)
+    ax.set_title("Mutation-bearing resamples:\nper-library false-discovery proportion", fontsize=6.6)
     ax.scatter([], [], s=5, color=ON, label="rule on")
     ax.scatter([], [], s=5, color=OFF, label="rule off")
-    ax.legend(fontsize=5.2, loc="upper left", handlelength=1, handletextpad=0.3)
+    ax.legend(fontsize=6, loc="upper left", handlelength=1, handletextpad=0.3)
     letter(ax, "C", dx=-0.22)
     # D: how many controls, and at what depth, the rule can act
     ax = fig.add_subplot(gs[1, 1])
@@ -122,13 +125,11 @@ def main():
             fired.append(100 * np.mean([bool(r["decoys_set_aside"]) for r in rs]) if rs else 0)
             calls.append(np.mean([r["false_calls"] for r in rs]) if rs else 0)
         ax.bar(xs + (j - 0.5) * 0.38, fired, 0.36, color=col, label=lab)
-    ax.set_xticks(xs, [c[0] for c in cells], fontsize=5.2)
+    ax.set_xticks(xs, [c[0] for c in cells], fontsize=6)
     ax.set_ylim(0, 112)
-    ax.set_ylabel("Runs in which a control was set aside (%)")
-    ax.set_title("When the rule can act (heterogeneous null)", fontsize=6.6)
-    ax.legend(fontsize=5.2, loc="upper left", handlelength=1.2)
-    ax.text(0.5, 1.004, "with two controls there is no majority to judge against, so it never fires",
-            transform=ax.transAxes, ha="center", va="bottom", fontsize=4.9, color=MID)
+    ax.set_ylabel("Runs with a control\nexcluded (%)")
+    ax.set_title("When the exclusion rule activates", fontsize=6.6)
+    ax.legend(fontsize=6, loc="upper left", handlelength=1.2)
     letter(ax, "D", dx=-0.22)
     if max_runs:
         rows = []

@@ -13,7 +13,7 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Mm, Pt, RGBColor
@@ -76,6 +76,7 @@ class Manuscript:
             ln.set(qn("w:restart"), "continuous")
             sec._sectPr.append(ln)
         self._page_numbers(sec)
+        self._page_break_next = False
         self.order = []          # citation keys in order of first appearance
         self.font = font
 
@@ -155,16 +156,23 @@ class Manuscript:
         return par
 
     # ---- blocks
+    def _paragraph(self, *args, **kwargs):
+        p = self.doc.add_paragraph(*args, **kwargs)
+        if self._page_break_next:
+            p.paragraph_format.page_break_before = True
+            self._page_break_next = False
+        return p
+
     def heading(self, text, level=1):
         sizes = {0: 16, 1: 13, 2: 11.5, 3: 11}
-        p = self.doc.add_paragraph()
+        p = self._paragraph()
         p.paragraph_format.space_before = Pt(12 if level <= 1 else 8)
         p.paragraph_format.keep_with_next = True
         self.runs(p, text, size=sizes[level], bold=True)
         return p
 
     def para(self, text, size=None, align=None, bold=False, indent=None, color=None, space_after=None):
-        p = self.doc.add_paragraph()
+        p = self._paragraph()
         if align == "center":
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         if indent:
@@ -175,11 +183,11 @@ class Manuscript:
 
     def bullets(self, items, numbered=False, size=None):
         for it in items:
-            p = self.doc.add_paragraph(style="List Number" if numbered else "List Bullet")
+            p = self._paragraph(style="List Number" if numbered else "List Bullet")
             self.runs(p, it, size=size)
 
     def figure(self, path, width_mm=170):
-        p = self.doc.add_paragraph()
+        p = self._paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.add_run().add_picture(str(path), width=Mm(width_mm))
         return p
@@ -194,7 +202,9 @@ class Manuscript:
         """
         from PIL import Image as _Image
         _Image.MAX_IMAGE_PIXELS = None
-        usable = 247.0                                   # A4 text height at this template's margins, mm
+        sec = self.doc.sections[-1]
+        usable = (sec.page_height - sec.top_margin - sec.bottom_margin) / 36000 - 12
+        # Actual Letter text height, with room for image paragraphs and the page-break line.
         ratio = sum(_Image.open(str(p)).size[1] / _Image.open(str(p)).size[0] for p in paths)
         lines = max(1, round(len(str(legend).split()) / 11)) + 2      # legend plus its bold title
         legend_mm = lines * 4.6
@@ -203,8 +213,11 @@ class Manuscript:
             width = min(max_width_mm, max(min_width_mm, (usable - legend_mm) / ratio))
         for p in paths:
             self.figure(p, width_mm=width)
-        self.para(f"**{title}**")
-        self.para(legend, size=10)
+        title_p = self.para(f"**{title}**", space_after=4)
+        title_p.paragraph_format.keep_with_next = True
+        title_p.paragraph_format.line_spacing = 1.0
+        legend_p = self.para(legend, size=10, space_after=4)
+        legend_p.paragraph_format.line_spacing = 1.0
         return width
 
     def table(self, header, rows, widths=None, size=8.5, title=None, footnote=None):
@@ -212,6 +225,10 @@ class Manuscript:
             self.para(title, bold=False, size=10)
         t = self.doc.add_table(rows=1, cols=len(header))
         t.style = "Table Grid"
+        header_props = t.rows[0]._tr.get_or_add_trPr()
+        repeat_header = OxmlElement("w:tblHeader")
+        repeat_header.set(qn("w:val"), "true")
+        header_props.append(repeat_header)
         t.alignment = WD_TABLE_ALIGNMENT.CENTER
         for c, h in zip(t.rows[0].cells, header, strict=True):
             c.paragraphs[0].paragraph_format.space_after = Pt(0)
@@ -227,11 +244,13 @@ class Manuscript:
                 for c, w in zip(row.cells, widths, strict=True):
                     c.width = Mm(w)
         if footnote:
-            self.para(footnote, size=8.5)
+            note = self.para(footnote, size=8.5, space_after=4)
+            note.paragraph_format.line_spacing = 1.0
+            note.paragraph_format.keep_together = True
         return t
 
     def page_break(self):
-        self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        self._page_break_next = True
 
     def references(self, heading="References"):
         self.heading(heading, 1)
@@ -243,7 +262,7 @@ class Manuscript:
                 txt = r["cell"]
                 if k in PAGE_FIX:
                     txt = txt.replace(", . ", f", {PAGE_FIX[k]}. ")
-            p = self.doc.add_paragraph()
+            p = self._paragraph()
             p.paragraph_format.left_indent = Mm(7)
             p.paragraph_format.first_line_indent = Mm(-7)
             p.paragraph_format.line_spacing = 1.15

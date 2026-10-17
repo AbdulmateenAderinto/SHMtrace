@@ -111,6 +111,8 @@ def bench(key):
 
 def compute():
     N = {}
+    from validation_summary import numbers as validation_numbers
+    N.update(validation_numbers(OUT))
     # ---------------- spike-ins
     s = {k: {c: spike(k, c) for c in ("recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive")}
          for k in ("jh4", "n114", "su_lps", "pim1")}

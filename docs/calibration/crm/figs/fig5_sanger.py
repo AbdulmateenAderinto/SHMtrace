@@ -12,7 +12,6 @@ import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from scipy import stats
-
 from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 
 CAL = DATA.parents[1]
@@ -31,14 +30,14 @@ def main():
                            width_ratios=[1.25, 1, 1, 1])
     # A: densities
     ax = fig.add_subplot(gs[0, 0])
-    for j, (plat, d, col) in enumerate((("Sanger", st["density_sanger"], SANG_C), ("Nanopore", st["density_ont"], ONT_C))):
+    for j, (plat, d, _col) in enumerate((("Sanger", st["density_sanger"], SANG_C), ("Nanopore", st["density_ont"], ONT_C))):
         for k, (grp, f, e) in enumerate((("wt", CASEF, CASE), ("ko", CTRLF, CTRL))):
             vals = list(d[grp].values())
             x = j * 2.4 + k
             ax.scatter(x + np.linspace(-0.12, 0.12, len(vals)), vals, s=14, facecolor=f, edgecolor=e, lw=0.6, zorder=3)
             g = 10 ** np.mean(np.log10(vals))
             ax.plot([x - 0.25, x + 0.25], [g, g], color=e, lw=1.4)
-        ax.text(j * 2.4 + 0.5, 3000, f"≥{d['fold']:.0f}×\np = {d['p_welch_log']:.4f}" if plat == "Nanopore"
+        ax.text(j * 2.4 + 0.5, 3000, f"{d['fold']:.0f}×\np = {d['p_welch_log']:.4f}" if plat == "Nanopore"
                 else f"{d['fold']:.0f}×\np = {d['p_welch_log']:.4f}", ha="center", fontsize=5.3, color=MID)
     ax.set_yscale("log")
     ax.set_ylim(0.2, 8000)
@@ -47,7 +46,7 @@ def main():
     ax.text(2.9, -0.27, "Nanopore reads", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, color=ONT_C)
     ax.set_ylabel("Unique variants per 10$^5$ bases")
     # the two densities are not on a common scale (STAR Methods), so the panel is read within a platform
-    ax.set_title("Within-platform genotype contrasts", fontsize=7)
+    ax.set_title("Genotype contrasts", fontsize=7)
     letter(ax, "A", dx=-0.3)
     # B: spectrum scatter
     ax = fig.add_subplot(gs[0, 1])
@@ -55,7 +54,7 @@ def main():
     xs, ys = [sp["sanger"][t] for t in TYPES], [sp["ont"][t] for t in TYPES]
     gc = [t[0] in "GC" for t in TYPES]
     ax.scatter(xs, ys, s=14, c=["#2c5d8a" if g else "#d9952b" for g in gc], edgecolor="white", lw=0.4, zorder=3)
-    for t, x, y in zip(TYPES, xs, ys):
+    for t, x, y in zip(TYPES, xs, ys, strict=False):
         if abs(x - y) > 1.5 or x > 12:
             ax.annotate(t.replace(">", "→"), (x, y), xytext=(3, -2), textcoords="offset points", fontsize=5, color=MID)
     lim = [0, max(xs + ys) * 1.12]
@@ -95,7 +94,7 @@ def main():
     ax = fig.add_subplot(gs[1, 0])
     hot = st["beyond"]["hotspot"]
     exp = st["beyond"]["hotspot_expected"]
-    for j, (label, idx) in enumerate((("G:C at WRC/GYW", 0), ("A:T at WA/TW", 1))):
+    for j, (_label, idx) in enumerate((("G:C at WRC/GYW", 0), ("A:T at WA/TW", 1))):
         for k, (plat, col) in enumerate((("sanger", SANG_C), ("ont", ONT_C))):
             vals = [m[idx] for m in hot[plat]]
             x = j * 2.6 + k
@@ -123,7 +122,7 @@ def main():
     vals = [eval(det[k].replace("/", "/")) for k in keys]
     y = np.arange(len(keys))
     ax.barh(y, [100 * v for v in vals], color="#a3621b", height=0.62)
-    for yy, k, v in zip(y, keys, vals):
+    for yy, k, v in zip(y, keys, vals, strict=False):
         ax.text(100 * v + 1.5, yy, det[k], va="center", fontsize=5.5)
     ax.set_yticks(y, [names[k] for k in keys])
     ax.invert_yaxis()

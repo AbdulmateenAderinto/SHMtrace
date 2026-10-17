@@ -38,15 +38,15 @@
   const ax = 30, aw = 660;
   // A1: read-level test
   const a1 = card(ax, 48, aw, 232);
-  T('Read-level test', ax + 16, 58, { fontSize: HEAD, bold: true });
-  T('(e.g. LoFreq, Geneious)', ax + 184, 61, { fontSize: SM, color: SOFT });
+  T('Quality-based test', ax + 16, 58, { fontSize: HEAD, bold: true });
+  T('(e.g. LoFreq, Geneious)', ax + 205, 61, { fontSize: SM, color: SOFT });
   const cols = [[0.3, [0, 2, 4], MUT], [0.72, [1, 3, 5], ERR]];
   pile(ax + 20, 100, 240, 7, cols);
   mark(ax + 20 + 0.3 * 240, 196, true); mark(ax + 20 + 0.72 * 240, 196, false);
   [['mutation', 'called', 0.3, MUT], ['error', 'miscalled', 0.72, ERR]].forEach(([w, v, f, c]) => { TC(w, ax + 20 + f * 240, 228, { fontSize: SM, color: c }); TC(v, ax + 20 + f * 240, 251, { fontSize: SM, color: c }); });
   TC('✓ correct decision   ✕ wrong decision', ax + 20 + 0.5 * 240 + 330, 246, { fontSize: SM, color: SOFT });
-  lines(['Each base is judged only by its own quality', 'score. Sequencing errors that recur at one',
-    'position (PCR, homopolymers, paralog reads)', 'pass this test and are wrongly counted as', 'SHM mutations.'], ax + 290, 104);
+  lines(['Quality scores alone may not capture', 'recurrent errors. High-quality errors from',
+    'PCR, homopolymers or paralog reads can', 'then be counted as mutations. Matched', 'controls measure this background.'], ax + 290, 104);
   // A2: control-calibrated test
   const a2 = card(ax, 294, aw, 292, { stroke: TEAL, strokeWidth: 2 });
   T('Control-calibrated test (SHMtrace)', ax + 16, 304, { fontSize: HEAD, bold: true, color: TEAL });
@@ -98,16 +98,16 @@
   inCards.forEach((k) => LINK(k, 's', prep, 'n', { color: MID, style: 'elbow', headSize: 0.6 }));
 
   // ───────── C. Calling and checks ─────────
-  // Two routes, because the evidence differs. A nanopore, Illumina or UMI-tagged library reads one molecule
-  // many times, so each candidate can be tested against the control error model and kept at a chosen FDR. A
-  // Sanger clone is one molecule read once, so there is nothing to test: its substitutions are counted, and
+  // Two implemented routes: read-library candidates are tested against a control error model;
+  // repeated observations of the same original molecule are not required. The Sanger route
+  // counts quality-filtered substitutions without a per-call test, and
   // the AID-null clones give the background those counts carry, reported beside them rather than subtracted.
   // The two routes rejoin at the germline filter, the window and the automatic checks.
   const cy = 620;
   panel('C', 'Calling: a test for reads, a count for Sanger clones', 30, cy);
   const cw = (W - 60 - 3 * 18) / 4, colX = (k) => 30 + k * (cw + 18);
   const R1 = cy + 58, R2 = cy + 228, CH = 132, SHH = R2 + CH - R1;
-  T('Reads — nanopore, Illumina, UMI-tagged: one molecule read many times',
+  T('Read libraries — nanopore, Illumina, UMI consensus: test candidate support',
     30, cy + 32, { fontSize: SM, bold: true, color: TEAL });
   T('Sanger traces — one molecule read once', 30, cy + 202, { fontSize: SM, bold: true, color: SANG });
   const step = (k, y, h, title, sub, colour, n, ty) => {
@@ -121,13 +121,13 @@
   const c1 = step(0, R1, CH, 'Control error model',
     ['per substitution, strand and', 'base quality; a margin chosen', 'by leave-one-control-out'], TEAL, 1);
   const c2 = step(1, R1, CH, 'Test and FDR',
-    ['support against expected errors;', 'FDR ≤ 0.05, estimated from the', 'controls as decoys'], TEAL, 2);
+    ['support against expected errors;', 'estimated false fraction ≤ 0.05;', 'held-out controls as decoys'], TEAL, 2);
   const s1 = step(0, R2, CH, 'Count the mismatches',
-    ['every substitution at base quality', '≥ 20 is counted; one read of one', 'molecule cannot be tested'], SANG, 1);
+    ['every substitution at base quality', '≥ 20 is counted; no per-call', 'significance test in this route'], SANG, 1);
   const s2 = step(1, R2, CH, 'Background reported',
     ['AID-null clones give the calls the', 'error alone would make, printed', 'beside them and never removed'], SANG, 2);
   const sh1 = step(2, R1, SHH, 'Germline and window',
-    ['sites at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional'], TEAL, 3, 118);
+    ['alleles at ≥ 50% removed; calls', 'restricted to the covered window;', 'indels optional'], TEAL, 3, 118);
   const sh2 = step(3, R1, SHH, 'Automatic checks',
     ['spectrum (C→T/G→A share),', 'positional clustering, 5-mer', 'targeting index, Sanger', 'bookkeeping flags'], SANG, 4, 106);
   LINK(c1, 'e', c2, 'w', { headSize: 0.7 });
@@ -176,8 +176,8 @@
   [[ry - 34, 96], [ry - 12, 132], [ry + 12, 74], [ry + 34, 112]].forEach(([yy, len]) => {
     SEG(rx + 50, ry, rx + 50, yy, 1.6, SOFT); SEG(rx + 50, yy, rx + 50 + Math.min(len, tw - 90), yy, 2, INK);
   });
-  // repair indices: stacked spectrum bar
-  x = tile(4, ['Repair-route', 'indices'], ['G:C Ts / Tv, A:T,', 'WA/TW, decomposition']);
+  // descriptive spectrum and sequence-context summaries
+  x = tile(4, ['Spectrum and', 'motif shares'], ['G:C / A:T, Ts / Tv,', 'WRC/GYW, WA/TW']);
   [[0.35, '#2c5d8a'], [0.25, '#7fa7cf'], [0.4, '#d9952b']].reduce((acc, [f, c]) => { R(x + 40, dy + 104 + acc * 80, 50, f * 80, { fill: c }); return acc + f; }, 0);
   [[0.66, '#2c5d8a'], [0.29, '#7fa7cf'], [0.05, '#d9952b']].reduce((acc, [f, c]) => { R(x + 110, dy + 104 + acc * 80, 50, f * 80, { fill: c }); return acc + f; }, 0);
   // reports and interfaces

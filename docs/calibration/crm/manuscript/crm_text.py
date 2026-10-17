@@ -14,17 +14,16 @@ AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1
          "\\*Correspondence: alberto.martin@utoronto.ca"]
 
 SUMMARY = (
-    "Somatic hypermutation (SHM) at reporter loci is usually measured by cloning amplicons and sequencing them one by one, "
-    "because single reads err at rates close to the mutation rate. We describe SHMtrace, which tests each "
-    "candidate mutation in a read against errors measured in matched activation-induced cytidine deaminase "
-    "(AID)-deficient libraries from the same run, and compares groups with the animal as the unit. Sanger "
-    "clones, read once each, are counted against that background. We validated it with planted "
-    "mutations, simulated lineages, and ten loci from seven laboratories on three platforms. It held the "
-    "AID-null background to {ctl_rec} calls per assay and separated AID-active from "
-    "AID-null libraries {sep_lo}- to {sep_hi}-fold in four of five nanopore assays, against {lf_lo}- to "
-    "{lf_hi}-fold and {gen_lo}- to {gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger "
-    "sequencing of the same mice gave similar spectra, and three published Sanger studies were re-analyzed "
-    "from deposited clones.")
+    "Somatic hypermutation (SHM) at genomic reporter loci is often measured by cloning amplicons and sequencing "
+    "colonies. We describe SHMtrace, which tests candidate substitutions in read libraries against errors measured "
+    "in matched activation-induced cytidine deaminase (AID)-deficient controls and compares biological replicates. "
+    "Sanger mismatches are counted at a quality threshold, with background reported separately. We evaluated "
+    "SHMtrace using planted mutations, simulated lineages, and ten loci from seven laboratories across three "
+    "platforms. It retained {ctl_rec} AID-null calls per assay and separated AID-active from AID-null libraries "
+    "{sep_lo}–{sep_hi}-fold in four of five nanopore assays, compared with {lf_lo}–{lf_hi}-fold and "
+    "{gen_lo}–{gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger sequencing of the same "
+    "mice gave similar pooled spectra. Re-analysis of three published Sanger studies recovered principal "
+    "comparisons while identifying unresolved differences.")
 
 KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanopore sequencing, variant calling, "
             "negative controls, false-discovery rate, pseudoreplication, immunoglobulin, mutation trees, Sanger "
@@ -32,15 +31,14 @@ KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanop
 MOTIVATION = (
     "At genomic reporter loci such as the J_{H}4 intron, somatic hypermutation is still measured mostly by "
     "cloning PCR products and sequencing colonies one at a time, which is slow and samples few molecules. "
-    "Repertoire sequencing and UMI consensus scale far better, but they are aimed at expressed, "
-    "antigen-selected V regions rather than at a short non-coding reporter amplified from genomic DNA. Long nanopore reads could replace cloning, but their "
+    "Our aim was to analyze a defined genomic reporter while preserving linkage between mutations across the "
+    "amplicon. Long nanopore reads could replace cloning for this assay, but their "
     "per-read error rate is close to the mutation rate of interest, and general-purpose variant callers judge "
     "each base by its quality score rather than by the errors a given library actually makes. We therefore "
     "built SHMtrace to calibrate each call against matched AID-null libraries sequenced in the same run, to "
     "treat animals rather than reads as replicates, and to make the whole workflow, from reads or chromatograms "
-    "to group statistics, reproducible. Because the same engine reads deposited clones, it can also re-run a "
-    "published Sanger study from its own records, which turns a published analysis into something a reader can "
-    "check rather than take on trust.")
+    "to group statistics, reproducible. The Sanger route also supports re-analysis of deposited traces once clone identities and sample assignments "
+    "have been curated, making counting choices and remaining discrepancies explicit.")
 HIGHLIGHTS = [
     # four, as Cell Press guidance asks; each at most 85 characters
     "Candidate mutations in reads are tested against errors of matched AID-null libraries",
@@ -48,10 +46,7 @@ HIGHLIGHTS = [
     "Nanopore gives spectra similar to Sanger, plus whole-amplicon maps and mutation trees",
     "Re-running three published Sanger studies recovers their principal comparisons",
 ]
-ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Illumina, or "
-        "Sanger data. Candidates in reads are tested against errors measured in matched AID-null libraries; "
-        "Sanger clones are counted against the same background. It suppresses background across ten loci and "
-        "three platforms, and re-analyzes three published Sanger studies.")
+ETOC = ("Aderinto and Martin present SHMtrace for somatic hypermutation analysis of amplicon reads and Sanger traces. Read-library candidates are tested against matched control errors; Sanger mismatches are counted with background reported separately. Benchmarks assess recall, false calls, biological comparisons and reproducibility across three platforms.")
 
 INTRO = [
     "Somatic hypermutation (SHM) diversifies immunoglobulin (Ig) genes in germinal-center B cells. It is "
@@ -65,9 +60,8 @@ INTRO = [
     "selection[@jolly1997,@lebecque1990].",
     "This assay has changed little in decades. Amplicons are cloned into bacteria and sequenced colony "
     "by colony, which takes days of hands-on work and yields tens of sequences per animal[@sible2021]. "
-    "Repertoire and consensus sequencing scale better but read expressed V regions, not this genomic "
-    "reporter, and short reads fragment the amplicon, losing the linkage between mutations on one "
-    "molecule[@martin2023]. Long reads from Oxford Nanopore Technologies (ONT) now reach "
+    "Our goal is to analyze this genomic reporter while retaining linkage between mutations across the "
+    "amplicon; short reads may not span the complete region[@martin2023]. Long reads from Oxford Nanopore Technologies (ONT) now reach "
     "modal accuracies above 99% with R10.4.1 flow cells[@zhang2023,@sereika2022,@sanderson2024] and have been "
     "used to sequence Ig genes where consensus sequencing can absorb errors[@minervini2021,@subassatish2022]. "
     "Calling rare substitutions from single reads across a polyclonal population is harder. A wild-type J_{H}4 "
@@ -108,20 +102,20 @@ RESULTS = [
           "whether a candidate is supported by more reads, at the qualities observed, than this background "
           "explains. Because quality scores overstate certainty at the highest qualities (Figure S2), the control "
           "rates are multiplied by a margin chosen by leaving one control out at a time (STAR Methods). The "
-          "held-out controls then serve as decoys, as in target–decoy analysis[@elias2007]: SHMtrace keeps the "
-          "most permissive cutoff at which they predict that at most 5% of a library's calls are false. This is "
+          "held-out controls then serve as decoys, in an approach inspired by target–decoy analysis[@elias2007]: "
+          "SHMtrace keeps the most permissive cutoff at which estimated false calls are at most 5% of calls. This is "
           "an empirical estimate targeting 5%, not a guarantee: it relies on a few controls representing the "
           "sample's background, and the same controls also choose the margin. Candidates arise only where a read "
           "already differs, so the set tested is data-dependent and its null p values need not be superuniform, "
           "as Benjamini–Hochberg[@benjamini1995] requires; SHMtrace counts false calls in controls "
-          "selected the same way. Sites at which half or more of the reads differ from the reference are "
+          "selected the same way. Alternative alleles carried by at least half the reads at a position are "
           "set aside as likely germline or parental differences. This is a heuristic, not a test: a mutation "
           "shared by a lineage that dominates a library crosses the same threshold, so every site it removes "
           "is reported with its read count and frequency."),
-    ("p", "That test needs a molecule read more than once. A Sanger clone is one molecule read once, so SHMtrace "
-          "takes a second route for Sanger data (Figure 1C): every substitution at base quality ≥ 20 is counted, "
-          "and the AID-null clones' own mismatch rate is charged to each library's bases to give the calls the "
-          "background alone would produce, reported beside the calls rather than subtracted. The germline "
+    ("p", "The read-library test can retain a candidate supported by a single read; repeated sequencing of the "
+          "same original molecule is not required. SHMtrace uses a separate Sanger counting route (Figure 1C): "
+          "every substitution at base quality ≥ 20 is counted, and the AID-null clones' mismatch rate gives "
+          "the expected background count, reported separately without subtraction. The germline "
           "filter, window, automatic checks and animal-level comparisons are shared. The Sanger results below "
           "therefore test trace reading, counting, bookkeeping and group comparisons, not the "
           "control-calibrated test."),
@@ -129,7 +123,7 @@ RESULTS = [
           "described below ({ana_case}), two C-to-T changes looked alike. One, at position {ana_t_pos} in a WRC "
           "hotspot ({ana_t_ctx}), was carried by {ana_t_reads} reads; the other, at position {ana_e_pos} "
           "({ana_e_ctx}), by {ana_e_reads}. Both were seen on both strands, at median base qualities of "
-          "{ana_t_q} and {ana_e_q} (Figures 2A–2C). Only the AID-null controls told them apart: no control read "
+          "{ana_t_q} and {ana_e_q} (Figures 2A–2C). In the displayed Q20 subset, no control read "
           "carried the first at quality 20 or higher, whereas {ana_e_ko} carried the second in {ana_e_ko_reads} "
           "reads, as often as the wild-type library and at the same median quality ({ana_e_ko_q}). SHMtrace "
           "called the first (p = {ana_t_p}) and not the second (p = 1), whereas the uncorrected Geneious test called "
@@ -186,8 +180,8 @@ RESULTS = [
           "the library with more usable reads. When the other C3 library was used instead, the FDR was "
           "{c31_fdr}, and it reached {c31_held_fdr} when that library was the one being tested. This library was "
           "noisier than the other controls, and no estimate based on those controls can anticipate a library "
-          "noisier than they are. The two C3 libraries shared no calls, which indicates that the excess noise came "
-          "from the library rather than from the subclone. Benjamini–Hochberg correction gave the same FDR as "
+          "noisier than they are. The two C3 libraries shared no calls, consistent with library-specific noise, "
+          "although finite sampling also limits overlap. Benjamini–Hochberg correction gave the same FDR as "
           "SHMtrace with these controls ({sp_n114_bh_fdr}) but a higher FDR with the other C3 library "
           "({c31_bh_fdr} versus {c31_fdr}). On the control libraries of the Sμ and *Pim1* loci from an independent "
           "laboratory (2,000 reads), SHMtrace recalled {sp_su_lps_recall}% and {sp_pim1_recall}% of planted "
@@ -577,7 +571,7 @@ CONTRIB = ("Conceptualization, A.A. and A.M.; methodology, A.A.; software, A.A.;
            "A.A.; investigation, A.A.; data curation, A.A.; writing – original draft, A.A.; writing – review & "
            "editing, A.A. and A.M.; visualization, A.A.; supervision, A.M.; funding acquisition, A.M.")
 INTERESTS = "The authors declare no competing interests."
-AI_DECL = ("During the preparation of this work, the authors used Anthropic Claude to assist with drafting the "
+AI_DECL = ("During the preparation of this work, the authors used Anthropic Claude and OpenAI Codex to assist with drafting the "
            "analysis and figure code, language editing and figure layout. "
            "After using this tool, the authors reviewed and edited the content "
            "as needed and take full responsibility for the content of the published article.")

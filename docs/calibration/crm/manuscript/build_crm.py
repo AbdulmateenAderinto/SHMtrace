@@ -291,7 +291,7 @@ def main(outdir):
     s.table(["Comparison", "Test", "Result"], STATS, size=8.5,
             title="**Table S3. Statistical summary, related to Figures 3–7**",
             footnote="With three animals per group, p values and intervals are descriptive. Folds with a control "
-                     "library without calls placed at its one-event density are lower bounds.")
+                     "library without calls placed at its one-event density depend on that plotting convention; they are not statistical lower confidence bounds.")
     # Table S4: SHMtrace against the two published Sanger analyses, metric by metric (sanger_compare.py)
     sys.path.insert(0, str(CRM))
     import sanger_compare
@@ -396,17 +396,12 @@ SUPP_FIGS = [
      "end is effectively unbounded, so the CV, not the simulation, is what limits this calculation. "
      "(C) False calls per library with and without UMI consensus in "
      "simulated UMI libraries built from real control reads (three held-out controls)."),
-    ("Figure S4. N114 V-region results and per-library spectra, related to Figure 4",
-     [MC / "Figure4_hybridoma_combined.png", MC / "FigureS6_individual_JH4_ONT_matrices.png",
-      MC / "FigureS7_individual_N114_matrices.png"],
-     "This figure is assembled from three separately lettered panels, so a letter appears more than once; each is "
-     "identified here by its position. Top (its A–C), N114 unique-variant density per subclone (A; n = 3 per "
-     "vector; empty-vector subclones without calls drawn at one event) and the pooled From → To substitution "
-     "matrices of the pMX-*Aicda* (B) and empty-vector (C) subclones. Middle, the same matrices for each J_{H}4 "
-     "mouse, lettered by genotype (its A, the 3 wild-type mice; B, the 3 *Aicda*^{−/−} mice); bottom, for each "
-     "N114 subclone (its A, pMX-*Aicda*; B, empty vector). In every matrix each cell gives unique variants and "
-     "their share of that sample's calls. The only quantitative axis is the top panel's, and it is "
-     "unique-variant density, not mutation frequency."),
+    ("Figure S4. N114 V-region results, related to Figure 4 (page 1 of 2)",
+     [MC / "Figure4_hybridoma_combined.png"],
+     "(A) N114 unique-variant density per subclone (n = 3 per vector; empty-vector subclones without calls drawn at one event). (B and C) Pooled From → To substitution matrices of the pMX-*Aicda* (B) and empty-vector (C) subclones. Every matrix cell gives unique variants and their share of the group's calls. The quantitative axis in A is unique-variant density, not mutation frequency. Individual-library spectra continue on the next page."),
+    ("Figure S4. Per-library spectra, related to Figure 4 (page 2 of 2)",
+     [MC / "FigureS6_individual_JH4_ONT_matrices.png", MC / "FigureS7_individual_N114_matrices.png"],
+     "Top, From → To matrices for each J_{H}4 mouse: A, the three wild-type mice; B, the three *Aicda*^{−/−} mice. Bottom, the same matrices for each N114 subclone: A, pMX-*Aicda*; B, empty vector. Panel letters restart in each component. Every cell gives unique variants and their share of that sample's calls."),
     ("Figure S5. Sequencing depth and unique-variant discovery, related to Figure 4",
      FIG / "FigureS5.png",
      "Every library was analyzed at 30–1,000 reads, and the whole analysis was repeated five times at each "
@@ -494,10 +489,12 @@ SUPP_FIGS = [
      "chromatogram reading and the bookkeeping checks are not exercised; it has no *Aicda*^{\u2212/\u2212} arm, "
      "and Sanger error (about 2 in 10^{5} bases, measured in the AID-null clones of those two studies) is some "
      "500-fold below the mutation frequency here."),
-    ("Figure S11. Full-length spectra and mutation trees in each mouse, related to Figure 6",
-     [MC / "FigureS_spectrum_529_vs_fulllength.png", CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
-     "Top, pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). "
-     "Bottom, the most branched clone of each wild-type mouse drawn as a mutation tree."),
+    ("Figure S11. Full-length spectra, related to Figure 6 (page 1 of 2)",
+     [MC / "FigureS_spectrum_529_vs_fulllength.png"],
+     "Pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). Mutation trees continue on the next page."),
+    ("Figure S11. Mutation trees in each mouse, related to Figure 6 (page 2 of 2)",
+     [CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
+     "The most branched clone of each wild-type mouse drawn as a mutation tree. These are read-level reconstructions (Figure 6), not independently established cell lineages."),
     ("Figure S12. What Sanger clones and nanopore reads each measure, related to Figures 5 and 6",
      [FIG / "FigureS12_platforms.png"],
      "Top, one unit of data from each platform on one base-pair scale. A Sanger clone is one molecule read once "
@@ -542,29 +539,9 @@ SUPP_FIGS = [
      "crossing sets. (F) Unique-variant density per animal, the value the group tests use. Plotted from "
      "`intuition_jh4.json`, the per-library read accounting and the bundled example library; the equations are "
      "the ones the code applies."),
-    ("Figure S15. The calling procedure tested end to end on fresh simulations, related to STAR Methods",
+    ("Figure S15. End-to-end stress tests using resampled control reads, related to STAR Methods",
      FIG / "FigureS15.png",
-     "Fresh libraries built from AID-null J_{H}4 reads and run through the complete procedure, so the margin, "
-     "the control-based threshold and the noisy-control rule are all exercised. The case library is built from "
-     "one *Aicda*^{\u2212/\u2212} library's reads; the controls are two further *Aicda*^{\u2212/\u2212} libraries, each "
-     "split in two, so no control shares a molecule with the case. Three controls and 500 reads unless stated; "
-     "20 runs per all-null condition, 5 otherwise. Teal, the noisy-control rule on, as used throughout the "
-     "paper; amber, the same libraries with it off. "
-     "(A) The share of all-null libraries, which carry no planted mutation, in which anything at all was "
-     "called; bars, 95% Clopper\u2013Pearson intervals. Every call in such a library is false, so one call makes "
-     "its false-discovery proportion 1, which is why this, and not the mean, is the measure that matters here. "
-     "(B) The same libraries summarised as mean false calls, the quantity a caller comparison usually reports: "
-     "a small mean can coexist with most libraries discovering something. (C) Libraries with planted mutations, "
-     "about 400 true calls each: the false-discovery proportion of each library, with its mean; dashed line, "
-     "the 5% the threshold targets. (D) The runs in which a control was set aside, under a heterogeneous null. "
-     "The rule compares a control with the median of the others, so it needs at least two others, that is three "
-     "controls; with two it never fires and the more variable library is only named. "
-     "Three results bear on the limits stated in the Discussion. An artifact carried by the case and by no "
-     "control is called every time, whatever the rule does: calibration cannot see what the controls never "
-     "show. The same artifact shared with the controls is largely removed. And the rule's fold comparison "
-     "degenerates when the other controls are clean, because five times a median of zero is zero, so a control "
-     "with at least five held-out candidates is set aside whenever its peers have none; this is why it also "
-     "fires on undoctored controls in some runs."),
+     "Resampled AID-null J_{H}4 reads were analyzed with `run_project`, exercising margin selection, control-based thresholding and noisy-decoy exclusion together. The case used KO1; controls were technical partitions of KO2 and KO3, without shared case/control read records. Two controls used one partition per source; three controls used two KO2 partitions and one KO3 partition. These are conditional resampling experiments, not independent preparations or validation on a new run. Three controls and 500 reads unless stated. Teal, exclusion on; amber, exclusion off, paired on identical inputs. (A) All-null resamples with any call and 95% Clopper–Pearson intervals; n = 25 per setting for unmodified background and one noisy control, n = 5 for case-only and shared artifacts. FDP is 1 whenever an all-null resample has a discovery. (B) Mean false calls ± SEM for those resamples. (C) Individual mutation-bearing resample FDPs (five per condition/setting); black bars, means; dashed line, the nominal 5% target. (D) Exclusion rate under a heterogeneous null; n = 5 per setting for two controls and 250/1,000 reads, n = 25 for three controls at 500 reads. Artifacts occupy six positions with nominal 6% support per position. Shared artifacts use identical alternative alleles; artifacts avoid planted biological mutations. Injection preserves each read’s original orientation and quality order. In the shared all-null condition, any call occurred in {fdv_null_shared_on_any}/{fdv_null_shared_on_n} exclusion-on resamples and {fdv_null_shared_off_any}/{fdv_null_shared_off_n} exclusion-off resamples, compared with {fdv_null_case_only_on_any}/{fdv_null_case_only_on_n} and {fdv_null_case_only_off_any}/{fdv_null_case_only_off_n} for case-only artifacts. Small resample counts limit error-control conclusions (STAR Methods)."),
 ]
 
 if __name__ == "__main__":

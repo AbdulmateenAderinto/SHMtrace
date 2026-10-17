@@ -29,7 +29,8 @@ MODES = ("recommended", "geneious")
 
 
 def window_bases(aligned, lo, hi):
-    return sum(1 for a in aligned for rpos, base, _q in a.pairs if base and lo - 1 <= rpos <= hi - 1)
+    return sum(1 for a in aligned for rpos, base, _q in a.pairs
+               if base in ("A", "C", "G", "T") and lo <= rpos <= hi)
 
 
 def run(key):
@@ -40,7 +41,7 @@ def run(key):
     ref_name = read_fasta(ds["reference"])[0][0]
     lo, hi = pipeline._window(base, ref_seq)
     if base.end_trim_bp:
-        lo, hi = max(lo, base.end_trim_bp + 1), min(hi, len(ref_seq) - base.end_trim_bp)
+        lo, hi = max(lo, base.end_trim_bp), min(hi, len(ref_seq) - 1 - base.end_trim_bp)
     samples = {n: s["fastq"] for n, s in ds["samples"].items()}
     controls = {n for n, s in ds["samples"].items() if s["control"]}
     records = {}
@@ -75,7 +76,7 @@ def run(key):
                     records[name] = {r[0].split()[0]: r for r in read_fastq(samples[name])}
                 reads = [records[name][a.qname] for a in analysed if a.qname in records[name]]
                 for lname, extra in LOFREQ.items():
-                    lf = lofreq_calls(reads, ds["reference"], lo, hi, preset=base.minimap2_preset,
+                    lf = lofreq_calls(reads, ds["reference"], lo + 1, hi + 1, preset=base.minimap2_preset,
                                       extra=extra)
                     rows.append(dict(dataset=key, sample=name, control=name in controls, mode=lname,
                                      reads=len(reads), bases=bases, calls=len(lf),
@@ -83,7 +84,9 @@ def run(key):
                                      sites=[list(c) for c in lf]))
                     print(key, lname, name, len(reads), len(lf), flush=True)
     OUT.mkdir(exist_ok=True)
-    json.dump({"dataset": key, "window": [lo, hi], "depth": ds["depth"], "rows": rows},
+    json.dump({"dataset": key, "window": [lo + 1, hi + 1], "window_coordinate_system": "1-based inclusive",
+               "analysis_route": "caller-comparison: peer-specific qscale and decoys; no noisy-decoy exclusion",
+               "depth": ds["depth"], "rows": rows},
               open(OUT / f"benchmark_real_{key}.json", "w"), indent=1)
 
 

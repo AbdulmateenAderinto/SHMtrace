@@ -218,6 +218,7 @@ function plotAssetFrom(svgText, normalizeColors) {
 
 async function main() {
   const [builderPath, stem] = process.argv.slice(2);
+  const chromeProfile = fs.mkdtempSync(path.join(os.tmpdir(), 'crm-chrome-'));
   const { app, ctx } = loadApp();
   // SciCanvas 2.0 boots asynchronously and loads a fresh document when it does: let that happen first, or it
   // replaces the document (and the code plots' assets) the check and the render use
@@ -254,19 +255,20 @@ async function main() {
   const html = `${stem}.render.html`;
   fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><style>@page{size:${wMM}mm ${hMM}mm;margin:0}
 html,body{margin:0;background:#fff}svg{display:block;width:${wMM}mm;height:${hMM}mm}</style>${svg}`);
-  execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--no-pdf-header-footer',
+  execFileSync(CHROME, ['--headless=new', '--disable-gpu', `--user-data-dir=${chromeProfile}`, '--no-pdf-header-footer',
     `--print-to-pdf=${path.resolve(stem)}.pdf`, `file://${path.resolve(html)}`], { stdio: 'ignore' });
   const scale = (wMM / 25.4 * TIFF_DPI) / page.width;
   fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:#fff}
 svg{display:block;width:${page.width}px;height:${page.height}px}</style>${svg}`);
   const png = `${path.resolve(stem)}_tmp.png`;
-  execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
+  execFileSync(CHROME, ['--headless=new', '--disable-gpu', `--user-data-dir=${chromeProfile}`, '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
     `--window-size=${page.width},${Math.ceil(page.height)}`, `--screenshot=${png}`, `file://${path.resolve(html)}`], { stdio: 'ignore' });
   fs.unlinkSync(html);
   execFileSync('python3', ['-c', `from PIL import Image; im = Image.open(${JSON.stringify(png)}).convert("RGB"); `
     + `im.save(${JSON.stringify(path.resolve(stem) + '_1000dpi.tif')}, dpi=(${TIFF_DPI}, ${TIFF_DPI}), compression="tiff_lzw"); `
     + `im.save(${JSON.stringify(path.resolve(stem) + '_preview.png')}, dpi=(300, 300))`]);
   fs.unlinkSync(png);
+  fs.rmSync(chromeProfile, { recursive: true, force: true });
   console.log(`${stem}: ${page.objects.length} objects; PDF, ${TIFF_DPI}-dpi TIFF, SVG, scifig`);
 }
 

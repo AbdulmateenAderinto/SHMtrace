@@ -81,7 +81,15 @@ def split_controls(rng):
     return out
 
 
-def add_artifact(reads, ref, aligner, positions, share, rng):
+def select_controls(controls, n_controls):
+    """Balance source libraries; partitions are technical resamples, not new biological controls."""
+    order = [f"{source}{half}" for half in ("a", "b") for source in CTL_SRC]
+    if not 1 <= n_controls <= len(order):
+        raise ValueError("n_controls must be between 1 and 4")
+    return [name for name in order if name in controls][:n_controls]
+
+
+def add_artifact(reads, ref, aligner, positions, share, rng, alt_of=None):
     """Write a recurrent substitution into `share` of the reads at each of `positions`.
 
     The positions are *reference* coordinates, so each read is aligned and the base is written at the query
@@ -90,7 +98,11 @@ def add_artifact(reads, ref, aligner, positions, share, rng):
     changed base keeps the read's own quality, as a real recurrent artifact does: it passes the quality
     filter, which is what makes it dangerous.
     """
-    alt_of = {pos: rng.choice([b for b in "ACGT" if b != ref[pos]]) for pos in positions}
+    if alt_of is None:
+        alt_of = {pos: rng.choice([b for b in "ACGT" if b != ref[pos]]) for pos in positions}
+    if set(alt_of) != set(positions) or any(alt not in "ACGT" or alt == ref[pos]
+                                            for pos, alt in alt_of.items()):
+        raise ValueError("artifact alleles must be non-reference A/C/G/T at every selected position")
     out = []
     for name, seq, qual in reads:
         hit = next((h for h in aligner.map(seq) if h.is_primary), None)
@@ -103,7 +115,10 @@ def add_artifact(reads, ref, aligner, positions, share, rng):
         for pos in positions:
             if pos in r2q and rng.random() <= share:
                 fs[r2q[pos]] = alt_of[pos]
-        out.append((name, "".join(fs), fq))
+        changed = "".join(fs)
+        if hit.strand == -1:
+            changed, fq = changed.translate(_COMP)[::-1], fq[::-1]
+        out.append((name, changed, fq))
     return out
 
 
@@ -128,15 +143,23 @@ def run_cell(signal, n_controls, noise, exclude, depth, seed, workdir, estimate=
     lib, carried = lineage_sim.build_library(case_reads, REFERENCE, truth, p, rng)
 
     ctl = split_controls(rng)
-    names = sorted(ctl)[:n_controls]
-    sites = rng.sample(range(lo, hi + 1), ARTIFACT_SITES)
+    names = select_controls(ctl, n_controls)
+    # Keep nuisance artifacts separate from planted biological truth: otherwise writing an
+    # artifact can erase a true mutation while the scoring record still labels it present.
+    truth_positions = {pos for item in carried.values() for pos, _alt in item.get("muts", ())}
+    available = [pos for pos in range(lo, hi + 1)
+                 if noise not in ("case_only", "shared") or pos not in truth_positions]
+    if len(available) < ARTIFACT_SITES:
+        raise ValueError("not enough truth-free positions for the nuisance artifact")
+    sites = rng.sample(available, ARTIFACT_SITES)
     aligner, _t, _c = build_index([REFERENCE], [], p.minimap2_preset)
     if noise == "case_only":
         lib = add_artifact(lib, ref, aligner, sites, ARTIFACT_SHARE, rng)
     elif noise == "shared":
-        lib = add_artifact(lib, ref, aligner, sites, ARTIFACT_SHARE, rng)
-        ctl = {k: (add_artifact(v, ref, aligner, sites, ARTIFACT_SHARE, rng) if k in names else v)
-               for k, v in ctl.items()}
+        shared_alts = {pos: rng.choice([b for b in "ACGT" if b != ref[pos]]) for pos in sites}
+        lib = add_artifact(lib, ref, aligner, sites, ARTIFACT_SHARE, rng, shared_alts)
+        ctl = {k: (add_artifact(v, ref, aligner, sites, ARTIFACT_SHARE, rng, shared_alts)
+                   if k in names else v) for k, v in ctl.items()}
     elif noise == "one_noisy":
         first = names[0]
         ctl = {k: (add_artifact(v, ref, aligner, sites, ARTIFACT_SHARE, rng) if k == first else v)
@@ -172,6 +195,11 @@ def run_cell(signal, n_controls, noise, exclude, depth, seed, workdir, estimate=
     return {
         "signal": signal, "controls": n_controls, "noise": noise, "exclude_noisy": exclude,
         "depth": depth, "seed": seed, "control_names": names, "estimate": estimate,
+        "validation_revision": "2026-10-17-shared-alleles-and-balanced-controls",
+        "control_source_libraries": [name[:-1] for name in names],
+        "artifact_positions_1based": [pos + 1 for pos in sites] if noise != "none" else [],
+        "shared_artifact_alleles": {str(pos + 1): alt for pos, alt in shared_alts.items()}
+                                  if noise == "shared" else {},
         "planted": len(truth_set), "discoveries": len(called), "true_calls": tp, "false_calls": fp,
         # the false-discovery proportion of this one library: 1 whenever an all-null library discovers anything
         "fdp": round(fp / len(called), 4) if called else 0.0,

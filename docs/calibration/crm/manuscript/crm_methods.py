@@ -118,7 +118,7 @@ METHODS = [
           "the smallest of these probabilities multiplied by k."),
     ("p", "The margin c is chosen by leaving one control out at a time. Each control is tested against an error "
           "model built from the other controls, and c is the smallest value in the grid 1, 2, 3, 5, 10, 20, and "
-          "50 at which no more than 1% of a held-out control's tests reach p < 0.01. In the analyses reported "
+          "50 at which no more than 1% of candidate tests pooled across held-out controls reach p < 0.01. In the analyses reported "
           "here, c was {loco_margins}. The same held-out tests, made at the samples' analysis depth, are then used "
           "to set the significance threshold. Each held-out control is kept as a decoy, defined by its sorted p "
           "values and the number of bases it tested. For a sample and a candidate threshold t, the expected number "
@@ -126,7 +126,7 @@ METHODS = [
           "the sample's tested bases to the decoy's when that ratio exceeds 1. Decoys are never scaled down to a "
           "shallower library, whose coarser p values they would otherwise underestimate. SHMtrace keeps the "
           "largest t at which the expected number of false calls is at most 0.05 times the number of sample p "
-          "values ≤ t, a target–decoy estimate of the FDR[@elias2007]. A control is never used as its own decoy: "
+          "values ≤ t, an empirical false-discovery estimate inspired by target–decoy analysis[@elias2007]. A control is never used as its own decoy: "
           "when a control is tested, only the other controls serve as decoys. A control whose held-out candidates "
           "at p ≤ 0.01 per base exceed five times the median of the other controls, and number at least five, is "
           "left out of the decoys (unless no decoy would remain) and named in the report; it still contributes to "
@@ -135,8 +135,8 @@ METHODS = [
           "controls; with exactly two, the more variable library is named in the report but not left out, "
           "because which of the two is unusual cannot be established. The rule was written for one public "
           "dataset, the Ramos clones of Figure 7F, in which a single *Aicda*^{−/−} clone suppressed every call; "
-          "it was then applied unchanged to all eleven datasets, where it set aside that clone and no other, and "
-          "it was already fixed when the OT1 and OT2 libraries were analyzed. It is therefore a rule derived "
+          "it was then applied to the other datasets and was already fixed when the OT1 and OT2 libraries were "
+          "analyzed; at OT1, control KO2 was also excluded from the decoys. It is therefore a rule derived "
           "from data rather than a pre-registered one, and it is reported here so that its effect can be judged. "
           "With fewer than two controls, or for indels, the Benjamini–Hochberg "
           "procedure[@benjamini1995] across positions and alternative alleles is used instead. "
@@ -145,12 +145,14 @@ METHODS = [
           "position enters the test only when at least one read already differs from the reference there, so "
           "the tested set is chosen by the same data that supply the evidence, and the null distribution of a "
           "candidate's p value is conditioned on that selection rather than superuniform on (0, 1]. The "
-          "control-based threshold is not exposed to this: the held-out controls are selected and tested by the "
-          "identical rule, so whatever selection does to the case it also does to the decoys, and the "
-          "comparison stays like for like. What this buys, and where it still fails, is measured directly "
-          "(Figure S15). Sites at which 50% "
-          "or more of reads differ from the reference are removed as germline or parental differences. Without "
-          "controls, SHMtrace falls back to a Poisson-binomial test based on read qualities."),
+          "control-based threshold applies the same candidate-selection rule to samples and held-out controls, "
+          "so it measures the corresponding background empirically. This does not establish formal FDR control: "
+          "the decoys are few, their fitted nulls differ from the sample null, and their exchangeability with "
+          "samples is an assumption. Figure S15 tests selected consequences of these limitations. Alternative "
+          "alleles carried by at least 50% of covering reads are removed as germline or parental differences; "
+          "other alleles at the same position remain eligible. Without controls, recommended mode uses a "
+          "Poisson approximation to read-quality error probabilities; the separate pbinom mode implements "
+          "the exact Poisson-binomial calculation."),
     ("p", "The per-sample summaries describing the mutations themselves are the share of calls at G:C, the "
           "share that are transitions, and the shares of G:C calls in WRC/GYW and of A:T calls in WA/TW "
           "motifs, each with the window's own share of such sites for comparison. These are descriptions of "
@@ -160,53 +162,10 @@ METHODS = [
           "repair, as in the *Ung*^{−/−}*Msh2*^{−/−} cells and the UNG-inhibited and UNG-overexpressing "
           "fibroblasts, the pathway is set by the genotype or the vector, not inferred from the mutations."),
     ("h2", "Testing the calling procedure as a whole"),
-    ("p", "The margin, the threshold and the noisy-control rule are chosen from the controls, so each was tested "
-          "together with the others on libraries none of them had seen (`crm/fdr_validation.py`). A case library "
-          "was built from one *Aicda*^{−/−} J_{H}4 library's reads, with a known set of planted mutations or none "
-          "at all; the controls were two further *Aicda*^{−/−} libraries, each split in two, so that no control "
-          "shared a molecule with the case and two controls came from each sequencing library, as two controls "
-          "from one run do. Each library was then analyzed by `run_project`, the same entry point as every "
-          "result in this paper, so the threshold and the rule were selected afresh each time. Four conditions "
-          "were used: the controls as delivered; one control carrying extra errors at six recurrent positions in "
-          "6% of its reads; the same artifact in the case and in no control; and the same artifact in the case "
-          "and in every control. The number of controls (two or three), the depth (250, 500 or 1,000 reads) and "
-          "the mutation burden (none or about 400 planted mutations) were varied, and every condition was run "
-          "with the noisy-control rule on and off on identical libraries. Results are in Figure S15."),
-    ("p", "Three findings qualify what the threshold controls. First, all-null libraries almost never produced a "
-          "call: none of 25 with the controls as delivered and the rule off, none of 25 with one control made "
-          "noisy under either setting, and one of 25 with the controls as delivered and the rule on. That one "
-          "call came in a run in which the rule had set aside a control. Twenty-five runs put the upper bound "
-          "of a 95% interval at 14–20%, so this is a flag worth recording rather than a measured rate, and it "
-          "is the trade the rule makes: removing the noisiest decoy raises sensitivity, and the decoy removed "
-          "is the one showing most background. Second, an artifact carried by the case and by no "
-          "control was called every time, in every run and under both settings: the controls cannot measure what "
-          "they never show, and no choice of threshold repairs this. Shared with the controls, the same artifact "
-          "was largely removed. Third, in libraries carrying real mutations the per-library false-discovery "
-          "proportion stayed near the 5% target, and rose above it only when the case carried an artifact the "
-          "controls lacked. The all-null and mutation-carrying cases differ in a way worth stating: six false "
-          "calls among no true calls is a false-discovery proportion of one, and the same six among four hundred "
-          "true calls is under 2%, so the per-library proportion and the pooled ratio answer different questions "
-          "and both are reported."),
-    ("p", "The noisy-control rule was examined the same way. Where one control carried the planted artifact it "
-          "was set aside in every run, and the libraries called the same number of mutations whether or not it "
-          "was, and no all-null library among those 50 runs produced a call: in the condition the rule was written "
-          "for, it neither gained nor cost measurably at this depth. Two properties of the rule are worth "
-          "recording. It compares a control with the median of the others, so it needs at least "
-          "two others, that is three controls; with two controls it never fires and the more variable library is "
-          "named instead. And when the other controls are clean the comparison degenerates, since five times a "
-          "median of zero is zero: a control with at least five held-out candidates is then set aside whenever "
-          "its peers have none, however mild its excess. It fired on undoctored controls in 3 of 25 all-null runs "
-          "for this reason, which is why the rule names every library it sets aside."),
-    ("p", "The threshold's sensitivity to how the decoy tail is summarised was tested in the same way "
-          "(`crm/fdr_estimator.py`). SHMtrace averages the held-out controls' candidate counts at each "
-          "threshold, an averaging of the kind recommended for small decoy sets; requiring the threshold to "
-          "satisfy the noisiest control instead is the conservative alternative in the code "
-          "(`control_decoy_estimate`). Both were run on identical libraries. Requiring the noisiest control "
-          "lowered the mean per-library false-discovery proportion from 3.8% to 2.5% and cost about 14 of 403 "
-          "true calls, roughly 3%. Where the case carried an artifact the controls lacked it helped little "
-          "(5.9% to 5.1%), because no summary of the decoys can represent an artifact the decoys do not "
-          "contain. The choice between the two is therefore a modest trade of sensitivity against specificity, "
-          "and not what decides the failure mode above."),
+    ("p", "We assessed the margin, threshold and noisy-control rule together using new partitions and planted mutations drawn from three existing *Aicda*^{−/−} J_{H}4 sequencing libraries (`crm/fdr_validation.py`). The case used KO1 reads; controls were partitions of KO2 and KO3. Two-control analyses used one partition from each source; three-control analyses used two from KO2 and one from KO3. Case and control sets shared no read records. Without molecular identifiers, this does not establish independence of original molecules, and partitions of one library are technical resamples, not independent biological controls. These simulations therefore stress-test the procedure conditional on existing libraries rather than validate transfer to a new sequencing run. Each analysis used `run_project`, selecting the margin, threshold and exclusions afresh. Conditions comprised unmodified background, an artifact in one control, a case-only artifact, and an artifact shared between case and controls. Artifacts occupied six positions at a nominal 6% read fraction per position. The shared condition used the same alternative allele at each position in every library; case artifacts were placed outside all planted biological mutation positions to preserve scoring truth. Control number (two or three), depth (250, 500 or 1,000 reads), and mutation burden (none or approximately 400 recovered true calls) were varied. Exclusion on and off were paired on identical simulated inputs (Figure S15)."),
+    ("p", "For unmodified all-null background, any discovery occurred in {fdv_null_none_on_any}/{fdv_null_none_on_n} resamples with exclusion on and {fdv_null_none_off_any}/{fdv_null_none_off_n} with it off. With one noisy control, the corresponding results were {fdv_null_one_noisy_on_any}/{fdv_null_one_noisy_on_n} and {fdv_null_one_noisy_off_any}/{fdv_null_one_noisy_off_n}. The 95% Clopper–Pearson upper bounds for the unmodified-background results are {fdv_null_none_on_upper}% and {fdv_null_none_off_upper}%, so these observations do not establish a 5% bound. With a shared artifact, any discovery occurred in {fdv_null_shared_on_any}/{fdv_null_shared_on_n} exclusion-on resamples and {fdv_null_shared_off_any}/{fdv_null_shared_off_n} exclusion-off resamples; the respective upper bounds are {fdv_null_shared_on_upper}% and {fdv_null_shared_off_upper}%. Case-only artifacts produced discoveries in {fdv_null_case_only_on_any}/{fdv_null_case_only_on_n} and {fdv_null_case_only_off_any}/{fdv_null_case_only_off_n} resamples, with mean false-call counts of {fdv_null_case_only_on_false} and {fdv_null_case_only_off_false}. In mutation-bearing resamples with exclusion on, mean per-library FDP was {fdv_polyclonal_none_on_fdp}% for unmodified background, {fdv_polyclonal_one_noisy_on_fdp}% with one noisy control, {fdv_polyclonal_shared_on_fdp}% with a shared artifact, and {fdv_polyclonal_case_only_on_fdp}% with a case-only artifact (five resamples each). These conditional stress tests quantify selected failure modes and cannot establish general error control. Per-library FDP, pooled false/(true + false), and the all-null probability of any discovery are reported separately."),
+    ("p", "Under the one-noisy-control condition, the affected control was excluded in {fdv_null_one_noisy_on_excluded}/{fdv_null_one_noisy_on_n} all-null rule-on resamples. The all-null discovery counts are given above. For mutation-bearing resamples, mean true calls were {fdv_polyclonal_one_noisy_on_true} with exclusion on and {fdv_polyclonal_one_noisy_off_true} with it off; mean false calls were {fdv_polyclonal_one_noisy_on_false} and {fdv_polyclonal_one_noisy_off_false}, respectively (five paired resamples). The rule requires at least three controls because each is compared with the median of its peers; with two, the more variable control is reported without exclusion. When the peer median is zero, a control with at least five held-out candidates at p ≤ 0.01 exceeds the five-fold rule. This excluded an unmodified control in {fdv_null_none_on_excluded}/{fdv_null_none_on_n} all-null resamples. Every exclusion is reported and should prompt review of the controls and sensitivity to retaining them."),
+    ("p", "Sensitivity to the decoy summary was assessed with `crm/fdr_estimator.py`. The default averages held-out control candidate counts; `control_decoy_estimate=\"max\"` instead requires the threshold to satisfy the noisiest retained decoy. On unmodified mutation-bearing resamples, mean FDP was {fdv_polyclonal_none_on_fdp}% for the mean and {fdv_max_polyclonal_none_on_fdp}% for the maximum; mean true calls were {fdv_polyclonal_none_on_true} and {fdv_max_polyclonal_none_on_true}. On case-only-artifact resamples, mean FDP was {fdv_polyclonal_case_only_on_fdp}% and {fdv_max_polyclonal_case_only_on_fdp}%. Both settings used identical simulated inputs (five paired resamples per condition). This compares two implemented settings; it is not an independent validation of either estimator or evidence that taking the maximum guarantees FDR control."),
     ("p", "Runtimes quoted in the Results are wall-clock seconds for one `run_project` call on an Apple M2 Pro "
           "(12 cores, 32 GB) under macOS, measured from the prepared input to the written results. They include "
           "reading the chromatograms or reads, alignment with the bundled mappy index, calling, and the "
@@ -230,7 +189,7 @@ METHODS = [
           "the number of reference positions. Because B grows with depth while D saturates, this density falls as "
           "depth rises even at a constant mutation rate, so it is compared only between libraries analyzed at the "
           "same depth (Figure S5). **Read-weighted mutation frequency** is Σ m_{i} / (N × L) × 10^{3}, where "
-          "m_{i} is the number of called sites read i carries at base quality ≥ 20, N the reads analyzed and L the "
+          "m_{i} is the number of called sites read i carries at or above the configured minimum base quality (0 for these read-library analyses), N the reads analyzed and L the "
           "window length; a mutation shared by many reads is counted once in each of them, so an expanded clone "
           "raises it. **Clone-weighted frequency** groups reads by their V(D)J junction, keeps a mutation when at "
           "least half the reads of its clone carry it (any read of a single-read clone), and is Σ c_{k} / (K × L) "
@@ -296,7 +255,7 @@ METHODS = [
           "Quality-control flags are reported but never applied automatically. They cover copied files, clones "
           "shared between animals beyond chance (Poisson test weighted by mutation frequency across animals), "
           "control clones with excess mutations, label mismatches, and outliers in mutation load."),
-    ("p", "A Sanger clone is one molecule read once, so a call cannot be tested by counting reads. What the "
+    ("p", "The implemented Sanger route counts quality-filtered mismatches without a per-call significance test. The "
           "AID-null clones can measure is the error itself: the share of their bases at quality \u2265 20 that "
           "mismatch the reference, after their own germline differences are removed, per reported quality and "
           "per position. Each library is then charged its own bases at those rates, giving the calls the "
@@ -481,10 +440,11 @@ LEGENDS = [
      "(B) Inputs and read preparation. Steps 2 and 3 apply to every input; Sanger traces are trimmed to their "
      "longest clean stretch at quality ≥ 20 in place of step 1, and because each clone is one molecule and every "
      "clone is kept, step 4 does not apply to them. "
-     "(C) Calling runs on two routes, because the evidence differs. A nanopore, Illumina, or UMI-tagged library "
-     "reads one molecule many times, so each candidate is tested against the control error model and kept at a "
-     "chosen FDR (teal, steps 1–2). A Sanger clone is one molecule read once, so no per-call test is possible: "
-     "every substitution at base quality ≥ 20 is counted, and the AID-null clones give the calls the background "
+     "(C) Calling uses two routes. In nanopore, Illumina, and UMI-consensus read libraries, candidate support "
+     "is tested against the control error model using an estimated false-discovery threshold (teal, steps "
+     "1–2); a call may have one supporting read, and reads are not assumed to identify independent original "
+     "molecules. In the implemented Sanger route, every substitution at base quality ≥ 20 is counted "
+     "without a per-call significance test, and the AID-null clones give the calls the background "
      "alone would produce, reported beside them and never subtracted (orange, steps 1–2). The routes rejoin at the "
      "germline filter and window (step 3) and the automatic checks (step 4). (D) Outputs, shared by both routes. "
      "FDR, false-discovery rate. See also Figure S1."),
@@ -492,10 +452,10 @@ LEGENDS = [
      "(A and B) Two C-to-T changes in the same Sμ wild-type library (WT3; PRJNA1481264, 2,000 reads per library): "
      "share of reads carrying each, on the + strand (dark) and − strand (light), in WT3 (blue) and in each "
      "*Aicda*^{−/−} control (red); numbers, reads carrying the change at any base quality of reads covering the site, "
-     "and in parentheses those at quality ≥ 20, the only ones the test counts. (A) A WRC hotspot "
+     "and in parentheses the descriptive subset at quality ≥ 20. The test uses all base qualities. (A) A WRC hotspot "
      "(underlined C); (B) a site of recurrent background, which the uncorrected Geneious rule called in WT3 and "
      "in two controls. p, SHMtrace's test against the controls. (C) Base qualities of the reads carrying each "
-     "change; bars, medians; dotted line, Q20, below which bases are not counted. (D) The control FDR for the same library: candidates with "
+     "change; bars, medians; dotted line, Q20, a display reference rather than a calling cutoff. (D) The control FDR for the same library: candidates with "
      "p ≤ t (blue) against the false calls that the held-out controls predict at t (red; mean over controls, "
      "scaled to the library's bases); SHMtrace keeps calls up to the largest t at which the predicted false calls "
      "stay below 5% of the calls (dotted line), here the dashed threshold. (E) Allele fractions of SHMtrace's "
@@ -547,9 +507,11 @@ LEGENDS = [
      "each, 2,000 reads), and each is shown on its own row against the shared *Aicda*^{−/−} controls; pooling them "
      "would average the perturbation into wild type. (G) Calls summed over the three "
      "AID-null libraries, so OT1 and OT2 are named once. Panels A–I come from a caller-comparison run in which "
-     "every caller sees the same prepared reads and the null is fitted by leaving each control out in turn; the "
-     "per-library counts quoted in the text for OT1 and OT2 come from the full pipeline, which also selects the "
-     "false-discovery threshold and applies the noisy-control rule, and therefore differ (STAR Methods). "
+     "every caller sees the same prepared reads. For SHMtrace, each library's null is fitted from its peer "
+     "controls, and its margin and control-based threshold are calibrated within that peer set. The full "
+     "pipeline used for the OT1/OT2 Results instead shares one project-wide margin and held-out-control "
+     "decoy collection, excludes the tested control's own decoy, and applies the noisy-control rule. Both "
+     "routes select a control-based threshold, but their counts can differ (STAR Methods). "
      "(H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
      "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S4–S6 "
      "and Tables S1 and S2."),
@@ -576,26 +538,7 @@ LEGENDS = [
      "21 carry nodes that no single branch holds, as sequencing error, PCR recombination or a repeated mutation "
      "would produce. See also Figure S11."),
     ("Figure 7. The same engine works across platforms, loci and biological questions",
-     "Each panel asks one validation question, given in italics beneath its title. "
-     "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
-     "B cells, and AID-null; circles, mice; triangles, mice without calls, drawn below the dotted line at which "
-     "they enter the bar; bars, geometric means with those mice at that floor; p, two-sided Welch test on log "
-     "rates, mice without calls counted at the rate one mutation would give (STAR Methods), against AID-null and two-sided Mann–Whitney test for *Ldha*-deleted against Wt. (B) Mutation "
-     "frequency per replicate in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and "
-     "R174E/R178E mutants and empty vector (PRJNA918596; n = 4); symbols and bars as in A. (C) Spectrum of AID "
-     "and R174E/R178E calls (n, calls) and their S5F targeting index; the mutant's calls cluster at positions "
-     "{ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
-     "(PRJNA820976; n = 6) and AID-knockout controls (n = 3), 20,000 reads per clone; points, clones; bars, "
-     "means. (E) Error per base of UMI consensus against raw R10 reads by reads per molecule "
-     "(rRNA operons[@karst2021]); n under each bin, molecules in it; dashed line, raw reads. Diamond, all 103 "
-     "molecules pooled, with a 95% bootstrap interval from 2,000 resamples of molecules (the raw-read rate held "
-     "fixed), giving the fold reduction printed beside it. (F) Share of transitions among mutations at C:G in "
-     "NIH-3T3 cells expressing AID-ER and an mOrange reporter (PRJNA170048), by the repair context set by a third "
-     "vector, for each of the three experiments: SHMtrace's calls (circles) and every mismatch at quality > 20, "
-     "as counted in the original study (squares), each joined across arms within an experiment; crosses, every "
-     "mismatch in the catalytically dead AID-E58Q-ER libraries of the same experiment. SHMtrace's shares rest on "
-     "4–40 called C:G mutations per library, so single experiments move in large steps. "
-     "See also Table S2."),
+     "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated B cells, and AID-null; circles, mice; triangles, zero-call mice plotted below the dotted floor; bars, geometric means using that floor; p, two-sided Welch test on log rates, mice without calls counted at the rate one mutation would give (STAR Methods), against AID-null and two-sided Mann–Whitney test for *Ldha*-deleted against Wt. (B) Mutation frequency per replicate in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and R174E/R178E mutants and empty vector (PRJNA918596; n = 4); symbols and bars as in A. (C) Spectrum of AID and R174E/R178E calls (n, calls) and their S5F targeting index; the mutant's calls cluster at positions {ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones (PRJNA820976; n = 6) and AID-knockout controls (n = 3), 20,000 reads per clone; points, clones; bars, means. (E) Error per base of UMI consensus against raw R10 reads by reads per molecule (rRNA operons[@karst2021]); n under each bin, molecules in it; dashed line, raw reads. Diamond, 103 pooled molecules with a 95% bootstrap interval (2,000 molecule resamples; raw-read rate held fixed); text, fold reduction. (F) Share of transitions among mutations at C:G in NIH-3T3 cells expressing AID-ER and an mOrange reporter (PRJNA170048), by the repair context set by a third vector, for each of the three experiments: SHMtrace's calls (circles) and every mismatch at quality > 20, as counted in the original study (squares), each joined across arms within an experiment; crosses, every mismatch in the catalytically dead AID-E58Q-ER libraries of the same experiment. SHMtrace's shares rest on 4–40 called C:G mutations per library, so single experiments move in large steps. See also Table S2."),
 ]
 
 TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
@@ -632,13 +575,10 @@ TABLE1 = [
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "simulated library", "Figures 3 and 5"),
 ]
-TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique "
-               "molecular identifier. The unit of analysis is the independent replicate used in every group test; reads were never treated as replicates. a, the three subclones per vector came from one transduced population, so they are independent subclones but not independent transductions. b, the same six animals as the nanopore J_{H}4 row, so the two are a platform comparison within animals rather than independent experiments. c, the deposit's own replicate numbering; what it corresponds to experimentally is not stated in its records. Loci and laboratories are counted from this table: ten SHM target loci from seven "
-               "laboratories, the rRNA operons excluded as not an SHM target. Lengths are of the analysis window, positions given in STAR Methods; the mOrange "
-               "window lies within a 679-bp amplicon.")
+TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers ten SHM target loci from seven laboratories; rRNA is excluded. Lengths are analysis windows; the mOrange amplicon is 679 bp.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S14 and Tables S1, S3 and S4",
-    "Table S2. Caller comparison: per-library calls and densities of every caller on the same prepared reads of the nanopore datasets of Figure 4, and planted-mutation summaries for Figure 3 (Excel)",
+    "Document S1. Figures S1–S15 and Tables S1 and S3–S5",
+    "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

@@ -57,7 +57,7 @@ def site_panel(ax, site, case, title):
         dark, light = (CASE, CASEF) if n == case else (CTRL, CTRLF)
         ax.barh(y, plus, 0.62, color=dark)
         ax.barh(y, minus, 0.62, left=plus, color=light)
-        # the bars count reads at any base quality; the test counts only bases at quality >= 20
+        # Bars count all qualities; Q20 counts are a descriptive subset, not a test cutoff.
         hq = sum(q >= 20 for q in v["alt_quals"])
         ax.text(plus + minus + 0.04, y, f"{v['alt_plus'] + v['alt_minus']}/{d} ({hq} at Q≥20)", va="center",
                 fontsize=5.3, color=MID)
@@ -119,7 +119,8 @@ def af_panel(ax):
     rec = {c: by_fraction(c)[1] for c in ("deepsomatic", "clairs")}
     fr = sorted(rec["deepsomatic"])
     ax.axvspan(fr[0], fr[-1], color=CALLERS["clairs"][1], alpha=0.10, lw=0)
-    pct = lambda c: " / ".join(f"{100 * rec[c][x]:.0f}" for x in fr)
+    def pct(c):
+        return " / ".join(f"{100 * rec[c][x]:.0f}" for x in fr)
     ax.text(fr[0] * 0.92, top * 0.8, f"shaded: range tested\nwith planted mutations\n(Fig. 3H); recall at\n"
             f"{' / '.join(f'{x:.0f}' for x in fr)}% of reads:\n"
             f"DeepSomatic {pct('deepsomatic')}%\nClairS {pct('clairs')}%", fontsize=5,
@@ -154,7 +155,7 @@ def quality_panel(ax, a, case):
             ax.scatter(i + rng.uniform(-0.18, 0.18, len(qs)), qs, s=4, color=col, alpha=0.75, linewidths=0)
             ax.plot([i - 0.28, i + 0.28], [np.median(qs)] * 2, color=INK, lw=1)
     ax.axhline(20, color=SOFT, lw=0.6, ls=":")
-    ax.text(1, 20.8, "Q20 cut-off", fontsize=4.8, color=MID, ha="center", va="bottom")
+    ax.text(1, 20.8, "Q20 reference", fontsize=4.8, color=MID, ha="center", va="bottom")
     ax.set_xticks(range(len(groups)), [g[0] for g in groups], fontsize=5.5)
     ax.set_ylabel("Base quality of alt reads")
     ax.set_ylim(0, 52)

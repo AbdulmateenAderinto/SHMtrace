@@ -41,12 +41,12 @@
   // measured background instead (Figure 1C)
   T('reads: each candidate mutation tested against', 220, 420, { fontSize: MED, color: MID });
   T('the errors of matched AID-null libraries', 220, 456, { fontSize: MED, color: MID });
-  T('Sanger clones: counted against that background', 220, 492, { fontSize: MED, color: SANG });
+  T('Sanger: quality-filtered counts; background reported', 220, 492, { fontSize: MED, color: SANG });
   T('groups compared animal by animal', 220, 528, { fontSize: MED, color: MID });
 
   // 3. outcomes
   const bw = (940 - 2 * 24) / 3, by = 630, bh = 340, outs = [];
-  ['Low background', 'Agrees with Sanger', 'Clones and trees'].forEach((t, k) => {
+  ['Low background', 'Pooled spectra', 'Clones and trees'].forEach((t, k) => {
     const x = 30 + k * (bw + 24);
     outs.push(card(x, by, bw, bh));
     TC(t, x + bw / 2, by + 18, { fontSize: SM, bold: true });
@@ -61,7 +61,8 @@
   TC('1–4 calls per control set', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
   // b. spectrum agreement
   x = 30 + bw + 24;
-  const pts = [[0.1, 0.12], [0.2, 0.17], [0.3, 0.33], [0.42, 0.38], [0.5, 0.55], [0.63, 0.6], [0.75, 0.8], [0.85, 0.9]];
+  const spectrum = /*DATA*/{"points":[[10.83,9.56],[7.43,9.4],[15.5,18.5],[8.7,8.46],[14.23,14.58],[5.31,5.8],[2.12,3.13],[9.55,7.68],[3.18,4.23],[12.1,8.78],[4.67,4.55],[6.37,5.33]],"limit":20.720000000000002}/*END*/;
+  const pts = spectrum.points.map(([a, b]) => [a / spectrum.limit, b / spectrum.limit]);
   // the axis sits higher than the other panels' baselines to leave room for a two-line caption
   SEG(x + 40, by + 248, x + bw - 30, by + 248, 2.4, INK); SEG(x + 40, by + 60, x + 40, by + 248, 2.4, INK);
   SEG(x + 40, by + 248, x + bw - 40, by + 70, 2, OUTL);
@@ -76,7 +77,8 @@
     SEG(rx + 70, ry, rx + 70, yy, 2.4, OUTL); SEG(rx + 70, yy, rx + 70 + len, yy, 3, INK);
     for (let j = 1; j <= 3; j++) R(rx + 70 + (len * j) / 4 - 2.5, yy - 9, 5, 18, { fill: ['#c0392b', '#e08a2c', '#2c5d8a'][(j + k) % 3] });
   });
-  TC('from full-length reads', x + bw / 2, by + 300, { fontSize: SM - 4, color: MID });
+  TC('read-level reconstruction', x + bw / 2, by + 280, { fontSize: SM - 4, color: MID });
+  TC('from full-length reads', x + bw / 2, by + 308, { fontSize: SM - 4, color: MID });
   LINK(top, 's', mid, 'n');
   outs.forEach((c) => LINK(mid, 's', c, 'n', { style: 'elbow' }));
   return { id: 'crm-ga', name: 'Graphical abstract', width: W, height: H, background: '#ffffff', objects: o,

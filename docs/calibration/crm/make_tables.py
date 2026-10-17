@@ -3,14 +3,15 @@ reads of the nanopore datasets of Figure 4 (benchmark_real.py), and planted-muta
     python docs/calibration/crm/make_tables.py  -> out/Table_S2_benchmark.xlsx
 
 The rows come from the caller-comparison run, which fits each library's null by leaving each control out in turn
-and applies neither the false-discovery threshold selection nor the noisy-control rule of the full pipeline, so
-its SHMtrace counts can differ from those of a full run (OT1 and OT2 in the text). A note sheet says so."""
+and calibrates the margin and control-based threshold within that peer set. It does not apply the noisy-control
+rule or share one project-wide margin/decoy collection, so its SHMtrace counts can differ from those of
+run_project (OT1 and OT2 in the text). A note sheet says so."""
 import json
 from collections import defaultdict
 from pathlib import Path
 
 from openpyxl import Workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Alignment, Font
 
 OUT = Path(__file__).parent / "out"
 LABEL = {"recommended": "SHMtrace", "geneious": "Geneious rule", "lofreq": "LoFreq (defaults)",
@@ -44,12 +45,17 @@ ws0 = wb.create_sheet("About", 0)
 for line in (
         "Table S2. The caller comparison behind Figures 3 and 4.",
         "Real libraries: every caller is run on the same prepared reads of each library (benchmark_real.py).",
-        "SHMtrace's null is fitted by leaving each control out in turn. This run applies neither the false-discovery",
-        "threshold selection nor the noisy-control rule of the full pipeline, so its SHMtrace counts can differ from a",
-        "full run. The OT1 and OT2 counts quoted in the text come from the full pipeline (run_project).",
+        "SHMtrace: each library is fitted against its peer controls, with the margin and control-based threshold calibrated within that peer set.",
+        "This harness does not use run_project's shared project margin/decoy collection or its noisy-decoy exclusion rule.",
+        "Both routes select control-based thresholds; their counts can differ. OT1/OT2 text counts come from run_project.",
+        "Real libraries covers the five listed calling settings in Figure 4; somatic/germline caller results are in Spike-ins and the manuscript.",
         "OT1 and OT2 libraries: WT = wild type, dKO = Mllt1/Mllt3 double knockout, KO = Aicda-/- control.",
         "Spike-ins: mutations planted into held-out AID-null libraries (Figure 3)."):
     ws0.append([line])
+ws0.column_dimensions["A"].width = 140
+for row in ws0:
+    row[0].alignment = Alignment(wrap_text=True, vertical="top")
+    ws0.row_dimensions[row[0].row].height = 32
 ws2 = wb.create_sheet("Spike-ins")
 ks = [1, 2, 3, 5, 10, 20]
 ws2.append(["Dataset", "Caller", "Libraries x replicates"] + [f"Recall, {k} read(s)" for k in ks]
