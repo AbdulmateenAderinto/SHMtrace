@@ -15,6 +15,7 @@ No `AGENTS.md` exists in either the workspace or the repository; none was applie
 | Compagno 2017, Illumina Sμ | GSE77788 / PRJNA311552, 18 runs / 540 MB | control calibration on an independent lab and platform | `crm/out/public_smu/`, Figure S17 |
 | Germline-policy demonstration | synthetic, no download | what the 50% rule does to selected variants | `crm/out/germline_policy/`, below |
 | E1 Bassan 2021, AID-diversified TCR | figshare 12803501, 12 SAM / 228 MB | variant recovery against a known ancestral construct | `crm/out/tcr/`, below |
+| E5 Devilder 2019, anti-HLA-A2 clones | supplement DOCX, 53 KB | calls against an independent published annotation | `crm/out/devilder/`, below |
 
 Both are written up in `PUBLIC_VALIDATION.md`, including why the GSE77788 drug effect is not claimed.
 
@@ -49,6 +50,27 @@ without, the two differences being variants the frequency rule removed as germli
 identical. So on this deposit the policy recovers real variants but the effect is small, because most
 selected variants here sit below 50%. It remains the right default for this class of experiment, and the
 claim is kept to what was measured.
+
+## E5, Devilder 2019: concordance with a published annotation
+
+Additional file 1 publishes the parental heavy variable region (423 bp) and, for each selected cluster of
+rounds 1 and 2, its nucleotide sequence *and* the nucleotide mutations the authors annotated. That annotation
+is an independent answer to check calls against, on a defined reference, with no read processing in between.
+
+| round | clusters | with a published annotation | reproduced exactly | published but not recovered | recovered but not published |
+|---|---|---|---|---|---|
+| R1 | 17 | 17 | **17** | 0 | 0 |
+| R2 | 26 | 25 | **25** | 0 | 0 |
+
+All 42 annotated clusters reproduce the authors' mutation lists exactly, in both directions. Through
+SHMtrace's own clone path the sample gives 32 unique mutations with `ancestral_reference` and 31 without:
+the one difference is a mutation carried by at least half the selected clusters, which the frequency rule
+removes as germline. That is the smallest clean illustration of why the policy exists.
+
+What this does not test: it is a curated collection of *selected* clones, so it carries no population
+frequencies, no unselected distribution, no replication and no technical error rate, and none are computed.
+It exercises reference handling and substitution identification, not the error model or the false-discovery
+calibration.
 
 ## Eligible, not yet run — engineered AID diversification
 
