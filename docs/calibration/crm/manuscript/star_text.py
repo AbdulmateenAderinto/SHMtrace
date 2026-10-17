@@ -11,8 +11,8 @@ AUTHORS = "Abdulmateen Aderinto^{1,3,*} and Alberto Martin^{1,2,4,**}"
 AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1A8, Canada",
          "^{2}Lead contact", "^{3}Technical contact",
          "^{4}Senior author",
-         "*Correspondence: {lab_tech_email}",
-         "**Correspondence: alberto.martin@utoronto.ca"]
+         "\\*Correspondence: {lab_tech_email}",
+         "\\*\\*Correspondence: alberto.martin@utoronto.ca"]
 SUMMARY = (
     "Somatic hypermutation is usually measured by cloning amplicons and sequencing individual colonies. Here, "
     "we present a protocol for measuring it without cloning. We describe steps for sorting germinal-center B "

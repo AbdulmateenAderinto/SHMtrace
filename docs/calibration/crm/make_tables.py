@@ -1,5 +1,10 @@
-"""Table S2 (Excel): per-library calls and densities for every caller and dataset, and spike-in summaries.
-    python docs/calibration/crm/make_tables.py  -> out/Table_S2_benchmark.xlsx"""
+"""Table S2 (Excel): the caller comparison. Per-library calls and densities of every caller on the same prepared
+reads of the nanopore datasets of Figure 4 (benchmark_real.py), and planted-mutation summaries (Figure 3).
+    python docs/calibration/crm/make_tables.py  -> out/Table_S2_benchmark.xlsx
+
+The rows come from the caller-comparison run, which fits each library's null by leaving each control out in turn
+and applies neither the false-discovery threshold selection nor the noisy-control rule of the full pipeline, so
+its SHMtrace counts can differ from those of a full run (OT1 and OT2 in the text). A note sheet says so."""
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -35,6 +40,16 @@ for key, name in SETS.items():
     for r in json.load(open(f))["rows"]:
         ws.append([name, r["sample"], "yes" if r["control"] else "no", LABEL[r["mode"]], r["reads"], r["bases"],
                    r["calls"], round(r["density_x1e5"], 3) if r["density_x1e5"] is not None else None])
+ws0 = wb.create_sheet("About", 0)
+for line in (
+        "Table S2. The caller comparison behind Figures 3 and 4.",
+        "Real libraries: every caller is run on the same prepared reads of each library (benchmark_real.py).",
+        "SHMtrace's null is fitted by leaving each control out in turn. This run applies neither the false-discovery",
+        "threshold selection nor the noisy-control rule of the full pipeline, so its SHMtrace counts can differ from a",
+        "full run. The OT1 and OT2 counts quoted in the text come from the full pipeline (run_project).",
+        "OT1 and OT2 libraries: WT = wild type, dKO = Mllt1/Mllt3 double knockout, KO = Aicda-/- control.",
+        "Spike-ins: mutations planted into held-out AID-null libraries (Figure 3)."):
+    ws0.append([line])
 ws2 = wb.create_sheet("Spike-ins")
 ks = [1, 2, 3, 5, 10, 20]
 ws2.append(["Dataset", "Caller", "Libraries x replicates"] + [f"Recall, {k} read(s)" for k in ks]

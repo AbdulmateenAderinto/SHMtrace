@@ -360,17 +360,20 @@ SUPP_FIGS = [
      "bases read; shading, the 529-bp window used for comparison."),
     ("Figure S8. A published Sanger study re-analyzed automatically, related to Figure 5",
      [FIG / "FigureS8_sanger_cohort2.png"],
-     "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (green) and "
+     "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (purple) and "
      "*Aicda*^{−/−} (red) mice[@barbulescu2024], each clone assigned to the mouse it was filed under in the original "
-     "analysis. Filled symbols and blue lines, SHMtrace from the chromatograms; open squares and brown lines, the "
-     "published values, replotted from the paper's per-mouse tables (Supplementary Fig. 9b) and clone distributions "
-     "(Fig. 2g). (A) Mutations per 10^{4} bp in each mouse; lines, means. (B) The same per mouse, SHMtrace against "
-     "published; dashed line, identity. (C) Clones by mutations per clone, pooled by genotype, binned as published. "
+     "analysis. Filled circles and teal mean lines, SHMtrace from the chromatograms; open squares and brown mean "
+     "lines, the published values, replotted from the paper's Source Data (Fig. 2g–i) and per-mouse tables "
+     "(Supplementary Fig. 9b). The study reports three *Aicda*^{−/−} mice; four are filed in the original project "
+     "and are all analyzed here (F). (A) Mutations per 10^{4} bp in each mouse; lines, means. (B) The same per "
+     "mouse, SHMtrace against published; dashed line, identity. (C) Clones by mutations per clone, pooled by "
+     "genotype, binned as published; the published bins come from the Fig. 2g Source Data, which count 96 and 183 "
+     "clones, whereas the per-mouse tables behind Table S4 count 97 and 187. "
      "(D) G:C transitions and transversions as a share of each mouse's mutations. (E) Pooled 12-type substitution "
      "spectra, SHMtrace against published. (F) The published comparisons and SHMtrace's, with the one-tailed "
      "t-test used in the original study; \"background explains\" is the share of each group's calls that the "
      "*Aicda*^{\u2212/\u2212} clones' own error rate accounts for (STAR Methods), and the analysis time is for "
-     "the whole project from one sample sheet."),
+     "the whole project from one sample sheet, once that sheet had been built."),
     ("Figure S9. A second published Sanger study re-analyzed automatically, related to Figure 5",
      [FIG / "FigureS9_sanger_mkln.png"],
      "J_{H}4 clones of germinal-center B cells from three wild-type (blue), three *Mkln1*^{\u2212/\u2212} "
@@ -407,11 +410,13 @@ SUPP_FIGS = [
      [FIG / "FigureS12_platforms.png"],
      "Top, one unit of data from each platform on one base-pair scale. A Sanger clone is one molecule read once "
      "over the 529-bp window that the clones read cleanly, so each clone's mutations are read directly and "
-     "sequencing errors are rare, though not absent. A nanopore read spans the whole 1,230-bp amplicon; the eight "
-     "reads drawn are real reads of wild-type library Wt3, from four clones, with their called mutations in place, "
-     "and errors are drawn at the rate measured in the *Aicda*^{\u2212/\u2212} controls over the window "
-     "(0.14% of bases at any quality, 85% of them below Q20, open circles; 0.02% at Q \u2265 20, filled), at "
-     "random positions. A mutation is called where more reads carry it than the controls "
+     "sequencing errors are rare, though not absent. A nanopore read spans the whole 1,230-bp amplicon, and "
+     "mutation continues past the Sanger window: the eight reads drawn are real reads of wild-type library Wt3, "
+     "from four clones, analyzed over positions 90\u20131,230 as in Figure 6A, with every mutation called in them. "
+     "Errors are drawn rather than read, because a read's uncalled mismatches cannot be separated from uncalled "
+     "mutations; they are placed at random positions at the rate the *Aicda*^{\u2212/\u2212} controls show over "
+     "the same window once germline sites are removed (0.14% of bases, 85% of them below Q20, open circles; the "
+     "rest at Q \u2265 20, filled). A mutation is called where more reads carry it than the controls "
      "explain; single-read mutations that cannot be told from error one at a time "
      "are estimated in aggregate. Bottom, what the Sanger clones and the nanopore reads of this study each gave, "
      "and what both gave in the six mice of Figure 5, with the agreement measured there. The split describes the "

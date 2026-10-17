@@ -38,25 +38,19 @@
   lines(['529-bp window that the clones read cleanly;',
     '447 chromatograms from the six mice of Figure 5'], sx, 212);
 
-  // nanopore: eight real reads of wild-type library WT3 (out/intuition_jh4.json, raster; two each from its
-  // clones 0, 1 and 3, one from clone 2 and one read without a junction), with their called mutations at their
-  // true positions. Errors are drawn at the rate measured in the AID-null controls over the window, 0.138% per
-  // base at all qualities, 14.6% of them at Q >= 20, at the expected counts (13 and 2 over these reads), at random
-  // positions (seed 450, chosen so no error lands within 12 bp of a mutation); open, Q < 20; filled, Q >= 20.
+  // nanopore: eight real reads of wild-type library WT3, re-run over the whole reliably covered amplicon
+  // (positions 90-1,230, as Figure 6A; scicanvas/s12_reads.py), with every mutation SHMtrace called in them.
+  // A quarter of this library's calls lie beyond the 529-bp Sanger window, so the reads carry mutations there
+  // too. Errors are drawn, not read: a read's uncalled mismatches cannot be told from uncalled mutations. They
+  // are drawn at the rate the AID-null controls show over the same window once germline sites are removed,
+  // 0.135% per base with 15% at Q >= 20, at the expected counts (13 over these reads, 2 at Q >= 20), at random
+  // positions clear of the mutations; open, Q < 20; filled, Q >= 20.
   const nx = 730, nX = (v) => nx + 70 + v / AMP * pw;
   head(nx, nx + 650, 'NANOPORE: CLONING-FREE AMPLICONS', 'every read spans the 1,230-bp amplicon', TEAL);
   I('s-nanopore-sequencing-strand-through-pore', nx + 34, 140, 58);
   // the 529-bp window both platforms are compared over, as brackets above and below the reads
   [80, 211].forEach((yy) => R(nX(WIN[0]), yy, nX(WIN[1]) - nX(WIN[0]), 2.4, { fill: SOFT }));
-  const READS = [[52, 1230, [107, 136, 143, 166, 222, 316, 320, 368, 508], [[458, 0], [486, 0], [574, 0]]],
-    [52, 1230, [107, 138, 144, 166, 275, 290, 320, 323, 368, 403, 422, 425, 442, 446, 474], [[1147, 0]]],
-    [51, 1230, [138, 139, 160, 252, 261, 479], []], [51, 1230, [138, 139, 160, 252, 261, 479], []],
-    [56, 1227, [139, 160, 165, 209, 307, 363, 383, 395, 422, 455, 488, 490, 550, 559, 565, 566], [[469, 0], [888, 0]]],
-    [56, 1230, [139, 160, 165, 166, 209, 307, 363, 383, 395, 422, 455, 488, 490, 517, 550, 559, 565, 566],
-      [[675, 0], [902, 0], [1096, 0], [1181, 0]]],
-    [63, 1230, [107, 146, 147, 151, 157, 160, 166, 167, 182, 217, 273, 275, 279, 285, 300, 320, 330, 368, 428, 431,
-      490, 557], [[914, 0], [1007, 1]]],
-    [1, 1230, [445], [[587, 1]]]];
+  const READS = [[52,1230,[107,136,166,222,316,320,368,508],[[1006,0]]],[52,1230,[107,138,144,166,275,290,320,323,368,403,422,425,442,446,474],[]],[51,1230,[138,139,160,252,261,479],[[199,0],[309,0],[996,0]]],[51,1230,[138,139,160,252,261,479],[[420,0],[864,0]]],[56,1227,[139,160,165,209,307,363,383,395,422,455,488,490,550,559,565,566,695,739],[[468,0],[623,1],[930,0]]],[56,1230,[139,160,165,166,209,307,363,383,395,422,455,488,490,517,550,559,565,566,695,739,1187],[[185,1]]],[63,1230,[107,146,147,151,157,160,166,167,182,217,273,275,279,285,300,320,330,368,428,431,490,557,696,713],[[1227,0]]],[1,1230,[445,700,867,997],[[97,0],[1095,0]]]];
   READS.forEach(([a, b, mut, err], r) => {
     const y = 88 + r * 15;
     R(nX(a), y, nX(b) - nX(a), 7, { fill: FAINT, radius: 3.5 });
@@ -64,8 +58,8 @@
     err.forEach(([p, hq]) => E(nX(p), y + 3.5, 9, hq ? { fill: ERR } : { fill: '#ffffff', stroke: ERR, strokeWidth: 1.6 }));
   });
   TC('529-bp window', (nX(WIN[0]) + nX(WIN[1])) / 2, 216, { color: SOFT });
-  lines(['Eight wild-type reads; errors at the rate the controls show: 1 base in 700,',
-    'mostly at low quality (open), and 1 in 5,000 at Q ≥ 20 (filled).'], nx, 246);
+  lines(['Eight wild-type reads over the whole amplicon, with every mutation called in them;',
+    'errors drawn at the rate the controls show, 1 base in 700, mostly below Q 20 (open)'], nx, 240);
   E(sx + 8, 271, 10, { fill: MUT }); T('mutation', sx + 20, 261, { color: MUT });
   E(sx + 110, 271, 10, { fill: ERR }); T('sequencing error', sx + 122, 261, { color: ERR });
 

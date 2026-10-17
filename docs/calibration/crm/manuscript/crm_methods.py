@@ -103,7 +103,9 @@ METHODS = [
           "were then downsampled at random with a fixed seed (Python random, seed 0) to the analysis depth: 500 "
           "reads for J_{H}4 and N114 and 2,000 reads for the IRCM loci. The analysis windows were positions "
           "101–629 (529 bp, the window shared with Sanger) or 90–1,230 (full length) of the J_{H}4 reference and "
-          "positions 21–635 of the N114 reference."),
+          "positions 21–635 of the N114 reference. For loci whose window is not set by a preset, it runs from "
+          "position 21 to 20 bases before the reference's end: Sμ 21–631 (611 bp), *Pim1* 21–882 (862 bp), "
+          "OT1 21–988 (968 bp) and OT2 21–962 (942 bp)."),
     ("h2", "Control-calibrated variant calling"),
     ("p", "Every single-nucleotide difference from the reference within the analysis window is a candidate, and a "
           "single supporting read is sufficient. For each of the 12 substitution types, each strand, and each base "
@@ -342,7 +344,8 @@ LEGENDS = [
      "(A and B) Recall of mutations planted into reads of a held-out AID-null library (J_{H}4, A; N114, B), by the "
      "number of reads carrying each, for SHMtrace, the uncorrected Geneious rule and LoFreq at three settings; 60 "
      "sites × 3 replicates × 3 held-out controls per amplicon. (C) Overall recall against false calls per library for "
-     "every caller and amplicon (colors as in A; shapes, amplicon: J_{H}4 and N114 at 500 reads, Sμ and *Pim1* "
+     "SHMtrace, the Geneious rule and LoFreq on each amplicon (colors as in A; the somatic and germline callers are "
+     "in H and Table S2; shapes, amplicon: J_{H}4 and N114 at 500 reads, Sμ and *Pim1* "
      "from PRJNA1481264 at 2,000 reads); callers without false calls plotted at 0.05. "
      "(D) Recall in simulated B cell lineages by read support (polyclonal, solid; low load, dashed), and false calls "
      "in null libraries; 3 libraries per scenario. (E) Read-weighted and clone-weighted mutation frequency against "
@@ -390,7 +393,7 @@ LEGENDS = [
      "by the reads carrying them; horizontal distance, mutations since the ancestor. See also Figure S11."),
     ("Figure 7. The same engine works across platforms, loci and biological questions",
      "(A) Mutation frequency per mouse in J_{H}4 (Illumina, PRJNA973112): wild type, *Ldha* deleted in activated "
-     "B cells, and AID-null; bars, geometric means; p, Welch test on log rates. (B) Mutation frequency per replicate "
+     "B cells, and AID-null; bars, geometric means; p, Welch test on log rates against AID-null and Mann–Whitney test for *Ldha*-deleted against Wt. (B) Mutation frequency per replicate "
      "in CH12F3 *Ung*^{−/−}*Msh2*^{−/−}*Aicda*^{−/−} cells with ectopic AID, the R50E and R174E/R178E mutants and empty "
      "vector (PRJNA918596; n = 4). (C) Spectrum and targeting of AID and R174E/R178E calls; the mutant's calls cluster "
      "at positions {ch12_cluster}. (D) Deletions and insertions per clone in Ramos wild-type and HMCES-deficient clones "
@@ -412,12 +415,12 @@ TABLE1 = [
     ("J_{H}4 Sanger, same mice", "Sanger", "J_{H}4 intron (529 bp)", "26–40 clones per Wt mouse",
      "10–11 clones per *Aicda*^{−/−} mouse", "Figure 5"),
     ("J_{H}4 Sanger, published study[@barbulescu2024]", "Sanger", "J_{H}4 intron (529 bp)",
-     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "4 *Aicda*^{−/−} mice", "Figure S8"),
+     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "3 *Aicda*^{−/−} mice reported, 4 filed", "Figure S8"),
     ("J_{H}4 Sanger, published study[@barbulescu2025]", "Sanger", "J_{H}4 intron (529 bp)",
      "3 Wt, 3 *Mkln1*^{−/−} mice; 24–93 clones each", "3 *Aicda*^{−/−} mice", "Figure S9"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
-    ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (1,008 and 982 bp)",
+    ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (968 and 942 bp)",
      "3 CH12 wild type, 3 *Mllt1*/*Mllt3* double knockout", "3 *Aicda*^{−/−} each", "Figure 4"),
     ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-null mice",
      "Figure 7"),
@@ -427,17 +430,18 @@ TABLE1 = [
      "Figure 7"),
     ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
      "Figure 7"),
-    ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (679 bp)",
+    ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (619 bp)",
      "AID-ER in NIH-3T3 cells, 3 experiments x 3 repair contexts", "catalytically dead AID-E58Q-ER",
      "Figure 7"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "Figures 3 and 5"),
 ]
 TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique "
-               "molecular identifier.")
+               "molecular identifier. Lengths are of the analysis window, positions given in STAR Methods; the mOrange "
+               "window lies within a 679-bp amplicon.")
 
 SUPPLEMENT = [
     "Document S1. Figures S1–S14 and Tables S1, S3 and S4",
-    "Table S2. Per-library calls and densities for every caller and dataset (Excel)",
+    "Table S2. Caller comparison: per-library calls and densities of every caller on the same prepared reads of the nanopore datasets of Figure 4, and planted-mutation summaries for Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]
