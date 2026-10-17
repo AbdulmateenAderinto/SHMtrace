@@ -209,6 +209,29 @@ sgRNA_15 (94) are also high, so the "other libraries" term is itself elevated th
 assumes guides target different places, and for overlapping targets it understates. That is a limit of the
 summary, not a result about the guide.
 
+### The saturation arm: more guides, more localised sites
+
+Four libraries carry 3, 5, 7 and 10 sgRNAs against the same locus. Counting positions where a library sits at
+least five-fold above the lowest of the **other three** at that same position (and at least 2 per 1,000):
+
+| guides carried | localised sites |
+|---|---|
+| 3 | 0 |
+| 5 | 32 |
+| 7 | 37 |
+| 10 | 66 |
+
+The count rises with the number of guides. The leave-one-out baseline matters and was checked: scored
+against the lowest of all four, the library with the fewest guides is usually the minimum and would be
+compared with itself. Recomputed leaving each library out of its own baseline, the totals are unchanged, so
+the zero at three guides is not an artifact of that choice.
+
+Two caveats. A zero is not proof of no editing - those three guides may simply target outside the three
+amplicons recovered here. And the reference is the pooled consensus of the same libraries being measured, so
+heavy editing degrades it: the amplicon carrying most of the signal has a weakest-position consensus of
+84.8% here, against 96.9% in the less heavily edited footprint arm. The counts are therefore a trend, not a
+calibrated yield.
+
 The project's off-target arm has two mock replicates and would support a calibrated analysis, but it is
 genome-wide fragmented material and would have to be forced through amplicon-shaped gates. It was
 deliberately not downloaded (17 of the 19.3 GB); a fragmented-read route is a separate capability.
