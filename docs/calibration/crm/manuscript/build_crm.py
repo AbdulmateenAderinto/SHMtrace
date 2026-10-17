@@ -406,19 +406,26 @@ SUPP_FIGS = [
     ("Figure S12. What Sanger clones and nanopore reads each measure, related to Figures 5 and 6",
      [FIG / "FigureS12_platforms.png"],
      "Top, one unit of data from each platform on one base-pair scale. A Sanger clone is one molecule read once "
-     "over the 529-bp window that the clones read cleanly, so each clone's mutations are known exactly and "
-     "sequencing errors are rare. A nanopore read spans the whole 1,230-bp amplicon but carries more errors than "
-     "mutations, so a mutation is called where more reads carry it than the *Aicda*^{\u2212/\u2212} controls "
-     "explain, and mutations seen in a single read are estimated in aggregate. Bottom, what only Sanger clones "
-     "give, what only nanopore reads give, and what both give in the six mice of Figure 5, with the agreement "
-     "measured there. Sanger error rate: mismatches at base quality \u2265 20 in the AID-null clones of the "
-     "two published studies of Figures S8 and S9."),
+     "over the 529-bp window that the clones read cleanly, so each clone's mutations are read directly and "
+     "sequencing errors are rare, though not absent. A nanopore read spans the whole 1,230-bp amplicon but carries "
+     "more errors than mutations, so a mutation is called where more reads carry it than the "
+     "*Aicda*^{\u2212/\u2212} controls explain; single-read mutations that cannot be told from error one at a time "
+     "are estimated in aggregate. Bottom, what the Sanger clones and the nanopore reads of this study each gave, "
+     "and what both gave in the six mice of Figure 5, with the agreement measured there. The split describes the "
+     "two workflows evaluated here, not the platforms in general: Sanger clones of an amplicon that spans the "
+     "V(D)J junction can also be grouped into lineages, UMI consensus also gives one value per molecule, and how "
+     "much of a locus a long read spans depends on the assay. The nanopore fold counts controls without calls at "
+     "one event. Sanger error rate: mismatches at base quality \u2265 20 in the AID-null clones of the two "
+     "published studies of Figures S8 and S9."),
     ("Figure S13. An overview of SHMtrace, related to STAR Methods",
      [FIG / "FigureS13_overview.png"],
      "From libraries to group tests. Reads or chromatograms are assigned to animals through a sample sheet, "
      "gated and aligned competitively against the target, its paralog and any contaminant; the AID-null controls "
-     "measure the background, each candidate is tested against it, and the controls, called against one another as "
-     "decoys, set the threshold. Results are summarised per animal and compared between groups with one value per "
+     "measure the background, each candidate in a read is tested against it, and the controls, called against one "
+     "another as decoys, set the threshold. Sanger clones are counted instead, with the background reported beside "
+     "them (Figure 1C). The read-length limit is set per locus (STAR Methods), and changes carried by half the "
+     "reads or more are set aside as likely germline, a heuristic that can also remove a real mutation shared by "
+     "a dominant clone. Results are summarised per animal and compared between groups with one value per "
      "animal. Bookkeeping checks are reported beside the results and never applied. Figure S14 gives the rule and "
      "equation behind each step."),
     ("Figure S14. How SHMtrace turns reads into calls, related to STAR Methods",

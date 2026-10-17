@@ -105,7 +105,12 @@ Fixed by making the two routes visible everywhere the claim appears:
 - **eTOC and graphical abstract**: same split; the GA's scatter is now labelled "pooled substitution spectrum, nanopore vs Sanger, r = 0.92".
 - **Results**: the heading is now "SHMtrace calibrates reads against the AID-null controls", and a new paragraph states that no per-call test is possible for a Sanger clone, what is done instead, and that the Sanger results test trace reading, counting, bookkeeping and group comparisons rather than the control-calibrated test.
 
-Remaining from this issue: Figures S12-S13 still carry the exclusive platform claims the reviewer flagged (C15 is fixed; S12's "only estimated" singleton claim, the S10 -> S11 cross-reference and the length-gate contradiction C16 are not).
+Follow-up in Figures S12-S14 and the text (fixed):
+- **S12**: cards retitled "From the Sanger clones here" / "From the nanopore reads here"; the legend says the split describes the two workflows evaluated, not the platforms (Sanger clones spanning the junction can be grouped into lineages, UMI consensus gives per-molecule values, read span is assay-dependent). "exactly" removed; "known false-discovery rate" -> "estimated"; trees cross-reference S10 -> S11 (C12); the nanopore fold now says controls without calls count at one event.
+- **Singletons (C13, C14)**: SHMtrace individually calls 30% of planted single-read mutations on J_H4 and 83% in the polyclonal simulations, so "only estimated" (S12) and "in aggregate rather than individually" (Discussion, Limitations) were wrong. All now say single-read mutations *not called* are estimated in aggregate.
+- **Length gates (C16)**: S13/S14 said reads "longer than the amplicon" are dropped; the presets drop reads over 2,000 bp (J_H4, a 1,230-bp amplicon) and 900 bp (N114, 655 bp). Both figures now say the limit is set per locus (Methods give the values).
+- **>= 50% rule (part of issue 8)**: S13, S14 and the S13 legend now call it a heuristic that sets changes aside "as likely germline", and the legend notes it can remove a real mutation shared by a dominant clone. The fuller test of issue 8 is still open.
+- **S14 error-rate equation**: showed only the per-position ratio. The code (`null_model.qrate`) uses the pooled rate g as a floor and shrinks each position's own count toward it with m = 500 pseudo-observations: q_x = kappa * max(g, (k_x + m g)/(n_x + m)). The equation and stage text now match.
 
 ## Open decisions (user)
 

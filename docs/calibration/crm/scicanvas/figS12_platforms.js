@@ -34,7 +34,7 @@
     dots.forEach((f) => E(sX(WIN[0] + f * (WIN[1] - WIN[0])), y + 3.5, 10, { fill: MUT }));
   });
   E(sX(WIN[0] + 0.9 * (WIN[1] - WIN[0])), 88 + 4 * 15 + 3.5, 10, { fill: ERR });
-  lines(['each clone\'s own', 'mutations, exactly'], sX(WIN[1]) + 18, 104, { color: SANG });
+  lines(['each clone\'s own', 'mutations'], sX(WIN[1]) + 18, 104, { color: SANG });
   lines(['529-bp window that the clones read cleanly;',
     '447 chromatograms from the six mice of Figure 5'], sx, 212);
 
@@ -55,7 +55,7 @@
   });
   TC('529-bp window', (nX(WIN[0]) + nX(WIN[1])) / 2, 216, { color: SOFT });
   lines(['500 reads per library. A mutation is called where more reads carry it',
-    'than the controls explain; one seen in a single read is only estimated.'], nx, 240);
+    'than the controls explain; those in one read that are not called are estimated together.'], nx, 240);
   E(sx + 8, 271, 10, { fill: MUT }); T('mutation', sx + 20, 261, { color: MUT });
   E(sx + 110, 271, 10, { fill: ERR }); T('sequencing error', sx + 122, 261, { color: ERR });
 
@@ -72,7 +72,7 @@
     return y + 23 + body.length * 22.5 + 14;
   };
 
-  card(c1, 'Only from Sanger clones', SANG, '#fbf4ec', '#e2c8a6');
+  card(c1, 'From the Sanger clones here', SANG, '#fbf4ec', '#e2c8a6');
   let y = cy + 52;
   y = item(c1, y, 'Each molecule\'s own mutations', ['the mutation load of every clone, the share of',
     'clones mutated, and frequency as published:', 'unique mutations over the bases each clone read'], SANG);
@@ -83,7 +83,7 @@
 
   card(c2, 'From both, and they agree', INK, '#ffffff', OUTL);
   y = cy + 52;
-  y = item(c2, y, 'Wild type against AID-null', ['Sanger 38-fold; nanopore at least 141-fold']);
+  y = item(c2, y, 'Wild type against AID-null', ['Sanger 38-fold; nanopore 141-fold, with controls', 'without calls counted at one event']);
   y = item(c2, y, 'Substitution spectrum', ['r = 0.92 (95% CI 0.74–0.98), slope 0.97']);
   y = item(c2, y, 'Position along the window', ['r = 0.94 in 25-bp bins']);
   y = item(c2, y, 'AID hotspot use', ['G:C at WRC/GYW 58% and 54% (20% of sites);',
@@ -91,14 +91,14 @@
   y = item(c2, y, 'Not comparable: absolute density', ['a clone is read once; nanopore counts unique',
     'mutations among 500 reads. Compare densities', 'within a platform, not between.'], MID);
 
-  card(c3, 'Only from nanopore reads', TEAL, '#eef5f8', '#b3d0db');
+  card(c3, 'From the nanopore reads here', TEAL, '#eef5f8', '#b3d0db');
   y = cy + 52;
   y = item(c3, y, 'The whole amplicon', ['positions 90–1,230: 229-fold over controls; 69%',
     'of mutations in the first 450 bp, falling 7-fold', 'to the last 250 bp (Figure 6A)'], TEAL);
   y = item(c3, y, 'Clones and mutation trees', ['clones of each mouse, and their mutations',
-    'ordered into trees (Figures 6 and S10)'], TEAL);
-  y = item(c3, y, 'Calls at a known false-discovery rate', ['each candidate tested against the controls,',
-    'the threshold set by them as decoys; single-read', 'mutations as one background-subtracted estimate'], TEAL);
+    'ordered into trees (Figures 6 and S11)'], TEAL);
+  y = item(c3, y, 'Calls at an estimated false-discovery rate', ['each candidate tested against the controls,',
+    'the threshold set by them as decoys; single-read', 'mutations not called, as one background-', 'subtracted estimate'], TEAL);
 
   return { id: 'crm-figS12-platforms', name: 'Figure S12', width: W, height: H, background: '#ffffff', objects: o,
     alt: 'Figure S12. What Sanger clones and nanopore reads can each measure, and what both measure alike in the same mice.' };

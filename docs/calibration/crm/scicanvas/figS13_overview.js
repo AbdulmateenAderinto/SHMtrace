@@ -56,7 +56,7 @@
   head(c2, c2 + c2w, 'READ PREPARATION', 'every read is gated');
   const gates = card(c2, 86, c2w, 196);
   cardTitle(c2, 86, 'Gates');
-  lines(['Reads longer than the', 'amplicon, or averaging more', 'than 0.01 errors per base,', 'are dropped. Sanger: the', 'longest stretch at Q ≥ 20.'], c2 + 16, 132);
+  lines(['Reads over a length set for', 'each locus (Methods), or', 'averaging more than 0.01', 'errors per base, are dropped.', 'Sanger: the longest stretch', 'at Q ≥ 20.'], c2 + 16, 132);
   const align = card(c2, 300, c2w, 250, { stroke: TEAL, strokeWidth: 2 });
   cardTitle(c2, 300, 'Competitive alignment', TEAL);
   lines(['Each read is aligned to the', 'target, its paralogue and any', 'contaminant at once, and', 'goes to its best match. A', 'paralogue can be analysed', 'as a target of its own.'], c2 + 16, 346);
@@ -77,7 +77,7 @@
   lines(['Measured in the controls,', 'per position, change, strand', 'and base quality, and', 'inflated by one factor', 'fitted leaving each', 'control out in turn.'], c3 + 16, 132);
   const test = card(c3 + half + 16, 86, half, 214, { fill: '#f0f4fa', stroke: '#bfd0e4' });
   cardTitle(c3 + half + 16, 86, 'Candidate test', CASE);
-  lines(['A Poisson tail over every', 'depth of evidence, against', 'that background. A change', 'in half the reads or more', 'is germline (Sanger: per', 'sequencing batch).'], c3 + half + 32, 132);
+  lines(['A Poisson tail over every', 'depth of evidence, against', 'that background. A change', 'in half the reads or more', 'is set aside as likely', 'germline (Sanger: per', 'sequencing batch).'], c3 + half + 32, 132);
   const thr = card(c3, 318, c3w, 220, { stroke: TEAL, strokeWidth: 2 });
   cardTitle(c3, 318, 'Threshold set by the controls (target–decoy)', TEAL);
   lines(['Each control is called against the others, giving decoy',

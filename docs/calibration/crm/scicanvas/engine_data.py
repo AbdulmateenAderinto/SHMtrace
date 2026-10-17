@@ -28,8 +28,9 @@ EQ_PT = 7.0
 EQUATIONS = [
     r"$\bar{E}=\frac{1}{L}\sum_{i=1}^{L}10^{-Q_i/10}\;\leq\;0.01$",
     r"$t^{*}(r)=\arg\max_{t}\;\mathrm{score}(r,\,t)$",
-    r"$\hat{q}=\kappa\,\frac{\#\{\mathrm{miscalls}\;x\to a,\;\mathrm{strand}\;s,\;Q\geq q\}}"
-    r"{\#\{\mathrm{control\;bases\;at}\;x,\;s,\;Q\geq q\}}$",
+    # the rate the code uses (null_model.qrate): the pooled rate g for this change, strand and quality is the
+    # floor, and a position's own control count is shrunk toward it with m pseudo-observations
+    r"$\hat{q}_{x}=\kappa\,\max\!\left(g,\;\frac{k_{x}+m\,g}{n_{x}+m}\right),\quad m=500$",
     r"$\lambda_j=\sum_{s}n_s\,\hat{q}_s(\geq q_{(j)}),\quad"
     r"p=k\,\min_{j\leq k}P\!\left(X\geq j\right),\;X\sim\mathrm{Poisson}(\lambda_j)$",
     r"$\widehat{FP}(t)=\frac{1}{|D|}\sum_{d\in D}\left|\{p^{d}\leq t\}\right|\max\!\left(1,\frac{B}{B_d}\right),"
