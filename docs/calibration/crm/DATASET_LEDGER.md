@@ -163,11 +163,21 @@ amplicons (`CCCCTTGAAC`, `GCCCTATGTC`) stay flat in every arm as internal negati
 column is raised by every editor including untethered AID, and is also the amplicon whose consensus is
 weakest, so it is not relied on.
 
-**Why these are raw rates and not calls.** The arm has a single no-editor library. SHMtrace fits its error
-model from the controls, so with one control there is nothing to calibrate against, and the calibrated path
-returns no calls in the editor arms despite the four-fold raw excess. That is the manuscript's own stated
-requirement for two or more AID-null controls, met here by an independent dataset rather than by assertion.
-The rates above still contain sequencing error and are descriptive, not mutation calls.
+**Why these are raw rates and not calls.** The arm has a single no-editor library, and SHMtrace fits its
+error model from the controls, so with one control there is nothing to calibrate against. Run anyway on the
+targeted amplicon at 15,000 reads apiece, the calibrated path does not merely lose power, it inverts:
+
+| library | raw rate /10³ | calibrated unique calls |
+|---|---|---|
+| mock (the control) | 5.5 | **117** |
+| AID alone | 4.2 | 6 |
+| dCas9-AIDX + sgRNA | **22.6** | **0** |
+| dCas9-AIDX + pool | 20.6 | 46 |
+
+The arm with the highest raw excess returns no calls, and the control itself accumulates the most. That is
+the manuscript's own requirement for two or more AID-null controls, confirmed on an independent dataset
+rather than asserted, and it is why only the raw rates above are interpreted here. Those rates still contain
+sequencing error and are descriptive, not mutation calls.
 
 The project's off-target arm has two mock replicates and would support a calibrated analysis, but it is
 genome-wide fragmented material and would have to be forced through amplicon-shaped gates. It was
