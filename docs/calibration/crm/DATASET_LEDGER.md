@@ -200,14 +200,21 @@ Peak interior position per library, with the median of the other four libraries 
 | sgRNA_9 | amp0 | 38 | 13.9 | 0.36 | 39× |
 | any guide | amp2 | 228-234 | 2.4-3.4 | ~3.0 | 0.8-1.2× |
 
-Four of the five guides give a sharply localised excess at a **distinct position**, from 8.6-fold to
-369-fold over the other libraries at that same base. The third amplicon shows nothing in any library, as an
-internal negative.
+**Three of the five** - #6, #9 and #15 - give an unambiguous localised peak at a distinct position, each
+reaching 116-137 mismatches per 1,000 against a background near 1, and 31-369 times the other libraries at
+that same base. The third amplicon shows nothing in any library, as an internal negative.
 
-sgRNA_7's 1.3× is not evidence that it failed: its peak at 98 sits inside the region where sgRNA_6 (95) and
-sgRNA_15 (94) are also high, so the "other libraries" term is itself elevated there. The fold statistic
-assumes guides target different places, and for overlapping targets it understates. That is a limit of the
-summary, not a result about the guide.
+The other two need stating carefully, and the fold column alone would mislead about both:
+
+- **sgRNA_4** passes the fold test at 8.6x, but only because the other libraries happen to be very low at
+  position 49 (0.61). Its own peak reaches just 6 per 1,000 on a broad, noisy profile, so it is weak
+  evidence of a footprint, not a clean one. Figure S18B shows this directly.
+- **sgRNA_7** reaches 43 per 1,000 but scores only 1.3x, because its peak at 98 sits inside the region where
+  #6 (95) and #15 (94) are also high, so the comparison term is itself elevated. The fold statistic assumes
+  guides target different places and understates for overlapping targets.
+
+So the honest count is three clean footprints, one overlapping and one weak - which is still a position that
+follows the guide, but not five for five.
 
 ### The saturation arm: more guides, more localised sites
 
