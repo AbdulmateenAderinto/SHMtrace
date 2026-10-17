@@ -104,6 +104,21 @@ same day to the Figure 5E paragraph (the per-mouse G:C transition difference), w
 **If the authors want these results stated in the Results, roughly 150 words must be cut elsewhere; that is an
 authorial decision and was not made here.**
 
+## Exact manuscript changes
+
+Every change to the article, with its reason. Nothing else in `manuscript/` was touched.
+
+| File | Change | Why |
+|---|---|---|
+| `crm_text.py` | **Added** to Results, after the mOrange paragraph: *"Two public datasets extended these tests: Sμ amplicons under PI3Kδ blockade[@compagno2017], and PacBio class-switch junctions[@vincendeau2022] (Figures S16 and S17)."* | Every supplementary figure must be cited in the main text. Held to 23 words by the word cap. |
+| `crm_text.py` | **Reverted**, in the Figure 5 paragraph: *"…not equivalence, and nanopore gave a {pm_gcts} percentage-point lower share of G:C transitions in each mouse."* → *"…not equivalence."* | Added earlier the same day; Figure 5E shows it. Freed the words for the sentence above. `pm_gcts` is still computed and unused. |
+| `crm_methods.py` | **Added** two STAR Methods sections, *Public PacBio class-switch junctions* and *Public Illumina Sμ mutation libraries* | Where the detail lives, since STAR Methods do not count toward the word limit. |
+| `crm_methods.py` | **Added** two key-resources rows (PRJNA831666, GSE77788/PRJNA311552) | Deposited data used must be listed. |
+| `crm_methods.py` | *"Document S1. Figures S1–S15…"* → *"…S1–S17…"* | Two figures added; the index must match. |
+| `build_crm.py` | **Added** the Figure S16 and S17 legends | New figures. |
+| `crm_numbers.py` | **Added** two blocks computing `pb_*` and `smu*` placeholders from the committed outputs | Every number in the text is computed, never typed. |
+| `resolve_refs.py`, `refs.json` | **Added** PubMed queries `35764636[uid]` and `28199309[uid]` | Two new citations, fetched from PubMed rather than composed. |
+
 ## Datasets examined and not used
 
 | Dataset | Why not |

@@ -23,7 +23,7 @@ edlib (not installed)
 minimap2 2.30-r1287
 samtools samtools 1.21
 lofreq (not on PATH)
-git 3317fd97b26dcd41820e0ebe564eb0c28ccec610 (uncommitted changes present)
+git 471a28b85f792a8c2d08871e109f577431ce2375 (uncommitted changes present)
 ```
 
 | Produces | Command | Inputs | Outputs | Output present |
@@ -42,6 +42,8 @@ git 3317fd97b26dcd41820e0ebe564eb0c28ccec610 (uncommitted changes present)
 | External Sanger study, SW_HEL (Figure S10) | `python external/swhel_samhd1.py <genbank-clone-dir>` | GenBank MH198782-MH200576 | `external/out/swhel_samhd1.json` | present |
 | The two published studies metric by metric (Table S4) | `python crm/sanger_compare.py` | the two runs above; crm/published/*.json | `(printed rows, read by the manuscript builder)` | printed |
 | Public Illumina and nanopore datasets (Figure 7) | `python crm/public_illumina.py` | PRJNA973112, PRJNA918596, PRJNA820976, PRJNA170048, Karst et al. | `crm/out/public/` | present |
+| Public PacBio class-switch junctions (Figure S16) | `python crm/switch_pacbio.py` | PRJNA831666 FASTQ; crm/out/switch_ref/ from crm/build_switch_reference.py | `crm/out/switch_pacbio/` | present |
+| Public Illumina S_mu libraries, PI3K inhibitors (Figure S17) | `python crm/public_smu_pi3k.py` | GSE77788 FASTQ (R1 or single file per library) | `crm/out/public_smu/` | present |
 | Figure S12's nanopore reads | `python crm/scicanvas/s12_reads.py` | the J_H4 libraries | `(printed READS array, pasted into the builder)` | printed |
 | Figures | `python crm/figs/fig2_call.py (and fig3..fig7, figS2, figS3, figS6, figS8, figS9)` | the outputs above | `crm/figures/Figure*.png, .pdf, .svg, .tif` | present |
 | SciCanvas figures | `node crm/scicanvas/build.js crm/scicanvas/<builder>.js crm/figures/<name>` | the outputs above | `crm/figures/Figure1.pdf, and FigureS1_workflow, S10, S12, S13, S14, GraphicalAbstract` | present |

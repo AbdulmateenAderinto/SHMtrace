@@ -624,7 +624,7 @@ TABLE1 = [
 TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers ten SHM target loci from seven laboratories; rRNA is excluded. Lengths are analysis windows; the mOrange amplicon is 679 bp.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S16 and Tables S1 and S3–S5",
+    "Document S1. Figures S1–S17 and Tables S1 and S3–S5",
     "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]
