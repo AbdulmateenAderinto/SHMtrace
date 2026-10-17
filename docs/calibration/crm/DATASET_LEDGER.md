@@ -179,6 +179,36 @@ the manuscript's own requirement for two or more AID-null controls, confirmed on
 rather than asserted, and it is why only the raw rates above are interpreted here. Those rates still contain
 sequencing error and are descriptive, not mutation calls.
 
+### The ABL exon-6 footprint arm: the position follows the guide
+
+Five libraries target the same locus with five different sgRNAs (#4, #6, #7, #9, #15), which makes the arm
+self-controlled for localisation: each library is the negative control for the others at their own peaks, so
+no no-editor library is needed and none exists here. This arm is multiplexed too - three amplicons share
+each file - and analysing only the commonest one showed a footprint for a single guide. All three are
+analysed below; the mistake is recorded because it is easy to repeat.
+
+Peak interior position per library, with the median of the other four libraries at that same position
+(mismatches per 1,000 bases at Q ≥ 30, 20,000 merged pairs per library):
+
+| guide | amplicon | peak position | rate | others there | fold |
+|---|---|---|---|---|---|
+| sgRNA_9 | amp1 | 154 | 111.1 | 0.30 | **369×** |
+| sgRNA_15 | amp1 | 94 | 136.4 | 2.26 | **61×** |
+| sgRNA_6 | amp1 | 95 | 141.5 | 4.61 | **31×** |
+| sgRNA_4 | amp1 | 49 | 5.3 | 0.61 | **8.6×** |
+| sgRNA_7 | amp1 | 98 | 43.6 | 34.8 | 1.3× |
+| sgRNA_9 | amp0 | 38 | 13.9 | 0.36 | 39× |
+| any guide | amp2 | 228-234 | 2.4-3.4 | ~3.0 | 0.8-1.2× |
+
+Four of the five guides give a sharply localised excess at a **distinct position**, from 8.6-fold to
+369-fold over the other libraries at that same base. The third amplicon shows nothing in any library, as an
+internal negative.
+
+sgRNA_7's 1.3× is not evidence that it failed: its peak at 98 sits inside the region where sgRNA_6 (95) and
+sgRNA_15 (94) are also high, so the "other libraries" term is itself elevated there. The fold statistic
+assumes guides target different places, and for overlapping targets it understates. That is a limit of the
+summary, not a result about the guide.
+
 The project's off-target arm has two mock replicates and would support a calibrated analysis, but it is
 genome-wide fragmented material and would have to be forced through amplicon-shaped gates. It was
 deliberately not downloaded (17 of the 19.3 GB); a fragmented-read route is a separate capability.

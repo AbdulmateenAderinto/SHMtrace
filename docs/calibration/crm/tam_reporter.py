@@ -32,7 +32,7 @@ from shmtrace import io_utils, project  # noqa: E402
 
 DATA = Path.home() / "Nanoshm/public_data/SRP075898"
 OUT = CRM / "out/tam"
-DEPTH = 50_000
+DEPTH = 15_000          # the depth the recorded calibrated contrast was run at
 # run -> (name, what it is, is the no-editor control)
 REPORTER = [("SRR3608504", "mock", "no editor", True),
             ("SRR3615407", "AIDx", "AID alone, untethered", False),

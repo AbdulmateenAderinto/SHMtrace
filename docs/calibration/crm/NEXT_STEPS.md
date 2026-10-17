@@ -23,7 +23,11 @@ Still open:
   calibrated contrast were both produced and are recorded in `DATASET_LEDGER.md`, but the script's own
   `tam_reporter.json` is stale. Rerun it (it takes roughly 40 minutes at `DEPTH = 50_000`; lower `DEPTH` if
   that is inconvenient) so the JSON matches the ledger.
-- The TAM amplicon arms are still downloading into `~/Nanoshm/public_data/SRP075898/` (3.5 GB of amplicon
+- **7.7 GB of partly-fetched off-target runs sit in `~/Nanoshm/public_data/SRP075898/`** from before the
+  download was restricted to the amplicon arms. They are not used by anything here and are re-fetchable from
+  `manifest.tsv`; delete them if you want the space back. The run accessions are in `off_runs.txt` beside
+  them. They were left in place rather than deleted unprompted.
+- The TAM amplicon arms have finished downloading into `~/Nanoshm/public_data/SRP075898/` (3.5 GB of amplicon
   runs; the 17 GB off-target arm is deliberately excluded). The footprint and saturation arms are not yet
   analysed and would extend the localisation result with a guide titration.
 - Nothing from this pass is in the manuscript yet. The main text is at 6,999 of 7,000 words, so any Results
