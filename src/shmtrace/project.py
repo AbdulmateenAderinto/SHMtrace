@@ -162,6 +162,12 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "density_bases": round(denom),
         "model_used": s["calling"].get("error_model", ""),
         "clustered_calls": sum(c["calls"] for c in clusters),
+        # the high-allele-fraction sites the germline rule set aside, so a reader can see what was removed and
+        # at what frequency: a dominant mutated lineage can push a real mutation over the threshold
+        "high_fraction_sites_removed": s["calling"].get("germline_positions_removed", 0),
+        "high_fraction_sites": [{"pos": pos, "alt": alt, "reads": c, "depth": d,
+                                 "frequency": round(c / d, 4) if d else None}
+                                for pos, alt, c, d in (s["calling"].get("germline_sites") or ())],
         "warnings": "; ".join(list(s.get("warnings") or [])
                               + list(s["calling"].get("notes") or [])
                               + cluster_notes),
