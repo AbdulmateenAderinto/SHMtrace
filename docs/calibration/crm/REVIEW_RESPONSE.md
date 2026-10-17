@@ -197,7 +197,9 @@ makes the "counted as published" row mean what it says: the same mutations over 
 
 Figure 5A is retitled "Within-platform genotype contrasts", since its two densities are not on a common scale.
 
-Still open from this issue: Figure 3F does not yet state its truth denominator at each depth.
+Closed in the figure-by-figure pass: Figure 3F's legend now states the truth denominator (every planted
+mutation present in the analysed reads, over the estimator's own denominator of analysed positions x mean
+depth) and why unique density falls with depth.
 
 
 ---
@@ -234,7 +236,8 @@ does not hold at these group sizes; a group with no calls keeps rate zero rather
 **All three measures are now reported where relevant**: Table S1 gives unique-variant density, read-weighted
 frequency and clone-weighted frequency for every library, with a footnote saying they are not interchangeable.
 
-Still open from this issue: Figure 7F does not yet show experiment-level points with their pairing.
+Closed in the figure-by-figure pass: Figure 7F now shows every experiment, SHMtrace's share and the
+every-mismatch share joined across arms within each experiment, with each dead-AID library as a cross.
 
 
 ---
