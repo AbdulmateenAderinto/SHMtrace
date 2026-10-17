@@ -48,8 +48,11 @@ The pre-review outputs are kept in `crm/out/pre_review_2026-10-17/` for comparis
    rates close to the mutation rate") and "from the same run", which is the design point the control
    calibration rests on. The Summary is {summary_words} words (limit 150).
 
-The exact source changes beyond your patch are in `patches/changes_beyond_your_patch.patch`; apart from the
-two files above they are the tracker and handover corrections below.
+The exact source changes beyond your patch are in `patches/changes_beyond_your_patch.patch`. Only two of them
+touch the manuscript or a figure: the Figure 5 builder and the Summary, above. The rest are the tracker and
+handover corrections below, the archive record, and the tooling that built this package
+(`make_coauthor_package.py`, this note, and an updated figure list and brief for the generic reviewer
+package, which were stale).
 
 ## REVIEW_RESPONSE.md and HANDOVER.md
 
