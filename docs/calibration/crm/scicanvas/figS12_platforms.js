@@ -6,7 +6,7 @@
   // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
   const W = 1400, H = 742, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
-  const TEAL = '#1f6f8b', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a';
+  const TEAL = '#1f6f8b', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
   const F = 'arial', TITLE = 22.5, HEAD = 20.5, SM = 17.5;
 
   const T = (text, x, y, e = {}) => { const t = Make.text(text, x, y, { fontSize: SM, color: INK, family: F, ...e }); o.push(t); return t; };
@@ -54,12 +54,14 @@
   READS.forEach(([a, b, mut, err], r) => {
     const y = 88 + r * 15;
     R(nX(a), y, nX(b) - nX(a), 7, { fill: FAINT, radius: 3.5 });
+    // errors are drawn smaller than mutations, and the ones below Q 20 are paler: at this locus mutations
+    // outnumber errors several-fold, and equal-weight markers would not show that
     mut.forEach((p) => E(nX(p), y + 3.5, 7, { fill: MUT }));
-    err.forEach(([p, hq]) => E(nX(p), y + 3.5, 9, hq ? { fill: ERR } : { fill: '#ffffff', stroke: ERR, strokeWidth: 1.6 }));
+    err.forEach(([p, hq]) => E(nX(p), y + 3.5, 6, hq ? { fill: ERR } : { fill: ERRF }));
   });
   TC('529-bp window', (nX(WIN[0]) + nX(WIN[1])) / 2, 216, { color: SOFT });
   lines(['Eight wild-type reads over the whole amplicon, with every mutation called in them;',
-    'errors drawn at the rate the controls show, 1 base in 700, mostly below Q 20 (open)'], nx, 240);
+    'errors drawn at the rate the controls show, 1 base in 700, pale below Q 20'], nx, 240);
   E(sx + 8, 271, 10, { fill: MUT }); T('mutation', sx + 20, 261, { color: MUT });
   E(sx + 110, 271, 10, { fill: ERR }); T('sequencing error', sx + 122, 261, { color: ERR });
 
