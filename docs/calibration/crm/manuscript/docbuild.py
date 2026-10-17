@@ -184,6 +184,29 @@ class Manuscript:
         p.add_run().add_picture(str(path), width=Mm(width_mm))
         return p
 
+    def figure_block(self, paths, title, legend, max_width_mm=165, min_width_mm=125):
+        """One figure and its complete legend on one page.
+
+        A tall figure placed at full width pushes its legend onto a page of its own, which is both wasteful
+        and hard to read. The images are scaled down, together, until the figure and its legend fit the text
+        area, down to `min_width_mm`. Below that a figure drawn for 165 mm would carry text under the 6 pt
+        floor for print, so legibility wins and the legend is allowed to run on instead.
+        """
+        from PIL import Image as _Image
+        _Image.MAX_IMAGE_PIXELS = None
+        usable = 247.0                                   # A4 text height at this template's margins, mm
+        ratio = sum(_Image.open(str(p)).size[1] / _Image.open(str(p)).size[0] for p in paths)
+        lines = max(1, round(len(str(legend).split()) / 11)) + 2      # legend plus its bold title
+        legend_mm = lines * 4.6
+        width = max_width_mm
+        if ratio:
+            width = min(max_width_mm, max(min_width_mm, (usable - legend_mm) / ratio))
+        for p in paths:
+            self.figure(p, width_mm=width)
+        self.para(f"**{title}**")
+        self.para(legend, size=10)
+        return width
+
     def table(self, header, rows, widths=None, size=8.5, title=None, footnote=None):
         if title:
             self.para(title, bold=False, size=10)

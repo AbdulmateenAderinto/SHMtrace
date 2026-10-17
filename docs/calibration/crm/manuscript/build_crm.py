@@ -247,10 +247,8 @@ def main(outdir):
     s.para(T.TITLE, size=11)
     for title, img, legend in SUPP_FIGS:
         s.page_break()
-        for i in img if isinstance(img, list) else [img]:
-            s.figure(i, width_mm=165)
-        s.para(f"**{title}**")
-        s.para(legend, size=10)
+        imgs = img if isinstance(img, list) else [img]
+        s.figure_block(imgs, title, legend)
     # Table S1: what SHMtrace did with every delivered read, and the calls (J_H4 and N114)
     s.page_break()
     rows = []
