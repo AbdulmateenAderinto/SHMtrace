@@ -1,12 +1,14 @@
 () => {
-  // Cell Reports Methods, Figure S12: what Sanger clones and nanopore reads can each measure. Top, one unit
-  // of data from each platform on one base-pair scale; bottom, what only one of them gives and what both give,
-  // with the agreement measured in the same six mice (Figure 5) and the long-read results (Figure 6).
+  // Cell Reports Methods, Figure S12: what Sanger clones and nanopore reads can each measure, and how Illumina
+  // reads enter the same analysis. Top, one unit of data from each of the first two platforms on one base-pair
+  // scale; middle, how an Illumina pair becomes one read and how much of the locus each platform's reads cover;
+  // bottom, what only one of Sanger and nanopore gives and what both give, with the agreement measured in the
+  // same six mice (Figure 5) and the long-read results (Figure 6).
   // Every number is one the article reports. Built with manuscript_corrected/figure1_scicanvas/build.js into
   // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
-  const W = 1400, H = 742, o = [];
+  const W = 1400, BAND = 392, H = 742 + BAND, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
-  const TEAL = '#1f6f8b', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
+  const TEAL = '#1f6f8b', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
   const F = 'arial', TITLE = 22.5, HEAD = 20.5, SM = 17.5;
 
   const T = (text, x, y, e = {}) => { const t = Make.text(text, x, y, { fontSize: SM, color: INK, family: F, ...e }); o.push(t); return t; };
@@ -14,6 +16,14 @@
   const R = (x, y, w, h, e = {}) => { const r = Make.rect(x, y, w, h, { stroke: 'none', strokeWidth: 0, radius: 0, ...e }); o.push(r); return r; };
   const E = (cx, cy, d, e = {}) => { const r = Make.ellipse(cx - d / 2, cy - d / 2, d, d, { stroke: 'none', strokeWidth: 0, ...e }); o.push(r); return r; };
   const I = (id, cx, cy, size) => { const ic = Make.icon(id, 0, 0, size); ic.x = cx - ic.w / 2; ic.y = cy - ic.h / 2; o.push(ic); return ic; };
+  const PAD = (fs) => { const w = (s) => Make.text(s, 0, 0, { fontSize: fs, family: F }).w; return 2 * w('x') - w('xx'); };
+  // text with J_H4 written with a subscript H (figS14_engine.js does the same)
+  const TJ = (text, x, y, e = {}) => {
+    let cx = x;
+    const put = (str, dy) => { const t = T(str, cx, y + dy, e); cx += t.w - PAD(t.fontSize); };
+    text.split('J_H').forEach((part, k) => { if (k > 0) { put('J', 0); put('H', 6); } if (part) put(part, 0); });
+    return cx - x;
+  };
   const lines = (arr, x, y, e = {}, dy = 22.5) => arr.map((s, k) => T(s, x, y + k * dy, { color: MID, ...e }));
 
   // ───────── top: one unit of data, same base-pair scale ─────────
@@ -65,8 +75,62 @@
   E(sx + 8, 271, 10, { fill: MUT }); T('mutation', sx + 20, 261, { color: MUT });
   E(sx + 110, 271, 10, { fill: ERR }); T('sequencing error', sx + 122, 261, { color: ERR });
 
+  // ───────── middle: Illumina ─────────
+  // Pair merging as io_utils.merge_pair does it, drawn to scale from the median pair of two public libraries
+  // (scicanvas/s12_illumina.py: the first 20,000 pairs of a wild-type J_H4 mouse, PRJNA973112, and of an
+  // AID-expressing CH12F3 replicate, PRJNA918596). Inside the overlap each base is read twice: agreeing calls add
+  // their qualities (capped at Q60), a disagreement keeps the better call, or becomes N on a tie. Read-through
+  // past the fragment (adapter) is dropped, and a pair that does not overlap by 20 bp is dropped whole.
+  const iy = 300;
+  T('ILLUMINA: PAIRED SHORT READS', 20, iy, { fontSize: TITLE, bold: true, color: ILL });
+  T('each pair is merged into one read, which then takes the same read route as nanopore', 20, iy + 30, { color: SOFT, italic: true });
+  R(20, iy + 60, 1360, 2.6, { fill: ILL });
+  I('s-flow-cell-clusters-illumina', 52, iy + 112, 66);
+  const mx = 170, k = 1.2, X = (bp) => mx + bp * k, PALE = '#eef1f4';
+  // one pair: R1 from 0, R2 ending at the fragment's end; reads longer than the fragment run into adapter
+  const pair = (y, title, frag, rlen, note, nPos) => {
+    TJ(title, mx - 50, y, { bold: true });
+    const r1 = y + 34, r2 = y + 52, mg = y + 80, a = Math.max(frag - rlen, 0), b = Math.min(rlen, frag);
+    R(X(0), r1, X(b) - X(0), 7, { fill: FAINT, radius: 3.5 });
+    R(X(a), r2, X(frag) - X(a), 7, { fill: FAINT, radius: 3.5 });
+    if (rlen > frag) {
+      R(X(frag), r1, (rlen - frag) * k, 7, { fill: PALE, radius: 3.5 });
+      R(X(frag - rlen), r2, (rlen - frag) * k, 7, { fill: PALE, radius: 3.5 });
+      T('adapter, dropped', X(rlen) + 10, r1 - 6, { color: SOFT });
+    }
+    T('R1 →', mx - 50, r1 - 6, { color: MID });
+    T('← R2', X(Math.max(frag, rlen)) + 10, r2 - 6, { color: MID });
+    if (a > 0) R(X(0), mg, X(a) - X(0), 10, { fill: ILLF, radius: 2 });
+    R(X(a), mg, X(b) - X(a), 10, { fill: ILL, radius: 2 });
+    if (b < frag) R(X(b), mg, X(frag) - X(b), 10, { fill: ILLF, radius: 2 });
+    R(X(nPos) - 1.5, mg - 4, 3, 18, { fill: ERR });
+    T('merged', mx - 84, mg - 5, { color: ILL, bold: true });
+    T(note, X(0), mg + 20, { color: MID });
+  };
+  pair(iy + 76, 'J_H4 (Ldha study): 143-bp fragment, 2 × 151-bp reads', 143, 151, 'every base read twice; 95% of pairs merge', 70);
+  pair(iy + 210, 'CH12F3 VDJ: 269-bp fragment, 2 × 150-bp reads', 269, 150, '31 bp read twice, the rest once; 97% merge', 135);
+  // key for the merged bars
+  const ky = iy + 352;
+  R(20, ky + 4, 26, 10, { fill: ILL, radius: 2 }); T('read twice (Q60)', 54, ky - 2, { color: MID });
+  R(204, ky + 4, 26, 10, { fill: ILLF, radius: 2 }); T('read once', 238, ky - 2, { color: MID });
+  R(336, ky - 1, 3, 20, { fill: ERR }); T('disagreement: better call kept, N on a tie', 348, ky - 2, { color: MID });
+  // how much of the locus one read covers, to scale
+  const lx = 760, bx0 = 948, kb = 0.31, ly = iy + 76;
+  T('How much of the locus one read covers', lx, ly, { bold: true });
+  [['Nanopore, J_H4', 1141, TEAL], ['Sanger, J_H4', 529, SANG], ['Illumina, Ramos VDJ', 421, ILL],
+    ['Illumina, CH12F3 VDJ', 229, ILL], ['Illumina, J_H4 (Ldha)', 70, ILL]].forEach(([name, bp, c], r) => {
+    const y = ly + 38 + r * 30;
+    TJ(name, lx, y - 4, { color: c });
+    R(bx0, y, bp * kb, 14, { fill: c, radius: 2 });
+    T(`${bp.toLocaleString('en-US')} bp`, bx0 + bp * kb + 8, y - 4, { color: MID });
+  });
+  lines(['Illumina settings: minimap2 sr preset; error gate 0.02 per base;',
+    'minimum alignment ≤ 100 bp; then the same control test and FDR.',
+    'The Ldha and CH12F3 files carry a flat Q30 (SRA), so their error',
+    'model has a single quality level; the Ramos files keep binned ones.'], lx, ly + 200);
+
   // ───────── bottom: what each gives ─────────
-  const cy = 306, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
+  const cy = 306 + BAND, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
   const card = (x, title, colour, fill, stroke) => {
     R(x, cy, cw, ch, { fill, stroke, strokeWidth: 1.6, radius: 10 });
     T(title, x + 16, cy + 12, { fontSize: HEAD, bold: true, color: colour });
@@ -107,5 +171,5 @@
     'the threshold set by them as decoys; single-read', 'mutations not called, as one background-', 'subtracted estimate'], TEAL);
 
   return { id: 'crm-figS12-platforms', name: 'Figure S12', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S12. What Sanger clones and nanopore reads can each measure, and what both measure alike in the same mice.' };
+    alt: 'Figure S12. What Sanger clones and nanopore reads can each measure, how Illumina read pairs are merged and analyzed, and what Sanger and nanopore measure alike in the same mice.' };
 }

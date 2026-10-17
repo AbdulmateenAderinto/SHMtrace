@@ -501,7 +501,7 @@ SUPP_FIGS = [
     ("Figure S11. Mutation trees in each mouse, related to Figure 6 (page 2 of 2)",
      [CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "The most branched clone of each wild-type mouse drawn as a mutation tree. These are read-level reconstructions (Figure 6), not independently established cell lineages."),
-    ("Figure S12. What Sanger clones and nanopore reads each measure, related to Figures 5 and 6",
+    ("Figure S12. What Sanger clones and nanopore reads each measure, and how Illumina reads are handled, related to Figures 5, 6 and 7",
      [FIG / "FigureS12_platforms.png"],
      "Top, one unit of data from each platform on one base-pair scale. A Sanger clone is one molecule read once "
      "over the 529-bp window that the clones read cleanly, so each clone's mutations are read directly and "
@@ -513,7 +513,17 @@ SUPP_FIGS = [
      "the same window once germline sites are removed (0.14% of bases, 85% of them below Q20, pale orange; the "
      "rest at Q \u2265 20, solid orange, and both smaller than the mutation markers). A mutation is called where more reads carry it than the controls "
      "explain; single-read mutations that cannot be told from error one at a time "
-     "are estimated in aggregate. Bottom, what the Sanger clones and the nanopore reads of this study each gave, "
+     "are estimated in aggregate. Middle, Illumina. Each read pair is merged on its overlap before read "
+     "preparation; drawn to scale are the median pairs among the first 20,000 pairs of a wild-type J_{H}4 mouse "
+     "(PRJNA973112; 95.5% merged) and the 14,679 pairs of an AID-expressing CH12F3 replicate (PRJNA918596; "
+     "96.7% merged). Where both reads cover a base, agreeing calls add their qualities (capped at Q60) and a "
+     "disagreement keeps the higher-quality call, or becomes N when the qualities tie; read-through into adapter is "
+     "dropped, and a pair that does not overlap by 20 bp is discarded. R1 and R2 disagreed at 0.13% and 0.55% of "
+     "overlap bases. Right, the stretch of the locus one read covers in each dataset of this study. The merged "
+     "read then passes the read preparation and test of Figure 1 with the sr minimap2 preset, an expected-error "
+     "gate of 0.02 per base and a minimum alignment of at most 100 bp. The PRJNA973112 and PRJNA918596 files carry "
+     "a flat Q30 on every base, so their error model has one quality level; PRJNA820976 keeps binned qualities "
+     "(`crm/scicanvas/s12_illumina.py`). Bottom, what the Sanger clones and the nanopore reads of this study each gave, "
      "and what both gave in the six mice of Figure 5, with the agreement measured there. The split describes the "
      "two workflows evaluated here, not the platforms in general: Sanger clones of an amplicon that spans the "
      "V(D)J junction can also be grouped into lineages, UMI consensus also gives one value per molecule, and how "
