@@ -22,7 +22,7 @@ from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, lett
 
 ASSAYS = {"jh4": ("J$_H$4 intron", ("WT2", "WT3", "WT4"), ("KO1", "KO2", "KO3"), "Wt", "$Aicda^{-/-}$"),
           "n114": ("N114 V region", ("C1", "D3", "D5"), ("C3", "C4", "D1"), "pMX-$Aicda$", "empty vector")}
-ZERO = 0.55          # where a zero is drawn on the log axis (below the lowest real value), labelled "0"
+LINTHRESH = 1.0      # below this the axis is linear, so a zero is drawn at zero and not at an invented floor
 
 
 def load(key):
@@ -33,18 +33,17 @@ def load(key):
     return runs, per
 
 
-def series(ax, per, samples, depths, field, colr, colf, lo_clip):
-    """Each draw as a faint point, the mean over draws as a line; zeros parked on the ZERO row."""
+def series(ax, per, samples, depths, field, colr, colf):
+    """Each draw as a faint point, the mean over draws as a line. Zeros are drawn at zero (symlog axis)."""
     xs = np.arange(len(depths))
     for s in samples:
         means = []
         for i, d in enumerate(depths):
             v = [r[field] for r in per[(s, d)]]
             means.append(np.mean(v))
-            drawn = [x if x > 0 else lo_clip for x in v]
-            ax.scatter(np.full(len(drawn), i) + np.linspace(-0.13, 0.13, len(drawn)), drawn, s=3.2,
-                       color=colf, linewidths=0, zorder=2)
-        ax.plot(xs, [m if m > 0 else lo_clip for m in means], color=colr, lw=1.1, marker="o", ms=2.6, zorder=3)
+            ax.scatter(np.full(len(v), i) + np.linspace(-0.13, 0.13, len(v)), v, s=3.2, color=colf,
+                       linewidths=0, zorder=2)
+        ax.plot(xs, means, color=colr, lw=1.1, marker="o", ms=2.6, zorder=3)
     ax.set_xticks(xs, [str(d) for d in depths], fontsize=5.4)
 
 
@@ -58,18 +57,18 @@ def main():
         title, case, ctl, case_lab, ctl_lab = ASSAYS[key]
         runs, per = load(key)
         depths = runs["depths"]
-        for col, (field, ylab) in enumerate((("calls", "Unique variants"),
-                                             ("density", "Unique variants per 10$^5$ bases"))):
+        for col, (field, ylab, short) in enumerate((("calls", "Unique variants", "unique variants"),
+                                                    ("density", "Unique variants per 10$^5$ bases", "density"))):
             ax = fig.add_subplot(gs[row, col])
-            series(ax, per, case, depths, field, CASE, CASEF, ZERO)
-            series(ax, per, ctl, depths, field, CTRL, CTRLF, ZERO)
-            ax.set_yscale("log")
-            ax.set_ylim(ZERO * 0.75, None)
-            ax.axhline(ZERO * 1.45, color=SOFT, lw=0.4, ls=":")
-            ax.text(-0.42, ZERO, "0", fontsize=5, color=MID, ha="right", va="center")
+            series(ax, per, case, depths, field, CASE, CASEF)
+            series(ax, per, ctl, depths, field, CTRL, CTRLF)
+            # symlog: linear below 1, so a library with no calls sits at zero rather than at an invented floor
+            ax.set_yscale("symlog", linthresh=LINTHRESH, linscale=0.45)
+            ax.set_ylim(0, None)
+            ax.axhline(LINTHRESH, color=SOFT, lw=0.4, ls=":")
             ax.set_xlabel("Reads analyzed")
             ax.set_ylabel(ylab)
-            ax.set_title(f"{title}: {ylab.split(' per ')[0].lower()}", fontsize=6.6)
+            ax.set_title(f"{title}: {short}", fontsize=6.6)
             letter(ax, "ABCD"[row * 2 + col], dx=-0.3)
         # what 500 reads had reached, per library and draw, against that library's mean at the largest depth
         for s in case:
@@ -88,8 +87,8 @@ def main():
     ax.set_ylim(0, 118)
     ax.set_ylabel("Calls at 500 reads (% of that library's mean at 1,000)")
     ax.set_title("What 500 reads had reached", fontsize=6.6)
-    ax.text(0.5, 1.004, "J$_H$4 (dark) and N114 (light) AID-active libraries; points, draws",
-            transform=ax.transAxes, ha="center", va="bottom", fontsize=5, color=MID)
+    ax.text(0.5, 0.06, "AID-active libraries only\nJ$_H$4 (dark), N114 (light)\npoints, the five draws",
+            transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, color=MID, linespacing=1.4)
     letter(ax, "E", dx=-0.26)
     save(fig, "FigureS5")
     out = {s: {"mean_pct_at_500": round(float(np.mean(v)), 1), "draws": [round(x, 1) for x in v]}

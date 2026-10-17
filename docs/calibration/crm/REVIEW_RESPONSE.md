@@ -271,3 +271,135 @@ fabricated if invented, so they are left as named placeholders that the build re
 
 The AI-use declaration now says the assistance covered drafting the analysis and figure code, language editing
 and figure layout, which is what it covered.
+
+---
+
+## The figure-by-figure plan
+
+Worked through in the review's own order. Figures are built with the project `.venv` (matplotlib 3.11); the
+system interpreter's 3.10 cannot render Figure 2's underlined sequence context.
+
+### Figure 2
+- **Q >= 20 labelled.** Panels A and B counted alt reads at any base quality while the test counts only bases at
+  quality >= 20. Each count now gives both (165: 20 reads, 19 at Q >= 20; KO2's and KO3's single reads there are
+  below Q20 and never entered the test). The axis says "any quality" and the Q20 line in C is labelled.
+- **Panel E retitled** "Allele fractions of SHMtrace calls".
+- **The shaded band.** It ran 10-60% and read "somatic callers work here", which claimed a general operating
+  range. It now covers only the 5-20% range Figure 3H actually tested, with the measured recall printed beside
+  it (DeepSomatic 50/77/93%, ClairS 0/27/97%), and the legend calls it a measured range for those settings on
+  J_H4, not a limit of either caller. The main text's "allele fractions at which these callers work" is reworded
+  to match at equal length.
+
+### Figure 3
+- **Uncertainty.** A, B and F carry the range over the three held-out controls; D the range over the three
+  simulated libraries. A and B print the pooled FDR for SHMtrace and the Geneious rule.
+- **Panel E.** Each library is drawn as a stem from its own truth to its own estimate, because the truth differs
+  between libraries (one expanded-clone library's truth is 12.1 against a mean of 15.5), which a single mean bar
+  concealed.
+- **Panel H clipping.** Widened; title, label and axis no longer clip.
+- **Denominators.** The legend gives 90 planted mutations per point in A and B, defines the low-load scenario and
+  the support bins in D, states F's truth denominator (every planted mutation in the analysed reads, over the
+  estimator's own denominator) and why unique density falls with depth for N114.
+
+### Figure 4
+Panel G already names each dataset once and the OT groups were split earlier (issue 2). The legend now cites
+Figures S4-S6 and Tables S1 and S2.
+
+### Figure 5
+Panel A was retitled "Within-platform genotype contrasts" earlier (issue 5). The legend now cites Figures
+S7-S10 and Tables S4 and S5.
+
+### Figure 6
+- **Nested node counts.** Panel D is titled a read-level reconstruction, states that 48 of the clone's 69 reads
+  fit one path and 21 do not, and says node counts are nested, so they do not sum.
+- **Reads that fit no tree.** Panel C now spans all 500 reads per mouse, so the reads whose junction could not be
+  read (21-45%) are visible instead of being divided away.
+
+### Figure 7
+- **Panel subtitles.** Each panel carries its validation question in italics beneath the title.
+- **Experiment-level points in F.** It had plotted three arm means and shaded the dead-AID control as the range
+  of those means, hiding a 43-66% spread across its nine libraries. It now shows every experiment: SHMtrace's
+  share and the every-mismatch share joined across arms within each experiment, and each dead-AID library as a
+  cross. The legend says SHMtrace's shares rest on 4-40 called C:G mutations per library.
+- **Panel E.** Molecule counts per bin, and the aggregate reduction as a point with a 95% bootstrap interval
+  over molecules: 0.17% (0.10-0.28), 57-fold (35-99). The interval is now in the text too.
+- **Every bar, interval and symbol defined**, with the sidedness of both tests in A and the one-event censoring
+  the Welch test uses (minor 8).
+
+### Figure S1
+It was shared with the JIM submission, whose figure must not change, so the article now builds its own copy
+(`scicanvas/figS1_workflow.js`). In that copy the Sanger route says a clone is one molecule, counted and not
+tested, over clones x 529 bp; the >= 50% rule is named a heuristic; "lineage trees" reads "read-level trees".
+S1 now agrees with Figure 1C instead of contradicting it.
+
+### Figure S2
+95% Clopper-Pearson bands on every curve, bins with no mismatch drawn at their upper bound instead of dropped,
+and a second panel giving the control bases per bin (above Q40 they thin out, which is where the curves wander).
+Run matching is stated from the data: all six J_H4 libraries from one order (DHJGKB), all six N114 from another
+(75K3B3); PRJNA1481264's records do not say which libraries shared a flow cell, so nothing stronger is claimed.
+
+### Figure S3
+- **Target power, model and the required n.** `power_s3.py` re-simulates from the pilot out to 60 animals:
+  unique density reaches 80% power at about 24 per group. The legend states alpha, sidedness, the test, the
+  count model and the pilot.
+- **CV uncertainty.** The CV comes from 3 mice, so its 95% interval has 2 degrees of freedom and an effectively
+  unbounded upper end. The band shows the lower bound (0.44) and twice the estimate (1.9) as a stated
+  pessimistic case, and the legend says the CV, not the simulation, limits this calculation.
+- The Discussion said "more than ten animals per group"; it now says about twenty.
+
+### Figure S4
+The three components are JIM figures and cannot be renumbered, so the legend identifies each part by position
+and says what its own letters mean. **The reported "density axis labelled frequency" could not be reproduced**:
+the only quantitative axis in the three components reads "Mutation density (x10^-5 mut/bp)" and the matrices
+carry no density axis. The legend now states the measure explicitly, so the point is covered either way.
+
+### Figure S5
+- **Repeated downsampling.** `depth_draws.py` repeats the whole analysis five times at each depth with a
+  different draw, controls redrawn and recalibrated each time. The concern is borne out: at 30 reads J_H4 Wt2
+  gives 7 to 60 calls across five draws, against 212 to 244 at 500.
+- **Zero handling.** An AID-null library with no calls has a density of zero, which has no logarithm. Those
+  draws are drawn on a labelled "0" row rather than floored silently, and they are common: J_H4 KO1 and KO3
+  called nothing at any depth in any draw.
+- **93%/74%.** Already phrased as "of the calls each made at its largest depth" in the text, not as saturation;
+  the figure and legend now say the same, explicitly against the largest depth tested. Both numbers now come
+  from the repeated draws rather than one: J_H4 is unchanged at 93%, N114 moves from 74% to 70%.
+- The two stacked components are replaced by one continuously lettered figure (A-E).
+
+### Figure S6
+The title claimed the background "is position-specific" while the panel's own number said otherwise: between
+controls Spearman r is 0.12-0.20 at J_H4 and 0.29-0.45 at Smu, so one control explains 1-4% and 9-20% of
+another's position-level variation. The panel now says that in full, and the legend draws the right conclusion:
+recurrent artifacts are a tendency of the chemistry and sequence context, not a fixed per-position fingerprint,
+which is why the model pools over substitution type, strand and base quality and shrinks each position toward
+the pooled rate. Nothing in the method changes; the figure now argues for what the method does. Each profile
+panel also gains the control-only inset the review asked for.
+
+### Figure S7
+The legend now carries the measured path from traces to clones: 184 of the 447 chromatograms are filed to these
+six mice, 2 are excluded in the sample sheet with a stated reason, and of the 182 analysed 48 yielded no clone
+(22 contaminant or paralogue, 12 with no stretch of >= 20 bases at Q >= 20, 11 unmapped, 3 too short), leaving
+134 clones, 103 wild-type and 31 Aicda-/-. The counts come from the pipeline's own per-trace fates. The legend
+also says these drops are properties of the trace, applied before any mutation is counted, and that the
+bookkeeping checks never remove a clone.
+
+### Figures S8-S10
+**Table S5** asks all three studies the same five questions: same clones, same endpoint, same denominator, same
+test, and where the published values came from. Several answers are no. The Maea and Mkln1 denominators differ
+from the papers'; for SW_HEL the denominator and the test both differ, so that claim agrees in direction only
+and the table says so. The table also separates original published values (Maea Source Data) from values
+recomputed from printed tables, and says where Figures S8F and S9D use the one-tailed test the original studies
+used while Table S4 reports two-tailed throughout.
+
+### Figure S11
+The ancestor annotation sat below the first branch and fell outside the axes in a single-row panel, so Wt4's was
+clipped; each node's read count was drawn inside its own circle, which grows with the read share, so the largest
+nodes were the least readable; mutation labels were 5.6 pt, below the 6 pt floor for print. The note now sits
+above the branch with room reserved, counts sit above their circles, labels are 7.2-7.5 pt, the panel is larger,
+and the figure is also written as SVG.
+
+### Figures S12-S14 and the graphical abstract
+Done earlier under issues 2, 6 and 11.
+
+### Cross-references
+Figure S6 and Tables S1, S3 and S5 were never cited. All 14 supplementary figures and all 5 tables are now
+cited, from the legends, which are not word-capped; the main text holds at 6,999 words.
