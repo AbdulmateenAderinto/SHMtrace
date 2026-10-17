@@ -19,7 +19,6 @@ what to call, so it cannot both filter the calls and then testify that they look
 """
 import collections
 import csv
-import gzip
 import json
 import re
 import sys
