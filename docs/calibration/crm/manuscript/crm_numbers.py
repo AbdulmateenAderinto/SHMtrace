@@ -777,6 +777,61 @@ def compute():
             ek = [ev[m]["freq_x1e4"] for m in ev if ev[m]["group"] == "Mkln1_KO"]
             N["mk_ev_fold"] = f1(float(np.mean(ew) / np.mean(ek)))
             N["mk_ev_p"] = pfmt(float(stats.ttest_ind(np.log10(ew), np.log10(ek), equal_var=False)[1]))
+    # ---------------- PacBio class-switch junctions (crm/switch_pacbio.py)
+    sw_path = CRM / "out/switch_pacbio/switch_pacbio.json"
+    if sw_path.exists():
+        sw = _load(sw_path)
+        S_, G_ = sw["samples"], sw["groups"]
+        by = {g: [v for k, v in S_.items() if G_[k] == g] for g in set(G_.values())}
+        comp = {(r["group"], r["feature"]): r for r in sw["comparisons"]}
+        uj = [v["unique_junctions"] for v in S_.values()]
+        rpj = [v["reads_per_unique_junction"] for v in S_.values()]
+        amb = [v["acceptor_ambiguity_direct"]["ambiguous_pct"] for v in S_.values()]
+        mh = {g: [v["mean_microhomology"] for v in vs] for g, vs in by.items()}
+        p4 = {g: [v["microhomology_classes_pct"].get(">=4 nt", 0.0) for v in vs] for g, vs in by.items()}
+        bl = {g: [v["microhomology_classes_pct"].get("blunt", 0.0) for v in vs] for g, vs in by.items()}
+        N.update(pb_uj_lo=f0(min(uj)), pb_uj_hi=f0(max(uj)),
+                 pb_rpj_lo=f1(min(rpj)), pb_rpj_hi=f0(max(rpj)),
+                 pb_amb_lo=f0(min(amb)), pb_amb_hi=f0(max(amb)),
+                 pb_mh_wt=f2(np.mean(mh["WT"])), pb_mh_xlf=f2(np.mean(mh["Xlf"])),
+                 pb_mh_shld=f2(np.mean(mh["Shld1"])), pb_mh_dko=f2(np.mean(mh["Shld1_Xlf"])),
+                 pb_p_xlf=pfmt(comp[("Xlf", "mean_microhomology")]["p_welch"]),
+                 pb_p_shld=pfmt(comp[("Shld1", "mean_microhomology")]["p_welch"]),
+                 pb_p_dko=pfmt(comp[("Shld1_Xlf", "mean_microhomology")]["p_welch"]),
+                 pb_4_wt=f0(np.mean(p4["WT"])), pb_4_xlf=f0(np.mean(p4["Xlf"])), pb_4_dko=f0(np.mean(p4["Shld1_Xlf"])),
+                 pb_bl_wt=f0(np.mean(bl["WT"])), pb_bl_dko=f0(np.mean(bl["Shld1_Xlf"])),
+                 pb_p4_dko=pfmt(comp[("Shld1_Xlf", "pct_mh_4plus")]["p_welch"]),
+                 pb_pbl_dko=pfmt(comp[("Shld1_Xlf", "pct_blunt")]["p_welch"]))
+    # ---------------- public Illumina Smu, PI3K inhibitors (crm/public_smu_pi3k.py)
+    smu_path = CRM / "out/public_smu/public_smu.json"
+    if smu_path.exists():
+        sm = _load(smu_path)
+        tw, tk = {}, {}
+        for t, v in sm["treatments"].items():
+            tw[t] = [x["unique_mutations"] for x in v["samples"] if x["group"] == "WT"]
+            tk[t] = [x["unique_mutations"] for x in v["samples"] if x["group"] == "AID_KO"]
+        allw = [x for t in tw for x in tw[t]]
+        allk = [x for t in tk for x in tk[t]]
+        N.update(smu_wt_dmso=f1(np.mean(tw["DMSO"])), smu_wt_idela=f1(np.mean(tw["Idelalisib"])),
+                 smu_wt_duve=f1(np.mean(tw["Duvelisib"])), smu_ko_hi=f0(max(allk)),
+                 smu_wt_lo=f0(min(allw)), smu_wt_hi=f0(max(allw)),
+                 smu_gt_p=pfmt(float(stats.mannwhitneyu(allw, allk, alternative="greater").pvalue)),
+                 smu_idela_p=pfmt(float(stats.ttest_ind(tw["Idelalisib"], tw["DMSO"], equal_var=False).pvalue)),
+                 smu_duve_p=pfmt(float(stats.ttest_ind(tw["Duvelisib"], tw["DMSO"], equal_var=False).pvalue)))
+        rp = sm.get("repeats_paired")
+        if rp:
+            rw = [x["unique_mutations"] for x in rp["samples"] if x["group"] == "WT"]
+            rk = [x["unique_mutations"] for x in rp["samples"] if x["group"] == "AID_KO"]
+            fw = [x["mutation_frequency_x1e3"] for x in rp["samples"] if x["group"] == "WT"]
+            fk = [x["mutation_frequency_x1e3"] for x in rp["samples"] if x["group"] == "AID_KO"]
+            N.update(smur_wt=f1(np.mean(rw)), smur_ko=f1(np.mean(rk)), smur_ko_tot=word(sum(rk)),
+                     smur_wt_lo=f0(min(rw)), smur_wt_hi=f0(max(rw)), smur_ko_hi=f0(max(rk)),
+                     smur_wt_freq=f2(np.mean(fw)), smur_ko_freq=f2(np.mean(fk)),
+                     smur_p=pfmt(float(stats.mannwhitneyu(rw, rk, alternative="greater").pvalue)))
+            s5 = [x["s5f_index"] for x in rp["samples"] if x["group"] == "WT" and x["s5f_index"]]
+            ctga = [x["pct_CT_GA"] for x in rp["samples"] if x["group"] == "WT" and x["pct_CT_GA"]]
+            N.update(smur_s5f_lo=f2(min(s5)), smur_s5f_hi=f2(max(s5)),
+                     smur_ctga_lo=f0(min(ctga)), smur_ctga_hi=f0(max(ctga)))
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())

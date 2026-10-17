@@ -58,6 +58,8 @@ QUERIES = {   # key: PubMed query (a title, optionally with an author)
     "martin2002b": "Martin A[Author] AND Scharff MD[Author] AND 2002[dp] AND Proc Natl Acad Sci U S A[Journal] AND transgene",
     "zeng2001": "Zeng X[Author] AND Gearhart PJ[Author] AND 2001[dp] AND Nat Immunol[Journal]",
     "danecek2021": "Twelve years of SAMtools and BCFtools[Title]",
+    "vincendeau2022": "35764636[uid]",
+    "compagno2017": "28199309[uid]",
 }
 
 

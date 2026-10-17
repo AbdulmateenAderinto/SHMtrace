@@ -55,7 +55,7 @@ The text and the numbers cannot drift: every result in the prose is a `{placehol
    paper reuse images from it. When one of those needed changing, the fix was to **copy the builder into
    `crm/` and edit the copy** — see `crm/scicanvas/figS1_workflow.js`, which is this article's own copy of
    the detailed workflow figure. Do the same rather than editing the original.
-2. **The main text is capped at 7,000 words** and currently sits at **6,994**. `build_crm.py` asserts this
+2. **The main text is capped at 7,000 words** and currently sits at **6,999**. `build_crm.py` asserts this
    and fails the build if exceeded. The count covers Introduction → Limitations only. **Figure legends,
    STAR Methods, tables and the Motivation are not counted**, so detail belongs there.
    Summary ≤ 150 (now 139), eTOC ≤ 50 (now 43), four highlights ≤ 85 characters each. The documents are
@@ -105,6 +105,7 @@ Each build writes four files from one stem: `<stem>.scifig` (reopen in the app t
 | `figS8_cohort2.js` | `FigureS8_sanger_cohort2` | `cohort2_data.py` |
 | `figS9_mkln.js` | `FigureS9_sanger_mkln` | `mkln_data.py` |
 | `figS10_swhel.js` | `FigureS10_swhel` | `swhel_data.py` |
+| `figS16_switch_pacbio.py`, `figS17_public_smu.py` | Figures S16 and S17 | matplotlib, not SciCanvas; see `PUBLIC_VALIDATION.md` |
 | `figS12_platforms.js` | `FigureS12_platforms` | `s12_reads.py` (prints a READS array to paste); the Illumina band's numbers are from `s12_illumina.py` (→ `out/s12_illumina.json`), typed into the builder |
 | `figS13_overview.js` | `FigureS13_overview` | — |
 | `figS14_engine.js` | `FigureS14_engine` | `engine_data.py` |
@@ -222,18 +223,25 @@ unless the method changed. `ARCHIVE.md` lists the command behind every one.
 4. **The AI-use declaration** now names Anthropic Claude and OpenAI Codex and says the assistance covered
    "drafting the analysis and figure code, language editing and figure layout". That is the authors' statement to make — it should be confirmed, not
    inherited.
-5. **Why Figure 5E is not per-molecule mutation load** (17 Oct, a note rather than a problem). Both platforms
+5. **`switch.py`'s ambiguity flag is inert on real data** (17 Oct, confirmed defect, deliberately not
+   patched). `summarise()` reports `ambiguous_pct`, and it reads 0.0% on all twelve PacBio libraries of
+   PRJNA831666 — not because breakpoints are unambiguous, but because the check needs a secondary alignment
+   that minimap2 does not return for these reads. Measured directly, 19–47% of unique junctions place equally
+   well at more than one acceptor position. `tests/test_switch.py` does not cover the flag. The manuscript
+   never quotes the built-in figure; Figure S16D reports the direct measure instead. A fix is proposed in
+   `PUBLIC_VALIDATION.md`, not applied.
+6. **Why Figure 5E is not per-molecule mutation load** (17 Oct, a note rather than a problem). Both platforms
    rank the wild-type mice the same way by mean mutations per molecule (Wt3 > Wt4 > Wt2: Sanger 9.7, 5.8, 4.5
    per clone; nanopore 11.9, 2.6, 1.5 per read), but the distributions differ: the unmutated share is 51%,
    37% and 42% of Sanger clones against 75%, 8% and 63% of nanopore reads. Reads sample clones in proportion
    to their size (Wt2's largest clone is largely unmutated; Figure 6C), and 26-40 clones per mouse sample
    each mouse thinly, so a per-molecule load panel would mostly show sampling. Substitution classes are a
    share of each mouse's own calls and do compare, which is why 5E shows those.
-6. **Two public Illumina datasets carry a flat Q30.** PRJNA973112 and PRJNA918596 as distributed by SRA
+7. **Two public Illumina datasets carry a flat Q30.** PRJNA973112 and PRJNA918596 as distributed by SRA
    have Q30 on every base, so their error model has one quality level. STAR Methods and the Figure S12 legend
    now say so; no result changed. If the original qualities can be obtained (the submitters' files rather
    than SRA's simplified ones), rerunning those two would test the quality strata on Illumina.
-7. **The reviewer's proposed replacement Summary** (in the review, front-matter section) was deliberately
+8. **The reviewer's proposed replacement Summary** (in the review, front-matter section) was deliberately
    not adopted; the current Summary is 149 words and already carries the two-route fix. The authors' call.
 
 ### Two things to know about the method, because the text depends on them

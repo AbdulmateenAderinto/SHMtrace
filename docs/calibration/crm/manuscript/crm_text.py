@@ -303,8 +303,7 @@ RESULTS = [
           "{hot_gc_o}% (nanopore) of cases, and A:T mutations at WA/TW motifs in {hot_at_s}% and {hot_at_o}%, "
           "compared with {hot_gc_exp}% and {hot_at_exp}% of such sites in the window. Mouse by mouse, a "
           "repeated-measures test found no platform-by-substitution-type interaction (p = {interaction_p}; "
-          "Figure 5E); with three mice this shows no detectable difference, not equivalence, and nanopore gave a "
-          "{pm_gcts} percentage-point lower share of G:C transitions in each mouse. The absolute densities "
+          "Figure 5E); with three mice this shows no detectable difference, not equivalence. The absolute densities "
           "differ by design, because a Sanger clone is one molecule read once, whereas nanopore densities count "
           "unique mutations among 500 reads; densities should therefore be compared within, not between, "
           "platforms."),
@@ -461,6 +460,8 @@ RESULTS = [
           "{mo_ugi_ts_raw}%, {mo_control_ts_raw}%, and {mo_ung_ts_raw}% because the dead-AID background sits at "
           "{mo_dead_ts}% transitions in every arm. Paired within experiment, the swing was {mo_arm_diff} points "
           "(95% CI {mo_arm_ci}; {mo_arm_p}), each share resting on few calls."),
+    ("p", "Two public datasets extended these tests: Sμ amplicons under PI3Kδ blockade[@compagno2017], "
+          "and PacBio class-switch junctions[@vincendeau2022] (Figures S16 and S17)."),
 ]
 
 DISCUSSION = [
