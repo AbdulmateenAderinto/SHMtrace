@@ -66,6 +66,14 @@ SCENARIOS = {
     # Wt2's situation: one unmutated clone holds 60% of the reads
     "expanded": {"clones": 40, "zipf": 1.0, "dominant": 0.6, "dominant_load": 0.0,
                  "trunk": 6.0, "branch": 2.0, "private": 0.3},
+    # a dominant clone that is itself mutated: its trunk mutations sit in a large share of the reads, and the
+    # high-allele-fraction rule removes any that reach the threshold. Three abundances, to show where that bites.
+    "expanded_mutated_40": {"clones": 40, "zipf": 1.0, "dominant": 0.4, "dominant_load": 6.0,
+                            "trunk": 6.0, "branch": 2.0, "private": 0.3},
+    "expanded_mutated_60": {"clones": 40, "zipf": 1.0, "dominant": 0.6, "dominant_load": 6.0,
+                            "trunk": 6.0, "branch": 2.0, "private": 0.3},
+    "expanded_mutated_80": {"clones": 40, "zipf": 1.0, "dominant": 0.8, "dominant_load": 6.0,
+                            "trunk": 6.0, "branch": 2.0, "private": 0.3},
     # lightly mutated, as in a weak or early response
     "low": {"clones": 40, "zipf": 1.0, "dominant": 0.0,
             "trunk": 1.0, "branch": 0.5, "private": 0.1},
@@ -354,6 +362,14 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
         by_bin[_bin(k)][0] += m in called
     truth_set = set(support)
     tp, fp = len(called & truth_set), len(called - truth_set)
+    # what the high-allele-fraction ("germline") rule costs: planted mutations carried by at least the
+    # threshold share of the reads covering them are removed before any test, however real they are
+    depth_at = Counter()
+    for r in res["_aligned"]:
+        for rpos, base, _q in r.pairs:
+            if base and lo <= rpos <= hi:
+                depth_at[rpos] += 1
+    at_mask = {m for m, k in support.items() if depth_at.get(m[0]) and k / depth_at[m[0]] >= p.germline_freq_threshold}
 
     # frequencies: the truth computed the way each estimate is defined
     n = len(analysed)
@@ -376,6 +392,10 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
                                   "recall": round(v[0] / v[1], 3) if v[1] else None}
                               for k, v in sorted(by_bin.items(), key=lambda kv: _bin_order(kv[0]))},
         "true_calls": tp, "false_calls": fp,
+        "planted_at_mask": len(at_mask),
+        "planted_at_mask_called": len(at_mask & called),
+        "planted_below_mask": len(truth_set - at_mask),
+        "planted_below_mask_called": len((truth_set - at_mask) & called),
         "recall_2plus": _recall(called, support, 2),
         "fdr": round(fp / (tp + fp), 4) if tp + fp else 0.0,
         "roc": roc(res["summary"]["calling"], support),

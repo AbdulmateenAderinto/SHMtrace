@@ -229,7 +229,23 @@ METHODS = [
           "carries 88 clones, about twice any other, so two animals appear to share it. Pooled counts are "
           "unaffected. Animal-level tests use the deposited host names as given; because merging two animals "
           "into one can change such a test, every animal-level comparison was repeated with that host left out, "
-          "and the host was not split, since nothing in the records says which clone came from which animal."),
+          "and the host was not split, since nothing in the records says which clone came from which animal. "
+          "Without it, the four substitution classes gave p = {sw_drop_p} and total mutation p = {sw_drop_tot_p}, "
+          "against {sw_at_tv_p}, {sw_gc_tv_p}, {sw_gc_ts_p}, {sw_at_ts_p} and {sw_tot_p} with every host."),
+    ("p", "The high-allele-fraction rule removes any change carried by at least 50% of the reads covering it, as "
+          "a germline or parental difference. Because a mutation shared by a dominant lineage reaches the same "
+          "frequency, we measured what the rule costs by simulating lineages whose dominant clone is itself "
+          "mutated. Libraries were built on the J_{H}4 AID-null reads as for Figure 3D, with the dominant clone "
+          "holding 40%, 60% or 80% of the reads and carrying its own trunk mutations (mean 6, as the other "
+          "clones), {mask_runs} libraries per abundance, each planted library called with the other two controls "
+          "as its null. A planted mutation was counted as exposed to the rule when the reads carrying it reached "
+          "the threshold at its position. At 40% none did. At 60% and 80%, {mask60_lost} and {mask80_lost} per "
+          "library did, and none of them was called: a mutation at or above the threshold is removed before any "
+          "test. Across libraries the read-weighted frequency fell to as much as {mask60_rw}% and {mask80_rw}% "
+          "below the truth and the clone-weighted frequency to {mask60_cw}% and {mask80_cw}%, while libraries in "
+          "which nothing crossed the threshold were unaffected. Each sample's report now lists every site the "
+          "rule removed with its read count, depth and frequency, so a library with a large mutated clone can be "
+          "recognized and its sites inspected."),
     ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "

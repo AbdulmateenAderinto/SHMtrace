@@ -19,6 +19,9 @@ In the spirit of SHMulate (Yaari et al. 2013), but on real reads, so the sequenc
 |---|---:|---|---|
 | polyclonal | 40 | 6 / 2 / 0.3 | none |
 | expanded | 40 | 6 / 2 / 0.3 | 60% of reads, unmutated |
+| expanded_mutated_40 | 40 | 6 / 2 / 0.3 | 40% of reads, mutated (trunk 6) |
+| expanded_mutated_60 | 40 | 6 / 2 / 0.3 | 60% of reads, mutated (trunk 6) |
+| expanded_mutated_80 | 40 | 6 / 2 / 0.3 | 80% of reads, mutated (trunk 6) |
 | low | 40 | 1 / 0.5 / 0.1 | none |
 | null | 40 | nothing planted | none |
 
@@ -91,6 +94,29 @@ shmtrace-simulate-lineages --region jh4_intron \
 ```
 
 `--scenarios`, `--modes`, `--reps` and `--place motif` vary the design. It writes `report.md`, `lineage_sim.json` (every run, every lineage) and `roc.png`. The 24-run suite above takes about 8 minutes.
+
+## What the high-allele-fraction rule costs
+
+A change carried by at least 50% of the reads covering it is set aside as a germline or parental difference.
+A mutation shared by a dominant lineage reaches the same frequency, so the `expanded_mutated_*` scenarios
+measure what that rule removes. Each planted mutation is counted as exposed when the reads carrying it reach
+the threshold at its position; `planted_at_mask` and `planted_at_mask_called` are reported per run.
+
+| Dominant clone | Planted mutations exposed, per library | Recovered | Read-weighted frequency | Clone-weighted |
+|---|---:|---:|---|---|
+| 40% of reads, mutated | 0 | – | within 5% of truth | within 14% |
+| 60% of reads, mutated | 0–4 | none | down to 40% below truth | down to 26% below |
+| 80% of reads, mutated | 0–4 | none | down to 62% below truth | down to 34% below |
+
+Three libraries per abundance, each of the three J꜀4 AID-null controls planted in turn. Nothing that crosses
+the threshold survives: the rule runs before any test. The loss is bounded by the dominant clone's own trunk,
+not by the size of the library, and it falls hardest on the read-weighted frequency, which those trunk
+mutations dominate. Libraries where nothing crossed the threshold were unaffected.
+
+Every site the rule removes is reported per sample as `high_fraction_sites` (position, alternate base, reads,
+depth and frequency), with `high_fraction_sites_removed` as the count. A true germline difference sits near
+100% (the five J꜀4 lab-haplotype sites are at 99.7%), whereas a dominant lineage's trunk sits near that
+clone's share of the reads, so the two can usually be told apart by inspection.
 
 ## Limits
 

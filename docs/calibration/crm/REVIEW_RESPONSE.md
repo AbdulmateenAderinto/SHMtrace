@@ -66,13 +66,13 @@ Still open from this issue: Table S2 is still labelled as covering every caller 
 |---|---|---|
 | 1 | OT1/OT2 analysis provenance | **fixed** (c5ad350); Table S2 labelling still open (C29) |
 | 2 | Platform-wide calling claim contradicts Sanger Methods | **fixed** (see below) |
-| 3 | Empirical FDR presented as stronger control than established | open |
+| 3 | Empirical FDR presented as stronger control than established | **wording fixed**; empirical validation of the whole procedure still open |
 | 4 | Noisy-control policy ("sets aside" vs "still contributes") | **partly fixed** (c5ad350): wording reconciled, three-control minimum and provenance stated. Still open: side-by-side all-controls vs exclusion results, and validation under heterogeneous nulls |
-| 5 | "Reproduced unaided" overstates the Sanger evidence | open |
-| 6 | SWHEL host identity and change of statistical test | open |
+| 5 | "Reproduced unaided" overstates the Sanger evidence | **fixed** (e54003f) |
+| 6 | SWHEL host identity and change of statistical test | **fixed** (e54003f) |
 | 7 | Estimands undefined (three different frequency metrics) | open — confirmed by the OT denominator finding above |
-| 8 | >=50% mask can discard genuine SHM in expanded clones | open |
-| 9 | Cross-platform concordance supports similarity, not equivalence | open |
+| 8 | >=50% mask can discard genuine SHM in expanded clones | **fixed**: tested on mutated dominant clones; removed sites now exported |
+| 9 | Cross-platform concordance supports similarity, not equivalence | **fixed** (e54003f) |
 | 10 | Independent units and benchmark uncertainty | open |
 | 11 | Biological QC identifies suspicious calls, does not prove origin | open |
 | 12 | Reproducibility archive and Methods incomplete | open |
@@ -115,3 +115,40 @@ Follow-up in Figures S12-S14 and the text (fixed):
 ## Open decisions (user)
 
 None outstanding.
+
+
+---
+
+## Major issue 8 — the >=50% rule can remove real mutations (fixed)
+
+**Verified, and the cost measured.** The rule sets aside any change carried by at least half the reads covering
+it. The existing demonstration (Figure 3E) used an *unmutated* dominant clone, which the rule cannot touch, so it
+could not show the failure the reviewer describes.
+
+Three new scenarios put the trunk mutations in the dominant clone itself (`lineage_sim.SCENARIOS`,
+`expanded_mutated_40/60/80`), three libraries each, every J_H4 AID-null control planted in turn:
+
+| Dominant clone | Planted mutations reaching the threshold | Recovered | Read-weighted frequency | Clone-weighted |
+|---|---:|---:|---|---|
+| 40% of reads | 0 | – | within 5% of truth | within 14% |
+| 60% of reads | 0-4 per library | none | to 40% below truth | to 26% below |
+| 80% of reads | 0-4 per library | none | to 62% below truth | to 34% below |
+
+Nothing that crosses the threshold survives, because the rule runs before any test. The loss is bounded by the
+dominant clone's own trunk rather than by library size, and falls hardest on the read-weighted frequency, which
+those mutations dominate; the clone-weighted frequency, which counts each clone once, is hurt less.
+
+`lineage_sim.score` now reports `planted_at_mask` and `planted_at_mask_called`, so the cost is measured on every
+future run rather than argued.
+
+**Export (the reviewer's second request).** The removed sites were recorded internally but never surfaced.
+`project.public` now gives each sample `high_fraction_sites_removed` and `high_fraction_sites` (position,
+alternate base, reads, depth, frequency). This also separates the two cases the reviewer wanted distinguished: a
+true germline difference sits near 100% (the five J_H4 lab-haplotype sites are at 99.7%), while a dominant
+lineage's trunk sits near that clone's read share.
+
+Wording: the rule is called a heuristic rather than a test wherever it appears (Results, Limitations, Figures S13
+and S14), and the Figure S13 legend notes it can remove a real mutation shared by a dominant clone.
+
+Still open from this issue: SHMtrace does not yet *recover* such mutations, only report them. A clone-aware
+exemption (a change confined to one junction-defined lineage) would be the fix, and is not attempted here.

@@ -177,6 +177,23 @@ def compute():
     N.update(lin_rw_est=f1(e["est_read_weighted_x1e3"]), lin_rw_true=f1(e["true_read_weighted_x1e3"]),
              lin_cw_est=f1(e["est_clone_weighted_x1e3"]), lin_cw_true=f1(e["true_clone_weighted_x1e3"]),
              lin_cw_pct=pct(e["est_clone_weighted_x1e3"] / e["true_clone_weighted_x1e3"]))
+    # ---------------- the high-allele-fraction rule on a mutated dominant clone (out/mask_sim_jh4)
+    mf = OUT / "mask_sim_jh4/lineage_sim.json"
+    if mf.exists():
+        runs = defaultdict(list)
+        for r in _load(mf)["runs"]:
+            runs[r["scenario"]].append(r["score"] if "score" in r else r)
+        err = lambda rs, k: [100 * (x[f"est_{k}_x1e3"] - x[f"true_{k}_x1e3"]) / x[f"true_{k}_x1e3"] for x in rs]  # noqa: E731
+        for tag, sc in (("40", "expanded_mutated_40"), ("60", "expanded_mutated_60"), ("80", "expanded_mutated_80")):
+            rs = runs.get(sc) or []
+            if not rs:
+                continue
+            lost = [x["planted_at_mask"] for x in rs]
+            N[f"mask{tag}_lost"] = f"{min(lost)}–{max(lost)}" if min(lost) != max(lost) else str(lost[0])
+            N[f"mask{tag}_kept"] = str(sum(x["planted_at_mask_called"] for x in rs))
+            N[f"mask{tag}_rw"] = f"{min(err(rs, 'read_weighted')):.0f}"
+            N[f"mask{tag}_cw"] = f"{min(err(rs, 'clone_weighted')):.0f}"
+        N["mask_runs"] = f0(len(runs.get("expanded_mutated_60") or []))
     # ---------------- quantification
     q = _load(OUT / "quant_accuracy_jh4/runs.json") + _load(OUT / "quant_accuracy_n114/runs.json")
 
