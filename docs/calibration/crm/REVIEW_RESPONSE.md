@@ -70,10 +70,10 @@ Still open from this issue: Table S2 is still labelled as covering every caller 
 | 4 | Noisy-control policy ("sets aside" vs "still contributes") | **partly fixed** (c5ad350): wording reconciled, three-control minimum and provenance stated. Still open: side-by-side all-controls vs exclusion results, and validation under heterogeneous nulls |
 | 5 | "Reproduced unaided" overstates the Sanger evidence | **fixed** (e54003f) |
 | 6 | SWHEL host identity and change of statistical test | **fixed** (e54003f) |
-| 7 | Estimands undefined (three different frequency metrics) | open — confirmed by the OT denominator finding above |
+| 7 | Estimands undefined (three different frequency metrics) | **fixed** (74aed94); Figure 3F truth denominator still open |
 | 8 | >=50% mask can discard genuine SHM in expanded clones | **fixed**: tested on mutated dominant clones; removed sites now exported |
 | 9 | Cross-platform concordance supports similarity, not equivalence | **fixed** (e54003f) |
-| 10 | Independent units and benchmark uncertainty | open |
+| 10 | Independent units and benchmark uncertainty | **fixed** (see below) |
 | 11 | Biological QC identifies suspicious calls, does not prove origin | open |
 | 12 | Reproducibility archive and Methods incomplete | open |
 
@@ -198,3 +198,40 @@ makes the "counted as published" row mean what it says: the same mutations over 
 Figure 5A is retitled "Within-platform genotype contrasts", since its two densities are not on a common scale.
 
 Still open from this issue: Figure 3F does not yet state its truth denominator at each depth.
+
+
+---
+
+## Major issue 10 — units, uncertainty and the statistics specification (fixed)
+
+**Unit of analysis.** Table 1 gains a column naming the independent replicate for every dataset: mouse, subclone,
+host animal, culture, clone, molecule, experiment, replicate or simulated library. Three footnotes record what the
+records do not establish, rather than implying more independence than exists:
+
+- the three N114 subclones per vector came from one transduced population, so they are independent subclones but
+  not independent transductions;
+- the J_H4 Sanger row is the same six animals as the nanopore row, so the two are a platform comparison within
+  animals, not independent experiments;
+- PRJNA918596's "four replicates" are the deposit's own numbering, and what they correspond to experimentally is
+  not stated in its records.
+
+**The permutation test cannot reach p < 0.05 at n = 3.** Verified in code and in the saved simulations: with three
+libraries per group there are C(6,3) = 20 allocations, so the smallest two-sided p is exactly 0.10. In all 300
+simulated experiments at n = 3, at every effect size including 4-fold, the smallest p observed was 0.100 and the
+share below 0.05 was 0. Figure 3G's zero bars for that test were therefore arithmetic, not a failure to detect,
+and the legend and Methods now say so. The Welch test on log rates is named as the primary test, chosen in
+advance, with the other two as sensitivity analyses.
+
+**Monte Carlo uncertainty.** Each Figure 3G cell is 300 experiments, so a share carries a 95% Wilson interval no
+wider than ±5.6 points; the legend states this. Under the null at n = 3 the Welch test rejected in 3.7%
+(95% CI 2.1–6.4) and the negative-binomial test in 5.0% (3.1–8.1), against 91.3% (87.6–94.0) for pooling reads.
+
+**The negative-binomial test is now specified**: mean n·r, variance n·r + φ(n·r)^2 with one φ shared by both
+groups and fitted by maximum likelihood under the full model; likelihood-ratio statistic against a common rate;
+null from 499 parametric bootstrap samples under that common rate with the fitted φ, because the asymptotic χ²
+does not hold at these group sizes; a group with no calls keeps rate zero rather than being floored.
+
+**All three measures are now reported where relevant**: Table S1 gives unique-variant density, read-weighted
+frequency and clone-weighted frequency for every library, with a footnote saying they are not interchangeable.
+
+Still open from this issue: Figure 7F does not yet show experiment-level points with their pairing.

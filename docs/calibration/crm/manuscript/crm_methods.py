@@ -333,9 +333,26 @@ METHODS = [
 ]
 
 QUANT = [
-    "Groups were compared with one value per animal (or per independent subclone or clone). The negative-binomial "
-    "test fits each group's rate with one shared dispersion, as in DESeq2[@love2014], and obtains p values by "
-    "parametric bootstrap. The Welch test uses log_{10} rates, with libraries without calls placed at their "
+    "Groups were compared with one value per library, each library being one animal, subclone, clone, culture or "
+    "experiment as Table 1 states; reads were never treated as replicates. The Welch test on log_{10} rates is the "
+    "primary test throughout, chosen before the analyses reported here; the negative-binomial and permutation "
+    "tests are reported alongside it as sensitivity analyses, and Figure 3G compares all three. "
+    "The negative-binomial test models each library's mutation count k with mean n·r, where n is that library's "
+    "bases and r its group's rate, and variance n·r + φ(n·r)^{2} with one dispersion φ shared by both groups and "
+    "fitted by maximum likelihood under the full model, as DESeq2[@love2014] and edgeR do. The statistic is the "
+    "likelihood ratio against a common rate, and its null distribution comes from 499 parametric bootstrap "
+    "samples drawn under that common rate with the fitted φ, because two to ten libraries per group are too few "
+    "for the asymptotic χ^{2}. A group with no calls keeps rate zero rather than being floored. "
+    "The permutation test is exact when the number of allocations allows, which sets a floor on the p value it "
+    "can return: with three libraries per group there are only 20 allocations, so the smallest two-sided p is "
+    "0.10 and the test cannot reach 0.05 whatever the difference. Its apparent power of zero at n = 3 in "
+    "Figure 3G is therefore arithmetic, not a property of the data, and it is why the Welch test is primary at "
+    "these group sizes. "
+    "Each cell of Figure 3G is 300 simulated experiments, so a reported share carries a Monte Carlo 95% interval "
+    "no wider than ±5.6 percentage points (Wilson); under the null at n = 3 the Welch test rejected in 3.7% "
+    "(95% CI 2.1–6.4) and the negative-binomial test in 5.0% (3.1–8.1), while pooling reads rejected in 91.3% "
+    "(87.6–94.0). "
+    "The Welch test uses log_{10} rates, with libraries without calls placed at their "
     "one-event density; a fold against such libraries therefore depends on that convention and is not a "
     "confidence bound. The permutation test is exact. Folds are ratios of "
     "geometric means. Spectra were compared by pooled Pearson correlation across the 12 substitution types with "
@@ -388,7 +405,10 @@ LEGENDS = [
      "the truth (black bars) in simulated libraries; expanded clone, one unmutated clone with 60% of reads. "
      "(F) Estimate over truth against analysis depth for three measures (J_{H}4 polyclonal, solid; N114 subclonal, "
      "dashed); mean of 3 held-out controls. (G) Share of 300 simulated experiments per condition with p < 0.05 for "
-     "four group tests (3 or 5 animals per group); dotted line, 0.05. (H) Recall of the somatic callers ClairS "
+     "four group tests (3 or 5 animals per group); dotted line, 0.05; Monte Carlo 95% interval at most ±5.6 "
+     "percentage points. With 3 per group the exact permutation test has only 20 allocations, so its smallest "
+     "two-sided p is 0.10 and it cannot reach 0.05; its zero bars there are arithmetic, not a failure to detect "
+     "(STAR Methods). (H) Recall of the somatic callers ClairS "
      "and DeepSomatic on J_{H}4, at their permissive settings, against the share of reads carrying each mutation: "
      "the spike-ins of A (shaded; 1–20 of 500 reads; solid) and 30 mutations planted into 5%, 10%, and 20% of 500 "
      "reads of each held-out AID-null library (dashed, open symbols), with the other two libraries as the matched "
@@ -442,40 +462,41 @@ LEGENDS = [
 ]
 
 TABLE1_TITLE = "Table 1. Datasets used to develop and validate SHMtrace"
-TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls", "Used for"]
+TABLE1_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls",
+                 "Unit of analysis", "Used for"]
 TABLE1 = [
     ("J_{H}4, this study", "ONT R10.4.1", "J_{H}4 intron (529 bp; 1,141 bp)", "GC B cells, 3 Wt mice",
-     "3 *Aicda*^{−/−} mice, same run", "Figures 2–6"),
+     "3 *Aicda*^{−/−} mice, same run", "mouse", "Figures 2–6"),
     ("N114, this study", "ONT R10.4.1", "N114 V region (615 bp)", "3 pMX-*Aicda* subclones",
-     "3 empty-vector subclones", "Figures 2–4"),
+     "3 empty-vector subclones", "subclone\u1d43", "Figures 2–4"),
     ("J_{H}4 Sanger, same mice", "Sanger", "J_{H}4 intron (529 bp)", "26–40 clones per Wt mouse",
-     "10–11 clones per *Aicda*^{−/−} mouse", "Figure 5"),
+     "10–11 clones per *Aicda*^{−/−} mouse", "mouse\u1d47", "Figure 5"),
     ("J_{H}4 Sanger, published study[@barbulescu2024]", "Sanger", "J_{H}4 intron (529 bp)",
-     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "3 *Aicda*^{−/−} mice reported, 4 filed", "Figure S8"),
+     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "3 *Aicda*^{−/−} mice reported, 4 filed", "mouse", "Figure S8"),
     ("J_{H}4 Sanger, published study[@barbulescu2025]", "Sanger", "J_{H}4 intron (529 bp)",
-     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–93 clones each", "3 *Aicda*^{−/−} mice", "Figure S9"),
-    ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "Figures 2 and 4"),
-    ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "Figures 2 and 4"),
+     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–93 clones each", "3 *Aicda*^{−/−} mice", "mouse", "Figure S9"),
+    ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "culture", "Figures 2 and 4"),
+    ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "culture", "Figures 2 and 4"),
     ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (968 and 942 bp)",
-     "3 CH12 wild type, 3 *Mllt1*/*Mllt3* double knockout", "3 *Aicda*^{−/−} each", "Figure 4"),
+     "3 CH12 wild type, 3 *Mllt1*/*Mllt3* double knockout", "3 *Aicda*^{−/−} each", "culture", "Figure 4"),
     ("PRJNA973112[@sharma2023]", "Illumina", "J_{H}4 (70 bp)", "7 Wt, 7 *Ldha*-deleted mice", "4 AID-null mice",
-     "Figure 7"),
+     "mouse", "Figure 7"),
     ("PRJNA918596[@wang2023]", "Illumina", "VDJ (229 bp)", "AID, R50E, R174E/R178E (4 each)",
-     "4 empty-vector replicates", "Figure 7"),
+     "4 empty-vector replicates", "replicate\u1d9c", "Figure 7"),
     ("PRJNA820976[@wu2022]", "Illumina", "IGH VDJ (421 bp)", "6 Wt, 6 HMCES-KO clones", "3 AID-KO clones",
-     "Figure 7"),
+     "clone", "Figure 7"),
     ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
-     "Figure 7"),
+     "molecule", "Figure 7"),
     ("SW_{HEL} Sanger, published study[@thientosapol2018]", "Sanger (GenBank)", "SW_{HEL} V_{H}10 (558 bp)",
-     "*Samhd1*, *Msh2* and double mutants, UGI arm; 1,795 clones", "none", "Figure S10"),
+     "*Samhd1*, *Msh2* and double mutants, UGI arm; 1,795 clones", "none", "host animal", "Figure S10"),
     ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (619 bp)",
      "AID-ER in NIH-3T3 cells, 3 experiments x 3 repair contexts", "catalytically dead AID-E58Q-ER",
-     "Figure 7"),
+     "experiment", "Figure 7"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
-     "Figures 3 and 5"),
+     "simulated library", "Figures 3 and 5"),
 ]
 TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique "
-               "molecular identifier. Loci and laboratories are counted from this table: ten SHM target loci from seven "
+               "molecular identifier. The unit of analysis is the independent replicate used in every group test; reads were never treated as replicates. a, the three subclones per vector came from one transduced population, so they are independent subclones but not independent transductions. b, the same six animals as the nanopore J_{H}4 row, so the two are a platform comparison within animals rather than independent experiments. c, the deposit's own replicate numbering; what it corresponds to experimentally is not stated in its records. Loci and laboratories are counted from this table: ten SHM target loci from seven "
                "laboratories, the rRNA operons excluded as not an SHM target. Lengths are of the analysis window, positions given in STAR Methods; the mOrange "
                "window lies within a 679-bp amplicon.")
 

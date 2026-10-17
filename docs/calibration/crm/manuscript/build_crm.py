@@ -196,7 +196,7 @@ def main(outdir):
     m.page_break()
     m.heading("Tables", 1)
     m.table(M.TABLE1_HEADER, M.TABLE1, title=f"**{M.TABLE1_TITLE}**", footnote=M.TABLE1_NOTE,
-            widths=[30, 22, 30, 36, 30, 22])
+            widths=[28, 20, 28, 32, 28, 20, 18])
     # ---- STAR Methods
     m.page_break()
     m.heading("STAR★Methods", 1)
@@ -248,17 +248,28 @@ def main(outdir):
     rows = []
     for run, label in (("jh4", "J_{H}4"), ("n114", "N114")):
         acct = json.load(open(CAL / f"figures/{run}_shmtrace/table_s1.json"))
+        proj = json.load(open(CAL / f"figures/{run}_shmtrace/project.json"))
+        by = {x["sample"]: x for x in proj["samples"]}
+        num = lambda v: "–" if v in (None, "") else f"{v:g}"                        # noqa: E731
         for lib, a in acct.items():
+            m = by.get(lib, {})
             rows.append([label, lib, f"{a['delivered']:,}", f"{a['too_long']:,}", f"{a['low_quality']:,}",
                          f"{a['not_target']:,}", f"{a['chimeric'] + a['short_alignment']:,}",
                          f"{a['paralogue_alleles']:,}", f"{a['usable']:,}", a["analysed"], a["candidates_tested"],
-                         a["calls"]])
+                         a["calls"], num(m.get("unique_density_x1e5")), num(m.get("mutation_frequency_x1e3")),
+                         num(m.get("clone_weighted_frequency_x1e3"))])
     s.table(["Assay", "Library", "Delivered", "Over-length", "Expected error > 0.01", "Unmapped or paralog",
              "Chimeric or short alignment", "Paralog alleles", "Usable", "Analyzed", "Candidates tested",
-             "Calls (FDR ≤ 0.05)"], rows, size=7.5,
+             "Calls (FDR ≤ 0.05)", "Unique-variant density (×10^{−5})", "Read-weighted frequency (×10^{−3})",
+             "Clone-weighted frequency (×10^{−3})"], rows, size=7.5,
             title="**Table S1. Read preparation and calls per library, related to Figure 4**",
             footnote="Counts of reads removed at each step of SHMtrace's read preparation, from the delivered FASTQ "
-                     "files; 500 usable reads were drawn at random (seed 0) for analysis. WT, wild type; KO, "
+                     "files; 500 usable reads were drawn at random (seed 0) for analysis. The three mutation "
+                     "measures are given for every library, since they answer different questions and are not "
+                     "interchangeable (STAR Methods): unique-variant density counts each distinct call once over "
+                     "base observations, read-weighted frequency counts a call once in every read carrying it, "
+                     "and clone-weighted frequency counts each junction-defined clone once. A dash means no "
+                     "clone had a readable junction. WT, wild type; KO, "
                      "*Aicda*^{−/−}; C1, D3, D5, pMX-*Aicda* subclones; C3, C4, D1, empty-vector subclones.")
     # Table S3: statistics
     s.page_break()
