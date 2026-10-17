@@ -44,7 +44,7 @@ def profile_panel(ax, key, title):
     # the controls on their own scale: the AID-active curve is an order of magnitude higher and hides them
     ins = ax.inset_axes([0.055, 0.40, 0.42, 0.32], facecolor="white", zorder=5)
     ins.patch.set_alpha(1.0)
-    for (c, r), col in zip(ctl.items(), CTRL_SHADES, strict=False):
+    for r, col in zip(ctl.values(), CTRL_SHADES, strict=False):
         ins.plot(xs, r, color=col, lw=0.5)
     ins.set_xlim(lo, hi)
     ins.set_ylim(0, np.nanpercentile(np.concatenate(list(ctl.values())), 99.9) * 1.15)

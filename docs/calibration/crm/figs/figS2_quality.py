@@ -8,8 +8,8 @@ Data: out/intuition_<dataset>.json (intuition_data.py).
 import json
 
 import numpy as np
-from scipy import stats
 from matplotlib import pyplot as plt
+from scipy import stats
 from style import DATA, HALF, INK, MM, SOFT, save, setup
 
 SETS = {"jh4": ("J$_H$4 (this study)", "#274b7e", "o"), "n114": ("N114 (this study)", "#6d9ad0", "s"),

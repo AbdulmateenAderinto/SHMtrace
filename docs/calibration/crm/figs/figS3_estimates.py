@@ -11,8 +11,7 @@ from collections import defaultdict
 import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
-
-from style import DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from style import DATA, FULL, INK, MM, SOFT, letter, save, setup
 
 CAL = DATA.parents[1]
 

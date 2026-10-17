@@ -20,7 +20,7 @@ edlib (not installed)
 minimap2 2.30-r1287
 samtools samtools 1.21
 lofreq (not on PATH)
-git 36a1528e337a301a0921201fcec840bd571e6b66 (uncommitted changes present)
+git 8d30d61416260f7f899fdcae7c473aa91f4e2ed6 (uncommitted changes present)
 ```
 
 | Produces | Command | Inputs | Outputs | Output present |
@@ -30,6 +30,8 @@ git 36a1528e337a301a0921201fcec840bd571e6b66 (uncommitted changes present)
 | Planted mutations (Figure 3A-C, 3H; Table S2) | `python crm/spikein.py jh4 n114 su_lps pim1` | the AID-null libraries of each locus | `crm/out/spikein_*.json` | present |
 | Simulated lineages (Figure 3D-F) | `shmtrace-simulate-lineages --region jh4_intron --control KO1.fastq --control KO2.fastq --control KO3.fastq --reference mouse_jh4_intron.fasta --contaminant mouse_jh4_contaminant.fasta --targeting-model HH_S5F.csv --out lineage_sim` | the three J_H4 AID-null libraries; HH_S5F.csv (SHazaM, not redistributed) | `crm/out/lineage_sim_jh4/` | present |
 | The high-allele-fraction rule on a mutated dominant clone (Results, STAR Methods) | `shmtrace-simulate-lineages ... --scenarios expanded,expanded_mutated_40,expanded_mutated_60,expanded_mutated_80 --modes recommended --out mask_sim` | the same three AID-null libraries | `crm/out/mask_sim_jh4/` | present |
+| Depth series with repeated draws (Figure S5) | `python crm/depth_draws.py jh4 5; python crm/depth_draws.py n114 5` | the J_H4 and N114 FASTQ files | `crm/out/depth_draws_jh4.json, crm/out/depth_draws_n114.json` | present |
+| Power with the pilot CV's uncertainty (Figure S3B) | `python crm/power_s3.py` | figures/jh4_shmtrace/project.json (the wild-type pilot) | `crm/out/power_s3.json` | present |
 | Group-test calibration (Figure 3G) | `python replicates_calibration.py` | simulated counts | `replicates_calibration/runs.json` | present |
 | Sanger of the same mice (Figure 5) | `python crm/sanger_cohort2.py` | the deposit's chromatograms; samplesheets/ | `figures/sanger_vs_nanopore/` | present |
 | Published Sanger study, Maea (Figure S8) | `python crm/sanger_cohort2.py cohort2` | samplesheets/cohort2_barbulescu2024.csv and its chromatograms | `crm/out/sanger_cohort2.json` | present |
@@ -39,7 +41,8 @@ git 36a1528e337a301a0921201fcec840bd571e6b66 (uncommitted changes present)
 | Public Illumina and nanopore datasets (Figure 7) | `python crm/public_illumina.py` | PRJNA973112, PRJNA918596, PRJNA820976, PRJNA170048, Karst et al. | `crm/out/public/` | present |
 | Figure S12's nanopore reads | `python crm/scicanvas/s12_reads.py` | the J_H4 libraries | `(printed READS array, pasted into the builder)` | printed |
 | Figures | `python crm/figs/fig2_call.py (and fig3..fig7, figS2, figS3, figS6, figS8, figS9)` | the outputs above | `crm/figures/Figure*.png, .pdf, .svg, .tif` | present |
-| SciCanvas figures | `node crm/scicanvas/build.js crm/scicanvas/<builder>.js crm/scicanvas/out/<name>` | the outputs above | `crm/figures/Figure1.pdf, and FigureS10, S12, S13, S14, GraphicalAbstract` | present |
+| SciCanvas figures | `node crm/scicanvas/build.js crm/scicanvas/<builder>.js crm/figures/<name>` | the outputs above | `crm/figures/Figure1.pdf, and FigureS1_workflow, S10, S12, S13, S14, GraphicalAbstract` | present |
+| Mutation trees (Figures 6D and S11) | `python mutation_tree_figure.py` | the J_H4 FASTQ files | `figures/mutation_trees/` | present |
 | Table S2 workbook | `python crm/make_tables.py` | crm/out/benchmark_real_*.json, spikein_*.json | `crm/out/Table_S2_benchmark.xlsx` | present |
 | The manuscript and supplement | `python crm/manuscript/build_crm.py crm/build` | everything above; crm/manuscript/*.py | `crm/build/*.docx` | present |
 | The reviewer package | `python crm/make_review_package.py` | crm/build/*.docx, crm/figures/ | `crm/build/SHMtrace_review_package.zip` | present |

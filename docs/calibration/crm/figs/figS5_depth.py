@@ -17,7 +17,6 @@ import json
 import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
-
 from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 
 ASSAYS = {"jh4": ("J$_H$4 intron", ("WT2", "WT3", "WT4"), ("KO1", "KO2", "KO3"), "Wt", "$Aicda^{-/-}$"),
