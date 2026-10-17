@@ -307,6 +307,12 @@ def main(outdir):
                      "per-mouse tables (the other rows, and every Mkln1 row), the *Mkln1* tables read as "
                      "printed. Maea, *Maea*^{fl/fl}*Mb1*^{cre} (Barbulescu et al., 2024); Mkln1, *Mkln1*^{\u2212/\u2212} "
                      "(Barbulescu et al., 2025). N.R., not reported.")
+    # Table S5: the same five questions of all three re-analyses (agreement_table.py)
+    import agreement_table
+    s.page_break()
+    s.table(agreement_table.HEADER, agreement_table.table_rows(), widths=[20, 30, 22, 30, 28, 22, 30], size=6.5,
+            title="**Table S5. What \"reproduced\" means for each re-analyzed study, related to Figures S8\u2013S10**",
+            footnote=agreement_table.NOTE)
     s.save(out / "Document_S1.docx")
     print("Document S1 written")
 
