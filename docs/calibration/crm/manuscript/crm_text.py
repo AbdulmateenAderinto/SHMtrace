@@ -440,10 +440,10 @@ RESULTS = [
           "With that control out of the decoys, Wt and HMCES-deficient clones carried {hm_calls} substitutions each, "
           "{hmces_gc_range}% of them at G:C, as expected for AID. When the clone was instead analyzed as a sample, "
           "the corresponding values were {hmk3_calls} substitutions and {hmk3_gc}% at G:C."),
-    ("p", "UMI consensus reduces errors that arise after molecular tagging. On public R10 nanopore reads of rRNA operons "
-          "with dual UMIs[@karst2021], SHMtrace's consensus reduced the error per base 57-fold, to 0.17%, with "
-          "most residual errors in homopolymer indels. Substitution errors fell to about 1 in 10,000 bases with "
-          "10 or more reads per molecule (Figure 7E), which is 100-fold below the mutation frequency of Wt "
+    ("p", "UMI consensus reduces errors arising after molecular tagging. On public R10 nanopore reads of rRNA operons "
+          "with dual UMIs[@karst2021], SHMtrace's consensus reduced the error per base 57-fold (95% CI 35–99), to "
+          "0.17%, with most residual errors in homopolymer indels. Substitution errors fell to about 1 in 10,000 "
+          "bases with 10 or more reads per molecule (Figure 7E), 100-fold below the mutation frequency of Wt "
           "J_{H}4."),
     ("p", "Finally, we re-analyzed a system in which AID acts outside a B cell and its own catalytically dead "
           "mutant is the control: NIH-3T3 fibroblasts expressing AID-ER or AID-E58Q-ER together with an "
@@ -461,7 +461,7 @@ RESULTS = [
           "{mo_ung_ts}% when UNG was overexpressed, a swing that every-mismatch counting compresses to "
           "{mo_ugi_ts_raw}%, {mo_control_ts_raw}%, and {mo_ung_ts_raw}% because the dead-AID background sits at "
           "{mo_dead_ts}% transitions in every arm. With three experiments per arm, and one noisy control among "
-          "them, the animal-level tests did not reach significance despite these differences."),
+          "them, the experiment-level tests did not reach significance despite these differences."),
 ]
 
 DISCUSSION = [

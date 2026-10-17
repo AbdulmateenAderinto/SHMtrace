@@ -21,6 +21,13 @@ CAL = DATA.parents[1]
 PUB = DATA / "public"
 
 
+def titled(ax, title, question, size=7):
+    """Panel title, with the validation question it answers on a smaller line beneath."""
+    ax.set_title(title, fontsize=size, pad=10)
+    ax.text(0.5, 1.012, question, transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, color=MID,
+            style="italic")
+
+
 def strip(ax, groups, values, colors, floor):
     for i, (g, (f, e)) in enumerate(zip(groups, colors)):
         v = np.array(values[g], dtype=float)
@@ -48,7 +55,7 @@ def main():
     ax.set_yscale("log")
     ax.set_xticks(range(3), ["Wt", "$Ldha$ deleted", "AID-null"])
     ax.set_ylabel("Mutations per 10$^3$ bp")
-    ax.set_title("J$_H$4, Illumina (Sharma et al.)", fontsize=7)
+    titled(ax, "J$_H$4, Illumina (Sharma et al.)", "a genotype effect across mice, another platform")
     letter(ax, "A", dx=-0.32)
     # B
     ax = fig.add_subplot(gs[0, 2:4])
@@ -59,7 +66,7 @@ def main():
     ax.set_yscale("log")
     ax.set_xticks(range(4), ["AID", "R50E", "R174E/\nR178E", "empty"])
     ax.set_ylabel("Mutations per 10$^3$ bp")
-    ax.set_title("CH12F3, Illumina (Wang et al.)", fontsize=7)
+    titled(ax, "CH12F3, Illumina (Wang et al.)", "activity of AID mutants in one cell line")
     letter(ax, "B", dx=-0.32)
     # C
     ax = fig.add_subplot(gs[0, 4:6])
@@ -80,7 +87,7 @@ def main():
     ax.set_ylim(0, 125)
     ax.set_yticks([0, 25, 50, 75, 100])
     ax.set_ylabel("Share of calls (%)")
-    ax.set_title("Spectrum and targeting", fontsize=7)
+    titled(ax, "Spectrum and targeting", "do the mutant's calls look like AID's?")
     ax.legend(fontsize=5.2, loc="upper center", bbox_to_anchor=(0.5, -0.3), ncol=3, handlelength=1, columnspacing=0.7)
     letter(ax, "C", dx=-0.42)
     # D
@@ -97,7 +104,7 @@ def main():
     ax.text(1, -0.36, "deletions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
     ax.text(4.6, -0.36, "insertions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
     ax.set_ylabel("Events per clone (20,000 reads)")
-    ax.set_title("Indels in Ramos, Illumina (Wu et al.)", fontsize=7)
+    titled(ax, "Indels in Ramos, Illumina (Wu et al.)", "indels, not only substitutions")
     letter(ax, "D", dx=-0.3, dy=1.1)
     # E
     ax = fig.add_subplot(gs[1, 2:4])
@@ -106,18 +113,34 @@ def main():
     x = np.arange(len(bins))
     allerr = [u["by_reads_per_molecule"][b]["error_pct"] for b in bins]
     sub = [u["by_reads_per_molecule"][b]["substitution_error_pct"] for b in bins]
-    ax.plot(x, allerr, marker="o", ms=3, color="#9aa5b1", lw=1.1, label="consensus, all errors")
-    ax.plot(x, sub, marker="o", ms=3, color="#1f6f8b", lw=1.1, label="consensus, substitutions")
+    ax.plot(x, allerr, marker="o", ms=3, color="#9aa5b1", lw=1.1, label="all errors")
+    ax.plot(x, sub, marker="o", ms=3, color="#1f6f8b", lw=1.1, label="substitutions")
     ax.axhline(u["raw_read_error_pct"], color=CTRL, ls="--", lw=0.8)
     ax.text(3.0, u["raw_read_error_pct"] * 1.25, f"raw reads {u['raw_read_error_pct']:.1f}%", fontsize=5.5,
             color=CTRL, ha="right")
     ax.set_yscale("log")
-    ax.set_ylim(0.005, 30)
-    ax.set_xticks(x, ["3–4", "5–9", "10–19", "≥20"])
-    ax.set_xlabel("Reads per molecule")
+    ax.set_ylim(0.0005, 30)
+    ax.set_xticks(x, [f"{lab}\nn = {u['by_reads_per_molecule'][b]['molecules']}"
+                      for lab, b in zip(["3–4", "5–9", "10–19", "≥20"], bins)])
+    ax.set_xlabel("Reads per molecule (n, molecules)")
     ax.set_ylabel("Error per base (%)")
-    ax.set_title(f"UMI consensus, R10 reads ({u['molecules_3plus_reads']} molecules)", fontsize=7)
-    ax.legend(fontsize=5.3, loc="lower left")
+    # the aggregate reduction, with a bootstrap interval over molecules (the raw-read rate is held fixed)
+    mol = [m for m in json.load(open(CAL / "umi_karst/results.json"))["molecules"] if m["reads"] >= 3]
+    nm, bl = np.array([m["nm"] for m in mol]), np.array([m["blen"] for m in mol])
+    rng = np.random.default_rng(7)
+    boot = [100 * nm[i].sum() / bl[i].sum() for i in (rng.integers(0, len(mol), len(mol)) for _ in range(2000))]
+    cons = 100 * nm.sum() / bl.sum()
+    lo, hi = np.percentile(boot, [2.5, 97.5])
+    raw = u["raw_read_error_pct"]
+    ax.errorbar([3.45], [cons], yerr=[[cons - lo], [hi - cons]], fmt="D", ms=3, color=INK, capsize=1.5, lw=0.8)
+    ax.text(3.3, cons * 2.6, f"all {len(mol)}: {cons:.2f}%\n{raw / cons:.0f}-fold\n({raw / hi:.0f}–{raw / lo:.0f})",
+            fontsize=4.8, color=INK, ha="center", va="bottom", linespacing=1.15)
+    ax.set_xlim(-0.3, 3.75)
+    titled(ax, "UMI consensus, R10 (Karst et al.)", f"error after consensus, {u['molecules_3plus_reads']} molecules")
+    ax.legend(fontsize=5.3, loc="lower left", title="consensus", title_fontsize=5.3, handlelength=1.4)
+    json.dump({"consensus_error_pct": round(cons, 4), "ci": [round(lo, 4), round(hi, 4)],
+               "fold": round(raw / cons, 1), "fold_ci": [round(raw / hi, 1), round(raw / lo, 1)]},
+              open(DATA / "fig7_umi.json", "w"), indent=1)
     letter(ax, "E", dx=-0.26, dy=1.1)
     # F: the dead-AID control reveals the UNG-dependent spectrum
     ax = fig.add_subplot(gs[1, 4:6])
@@ -127,23 +150,32 @@ def main():
     V = defaultdict(list)
     for v in mo["variants"]:
         V[v["sample"]].append(v)
-    ours, theirs, dead = [], [], []
-    for arm in arms:
-        vs = [v for e in (1, 2, 3) for v in V[f"Exp{e}_{arm}_AID"]]
+    def ts_share(vs):
         gc = [v for v in vs if v["ref"] in "CG"]
-        ours.append(100 * sum((v["ref"], v["alt"]) in (("C", "T"), ("G", "A")) for v in gc) / len(gc))
-        theirs.append(np.mean([au[f"Exp{e}_{arm}_AID"]["pct_transition_at_GC"] for e in (1, 2, 3)]))
-        dead.append(np.mean([au[f"Exp{e}_{arm}_AIDE58Q"]["pct_transition_at_GC"] for e in (1, 2, 3)]))
+        return 100 * sum((v["ref"], v["alt"]) in (("C", "T"), ("G", "A")) for v in gc) / len(gc) if gc else np.nan
+
+    # one value per experiment and arm; lines join an experiment's three arms (the pairing)
+    E = (1, 2, 3)
+    ours = np.array([[ts_share(V[f"Exp{e}_{arm}_AID"]) for arm in arms] for e in E])
+    theirs = np.array([[au[f"Exp{e}_{arm}_AID"]["pct_transition_at_GC"] for arm in arms] for e in E])
+    dead = np.array([[au[f"Exp{e}_{arm}_AIDE58Q"]["pct_transition_at_GC"] for arm in arms] for e in E])
     x = np.arange(3)
-    ax.axhspan(min(dead), max(dead), color=CTRL, alpha=0.13, lw=0)
-    ax.text(0.04, np.mean(dead), "dead-AID background", fontsize=5, color=CTRL, ha="left", va="center")
-    ax.plot(x, theirs, marker="s", ms=3.4, lw=1, color=MID, mfc="white", label="every mismatch, Q > 20")
-    ax.plot(x, ours, marker="o", ms=3.4, lw=1.2, color=CASE, label="SHMtrace calls")
+    for k in range(3):
+        ax.plot(x - 0.08, theirs[k], color=MID, lw=0.5, alpha=0.6)
+        ax.plot(x + 0.08, ours[k], color=CASE, lw=0.5, alpha=0.6)
+    ax.scatter(np.repeat(x, 3) + 0.22, dead.T.ravel(), marker="x", s=9, color=CTRL, lw=0.7, zorder=3,
+               label="dead AID (E58Q), every mismatch, Q > 20")
+    ax.scatter(np.tile(x - 0.08, 3), theirs.ravel(), marker="s", s=9, facecolor="white", edgecolor=MID, lw=0.6,
+               zorder=3, label="AID, every mismatch, Q > 20")
+    ax.scatter(np.tile(x + 0.08, 3), ours.ravel(), marker="o", s=9, color=CASE, zorder=3, label="AID, SHMtrace calls")
+    json.dump({"arms": arms, "shmtrace": ours.round(1).tolist(), "authors": theirs.round(1).tolist(),
+               "dead": dead.round(1).tolist()}, open(DATA / "fig7_morange.json", "w"), indent=1)
     ax.set_xticks(x, ["Ugi\n(UNG off)", "empty", "UNG\n(extra)"], fontsize=5.4)
     ax.set_ylim(-4, 104)
     ax.set_ylabel("Transitions at C:G (%)")
-    ax.set_title("Ectopic AID, non-B cells (Pérez-Durán)", fontsize=6.6)
-    ax.legend(fontsize=5.2, loc="lower left", handlelength=1.5, borderaxespad=0.3)
+    titled(ax, "Ectopic AID, non-B cells (Pérez-Durán)", "does the spectrum follow UNG?", size=6.6)
+    ax.legend(fontsize=5, loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1, handlelength=1.2,
+              handletextpad=0.3, labelspacing=0.3)
     letter(ax, "F", dx=-0.3, dy=1.1)
     save(fig, "Figure7")
 
