@@ -66,8 +66,8 @@ Still open from this issue: Table S2 is still labelled as covering every caller 
 |---|---|---|
 | 1 | OT1/OT2 analysis provenance | **fixed** (c5ad350); Table S2 labelling still open (C29) |
 | 2 | Platform-wide calling claim contradicts Sanger Methods | **fixed** (see below) |
-| 3 | Empirical FDR presented as stronger control than established | **wording fixed**; empirical validation of the whole procedure still open |
-| 4 | Noisy-control policy ("sets aside" vs "still contributes") | **partly fixed** (c5ad350): wording reconciled, three-control minimum and provenance stated. Still open: side-by-side all-controls vs exclusion results, and validation under heterogeneous nulls |
+| 3 | Empirical FDR presented as stronger control than established | **fixed**: wording, the Benjamini-Hochberg reason corrected, and the whole procedure tested on fresh simulations (Figure S15) |
+| 4 | Noisy-control policy ("sets aside" vs "still contributes") | **fixed**: wording reconciled, minimum and provenance stated, and all-controls vs exclusion run side by side on identical libraries under heterogeneous nulls (Figure S15) |
 | 5 | "Reproduced unaided" overstates the Sanger evidence | **fixed** (e54003f) |
 | 6 | SWHEL host identity and change of statistical test | **fixed** (e54003f) |
 | 7 | Estimands undefined (three different frequency metrics) | **fixed** (74aed94); Figure 3F truth denominator still open |
@@ -403,3 +403,86 @@ Done earlier under issues 2, 6 and 11.
 ### Cross-references
 Figure S6 and Tables S1, S3 and S5 were never cited. All 14 supplementary figures and all 5 tables are now
 cited, from the legends, which are not word-capped; the main text holds at 6,999 words.
+
+
+---
+
+## Major issues 3 and 4 — the validation halves (fixed, Figure S15)
+
+Both issues ask for the same thing from two directions, so one experiment answers both. The margin, the
+threshold and the noisy-control rule are all chosen from the controls, so they have to be tested together,
+and on data none of them has seen.
+
+**Design** (`crm/fdr_validation.py`). A case library is built from one *Aicda*-/- J_H4 library's reads, with
+a known set of planted mutations or none at all. The controls are two further *Aicda*-/- libraries, each
+split in two, so no control shares a molecule with the case while two controls come from each sequencing
+library, as two controls from one run do. Every library is then analysed by `run_project` itself -- the same
+entry point as every result in the paper -- so the threshold and the rule are selected afresh each time.
+This is the distinction the review drew: `benchmark_real.py` fits a leave-one-out null for a caller
+comparison, while this exercises the complete procedure.
+
+Four conditions, from the review's own list: the controls as delivered; one control carrying extra errors at
+six recurrent positions in 6% of its reads; the same artifact in the case and in no control; and the same
+artifact in the case and in every control. Control number (2 or 3), depth (250, 500, 1,000) and mutation
+burden (none, or about 400 planted) are varied, and **every condition runs with the rule on and off on
+identical libraries** -- the side-by-side issue 4 asks for. 110 runs in the main grid, 80 more for the
+all-null cells, 30 for the estimator arm.
+
+### What it found
+
+**The measures the review asked for, which the paper did not report.** All-null libraries, 500 reads,
+3 controls:
+
+| controls | rule | libraries with any call | control set aside | mean false calls |
+|---|---|---|---|---|
+| as delivered | on | 1/25 (95% upper 20%) | 3/25 | 0.04 |
+| as delivered | off | 0/25 (95% upper 14%) | 0/25 | 0.00 |
+| one made noisy | on | 0/25 (95% upper 14%) | 25/25 | 0.00 |
+| one made noisy | off | 0/25 (95% upper 14%) | 0/25 | 0.00 |
+| artifact in case only | either | 5/5 | 0/5 | 6.00 |
+| artifact shared | either | 4/5 | 0/5 | 1.20 |
+
+The first two columns make the review's point exactly: a mean of 1.2 false calls looks small, but 4 of 5 of
+those libraries discovered something, and in a library with nothing to find one call is a false-discovery
+proportion of 1. Both are now reported.
+
+**Three findings.**
+
+1. **An artifact the controls do not carry is called every time**, under either setting, in every run. The
+   controls cannot measure what they never show, and no threshold repairs it. Shared with the controls, the
+   same artifact is largely removed (6.00 to 1.20 false calls). This is the limitation the Discussion already
+   stated; it is now quantified rather than asserted.
+2. **With real mutations present the per-library FDP stays near target** -- 3.8% with the controls as
+   delivered, 2.9% with one noisy, 2.9% shared -- and rises above 5% only when the case carries an artifact
+   the controls lack (5.9%). Six false calls among no true calls is an FDP of 1; the same six among four
+   hundred is under 2%, which is why the per-library proportion and the pooled ratio are both given.
+3. **The rule's fold comparison degenerates when the peers are clean.** Five times a median of zero is zero,
+   so a control with at least five held-out candidates is set aside whenever its peers have none, however
+   mild its excess. It fired on undoctored controls in 3 of 25 all-null runs for this reason. The Methods now
+   say so, and the rule names every library it sets aside.
+
+**The rule, side by side.** Where one control carried the artifact it was set aside in all 25 runs, and no
+all-null library called anything with the rule on or off: in the condition the rule was written for it
+neither gained nor cost measurably at this depth. With planted mutations it recovered about 3 true calls of
+400 (393.0 vs 389.6) for +0.1 percentage points of FDP. The one all-null false discovery in 50 runs came
+with the rule on, in a run where it had set aside a control -- the trade the review anticipated, visible but
+not separable from chance at this number of runs. With two controls it never fires, as the minimum requires.
+
+**Decoy-tail sensitivity** (`crm/fdr_estimator.py`). SHMtrace averages the held-out controls at each
+threshold; requiring the threshold to satisfy the noisiest control is the conservative alternative already
+in the code. Measured rather than argued: the conservative choice lowers mean FDP from 3.8% to 2.5% and
+costs about 14 of 403 true calls (~3%). Where the case carries an artifact the controls lack it helps little
+(5.9% to 5.1%), because no summary of the decoys can represent an artifact the decoys do not contain. The
+choice is a modest trade, not what decides the failure mode.
+
+**Benjamini-Hochberg.** The manuscript said the p values are "discrete and conservative, so rather than rely
+on their distribution, as Benjamini-Hochberg does". That is not the objection, as the review says: BH
+controls the FDR for valid discrete p values, conservatively. The reason is candidate selection -- a
+position is tested only where a read already differs, so the tested set is chosen by the same data that
+supply the evidence, and a candidate's null p value is conditioned on that selection rather than
+superuniform. The control-based threshold is not exposed to this, because the decoys are selected and tested
+by the identical rule. Corrected in both the Results and the Methods.
+
+**Still not claimed.** These are simulations on one locus, built from three *Aicda*-/- libraries of one
+sequencing run; the artifact conditions rest on 5 runs each, with correspondingly wide intervals. An
+independent sequencing run would test the thresholds further, and the Limitations say so.

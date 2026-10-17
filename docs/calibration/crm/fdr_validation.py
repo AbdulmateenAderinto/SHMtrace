@@ -47,8 +47,8 @@ from datasets import DATASETS  # noqa: E402
 
 from shmtrace import lineage_sim, pipeline, project, simulate  # noqa: E402
 from shmtrace.align import build_index  # noqa: E402
-from shmtrace.lineage_sim import _COMP  # noqa: E402
 from shmtrace.io_utils import read_fasta, read_fastq  # noqa: E402
+from shmtrace.lineage_sim import _COMP  # noqa: E402
 
 CRM = Path(__file__).resolve().parent
 OUT = CRM / "out"

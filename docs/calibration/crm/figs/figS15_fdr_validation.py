@@ -9,13 +9,12 @@ Data: out/fdr_validation.json (fdr_validation.py), which runs project.run_projec
 here comes from the complete procedure: margin, threshold, and the noisy-decoy rule.
 """
 import json
-from collections import defaultdict
 
 import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from scipy import stats
-from style import CASE, CTRL, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from style import CTRL, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 
 LABEL = {"none": "controls as\ndelivered", "one_noisy": "one control\nnoisy",
          "case_only": "artifact in case,\nnot in controls", "shared": "artifact in case\nand controls"}
@@ -93,7 +92,7 @@ def main():
     # C: libraries with real mutations: each library's own false-discovery proportion
     ax = fig.add_subplot(gs[1, 0])
     xs = np.arange(len(ORDER))
-    for j, (excl, col, lab) in enumerate(((True, ON, "rule on"), (False, OFF, "rule off"))):
+    for j, (excl, col, _lab) in enumerate(((True, ON, "rule on"), (False, OFF, "rule off"))):
         for i, noise in enumerate(ORDER):
             rs = pick(runs, signal="polyclonal", noise=noise, exclude_noisy=excl, depth=500, controls=3)
             v = [100 * r["fdp"] for r in rs]
@@ -118,7 +117,7 @@ def main():
     xs = np.arange(len(cells))
     for j, (excl, col, lab) in enumerate(((True, ON, "rule on"), (False, OFF, "rule off"))):
         fired, calls = [], []
-        for _lab, kw in cells:
+        for _label, kw in cells:
             rs = pick(runs, signal="null", noise="one_noisy", exclude_noisy=excl, **kw)
             fired.append(100 * np.mean([bool(r["decoys_set_aside"]) for r in rs]) if rs else 0)
             calls.append(np.mean([r["false_calls"] for r in rs]) if rs else 0)
