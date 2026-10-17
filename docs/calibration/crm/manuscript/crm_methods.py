@@ -211,7 +211,8 @@ METHODS = [
           "SHMtrace flagged as carrying more mutations than its base qualities predict would have been set aside; "
           "none was. Clones the original project never filed under a mouse were not used, as in the primary "
           "analysis."),
-    ("p", "For the SW_{HEL} study[@thientosapol2018], the 1,795 clones deposited in GenBank (MH198*-MH200*) were "
+    ("p", "For the SW_{HEL} study[@thientosapol2018], the 1,795 clones deposited in GenBank (accessions "
+          "MH198782–MH200576, a contiguous run, each listed in the sample sheet with its host and well) were "
           "downloaded and each read as one Sanger sequence; GenBank records carry no base qualities, so every base "
           "was given Phred 30. The germline was the iterated majority consensus of the clones themselves, which "
           "converged in two passes, and the analysis window was the stretch at least 99% of them read (558 bp of "
@@ -220,9 +221,13 @@ METHODS = [
           "There is no *Aicda*^{\u2212/\u2212} arm, so no control-calibrated background was fitted. The published "
           "per-arm counts were transcribed from the study's Table 1, which counts every sequence independently; "
           "SHMtrace's totals are compared on that basis, and its unique-mutation counts are lower, as expected. "
-          "The deposit names 12 host animals in the wild-type arm where the study reports 13, one record carrying "
-          "about twice as many clones as any other, so two animals appear to share a name there; the arms are "
-          "compared as groups and this does not affect them."),
+          "The study's Table 1 counts 1,796 sequences and the deposit holds 1,795; the one-record difference is in "
+          "the *Msh2*^{\u2212/\u2212} arm (445 deposited against 446), and no record was excluded. The deposit "
+          "names 12 host animals in the wild-type arm where the study reports 13, and one host name (AT40) "
+          "carries 88 clones, about twice any other, so two animals appear to share it. Pooled counts are "
+          "unaffected. Animal-level tests use the deposited host names as given; because merging two animals "
+          "into one can change such a test, every animal-level comparison was repeated with that host left out, "
+          "and the host was not split, since nothing in the records says which clone came from which animal."),
     ("h2", "Benchmark against other callers"),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
@@ -293,7 +298,8 @@ QUANT = [
     "Groups were compared with one value per animal (or per independent subclone or clone). The negative-binomial "
     "test fits each group's rate with one shared dispersion, as in DESeq2[@love2014], and obtains p values by "
     "parametric bootstrap. The Welch test uses log_{10} rates, with libraries without calls placed at their "
-    "one-event density, so that folds are lower bounds. The permutation test is exact. Folds are ratios of "
+    "one-event density; a fold against such libraries therefore depends on that convention and is not a "
+    "confidence bound. The permutation test is exact. Folds are ratios of "
     "geometric means. Spectra were compared by pooled Pearson correlation across the 12 substitution types with "
     "a Fisher interval, by a repeated-measures test of the platform-by-substitution-type interaction with mouse "
     "as the matching factor, and by paired Šídák-adjusted t tests. Sample sizes, statistical tests, and "
@@ -365,11 +371,11 @@ LEGENDS = [
      "(H) Share of held-out control tests reaching p < 0.01 against the margin on control error "
      "rates; dotted line, the 1% target. (I) Fate of every delivered read in each library. See also Figures S4 "
      "and S5 and Table S2."),
-    ("Figure 5. Nanopore and Sanger sequencing agree in the same mice",
+    ("Figure 5. Nanopore and Sanger sequencing give similar profiles in the same mice",
      "(A) Unique variants per 10^{5} bases per mouse (n = 3 per genotype) from Sanger clones (26–40 per wild-type "
      "mouse, re-analyzed from chromatograms) and from nanopore reads (500 per mouse); bars, geometric means; p, Welch "
-     "test on log densities; nanopore fold is a lower bound (one control without calls at one event). (B) Pooled "
-     "share of each of 12 substitution types ({n_sanger} Sanger, {n_ont} nanopore calls, 3 wild-type mice); dashed line, "
+     "test on log densities; the nanopore fold counts the two controls without calls at one event. (B) Pooled "
+     "share, uncorrected for base composition because both platforms cover the same window, of each of 12 substitution types ({n_sanger} Sanger, {n_ont} nanopore calls, 3 wild-type mice); dashed line, "
      "identity; r, Pearson with 95% CI. (C) Share of calls in 25-bp bins along the 529-bp window. (D) Share of G:C "
      "calls at WRC/GYW and of A:T calls at WA/TW; bars, mean of 3 mice; points, mice; dashed lines, the window's "
      "share of such sites. (E) Planted bookkeeping errors flagged by the Sanger pipeline in 40 simulated projects. "

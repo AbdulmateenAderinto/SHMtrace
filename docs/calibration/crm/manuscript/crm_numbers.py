@@ -704,6 +704,20 @@ def compute():
         N["sw_at_ts_p"] = "p = " + pfmt(float(stats.ttest_ind(
             [_cls(m, CL["at_ts"]) for m in mice["Samhd1_WT"]],
             [_cls(m, CL["at_ts"]) for m in mice["Samhd1_KO"]])[1]))
+        # total mutation per animal, Welch on log frequency (the study tested it by ANOVA with Holm-Sidak, p = 0.07)
+        lf = lambda ms: [math.log10(per[m]["freq_x1e4"]) for m in ms]  # noqa: E731
+        N["sw_tot_p"] = pfmt(float(stats.ttest_ind(lf(mice["Samhd1_WT"]), lf(mice["Samhd1_KO"]),
+                                                   equal_var=False)[1]))
+        # One deposited wild-type host name carries about twice the clones of any other, so it likely stands for
+        # two animals; the animal-level tests are repeated without it rather than splitting it without evidence.
+        big = max(mice["Samhd1_WT"], key=lambda m: per[m]["clones"])
+        rest = [m for m in mice["Samhd1_WT"] if m != big]
+        N["sw_big_host"], N["sw_big_n"] = big.split("HOST-")[-1], f0(per[big]["clones"])
+        N["sw_wt_hosts"] = f0(len(mice["Samhd1_WT"]))
+        N["sw_drop_p"] = series(pfmt(float(stats.ttest_ind([_cls(m, CL[k]) for m in rest],
+                                                            [_cls(m, CL[k]) for m in mice["Samhd1_KO"]])[1]))
+                                for k in ("at_tv", "gc_tv", "gc_ts", "at_ts"))
+        N["sw_drop_tot_p"] = pfmt(float(stats.ttest_ind(lf(rest), lf(mice["Samhd1_KO"]), equal_var=False)[1]))
         AT = ("A>G", "T>C", "A>T", "A>C", "T>A", "T>G")
         N["sw_at_wt"] = f"{np.mean([_cls(m, AT) for m in mice['Samhd1_WT']]):.0f}"
         N["sw_at_msh2"] = f"{np.mean([_cls(m, AT) for m in mice['Msh2_KO']]):.0f}"

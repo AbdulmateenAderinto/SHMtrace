@@ -23,7 +23,7 @@ SUMMARY = (
     "AID-null background to {ctl_rec} calls per assay and separated AID-active from "
     "AID-null libraries {sep_lo}- to {sep_hi}-fold in four of five nanopore assays, against {lf_lo}- to "
     "{lf_hi}-fold and {gen_lo}- to {gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger "
-    "sequencing of the same mice gave concordant spectra, and three published Sanger studies were re-analyzed "
+    "sequencing of the same mice gave similar spectra, and three published Sanger studies were re-analyzed "
     "from their deposited clones.")
 
 KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanopore sequencing, variant calling, "
@@ -40,11 +40,11 @@ MOTIVATION = (
     "published Sanger study from its own records, which turns a published analysis into something a reader can "
     "check rather than take on trust.")
 HIGHLIGHTS = [
-    "Each candidate mutation is tested against errors of matched AID-null libraries",
+    # four, as Cell Press guidance asks; each at most 85 characters
+    "Candidate mutations in reads are tested against errors of matched AID-null libraries",
     "AID-null controls retain {ctl_rec} calls per assay while true mutations are kept",
-    "Nanopore and Sanger sequencing of the same mice give concordant mutation spectra",
-    "Full-length reads add whole-amplicon maps, B cell clones, and mutation trees",
-    "Three published Sanger studies are reproduced from their deposited clones alone",
+    "Nanopore gives spectra similar to Sanger, plus whole-amplicon maps and mutation trees",
+    "Re-running three published Sanger studies recovers their principal comparisons",
 ]
 ETOC = ("Aderinto and Martin describe SHMtrace, which measures somatic hypermutation from nanopore, Illumina, or "
         "Sanger data. Candidates in reads are tested against errors measured in matched AID-null libraries; "
@@ -100,31 +100,25 @@ RESULTS = [
           "assigned to animals through a sample sheet and trimmed to their high-quality core, and reads tagged "
           "with unique molecular identifiers (UMIs) are collapsed to one consensus per molecule."),
     ("p", "The central step is the variant test (Figures 1A and 1C). For each substitution type, strand, and base "
-          "quality, SHMtrace measures how often the AID-null libraries of the same run show that change. It "
-          "then asks whether a candidate mutation is supported by more reads, at the qualities observed, than "
-          "this background can explain. Because quality scores overstate certainty at the highest qualities "
-          "(Figure S2), the control error rates are "
-          "multiplied by a safety margin chosen by leaving one control out at a time: each control is tested "
-          "against the others, and the smallest margin at which no more than 1% of its tests reach p < 0.01 is "
-          "kept. These held-out tests, made at the same read depth as the samples, also set the significance "
-          "threshold. Each control acts as a decoy library, as in target–decoy analysis[@elias2007], and SHMtrace "
-          "uses the most permissive p-value cutoff at which the controls predict that no more than 5% of a "
-          "library's calls are false. Unlike the Benjamini–Hochberg procedure[@benjamini1995], this "
-          "false-discovery rate (FDR) estimate does not assume that candidates selected because they were "
-          "observed have uniformly distributed p values. Sites at which half or more of the reads differ from the "
-          "reference are removed as germline or parental differences. Each control is itself tested against the "
-          "other controls, never against itself, so the calls made in controls are a fair estimate of the "
-          "residual background."),
-    ("p", "That test needs a molecule to be read more than once, and a Sanger clone is not: it is one molecule "
-          "read once, so there is nothing to count reads over and no per-call test is possible. SHMtrace "
-          "therefore takes a second route for Sanger data (Figure 1C). Every substitution at base quality ≥ 20 "
-          "is counted once the germline filter has been applied, and the AID-null clones are used differently: "
-          "their own mismatch rate, per reported quality and per position, is charged to each library's bases to "
-          "give the calls that the background alone would produce, which is reported beside the calls rather "
-          "than subtracted from them. The germline filter, the analysis window, the automatic checks and the "
-          "animal-level comparisons are shared by both routes. The Sanger results below therefore test the trace "
-          "reading, the counting, the bookkeeping checks and the group comparisons, not the control-calibrated "
-          "test itself."),
+          "quality, SHMtrace measures how often the AID-null libraries of the same run show that change, and asks "
+          "whether a candidate is supported by more reads, at the qualities observed, than this background "
+          "explains. Because quality scores overstate certainty at the highest qualities (Figure S2), the control "
+          "rates are multiplied by a margin chosen by leaving one control out at a time (STAR Methods). The "
+          "held-out controls then serve as decoys, as in target–decoy analysis[@elias2007]: SHMtrace keeps the "
+          "most permissive cutoff at which they predict that at most 5% of a library's calls are false. This is "
+          "an empirical estimate targeting 5%, not a guarantee: it relies on a few controls representing the "
+          "sample's background, and the same controls also choose the margin. The candidates' p values are "
+          "discrete and conservative, so rather than rely on their distribution, as the Benjamini–Hochberg "
+          "procedure[@benjamini1995] does, SHMtrace counts false calls directly in controls tested the same way, "
+          "each only against the others. Sites at which half or more of the reads differ from the reference are "
+          "set aside as likely germline or parental differences."),
+    ("p", "That test needs a molecule read more than once. A Sanger clone is one molecule read once, so SHMtrace "
+          "takes a second route for Sanger data (Figure 1C): every substitution at base quality ≥ 20 is counted, "
+          "and the AID-null clones' own mismatch rate is charged to each library's bases to give the calls the "
+          "background alone would produce, reported beside the calls rather than subtracted. The germline "
+          "filter, window, automatic checks and animal-level comparisons are shared. The Sanger results below "
+          "therefore test trace reading, counting, bookkeeping and group comparisons, not the "
+          "control-calibrated test."),
     ("p", "Figure 2 shows the test at work on real reads. In one Sμ wild-type library from the public dataset "
           "described below ({ana_case}), two C-to-T changes looked alike. One, at position {ana_t_pos} in a WRC "
           "hotspot ({ana_t_ctx}), was carried by {ana_t_reads} reads; the other, at position {ana_e_pos} "
@@ -267,10 +261,9 @@ RESULTS = [
           "separated AID-competent from *Aicda*^{−/−} libraries (SHMtrace {pim1_rec_fold}-fold with {pim1_rec_ctl} "
           "control calls; Geneious rule {pim1_gen_fold}-fold with {pim1_gen_ctl} control calls). {pim1_deep}"),
     ("p", "Two AID off-targets in CH12 cells, OT1 and OT2, test the same calibration where AID acts weakly and "
-          "a genetic perturbation predicts the answer[@seija2026]. These libraries carry three groups rather than "
-          "two, so each is reported against the *Aicda*^{−/−} controls separately; no fold is quoted, because "
-          "controls without calls would have to be floored before a ratio could be taken and the floor, not the "
-          "data, would set its size. At OT1, SHMtrace called {ot1_wt} unique variants in the three AID-competent "
+          "a genetic perturbation predicts the answer[@seija2026]. Each of the three groups is compared with the "
+          "*Aicda*^{−/−} controls; no fold is quoted, because controls without calls would have to be floored "
+          "and the floor would set its size. At OT1, SHMtrace called {ot1_wt} unique variants in the three AID-competent "
           "libraries and {ot1_ko} in the three *Aicda*^{−/−} libraries, a density of {ot1_wt_dens} against "
           "{ot1_ko_dens} per 10^{5} bases (SD {ot1_wt_sd} and {ot1_ko_sd}; p = {ot1_p_dens} on log density, "
           "{ot1_p} on frequency, Welch). At OT2 the counts were {ot2_wt} against {ot2_ko}, a density of "
@@ -293,18 +286,21 @@ RESULTS = [
           "better to the 1,230-bp target than to the shorter paralog sequence, contributed 35–54 false calls per "
           "simulated library."),
 
-    ("h", "Nanopore and Sanger sequencing agree in the same mice"),
+    ("h", "Nanopore and Sanger sequencing give similar profiles in the same mice"),
     ("p", "The same six mice had previously been analyzed by cloned-amplicon Sanger sequencing[@barbulescu2025]. We "
           "re-analyzed their 447 chromatograms with SHMtrace's Sanger mode and compared the two platforms over "
           "the 529-bp window that the Sanger clones read cleanly (Figures 5 and S7). Both platforms separated Wt from "
-          "*Aicda*^{−/−} mice (Sanger, {sanger_fold}-fold, p = {sanger_p}; nanopore, at least {ont_fold}-fold, "
+          "*Aicda*^{−/−} mice (Sanger, {sanger_fold}-fold, p = {sanger_p}; nanopore, {ont_fold}-fold with two "
+          "controls without calls counted at one event, "
           "p = {ont_p}; Welch tests on log densities, n = 3 per group; Figure 5A). The pooled substitution "
-          "spectra agreed closely (Pearson r = {r_spec}, 95% CI {r_spec_ci}; slope = {slope}; Figure 5B), as did "
+          "spectra were similar (Pearson r = {r_spec} over 12 types pooled from three mice, an interval of "
+          "{r_spec_ci} that reflects the types, not the mice; slope = {slope}; Figure 5B), as were "
           "the distribution of mutations along the intron (r = {r_pos} in 25-bp bins; Figure 5C) and the use of "
           "AID hotspots (Figure 5D). G:C mutations fell at WRC/GYW motifs in {hot_gc_s}% (Sanger) and "
           "{hot_gc_o}% (nanopore) of cases, and A:T mutations at WA/TW motifs in {hot_at_s}% and {hot_at_o}%, "
           "compared with {hot_gc_exp}% and {hot_at_exp}% of such sites in the window. A repeated-measures test "
-          "found no platform-by-substitution-type interaction (p = {interaction_p}). The absolute densities "
+          "found no platform-by-substitution-type interaction (p = {interaction_p}); with three mice this shows no "
+          "detectable difference, not equivalence. The absolute densities "
           "differ by design, because a Sanger clone is one molecule read once, whereas nanopore densities count "
           "unique mutations among 500 reads; densities should therefore be compared within, not between, "
           "platforms."),
@@ -318,13 +314,15 @@ RESULTS = [
           "clone whose label had also been changed was flagged in 22 of 40 projects, depending on how many "
           "mutations it shared with its lineage."),
 
-    ("h", "Published Sanger analyses are reproduced from their deposited clones"),
+    ("h", "Three published Sanger analyses re-run from their deposited clones"),
     ("p", "To test whether this re-analysis can be automated end to end, we applied the Sanger mode to a second, "
           "published J_{H}4 study: germinal-center B cells of four wild-type, four *Maea*^{fl/fl}*Mb1*^{cre} and "
           "*Aicda*^{−/−} mice, cloned and sequenced in 96-well plates and analyzed with SHMTool[@barbulescu2024,@maccarthy2009]. "
           "From one sample sheet that assigns each chromatogram to the mouse it was filed under in the original "
-          "analysis, SHMtrace processed the {c2_traces} chromatograms in {c2_seconds} s and recovered every "
-          "published comparison (Figure S8). Mutation frequency was {c2_fold}-fold lower in *Maea*-deficient "
+          "analysis, SHMtrace processed the {c2_traces} chromatograms in {c2_seconds} s; building that sheet, "
+          "which meant reconstructing the assignment from the original analysis project, took far longer "
+          "(STAR Methods). It recovered the direction and significance of the frequency and G:C comparisons "
+          "the study reports (Figure S8). Mutation frequency was {c2_fold}-fold lower in *Maea*-deficient "
           "than in wild-type mice (published, {c2_pub_fold}-fold; one-tailed t-test as published, p = {c2_p} "
           "and {c2_pub_p}). G:C transitions fell from {c2_ts_wt}% to {c2_ts_mk}% of mutations (published, "
           "{c2_ts_pub_wt}% to {c2_ts_pub_mk}%; p = {c2_ts_p} and {c2_ts_pub_p}), and G:C transversions rose "
@@ -364,22 +362,24 @@ RESULTS = [
           "names, and the arms are the genotypes its records state. The {sw_bp}-bp window this yields matches the "
           "560 bp the study analyzed. Across the five arms and the twelve substitution types, SHMtrace counted "
           "{sw_muts} of the {sw_pub_muts} mutations the study tabulates (Pearson r = {sw_r} over the 60 cells; "
-          "Figure S10), and mutations per sequence agreed to two decimal places in every arm. Every published "
-          "comparison followed: transversions fell at A:T (p = {sw_at_tv_p}) and at C:G (p = {sw_gc_tv_p}), "
-          "transitions at C:G rose (p = {sw_gc_ts_p}), and transitions at A:T did not move ({sw_at_ts_p}), as the "
-          "study reported. The *Msh2*^{−/−} arm, which SHMtrace was not told was a repair mutant, showed the "
+          "Figure S10), and mutations per sequence agreed to two decimal places in every arm. The four "
+          "substitution classes the study tested moved as reported: transversions fell at A:T (p = {sw_at_tv_p}) "
+          "and at C:G (p = {sw_gc_tv_p}), transitions at C:G rose (p = {sw_gc_ts_p}), and transitions at A:T did "
+          "not move ({sw_at_ts_p}). For total mutation the study reported a decrease that did not reach "
+          "significance (p = 0.07, one-way ANOVA); a Welch test on per-animal log frequency, a different test, "
+          "found it lower (p = {sw_tot_p}), so that comparison agrees in direction but not in inference. The "
+          "deposit names {sw_wt_hosts} wild-type hosts where the study reports 13; one, {sw_big_host}, carries "
+          "{sw_big_n} clones, about twice any other, and repeating the animal-level tests without it changed none "
+          "(p = {sw_drop_p} for the four classes, {sw_drop_tot_p} for total mutation). "
+          "The *Msh2*^{−/−} arm, which SHMtrace was not told was a repair mutant, showed the "
           "expected collapse of A:T mutations, from {sw_at_wt}% to {sw_at_msh2}% of all mutations. Because this "
           "study deposits sequences rather than chromatograms, it tests the calling, the spectrum and the group "
           "statistics but not the trace reading."),
     ("p", "The three studies differ in what remained to be explained. Where the original analyses counted every "
           "filed clone at one fixed length, as the tools they used require, SHMtrace counts the bases each clone "
           "actually read and sets paralog amplicons aside; applying the published convention to SHMtrace's own "
-          "mutations reconciled the knockout frequencies in both J_{H}4 studies (Table S4). The three studies also "
-          "span the range of what a deposit can support: one supplies chromatograms and a project that records "
-          "which mouse each clone came from, one supplies chromatograms whose per-mouse assignment had to be "
-          "reconstructed, and one supplies sequences whose records carry the assignment themselves. Comparisons "
-          "here are made between groups rather than between individual animals wherever the assignment is not "
-          "recorded."),
+          "mutations brought the knockout frequencies close to the published values in both J_{H}4 studies, "
+          "though not the wild-type ones (Table S4)."),
 
     ("h", "Long reads add whole-amplicon maps, clones, and mutation trees"),
     ("p", "Because each nanopore read spans the entire 1,230-bp J_{H}4 amplicon, the whole product can be analyzed "
@@ -495,19 +495,23 @@ DISCUSSION = [
     "decline of mutation is visible without tiling. Because the V(D)J junction identifies clones, an expanded "
     "or jackpotted clone no longer dominates the mutation frequency. In addition, the mutations within a clone "
     "can be ordered into a tree. Sanger sequencing of the same mice, re-analyzed from the chromatograms, agreed "
-    "with nanopore sequencing on spectrum, position, and hotspot use; what each platform measures that the other cannot is set out in Figure S12. The re-analysis also showed that the "
-    "weakest link in the traditional assay is bookkeeping, which SHMtrace now checks explicitly.",
+    "with nanopore sequencing on spectrum, position, and hotspot use; what each workflow measured here is set out in Figure S12. The re-analysis also exposed "
+    "consequential bookkeeping problems in the traditional assay, which SHMtrace now checks explicitly.",
     "Because the engine reads deposited clones as readily as new reads, a published SHM analysis can be re-run "
-    "from the records that accompany it. We did this for three studies. In each, the published comparisons "
-    "followed from the deposit alone, including a study from an unrelated laboratory at a different locus whose "
-    "claims concern the mutation spectrum rather than the mutation rate, and whose numbers SHMtrace reproduced "
-    "to a correlation of {sw_r} across its five arms and twelve substitution types. The exercise also showed "
-    "to carry for this to be possible. Chromatograms alone are not enough: which animal each clone came from "
-    "is what makes the group test meaningful, and it is the item most often missing. Where it was recorded in "
-    "the clone names themselves, re-analysis was immediate; where it had to be reconstructed from the original "
-    "project's folders, some clones could not be placed at all. The differences that remained between our "
-    "numbers and the published ones were matters of counting convention rather than of calling, and they "
-    "disappeared once the published convention was applied (Table S4). We would encourage deposits to name the "
+    "from the records that accompany it, once each clone is linked to its animal. We did this for three "
+    "studies. SHMtrace recovered the direction and significance of the principal reported changes: the fall in "
+    "mutation frequency in both J_{H}4 knockouts, their G:C shifts, and the four substitution-class changes of "
+    "a study from an unrelated laboratory at a different locus, whose counts it reproduced to a correlation of "
+    "{sw_r} across five arms and twelve substitution types. Agreement was not complete. Counting as the "
+    "original analyses counted, every filed clone at one fixed length, brought the knockout frequencies close "
+    "to the published values in both J_{H}4 studies, but the wild-type frequencies still differed; an A:T "
+    "decrease that the published *Mkln1* tables show as significant was not significant in SHMtrace's counts; "
+    "two of the three *Mkln1*^{−/−} tables could not be matched to the clones of any folder; and one SW_{HEL} "
+    "comparison agreed in direction but not in significance under a different test (Table S4; Figures S8–S10). "
+    "Re-analysis required an explicit record linking each clone to its animal and genotype, the item most "
+    "often missing. Where the clone records carried it, re-analysis was immediate; where it had to be "
+    "reconstructed from the original project's folders, some clones could not be placed. We would encourage "
+    "deposits to name the "
     "animal and the genotype in each record, as one of these studies does.",
     "Several features make SHMtrace practical for routine use. The analysis starts from delivered reads, the "
     "number of reads removed at each step is reported, the random draw of reads is reproducible from a fixed "
