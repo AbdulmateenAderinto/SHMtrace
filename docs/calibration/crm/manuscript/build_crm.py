@@ -539,8 +539,14 @@ SUPP_FIGS = [
      "them (Figure 1C). The read-length limit is set per locus (STAR Methods), and changes carried by half the "
      "reads or more are set aside as likely germline, a heuristic that can also remove a real mutation shared by "
      "a dominant clone. Results are summarised per animal and compared between groups with one value per "
-     "animal. Bookkeeping checks are reported beside the results and never applied. Figure S14 gives the rule and "
-     "equation behind each step."),
+     "animal, so that clones of one lineage cannot stand in for independent animals. The background grid shows "
+     "error rates by substitution and base quality, the candidate-test panel the counts expected from that "
+     "background against an observed one, and the threshold panel calls (filled) against decoys (open). "
+     "Profiles: density and mutation frequency; the 12-type spectrum, corrected for base composition; AID "
+     "(WRC/GYW) and Polη (WA/TW) hotspots; position along the amplicon; clones and mutation trees; indels; and, "
+     "for Sanger, how many calls the background explains. Bookkeeping checks are reported beside the results and "
+     "never applied: a trace filed under two animals on purpose is kept under both, and an accidental copy is "
+     "counted once. Sample-sheet rows are illustrative. Figure S14 gives the rule and equation behind each step."),
     ("Figure S14. How SHMtrace turns reads into calls, related to STAR Methods",
      [FIG / "FigureS14_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
