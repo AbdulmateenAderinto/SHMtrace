@@ -143,7 +143,13 @@ of every script for the two patterns involved - a constant floor, and a falsy re
 leaves only two hits, both cosmetic and feeding no reported number (a log-axis start in `fig2_call.py`, a
 confidence-band clip in `figS2_quality.py`).
 
-Not yet audited: the STAR Protocols document.
+**STAR Protocols**, audited last, shares `crm_numbers` with the main manuscript, so its 28 placeholders
+cannot drift and it hard-codes no result values. Its prose had drifted anyway, because it was last built on
+16 October and not re-read after the main paper was corrected. One sentence contradicted the manuscript
+outright: STAR said controls without calls are placed at their one-event density "so fold changes are lower
+bounds", while Table S3's footnote says such folds "are not statistical lower confidence bounds". Fixing it
+exposed a second, internal to STAR: Expected Outcomes told users to look for "at least 141-fold" eighteen
+lines earlier. Both corrected, and the deposit statement matched to the main paper's future tense.
 
 ## 4. Needs the author (could not be settled from the repository)
 
