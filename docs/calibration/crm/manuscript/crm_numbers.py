@@ -777,6 +777,112 @@ def compute():
             ek = [ev[m]["freq_x1e4"] for m in ev if ev[m]["group"] == "Mkln1_KO"]
             N["mk_ev_fold"] = f1(float(np.mean(ew) / np.mean(ek)))
             N["mk_ev_p"] = pfmt(float(stats.ttest_ind(np.log10(ew), np.log10(ek), equal_var=False)[1]))
+    # ---------------- PacBio class-switch junctions (crm/switch_pacbio.py)
+    sw_path = CRM / "out/switch_pacbio/switch_pacbio.json"
+    if sw_path.exists():
+        sw = _load(sw_path)
+        S_, G_ = sw["samples"], sw["groups"]
+        by = {g: [v for k, v in S_.items() if G_[k] == g] for g in set(G_.values())}
+        comp = {(r["group"], r["feature"]): r for r in sw["comparisons"]}
+        uj = [v["unique_junctions"] for v in S_.values()]
+        rpj = [v["reads_per_unique_junction"] for v in S_.values()]
+        amb = [v["acceptor_ambiguity_direct"]["ambiguous_pct"] for v in S_.values()]
+        mh = {g: [v["mean_microhomology"] for v in vs] for g, vs in by.items()}
+        p4 = {g: [v["microhomology_classes_pct"].get(">=4 nt", 0.0) for v in vs] for g, vs in by.items()}
+        bl = {g: [v["microhomology_classes_pct"].get("blunt", 0.0) for v in vs] for g, vs in by.items()}
+        N.update(pb_uj_lo=f0(min(uj)), pb_uj_hi=f0(max(uj)),
+                 pb_rpj_lo=f1(min(rpj)), pb_rpj_hi=f0(max(rpj)),
+                 pb_amb_lo=f0(min(amb)), pb_amb_hi=f0(max(amb)),
+                 pb_mh_wt=f2(np.mean(mh["WT"])), pb_mh_xlf=f2(np.mean(mh["Xlf"])),
+                 pb_mh_shld=f2(np.mean(mh["Shld1"])), pb_mh_dko=f2(np.mean(mh["Shld1_Xlf"])),
+                 pb_p_xlf=pfmt(comp[("Xlf", "mean_microhomology")]["p_welch"]),
+                 pb_p_shld=pfmt(comp[("Shld1", "mean_microhomology")]["p_welch"]),
+                 pb_p_dko=pfmt(comp[("Shld1_Xlf", "mean_microhomology")]["p_welch"]),
+                 pb_4_wt=f0(np.mean(p4["WT"])), pb_4_xlf=f0(np.mean(p4["Xlf"])), pb_4_dko=f0(np.mean(p4["Shld1_Xlf"])),
+                 pb_bl_wt=f0(np.mean(bl["WT"])), pb_bl_dko=f0(np.mean(bl["Shld1_Xlf"])),
+                 pb_p4_dko=pfmt(comp[("Shld1_Xlf", "pct_mh_4plus")]["p_welch"]),
+                 pb_pbl_dko=pfmt(comp[("Shld1_Xlf", "pct_blunt")]["p_welch"]))
+    # ---------------- public Illumina Smu, PI3K inhibitors (crm/public_smu_pi3k.py)
+    smu_path = CRM / "out/public_smu/public_smu.json"
+    if smu_path.exists():
+        sm = _load(smu_path)
+        tw, tk = {}, {}
+        for t, v in sm["treatments"].items():
+            tw[t] = [x["unique_mutations"] for x in v["samples"] if x["group"] == "WT"]
+            tk[t] = [x["unique_mutations"] for x in v["samples"] if x["group"] == "AID_KO"]
+        allw = [x for t in tw for x in tw[t]]
+        allk = [x for t in tk for x in tk[t]]
+        N.update(smu_wt_dmso=f1(np.mean(tw["DMSO"])), smu_wt_idela=f1(np.mean(tw["Idelalisib"])),
+                 smu_wt_duve=f1(np.mean(tw["Duvelisib"])), smu_ko_hi=f0(max(allk)),
+                 smu_wt_lo=f0(min(allw)), smu_wt_hi=f0(max(allw)),
+                 smu_gt_p=pfmt(float(stats.mannwhitneyu(allw, allk, alternative="greater").pvalue)),
+                 smu_idela_p=pfmt(float(stats.ttest_ind(tw["Idelalisib"], tw["DMSO"], equal_var=False).pvalue)),
+                 smu_duve_p=pfmt(float(stats.ttest_ind(tw["Duvelisib"], tw["DMSO"], equal_var=False).pvalue)))
+        rp = sm.get("repeats_paired")
+        if rp:
+            rw = [x["unique_mutations"] for x in rp["samples"] if x["group"] == "WT"]
+            rk = [x["unique_mutations"] for x in rp["samples"] if x["group"] == "AID_KO"]
+            fw = [x["mutation_frequency_x1e3"] for x in rp["samples"] if x["group"] == "WT"]
+            fk = [x["mutation_frequency_x1e3"] for x in rp["samples"] if x["group"] == "AID_KO"]
+            N.update(smur_wt=f1(np.mean(rw)), smur_ko=f1(np.mean(rk)), smur_ko_tot=word(sum(rk)),
+                     smur_wt_lo=f0(min(rw)), smur_wt_hi=f0(max(rw)), smur_ko_hi=f0(max(rk)),
+                     smur_wt_freq=f2(np.mean(fw)), smur_ko_freq=f2(np.mean(fk)),
+                     smur_p=pfmt(float(stats.mannwhitneyu(rw, rk, alternative="greater").pvalue)))
+            s5 = [x["s5f_index"] for x in rp["samples"] if x["group"] == "WT" and x["s5f_index"]]
+            ctga = [x["pct_CT_GA"] for x in rp["samples"] if x["group"] == "WT" and x["pct_CT_GA"]]
+            N.update(smur_s5f_lo=f2(min(s5)), smur_s5f_hi=f2(max(s5)),
+                     smur_ctga_lo=f0(min(ctga)), smur_ctga_hi=f0(max(ctga)))
+    # ---------------- engineered AID diversification (crm/liu_mutators.py, tam_*.py, tcr_bassan.py,
+    # devilder_clones.py). crm/out is not under version control, so each block is optional.
+    liu_p = CRM / "out/liu/liu_mutators.json"
+    if liu_p.exists():
+        ls = _load(liu_p)["samples"]
+        get = lambda pfx, k: [v[k] for n_, v in ls.items() if n_.startswith(pfx) and v[k] is not None]  # noqa: E731
+        for tag, aid, apo in (("wt", "AID_wt293T", "A3A_wt293T"), ("ko", "AID_ungmsh2", "A3A_ungmsh2")):
+            for key, short in (("pct_GC_in_WRC_GYW", "wrc"), ("pct_CT_GA", "ctga")):
+                x, y = get(aid, key), get(apo, key)
+                N[f"eng_{tag}_{short}_aid"] = f0(np.mean(x))
+                N[f"eng_{tag}_{short}_apo"] = f0(np.mean(y))
+                N[f"eng_{tag}_{short}_p"] = pfmt(float(stats.ttest_ind(x, y, equal_var=False).pvalue))
+        nc = [v["unique_mutations"] for n_, v in ls.items() if n_.startswith("NC")]
+        N["eng_nc_hi"] = f0(max(nc))
+    foot_p = CRM / "out/tam/footprint.json"
+    if foot_p.exists():
+        fb = _load(foot_p)["best_per_guide"]
+        clean = [v for v in fb.values() if v["rate_per_1e3"] > 50]
+        N["eng_guides_clean"] = word(len(clean))
+        N["eng_guide_lo"] = f0(min(v["rate_per_1e3"] for v in clean))
+        N["eng_guide_hi"] = f0(max(v["rate_per_1e3"] for v in clean))
+        N["eng_guide_fold_lo"] = f0(min(v["fold"] for v in clean))
+        N["eng_guide_fold_hi"] = f0(max(v["fold"] for v in clean))
+    sat_p = CRM / "out/tam/saturation.json"
+    if sat_p.exists():
+        t_ = _load(sat_p)["totals"]
+        N["eng_sat"] = ", ".join(str(t_[f"{k}_sgRNAs"]) for k in (3, 5, 7, 10))
+    tam_p = CRM / "out/tam/tam_reporter.json"
+    if tam_p.exists():
+        cal = _load(tam_p)["calibrated_run"]["samples"]
+        N["eng_tam_ctrl"] = f0(cal["mock"]["unique_mutations"])
+        N["eng_tam_case"] = word(cal["dCas9_AIDX_sgRNA"]["unique_mutations"])
+        raw = _load(tam_p)["raw_mismatch_per_1e3"]
+        amp = "amp_CCTGACCTACGGCGTGCAGT"
+        N["eng_tam_raw_case"] = f0(raw["dCas9_AIDX_sgRNA"][amp])
+        N["eng_tam_raw_ctrl"] = f0(raw["mock"][amp])
+    dev_p = CRM / "out/devilder/devilder_clones.json"
+    if dev_p.exists():
+        rnds = _load(dev_p)["rounds"]
+        ann = [c for v in rnds.values() for c in v if c["published_mutations"]]
+        ok = [c for c in ann if not c["published_not_recovered"] and not c["recovered_not_published"]]
+        N["eng_dev_n"] = f0(len(ann))
+        N["eng_dev_ok"] = f0(len(ok))
+    tcr_p = CRM / "out/tcr/tcr_bassan.json"
+    if tcr_p.exists():
+        ts = _load(tcr_p)["samples"]
+        base = ts["h5_wt"]["mutation_frequency_x1e3"]
+        oth = [v["mutation_frequency_x1e3"] for k, v in ts.items() if k != "h5_wt"]
+        N["eng_tcr_base"] = f2(base)
+        N["eng_tcr_lo"] = f2(min(oth))
+        N["eng_tcr_hi"] = f2(max(oth))
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())

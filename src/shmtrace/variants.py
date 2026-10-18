@@ -316,9 +316,12 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     germline_removed = 0
     germline_sites: list = []
     n_hypotheses = 0
-    germline_on = True
+    germline_on = not p.ancestral_reference
     germline_min_depth = 0
-    if model == "sanger":
+    if not germline_on:
+        notes.append("germline frequency rule off: the reference is declared an ancestral construct "
+                     "(ancestral_reference), so a high-frequency change is a candidate, not germline")
+    if germline_on and model == "sanger":
         germline_min_depth = p.sanger_germline_min_clones
         if n_clones < p.sanger_germline_min_clones:
             germline_on = False

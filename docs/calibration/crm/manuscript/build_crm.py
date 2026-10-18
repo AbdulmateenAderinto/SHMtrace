@@ -564,6 +564,56 @@ SUPP_FIGS = [
     ("Figure S15. End-to-end stress tests using resampled control reads, related to STAR Methods",
      FIG / "FigureS15.png",
      "Resampled AID-null J_{H}4 reads were analyzed with `run_project`, exercising margin selection, control-based thresholding and noisy-decoy exclusion together. The case used KO1; controls were technical partitions of KO2 and KO3, without shared case/control read records. Two controls used one partition per source; three controls used two KO2 partitions and one KO3 partition. These are conditional resampling experiments, not independent preparations or validation on a new run. Three controls and 500 reads unless stated. Teal, exclusion on; amber, exclusion off, paired on identical inputs. (A) All-null resamples with any call and 95% Clopper–Pearson intervals; n = 25 per setting for unmodified background and one noisy control, n = 5 for case-only and shared artifacts. FDP is 1 whenever an all-null resample has a discovery. (B) Mean false calls ± SEM for those resamples. (C) Individual mutation-bearing resample FDPs (five per condition/setting); black bars, means; dashed line, the nominal 5% target. (D) Exclusion rate under a heterogeneous null; n = 5 per setting for two controls and 250/1,000 reads, n = 25 for three controls at 500 reads. Artifacts occupy six positions with nominal 6% support per position. Shared artifacts use identical alternative alleles; artifacts avoid planted biological mutations. Injection preserves each read’s original orientation and quality order. In the shared all-null condition, any call occurred in {fdv_null_shared_on_any}/{fdv_null_shared_on_n} exclusion-on resamples and {fdv_null_shared_off_any}/{fdv_null_shared_off_n} exclusion-off resamples, compared with {fdv_null_case_only_on_any}/{fdv_null_case_only_on_n} and {fdv_null_case_only_off_any}/{fdv_null_case_only_off_n} for case-only artifacts. Small resample counts limit error-control conclusions (STAR Methods)."),
+    ("Figure S16. Class-switch junctions in a public PacBio dataset, related to Figure 7",
+     FIG / "FigureS16_switch_pacbio.png",
+     "Sμ–Sγ1 switch products from wild-type, *Shld1*^{−/−}, *Xlf*^{−/−} and *Shld1*^{−/−}*Xlf*^{−/−} primary B "
+     "cells, three mice per genotype, one PacBio run per mouse (PRJNA831666). (A) Per library: reads delivered, "
+     "reads yielding a junction, and unique junctions, which are junction reads whose breakpoints agree within "
+     "3 bp on both sides. Reads per unique junction differ several-fold between samples, so junction counts "
+     "measure recovery of long-range PCR products and not switching efficiency. (B) Microhomology classes of "
+     "the unique junctions, mean of three mice: blunt, 1–3 nt, 4 nt or more, and junctions carrying inserted "
+     "bases. (C) Mean microhomology per mouse; bars, genotype means; p, Welch test against wild type with three "
+     "mice per genotype. The permutation test over the same values cannot return less than 0.1 at this sample "
+     "size and is given in `crm/out/switch_pacbio/comparisons.csv`. (D) Share of unique junctions whose "
+     "acceptor-side segment aligns equally well at more than one position, measured by re-aligning that segment "
+     "on its own. The module's own ambiguity flag reports 0% in every sample, because minimap2 returns no "
+     "secondary alignment for these reads; acceptor breakpoints in the repeats are therefore approximate. This "
+     "dataset has no AID-null arm and does not test the substitution caller's control calibration."),
+    ("Figure S17. Public S\u03bc mutation libraries under PI3K\u03b4 blockade, related to Figure 7",
+     FIG / "FigureS17_public_smu.png",
+     "S\u03bc amplicons from wild-type and *Aicda*^{\u2212/\u2212} primary B cells treated with DMSO, idelalisib "
+     "or duvelisib, three replicates per genotype and treatment (GSE77788). (A) What each library reads. The "
+     "amplicon is the bundled 651-bp S\u03bc fragment; AID acts on the repeats in its first half. Six of the nine "
+     "wild-type libraries are 300-bp single-end and every *Aicda*^{\u2212/\u2212} library is paired, so genotype "
+     "is confounded with layout, and the mates do not overlap, so they cannot be merged. Window B is the stretch "
+     "every library reads, analysed from one read apiece; window C is the repeats, reachable only by the second "
+     "mate. (B) Unique mutations per library in window B, at 20,000 reads each; bars, group means. The "
+     "*Aicda*^{\u2212/\u2212} libraries stay at background in every treatment, and wild-type means rise with "
+     "both inhibitors, but replicates within a treatment differ by more than the treatments do, so this window "
+     "does not resolve the drug effect. (C) The genotype contrast in window C, using only the twelve paired "
+     "libraries, where no layout difference remains; treatment is a nuisance factor here and the three "
+     "wild-type libraries are one per treatment. Targeting index and C\u2192T/G\u2192A share are of the "
+     "wild-type calls."),
+    ("Figure S18. Engineered AID diversification in four public datasets, related to Figure 7",
+     FIG / "FigureS18_engineered.png",
+     "(A) One GFP substrate edited by a panel of deaminases delivered alike (SRP159221), three replicates per "
+     "arm: the share of calls at WRC/GYW (circles) and the share that are C\u2192T or G\u2192A (squares), in "
+     "wild-type and in UNG/MSH2-null 293T. Bars, group means. The motif share separates AID from APOBEC3A in "
+     "both backgrounds; the transition share does so only in wild-type cells, because losing uracil excision "
+     "drives transitions whichever enzyme made the uracil. (B) Mismatches per 1,000 bases at Q \u2265 30 along "
+     "one ABL exon-6 amplicon, for five libraries differing only in which sgRNA they carry (SRP075898). Each "
+     "track is scaled to its own peak, whose height is given, so a weak guide stays visible; the arm is "
+     "multiplexed and all three of its amplicons were analysed. #6, #9 and #15 peak at distinct positions at "
+     "116\u2013137 per 1,000 against a background near 1. #4 passes a fold test on a low local baseline but "
+     "reaches only 6 per 1,000, and #7's peak lies where two other guides are also high, so its fold "
+     "understates it. These are per-position rates, not mutation calls. (C) Positions where a library sits at "
+     "least five-fold above the lowest of the other three at that base, against the number of sgRNAs the "
+     "library carries. The baseline leaves each library out of its own comparison. A zero may mean those "
+     "guides target outside the amplicons recovered here. (D) An AID-diversified MAGE-A1 TCR (figshare "
+     "12803501) called against the 1,785-bp ancestral construct reconstructed from the deposit: the one "
+     "available baseline library against ten diversified and selected populations. With a single baseline, and "
+     "that baseline belonging to one founder, no false-discovery rate is claimed. Analyses in "
+     "`crm/liu_mutators.py`, `crm/tam_footprint.py`, `crm/tam_saturation.py` and `crm/tcr_bassan.py`."),
 ]
 
 if __name__ == "__main__":

@@ -81,7 +81,9 @@ def candidate_sites(aligned, ref: str, p: Params, lo: int, hi: int) -> list[tupl
             if alt == refbase:
                 continue
             frac = counts[pos].get(alt, 0) / d
-            if p.phase_min_freq <= frac < p.germline_freq_threshold:
+            # with a declared ancestral reference a selected variant may reach fixation and still be real
+            hi = 2.0 if p.ancestral_reference else p.germline_freq_threshold
+            if p.phase_min_freq <= frac < hi:
                 sites.append((pos, alt, frac))
     sites.sort(key=lambda x: -x[2])
     return [(pos, alt) for pos, alt, _ in sites]

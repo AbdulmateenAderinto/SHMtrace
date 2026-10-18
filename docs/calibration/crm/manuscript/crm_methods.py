@@ -25,6 +25,16 @@ KRT = [
     ("Illumina mOrange reporter, ectopic AID in NIH-3T3 cells", "Pérez-Durán et al.[@perezduran2012]",
      "BioProject PRJNA170048; GEO GSE39108"),
     ("R10 nanopore reads with dual UMIs, ZymoBIOMICS operons", "Karst et al.[@karst2021]", "github.com/SorenKarst/longread_umi"),
+    ("PacBio Sμ–Sγ1 class-switch products, *Shld1* and *Xlf* mice", "Vincendeau et al.[@vincendeau2022]",
+     "BioProject PRJNA831666"),
+    ("Illumina Sμ mutation libraries, PI3Kδ inhibitors", "Compagno et al.[@compagno2017]",
+     "BioProject PRJNA311552; GEO GSE77788"),
+    ("Illumina GFP reporter, diversifying base editors", "Liu et al.[@liu2018]", "SRA SRP159221"),
+    ("Illumina reporter and ABL exon 6, targeted AID mutagenesis", "Ma et al.[@ma2016]", "SRA SRP075898"),
+    ("PacBio MAGE-A1 TCR, AID diversification", "Bassan et al.[@bassan2021]",
+     "figshare 10.6084/m9.figshare.12803501"),
+    ("Anti-HLA-A2 antibody clone sequences", "Devilder et al.[@devilder2019]",
+     "the study's Additional file 1"),
     ("**Experimental models: Cell lines**", "", ""),
     ("N114 hybridoma", "Martin et al.[@martin2002]", "N/A"),
     ("**Experimental models: Organisms/strains**", "", ""),
@@ -400,6 +410,73 @@ METHODS = [
           "grouped by UMI (allowing up to three edits per end, with directional merging of rare UMIs), and each "
           "group of three or more reads was collapsed into one quality-weighted consensus, which was scored against "
           "the 43 known operon sequences of the mock community."),
+    ("h2", "Public PacBio class-switch junctions"),
+    ("p", "PRJNA831666[@vincendeau2022] holds Sμ–Sγ1 switch products from wild-type, *Shld1*^{−/−}, *Xlf*^{−/−} "
+          "and *Shld1*^{−/−}*Xlf*^{−/−} primary B cells, three mice per genotype, one PacBio run per mouse. "
+          "Although the archive names the files as subreads, the reads are of high-accuracy quality: aligned to "
+          "the bundled Sμ fragment over 600 bp or more, their median identity is 99.8%, so the `map-hifi` preset "
+          "was used in place of the module's `map-ont` default. Donor and acceptor references were cut from the "
+          "GRCm39 IgH locus (chromosome 12, minus-strand orientation): Sμ with the forward primer site, "
+          "chr12:113,386,000–113,392,500, and Sγ1 through Cγ1 to the reverse primer site, "
+          "chr12:113,290,000–113,304,000, the windows being fixed by where the reads themselves start and stop "
+          "(`crm/build_switch_reference.py`, which refuses to write unless the project's own J_{H}4 reference and "
+          "the bundled Sμ fragment both align inside the fetched locus). Junctions were called with "
+          "`shmtrace.switch` (`crm/switch_pacbio.py`): reads were oriented to the donor, the donor and acceptor "
+          "parts taken as the two best forward alignments, and junctions whose breakpoints agreed within 3 bp on "
+          "both sides counted once as a unique junction. Each library also carries a large population of short "
+          "off-target molecules, median about 350 bp against about 1.3 kb for the reads that yield junctions, so "
+          "read accounting is reported per sample. Genotypes were compared with one value per mouse, by Welch "
+          "test and by permutation; with three mice per genotype the permutation p cannot fall below 0.1, so "
+          "both are reported. Acceptor-breakpoint ambiguity was measured directly, by re-aligning each "
+          "junction's first 60 acceptor bases on their own with the short-read preset and counting placements "
+          "within five matched bases of the best, because the module's own flag depends on secondary alignments "
+          "that minimap2 does not report for these reads."),
+    ("h2", "Public engineered-diversification datasets"),
+    ("p", "Four datasets in which a deaminase is directed deliberately were analysed against the construct "
+          "each experiment began with, which is what `ancestral_reference` is for: there the reference is a "
+          "known ancestor, so a change that selection drove high is the result and not germline. The option "
+          "is off by default and leaves the physiological presets unchanged (`crm/germline_policy_demo.py` "
+          "shows what it does and does not alter). "
+          "SRP159221[@liu2018] edits one 238-bp EGFP amplicon with a panel of editors delivered alike, three "
+          "replicates per arm; pairs merge on a 97.8% overlap, the reference is the consensus of the "
+          "no-editor arm, and the prespecified contrast was DBE-AIDmono against DBE-humanA3a in wild-type and "
+          "UNG/MSH2-null 293T, at 20,000 reads per library (`crm/liu_mutators.py`). Motif and spectrum shares "
+          "are descriptive: they are computed from whatever was called and never used to decide what to call. "
+          "SRP075898[@ma2016] is multiplexed, several amplicons to a file, so references were built per "
+          "amplicon and each analysed with the others as competing references; its `SRR3608504` library is "
+          "labelled single-end but exports a paired block and a single-end block, and only the single-end "
+          "block was used, so every library contributes one read of the same kind. Its reporter arm has one "
+          "no-editor library, which is below what the control-calibrated test needs, so that arm is reported "
+          "as mismatch rates rather than calls; its ABL exon-6 and saturation arms are self-controlled, each "
+          "library serving as the comparison for the others at their own peaks "
+          "(`crm/tam_reporter.py`, `crm/tam_footprint.py`, `crm/tam_saturation.py`). The genome-wide "
+          "off-target arm of that project was not analysed: it is fragmented material and would have to be "
+          "forced through amplicon-shaped gates. The MAGE-A1 TCR deposit[@bassan2021] supplies mapped CCS "
+          "alignments but not its reference, which was reconstructed exactly from their CIGAR and MD tags "
+          "(1,785 bp, no disagreement between reads) and verified against the project's own J_{H}4 reference; "
+          "`11_h12_HA` holds 19 reads and was excluded by count, and `1_h5_wt` is the one available baseline "
+          "and belongs to founder h5, so it is not treated as a matched AID-null control for the others "
+          "(`crm/tcr_prepare.py`, `crm/tcr_bassan.py`). The anti-HLA-A2 clones[@devilder2019] were taken from "
+          "the study's Additional file 1, which publishes each selected cluster's nucleotide sequence "
+          "together with the authors' own list of its mutations; each cluster is kept separate and nothing is "
+          "collapsed to a consensus (`crm/devilder_clones.py`). None of these is a curated population, so no "
+          "population frequency, unselected distribution or technical error rate is computed from them."),
+    ("h2", "Public Illumina Sμ mutation libraries"),
+    ("p", "GSE77788[@compagno2017] holds Sμ amplicons from wild-type and *Aicda*^{−/−} primary B cells treated "
+          "with DMSO, idelalisib or duvelisib, three replicates per genotype and treatment. The deposit mixes "
+          "library layouts, and the mix follows the groups: all nine *Aicda*^{−/−} libraries are paired, while "
+          "six of the nine wild-type libraries are 300-bp single-end. The paired mates do not overlap, so they "
+          "cannot be merged: R1 and the single reads cover reference positions 401–650 and 351–650 of the "
+          "bundled 651-bp Sμ fragment, which is this amplicon, and R2 covers positions 1–250, with a gap "
+          "between. Passing the pairs to the merging step keeps only 9–21% of them, and those are the shortest "
+          "molecules. Every library was therefore analyzed the same way, from one read apiece: R1 alone for the "
+          "paired libraries, the single file otherwise, over reference positions 410–625, the stretch all "
+          "eighteen read, less the primer and the last bases each read reaches. Each treatment was its own "
+          "project, calibrated on the *Aicda*^{−/−} libraries of that same treatment, at 20,000 reads per "
+          "library. Because AID acts on the Sμ repeats, which lie in reference positions 1–327 and are reached "
+          "only by R2, the genotype contrast was repeated over positions 20–240 using the twelve paired "
+          "libraries alone, where treatment is a nuisance factor rather than the comparison "
+          "(`crm/public_smu_pi3k.py`)."),
 ]
 
 QUANT = [
@@ -583,7 +660,7 @@ TABLE1 = [
 TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers ten SHM target loci from seven laboratories; rRNA is excluded. Lengths are analysis windows; the mOrange amplicon is 679 bp.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S15 and Tables S1 and S3–S5",
+    "Document S1. Figures S1–S18 and Tables S1 and S3–S5",
     "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

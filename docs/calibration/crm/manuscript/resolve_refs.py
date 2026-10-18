@@ -58,6 +58,12 @@ QUERIES = {   # key: PubMed query (a title, optionally with an author)
     "martin2002b": "Martin A[Author] AND Scharff MD[Author] AND 2002[dp] AND Proc Natl Acad Sci U S A[Journal] AND transgene",
     "zeng2001": "Zeng X[Author] AND Gearhart PJ[Author] AND 2001[dp] AND Nat Immunol[Journal]",
     "danecek2021": "Twelve years of SAMtools and BCFtools[Title]",
+    "vincendeau2022": "35764636[uid]",
+    "liu2018": "30355495[uid]",
+    "ma2016": "Targeted AID-mediated mutagenesis (TAM) enables efficient genomic diversification in mammalian cells[Title]",
+    "devilder2019": "Ex vivo evolution of human antibodies by CRISPR-X[Title] OR (Devilder MC[Author] AND 2019[dp] AND BMC Biotechnol[Journal])",
+    "bassan2021": "Avidity optimization of a MAGE-A1-specific TCR with somatic hypermutation[Title]",
+    "compagno2017": "28199309[uid]",
 }
 
 

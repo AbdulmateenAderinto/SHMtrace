@@ -414,9 +414,13 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
                     continue
                 k = counts[pos].get(alt, 0)
                 if k / d >= p.germline_freq_threshold:
-                    # a fixed difference from the reference, not error
-                    stats["germline_sites_excluded"] += 1
-                    continue
+                    # A fixed difference from the reference, not error. With a declared ancestral
+                    # reference it is kept, as a position-specific rate: the controls are the
+                    # un-diversified baseline, so a difference they carry is baseline material and the
+                    # case must not be called for carrying it too.
+                    if not p.ancestral_reference:
+                        stats["germline_sites_excluded"] += 1
+                        continue
                 alt_counts[(pos, alt)] += k
                 trials[(pos, alt)] += d
                 polymorphic = k / d >= POLYMORPHIC_IN_CONTROLS
