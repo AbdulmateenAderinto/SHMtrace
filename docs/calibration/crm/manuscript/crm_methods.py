@@ -609,7 +609,7 @@ LEGENDS = [
      "mouse, re-analyzed from chromatograms) and from nanopore reads (500 per mouse); bars, geometric means; p, Welch "
      "test on log densities; the nanopore fold counts the two controls without calls at one event. (B) Pooled "
      "share, uncorrected for base composition because both platforms cover the same window, of each of 12 substitution types ({n_sanger} Sanger, {n_ont} nanopore calls, 3 wild-type mice); dashed line, "
-     "identity; r, Pearson with 95% CI. (C) Share of calls in 25-bp bins along the 529-bp window. (D) Share of G:C "
+     "identity; r, descriptive Pearson over the 12 types. (C) Share of calls in 25-bp bins along the 529-bp window. (D) Share of G:C "
      "calls at WRC/GYW and of A:T calls at WA/TW; bars, mean of 3 mice; points, mice; dashed lines, the window's "
      "share of such sites. (E) Each wild-type mouse's calls in four substitution classes, Sanger (S) against "
      "nanopore (N); lines join the same mouse; p, platform × type interaction over the 12 types (repeated "

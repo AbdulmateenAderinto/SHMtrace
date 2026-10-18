@@ -63,7 +63,9 @@ def main():
     ax.set_xlim(lim)
     ax.set_ylim(lim)
     r = st["spectrum"]["pearson"]
-    ax.text(0.04, 0.9, f"r = {r['r']:.2f} [{r['ci'][0]:.2f}–{r['ci'][1]:.2f}]\nslope {r['slope']:.2f}",
+    # a Fisher interval over 12 compositional categories is not a population confidence interval, so the
+    # panel gives the correlation itself, as Results now does
+    ax.text(0.04, 0.9, f"r = {r['r']:.2f}\nslope {r['slope']:.2f}",
             transform=ax.transAxes, fontsize=5.5)
     ax.set_xlabel("Sanger, % of calls")
     ax.set_ylabel("Nanopore, % of calls")
