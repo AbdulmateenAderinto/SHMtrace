@@ -106,7 +106,8 @@ STEPS = [
         "Dissociate the Peyer's patches into a single-cell suspension by pressing them through a 70-µm strainer, "
         "and wash the cells once.",
         "Stain the cells with anti-B220, GL7, and anti-Fas for 20–30 min on ice ({lab_stain}), and wash them twice.",
-        "Sort B220^{+}GL7^{+}Fas^{+} GC B cells into a tube (we used a BD FACSymphony S6 SE), collecting "
+        "Sort B220^{+}GL7^{+}Fas^{+} GC B cells into a tube (we used a BD FACSymphony S6 SE or FACSAria II), "
+        "collecting "
         "approximately 10,000 cells per mouse.",
         "CRITICAL: Process wild-type and AID-null mice on the same day with the same reagents.",
         "Pause point: Pelleted cells can be stored at −80 °C.",
