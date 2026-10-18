@@ -331,8 +331,10 @@ STATS = [
      "{sanger_fold}-fold; p = {sanger_p}"),
     ("N114, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "{sep_n114}-fold"),
     ("J_{H}4, full length (positions 90–1,230)", "geometric means", "{full_wt} vs {full_ko} × 10^{−5}; ~{full_fold}-fold"),
-    ("Spectrum, Sanger vs nanopore (12 types, 3 Wt mice)", "Pearson r [95% CI]; slope",
-     "r = {r_spec} [{r_spec_ci}]; slope {slope}"),
+    # descriptive, not a population interval: 12 compositional categories pooled from 3 mice, so a Fisher
+    # interval here describes the types and not the animals. Results drops it for the same reason.
+    ("Spectrum, Sanger vs nanopore (12 types, 3 Wt mice)", "Pearson r (descriptive); slope",
+     "r = {r_spec}; slope {slope}"),
     ("Spectrum, per type", "repeated-measures interaction; paired t with Šídák",
      "interaction p = {interaction_p}; smallest adjusted p = {sidak_min}"),
     ("Position along the window, Sanger vs nanopore", "Pearson r, 25-bp bins", "r = {r_pos}"),

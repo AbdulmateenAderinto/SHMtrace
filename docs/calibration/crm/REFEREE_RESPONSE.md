@@ -31,6 +31,7 @@ The manuscript rebuilds: summary 145 words, main text 6,993 (cap 7,000), 52 refe
 | 13 | "None of these is a curated population" — ambiguous antecedent; the TCR libraries **do** carry read-level frequencies, which S18D plots. | Scoped to the Devilder records, with the TCR frequencies stated and framed as endpoints of selection. | `crm_methods.py`, Figure S18D |
 | 14 | "ClairS rejected 11 of its 12 candidates, **including neither** of the two carried by 20% or more" — says the opposite of what was meant. | "…; of the two carried by 20% or more of reads, a level at which it recalled nearly all clean planted mutations, neither passed." | `crm_numbers.py:486` |
 | 16 | **The mOrange separation folds were wrong.** Results gave 105-, 8,102- and 2,033-fold. Two compounding faults: the denominator was floored at a hard-coded `1e-6` (so the constant, not the data, set the fold — `1e-5` would have given Ugi 810, `1e-7` 81,022), and `mutation_frequency_x1e3` is rounded to four decimals, so dead-AID libraries with real mutations stored as exactly `0.0` and were then floored. | Corrected to **20-, 1,002- and 103-fold**. UNG was out 20× from the rounding alone. Frequencies are now computed from counts; only a library that genuinely saw nothing is floored, at one event on its own denominator (the Figure 4F / Table S3 convention). Results states that only the Ugi arm rests on a floored denominator. | `out/public/morange/project.json`; `crm_numbers.py` |
+| 19 | **Table S3 kept the spectrum's Pearson 95% CI** after Results dropped it, under an explicit "Pearson r [95% CI]" label. | Dropped there too, so the two agree. The column now reads "Pearson r (descriptive); slope". A Fisher interval over 12 compositional categories pooled from three mice describes the types, not the animals. | `build_crm.py` STATS |
 | 18 | **526 bp vs 529 bp** (referee's numerical table). The group simulation's "500 reads × 526 bp" sat a few lines from the 529-bp analysis window with nothing distinguishing them, and the referee asked whether 526 was stale. | **Intentional, and now stated.** 526 is the mean number of bases a read covers, not the window: reads do not all span every position. Methods now gives the denominator as 262,913 base observations and says so; the J_H4 libraries average 525 covered bases per read (range 516–528), so the simulation sits inside the observed spread. Caveat left for the author: 262,913 matches no single library (nearest KO3 at 263,019) nor the exact mean (262,393), and its derivation is not recorded. | `docs/calibration/replicates_calibration.py`, one level above `crm/`, which is why an earlier search missed it |
 | 17 | Results said "Calibrated against the dead-AID libraries of the same experiments", which the referee read as each arm calibrating itself. | "Calibrated against **that arm's** dead-AID libraries" — only the empty arm's three are controls, which is what the code does. Settles major issue 2's first half. | `project.json` control flags |
 | 15 | Resource availability claimed files "**have been** deposited at [data deposit DOI]" with the identifier unresolved. | "will be deposited … and will be publicly available as of the date of publication". `lab_details.py` now prints a reminder to switch the tense once the identifiers resolve. | build checklist |
@@ -157,8 +158,14 @@ lines earlier. Both corrected, and the deposit statement matched to the main pap
 1. **Guide, protospacer and PAM positions for Figure S18B** (referee minor 11). These are not in the SRP075898
    deposit as downloaded; they would come from the paper's supplementary material, which would mean a new
    download. **Not fetched.**
-2. **Table S3's Pearson 95% CI for the spectrum.** The interval is gone from Results but remains in Table S3
-   under an explicit "Pearson r [95% CI]" label. Decide whether to drop it there too.
+2. **Figure S18B guide positions: the sequences are behind a paywall.** Searched for them on 18 October.
+   The sgRNA spacers are not in the SRP075898 deposit, which holds only FASTQ files. Nature Methods redirects
+   to an institutional login; Europe PMC returns 403; and Addgene holds only the dCas9-AID(P182X) construct
+   (#83260) for this paper, no guide plasmids. The spacers are in the paper's own supplementary material.
+   **What would finish it:** the supplementary table listing the BCR-ABL tiling library spacers, specifically
+   sgRNA 4, 6, 7, 9 and 15. With those sequences the guides can be located in the amplicon references already
+   on disk by exact match, so no coordinates from the paper are needed and the positions can be drawn on
+   S18B directly.
 
 ---
 
