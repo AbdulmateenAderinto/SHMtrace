@@ -31,6 +31,7 @@ The manuscript rebuilds: summary 145 words, main text 6,993 (cap 7,000), 52 refe
 | 13 | "None of these is a curated population" — ambiguous antecedent; the TCR libraries **do** carry read-level frequencies, which S18D plots. | Scoped to the Devilder records, with the TCR frequencies stated and framed as endpoints of selection. | `crm_methods.py`, Figure S18D |
 | 14 | "ClairS rejected 11 of its 12 candidates, **including neither** of the two carried by 20% or more" — says the opposite of what was meant. | "…; of the two carried by 20% or more of reads, a level at which it recalled nearly all clean planted mutations, neither passed." | `crm_numbers.py:486` |
 | 16 | **The mOrange separation folds were wrong.** Results gave 105-, 8,102- and 2,033-fold. Two compounding faults: the denominator was floored at a hard-coded `1e-6` (so the constant, not the data, set the fold — `1e-5` would have given Ugi 810, `1e-7` 81,022), and `mutation_frequency_x1e3` is rounded to four decimals, so dead-AID libraries with real mutations stored as exactly `0.0` and were then floored. | Corrected to **20-, 1,002- and 103-fold**. UNG was out 20× from the rounding alone. Frequencies are now computed from counts; only a library that genuinely saw nothing is floored, at one event on its own denominator (the Figure 4F / Table S3 convention). Results states that only the Ugi arm rests on a floored denominator. | `out/public/morange/project.json`; `crm_numbers.py` |
+| 21 | **Figure S18B drew no guide positions**, and the deposit does not publish them (referee minor 11). | Obtained the paper's supplementary. Supplementary Figure 9 draws each sgRNA on the ABL exon 6 sequence with its PAM marked but **does not number them**, so per-guide identity is still unavailable. The protospacers were instead located computationally: each PAM was found in the amplicon consensus rebuilt from the reads, and the 20 bases 5' of it taken as the protospacer. S18B now shades those nine + strand protospacers, unlabelled, as the source figure presents them. **All five libraries' highest peaks fall inside one** (#4 at 49 in 46–65; #6 at 95, #7 at 98 and #15 at 94 in 83–102; #9 at 154 in 146–165), which is the positional relationship the referee asked to see. | Ma et al. Supplementary Figure 9; `out/tam/footprint.json` |
 | 20 | **Figure S18C explained the zero at three guides as "guides target outside the amplicons recovered here".** Ma et al.'s Supplementary Figure 12 says all four pools target the same 100-bp window, positions 201–300 of ABL exon 6, and that only seven guides fit inside it, so the ten-guide pool adds three that flank it. The guides are not aimed elsewhere. | Legend corrected to say so: the zero at three guides is too little signal to clear the five-fold threshold. The earlier wording offered a technical excuse the source paper's own design contradicts. | Ma et al. Supplementary Figure 12 |
 | 19 | **Table S3 kept the spectrum's Pearson 95% CI** after Results dropped it, under an explicit "Pearson r [95% CI]" label. | Dropped there too, so the two agree. The column now reads "Pearson r (descriptive); slope". A Fisher interval over 12 compositional categories pooled from three mice describes the types, not the animals. | `build_crm.py` STATS |
 | 18 | **526 bp vs 529 bp** (referee's numerical table). The group simulation's "500 reads × 526 bp" sat a few lines from the 529-bp analysis window with nothing distinguishing them, and the referee asked whether 526 was stale. | **Intentional, and now stated.** 526 is the mean number of bases a read covers, not the window: reads do not all span every position. Methods now gives the denominator as 262,913 base observations and says so; the J_H4 libraries average 525 covered bases per read (range 516–528), so the simulation sits inside the observed spread. Caveat left for the author: 262,913 matches no single library (nearest KO3 at 263,019) nor the exact mean (262,393), and its derivation is not recorded. | `docs/calibration/replicates_calibration.py`, one level above `crm/`, which is why an earlier search missed it |
@@ -156,20 +157,9 @@ lines earlier. Both corrected, and the deposit statement matched to the main pap
 
 ## 4. Needs the author (could not be settled from the repository)
 
-1. **Guide, protospacer and PAM positions for Figure S18B** (referee minor 11). These are not in the SRP075898
-   deposit as downloaded; they would come from the paper's supplementary material, which would mean a new
-   download. **Not fetched.**
-2. **Figure S18B guide positions: the paper does not number its guides.** The supplementary was obtained and
-   read. Supplementary Figure 9 does give the sgRNA designs, drawn as arrows on the ABL exon 6 sequence with
-   PAMs marked and strand shown by arrow direction, but **the arrows carry no numbers**. The library labels
-   this analysis uses are authoritative and come from ENA, whose `library_name` field reads "#4 sgRNA against
-   ABL exon6" and so on for #6, #7, #9 and #15, under `sample_title` "293T-footprint". Nothing published maps
-   a numbered guide to a particular arrow. Assuming the numbering runs in positional order along the exon
-   would be a guess, and the measured peaks do not obviously support it, though they sit on different
-   amplicons so that is not a fair test either. **What can still be done:** mark guide-targeted regions and
-   their strands on S18B without per-guide identity, exactly as Ma et al. present them. That answers the
-   referee in the source paper's own form, but cannot assert that a given library's peak sits at that
-   library's own protospacer.
+Nothing outstanding in this section. The three items that sat here have all been settled: the 526 bp
+simulation length (section 1, item 18), Table S3's Pearson interval (item 19), and the Figure S18B guide
+positions (item 21). What remains for the author is section 5.
 
 ---
 

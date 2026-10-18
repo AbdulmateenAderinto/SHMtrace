@@ -59,6 +59,14 @@ def main():
     order = ["sgRNA_4", "sgRNA_6", "sgRNA_7", "sgRNA_9", "sgRNA_15"]
     # each track is scaled to its own maximum: the panel is about where the excess sits, not how big it is,
     # and a shared scale makes the smallest guide's peak invisible
+    # Protospacers of the + strand guides, as 0-based spans in this amplicon. Derived from Ma et al.
+    # Supplementary Figure 9, which draws each sgRNA on the ABL exon 6 sequence and marks its PAM but does
+    # not number them: each PAM was located in the amplicon consensus and the protospacer taken as the 20 nt
+    # 5' of it. The guides are therefore drawn unlabelled, as the source figure presents them.
+    PROTOSPACERS = [(0, 10), (5, 24), (46, 65), (56, 75), (83, 102), (98, 117), (113, 132), (146, 165),
+                    (209, 228)]
+    for a, b in PROTOSPACERS:
+        ax.axvspan(a, b, color=SOFT, alpha=0.16, lw=0, zorder=0)
     for row, g in enumerate(order):
         p_ = prof[g]
         xs = [k for k, r in enumerate(p_) if r is not None]
@@ -77,10 +85,10 @@ def main():
     ax.set_xlabel("Position in the amplicon (bp)")
     # the deposit names the sgRNAs but does not publish their protospacer coordinates, so the panel shows
     # where each library's excess sits, not its distance from a guide (minor 11)
-    ax.set_title("Each library's excess peaks at its own position", fontsize=6.6)
+    ax.set_title("Each library's peak falls in a protospacer", fontsize=6.6)
     ax.text(0.5, -0.30, "five sgRNAs on one amplicon; each track scaled to its own peak, whose\n"
-                        "height in mismatches per 10$^3$ is given. Rates, not calls. The deposit\n"
-                        "does not publish protospacer coordinates, so guides are not drawn.",
+                        "height in mismatches per 10$^3$ is given. Rates, not calls. Shaded, the\n"
+                        "+ strand protospacers; the source figure does not number its guides.",
             transform=ax.transAxes, ha="center", va="top", fontsize=4.8, color=MID)
     letter(ax, "B", dx=-0.1)
     # C: sites against guides
