@@ -395,7 +395,10 @@ METHODS = [
           "reads. Each control was held out in turn, with the other two as background. Quantification accuracy "
           "was measured with the same design at 125, 250, 500, and 1,000 reads for J_{H}4 and N114 (168 "
           "libraries). Group tests were simulated with log-normal animal rates (coefficient of variation of 1) and "
-          "negative-binomial counts on 500 reads × 526 bp per animal, with 300 experiments per condition. Forty "
+          "negative-binomial counts on 262,913 base observations per animal, with 300 experiments per condition. "
+          "That denominator is 500 reads at 526 bases each, which is the mean a read covers rather than the "
+          "529-bp window: reads do not all span every position, and the J_{H}4 libraries average 525 covered "
+          "bases per read (range 516–528). Forty "
           "Sanger projects were simulated with realistic trace qualities, unusable traces, and one of each "
           "bookkeeping error planted."),
     ("h2", "Public Illumina and UMI datasets"),
