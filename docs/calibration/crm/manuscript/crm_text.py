@@ -195,7 +195,7 @@ RESULTS = [
           "called, because nanopore reads carry about one indel error each and SHMtrace requires three "
           "supporting reads. On J_{H}4, single-base deletions in homopolymers were the hardest to recover "
           "({ind_jh4_hp}%), whereas 2-bp insertions and deletions of 10 bp or more were recovered in "
-          "{ind_jh4_ins2}% and {ind_jh4_long}% of cases."),
+          "{ind_jh4_ins2}% and {ind_jh4_long}% of cases (Figure S3D)."),
     ("p", "Planted single sites cannot test features that depend on clones, so we also simulated B cell lineages "
           "on the J_{H}4 control reads. Each library contained about 40 clones of power-law size, "
           "with trunk, branch, and private mutations placed by the "

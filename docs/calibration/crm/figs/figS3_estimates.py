@@ -4,6 +4,7 @@ A  single-read estimate: change in the estimate against one-read mutations plant
 B  power at alpha 0.05 to detect a 2-fold change, by animals per group (J_H4 Wt pilot; power_s3.py), with a band
    for the uncertainty of a CV estimated from three mice
 C  UMI consensus against every read: false calls and recall of single-molecule mutations (umi_sim)
+D  indels planted into held-out AID-null libraries (indel_spike.py): recall by planted read count, J_H4 and N114
 """
 import json
 from collections import defaultdict
@@ -11,15 +12,36 @@ from collections import defaultdict
 import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
-from style import DATA, FULL, INK, MM, SOFT, letter, save, setup
+from style import CALLERS, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 
 CAL = DATA.parents[1]
+
+
+DATASET_LABEL = {"jh4": "J$_H$4", "n114": "N114"}
+
+
+def indel_recall(key):
+    """Planted-indel recall by read count, pooled and per held-out control, with the false calls it cost."""
+    d = json.load(open(DATA / f"indel_spike_{key}.json"))
+    pooled, per_ctl = defaultdict(lambda: [0, 0]), defaultdict(lambda: defaultdict(lambda: [0, 0]))
+    for r in d["rows"]:
+        for p_ in r["planted"]:
+            pooled[p_["reads"]][0] += p_["found"]
+            pooled[p_["reads"]][1] += 1
+            per_ctl[p_["reads"]][r["control"]][0] += p_["found"]
+            per_ctl[p_["reads"]][r["control"]][1] += 1
+    ks = sorted(pooled)
+    false = [len(r["false"]) for r in d["rows"]]
+    ge3 = [sum(pooled[k][0] for k in ks if k >= 3), sum(pooled[k][1] for k in ks if k >= 3)]
+    return {"ks": ks, "recall": [pooled[k][0] / pooled[k][1] for k in ks],
+            "spread": [[v[0] / v[1] for v in per_ctl[k].values()] for k in ks],
+            "false_per_library": sum(false) / len(false), "recall_ge3": ge3[0] / ge3[1]}
 
 
 def main():
     setup()
     fig = plt.figure(figsize=(FULL, 58 * MM))
-    gs = gridspec.GridSpec(1, 3, figure=fig, left=0.085, right=0.99, top=0.86, bottom=0.2, wspace=0.42)
+    gs = gridspec.GridSpec(1, 4, figure=fig, left=0.065, right=0.978, top=0.86, bottom=0.2, wspace=0.46)
     # A
     ax = fig.add_subplot(gs[0, 0])
     rows = json.load(open(DATA / "single_read_spike.json"))
@@ -74,6 +96,31 @@ def main():
     ax.set_title("UMI consensus (simulated)", fontsize=7)
     ax.legend(fontsize=5.5, loc="upper right")
     letter(ax, "C", dx=-0.3)
+
+    # D: planted indels, the indel counterpart of Figure 3A and 3B
+    ax = fig.add_subplot(gs[0, 3])
+    teal = CALLERS["recommended"][1]
+    notes = []
+    for j, (key, ls, mk) in enumerate((("jh4", "-", "o"), ("n114", "--", "s"))):
+        r = indel_recall(key)
+        xs = range(len(r["ks"]))
+        ax.plot(xs, r["recall"], color=teal, ls=ls, marker=mk, ms=3, lw=1, mfc=teal if j == 0 else "white",
+                label=f"{DATASET_LABEL[key]}  {100 * r['recall_ge3']:.0f}% at \u2265 3")
+        ax.vlines([x + (j - 0.5) * 0.12 for x in xs], [min(v) for v in r["spread"]], [max(v) for v in r["spread"]],
+                  color=teal, lw=0.7, alpha=0.8)
+        notes.append(f"{DATASET_LABEL[key]} {r['false_per_library']:.2f}".rstrip("0").rstrip("."))
+    ax.axvspan(-0.5, 1.5, color=SOFT, alpha=0.12, lw=0)
+    ax.text(0.5, 0.52, "below the\n3-read floor", ha="center", va="center", fontsize=5.0, color=MID)
+    ax.set_xticks(range(len(r["ks"])), [str(k) for k in r["ks"]])
+    ax.set_xlim(-0.5, len(r["ks"]) - 0.5)
+    ax.set_ylim(-0.03, 1.03)
+    ax.set_xlabel("Reads with the indel")
+    ax.set_ylabel("Recall")
+    ax.set_title("Planted indels", fontsize=7, pad=9)
+    ax.legend(loc="lower right", fontsize=5.2, handlelength=2.0, borderaxespad=0.1)
+    ax.text(0.5, 1.005, "false calls/library: " + ", ".join(notes), transform=ax.transAxes, ha="center",
+            va="bottom", fontsize=5.2, color=MID)
+    letter(ax, "D", dx=-0.3)
     save(fig, "FigureS3")
 
 

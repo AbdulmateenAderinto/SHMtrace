@@ -382,7 +382,7 @@ SUPP_FIGS = [
      "controls, the ones SHMtrace calibrates that locus against. Runs: J_{H}4, all six libraries from one "
      "sequencing order (DHJGKB); N114, all six from another (75K3B3); Sμ and *Pim1*, PRJNA1481264, whose records "
      "do not state which libraries shared a flow cell."),
-    ("Figure S3. Single-read estimate, power and UMI consensus on simulated libraries, related to Figure 3",
+    ("Figure S3. Single-read estimate, power, UMI consensus and planted indels, related to Figure 3",
      FIG / "FigureS3.png",
      "(A) Change in the aggregate single-read estimate against one-read mutations planted into held-out J_{H}4 "
      "control libraries (three controls; three replicates per amount); dashed line, identity. (B) Power to detect a "
@@ -395,7 +395,14 @@ SUPP_FIGS = [
      "and at twice the estimate (1.9), a stated pessimistic case: with 2 degrees of freedom the interval's upper "
      "end is effectively unbounded, so the CV, not the simulation, is what limits this calculation. "
      "(C) False calls per library with and without UMI consensus in "
-     "simulated UMI libraries built from real control reads (three held-out controls)."),
+     "simulated UMI libraries built from real control reads (three held-out controls). "
+     "(D) Recall of indels planted into reads of a held-out AID-null library, by the number of reads carrying "
+     "each: 10 insertions or deletions of 1\u201340 bp per draw, 8 draws per control, 240 planted indels per "
+     "amplicon; vertical lines, the range of the three held-out controls; shading, the one- and two-read region "
+     "the three-read floor excludes (STAR Methods). Legend, recall of the indels carried by three or more reads; "
+     "above the panel, the false calls each cost. On J_{H}4 these are not eight events but one: the same 28-bp "
+     "deletion, in the same four reads of one control, in every draw. It carries 5-bp microhomology at its "
+     "ends, so it is most likely a molecule the material already held rather than a calling error."),
     ("Figure S4. N114 V-region results, related to Figure 4 (page 1 of 2)",
      [MC / "Figure4_hybridoma_combined.png"],
      "(A) N114 unique-variant density per subclone (n = 3 per vector; empty-vector subclones without calls drawn at one event). (B and C) Pooled From → To substitution matrices of the pMX-*Aicda* (B) and empty-vector (C) subclones. Every matrix cell gives unique variants and their share of the group's calls. The quantitative axis in A is unique-variant density, not mutation frequency. Individual-library spectra continue on the next page."),
