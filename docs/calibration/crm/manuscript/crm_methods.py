@@ -82,16 +82,23 @@ EXPERIMENTAL = [
 
 METHODS = [
     ("h2", "Germinal-center B cell isolation and DNA extraction"),
-    ("p", "Peyer's patches were harvested post-mortem, dissociated into single-cell suspensions, and stained with "
-          "anti-B220, GL7, and anti-Fas. Germinal-center B cells (B220^{+}GL7^{+}Fas^{+}) were isolated by "
-          "fluorescence-activated cell sorting (BD FACSymphony S6 SE). Genomic DNA was extracted from "
-          "approximately 10,000 sorted germinal-center B cells or 5 × 10^{6} hybridoma cells by proteinase K "
-          "digestion."),
+    ("p", "Peyer's patches were harvested post-mortem into cold FACS buffer ({lab_facs_buffer}) and dissociated "
+          "into single-cell suspensions by pressing them through a 70-µm strainer, then washed once. Cells were "
+          "stained for 20–30 min on ice with {lab_stain} and washed twice. Germinal-center B cells "
+          "(B220^{+}GL7^{+}Fas^{+}) were isolated by fluorescence-activated cell sorting (BD FACSymphony S6 SE), "
+          "collecting approximately 10,000 cells per mouse; wild-type and *Aicda*^{−/−} mice were processed on "
+          "the same day with the same reagents, so that genotype is not confounded with handling. Genomic DNA "
+          "was released from the sorted cells, or from 5 × 10^{6} hybridoma cells, by proteinase K digestion "
+          "({lab_lysis}), and lysate quality was checked by A260/280 and A260/230 ratios."),
     ("h2", "Amplification and sequencing"),
     ("p", "The 1,230-bp J_{H}4 intron amplicon[@jolly1997,@barbulescu2024] and the 655-bp N114 V-region "
-          "amplicon[@martin2002] were amplified with SuperFi II high-fidelity DNA polymerase. Cycling was 98 °C for "
+          "amplicon[@martin2002] were amplified with Platinum SuperFi II high-fidelity DNA polymerase. Each 50-µL "
+          "reaction held 1× SuperFi II master mix, 0.5 µM of each primer and {lab_lysate_volume} of lysate, with "
+          "a no-template control in every setup; wild-type and AID-null samples were amplified together. The "
+          "J_{H}4 primers were {lab_jh4_primers}, and the N114 primers {lab_n114_primers}. Cycling was 98 °C for "
           "5 min; 35 cycles of 98 °C for 30 s, 68.8 °C for 30 s, and 72 °C for 1 min; and a final 72 °C for 5 min. "
-          "Amplicons were column-purified and submitted as separate, individually barcoded samples for full-length "
+          "Products were checked on a 1% agarose gel for a single band of the expected size, then column-purified "
+          "and submitted as separate, individually barcoded samples for full-length "
           "amplicon sequencing (Plasmidsaurus Premium PCR service), which uses ligation library preparation, "
           "R10.4.1 flow cells, Kit 14 chemistry, and super-accuracy basecalling "
           "(dna_r10.4.1_e8.2_400bps_sup@v5.2.0). Between 2,336 and 5,000 reads were delivered per library. For the "
