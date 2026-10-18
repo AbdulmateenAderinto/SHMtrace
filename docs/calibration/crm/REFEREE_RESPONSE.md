@@ -111,7 +111,41 @@ observed value — data-derived, documented as pulling towards no difference, an
 p = 0.035 comes out at 0.0347, and 0.030 if a half is used instead. That is a different thing from a constant
 chosen independently of the data, so the remaining p values stand.
 
-## 3. Needs the author (could not be settled from the repository)
+## 3. Figure and table audit, 18 October
+
+Every main figure, every table and every scripted supplementary figure was re-derived from its source files.
+Two defects were found and fixed (the mOrange folds, section 1 item 16; the OT1/OT2 p values, section 2) and
+one stale count (Table 1's ten loci / seven laboratories). Everything else reproduced exactly:
+
+| | checked | result |
+|---|---|---|
+| Figures 1-7 | every annotated number | exact |
+| Table S1 | 12 libraries | read-fate categories sum to `delivered`; cross-validates Figure 4G |
+| Table S2 | 275 real-library + 52 spike-in rows | exact |
+| Tables S3-S5 | computed rows | exact |
+| Figures S2, S3, S5-S10, S15-S18 | annotated numbers | exact |
+
+Worth recording from that pass:
+
+- **Figure S10 cross-validates a Methods claim.** Its sequences sum to 1,795 for SHMtrace against 1,796
+  published, the single Msh2 record the Methods describes, and its mutations to 2,804 of the 2,809 the paper
+  counts.
+- **Figure S15** reproduces in all 16 conditions, including the 1/25 all-null discovery rate and the 100%
+  set-aside under one noisy control.
+- **Figure S16** confirms the known ambiguity defect: 11 of 12 libraries report exactly 0.0% and the twelfth
+  0.2%, against 19-47% on direct re-alignment. Still deliberately unpatched; see major issue 5.
+- **Figure S5's** one above-100% value is legitimate: it is a 500-read draw against that library's *mean* at
+  1,000 reads, and the axis says so.
+
+The numbers in the text cannot drift from their sources, because `crm_numbers.py` computes them from the JSON
+at build time. The risk is in the derivation, not the transcription, which is where both defects were. A scan
+of every script for the two patterns involved - a constant floor, and a falsy real value silently replaced -
+leaves only two hits, both cosmetic and feeding no reported number (a log-axis start in `fig2_call.py`, a
+confidence-band clip in `figS2_quality.py`).
+
+Not yet audited: the STAR Protocols document.
+
+## 4. Needs the author (could not be settled from the repository)
 
 1. **526 bp vs 529 bp (Methods, group-test simulation).** The script that produced "pooled reads 0.91–0.94;
    negative binomial 0.050–0.057; Welch 0.037–0.043" is not in `crm/`, `src/shmtrace/` or `tests/`. Either the
@@ -125,7 +159,7 @@ chosen independently of the data, so the remaining p values stand.
 
 ---
 
-## 4. Still open: the nine major issues
+## 5. Still open: the nine major issues
 
 These need analysis or an authorial decision, and none has been acted on. In the referee's own priority order:
 
