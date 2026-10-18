@@ -163,31 +163,19 @@ positions (item 21). What remains for the author is section 5.
 
 ---
 
-## 5. Still open: the nine major issues
+## 5. The nine major issues
 
-These need analysis or an authorial decision, and none has been acted on. In the referee's own priority order:
+Six are done, one needs an authorial decision, two remain.
 
-1. **Benchmark vs production route (major 1).** Which route produced each Figure 4 library and each headline
-   Summary value. Needs a route-by-route reconciliation table.
-2. **mOrange control fitting (major 2, question 5).** Which dead-AID library IDs fitted each repair arm, and
-   whether Results matches what Methods describes.
-3. **A mode matrix (major 3).** Explicit operating modes for zero, one, two and three controls, and what the
-   product does in the TAM configuration where calibration inverted. Includes whether exported labels are still
-   FDR labels in that mode.
-4. **The clone-weighted estimand (major 4).** The referee proposes "lineage-consensus burden", on the grounds
-   that the endpoint changes mutation **inclusion** as well as lineage **weights**. This is a rename plus a
-   definition, applied consistently across Results, Discussion and Methods.
-5. **CSR ambiguity (major 5).** The module reports 0% ambiguity on all 12 PacBio libraries while direct
-   re-alignment measures 19–47%. This is already documented as a confirmed defect in `DATASET_LEDGER.md` and
-   deliberately not patched; the referee wants its effect on the displayed endpoints tested.
-6. **TCR variant recovery (major 6, question 9).** A table of which published TCR and Devilder variants are
-   recovered and which are not.
-7. **Effect sizes for the new endpoints (major 7).** Whether the S18A motif and S16C p values are adjusted
-   across contrasts, and effect differences reported beside them.
-8. **Table 1 and the inventory (major 8).** Partly done — the six rows and "four platforms" are in. The
-   locus and laboratory totals still need a documented recount.
-9. **STAR Methods completeness (major 9).** Equations, software versions, container digests, and the deposit
-   statements. Overlaps the 14 submission blockers already tracked in `NEXT_STEPS.md`.
+| # | issue | status |
+|---|---|---|
+| 1 | Benchmark vs production route | **Done.** `crm/route_check.py` runs both over all seven datasets. J_H4 and N114 agree exactly (12/12); the four public sets differ, because the leave-one-control-out margin is fitted over a different set. Every separation conclusion survives, and *Pim1* weakens from 1.8 to 0.8, strengthening the limit-of-detection claim. In Methods. |
+| 2 | mOrange control fitting | **Done.** Only the empty arm's three dead-AID libraries are controls, and Exp3 is set aside as noisy; Results now says "that arm's dead-AID libraries". Settled with the fold correction (section 1, item 16). |
+| 3 | Mode matrix | **Done.** Methods now sets out all four control counts: none, one, two, three or more, with what each does to the background, the margin, the correction, indels and the noisy-control rule, and notes that the output's `multiple_testing` field records which was used. The TAM reporter arm is named as the one-control case whose calibration inverted. |
+| 4 | Clone-weighted estimand | **Needs the author.** The referee proposes "lineage-consensus burden". Mechanical to apply but it is the paper's vocabulary, across Results, Discussion, Methods, two figures and a table. Not chosen unilaterally. |
+| 5 | CSR ambiguity | **Done.** `crm/switch_ambiguity_sensitivity.py` drops every ambiguous junction, 2–21% of each sample, and re-runs the comparisons. Thirteen of fifteen hold; two move in opposite directions and are flagged provisional in Methods and the S16 legend. |
+| 6 | TCR and Devilder variant recovery | **Done for Devilder, impossible for the TCR.** All 150 published mutations across the 42 selected clusters are recovered, none missed and none added. No equivalent list is published for the TCR libraries, whose deposit carries alignments only; Methods says so. |
+| 7 | Effect sizes and multiplicity | **Done.** The fifteen S16C comparisons are unadjusted and reported with both group means; Benjamini–Hochberg across them changes nothing, nine significant before and after. Figure S18A is a single pre-specified contrast, so no adjustment arises. In Methods. |
+| 8 | Table 1 and the inventory | **Done.** Fourteen AID-targeted loci from thirteen laboratories, recounted on the original convention and split by class (section 1, item 20). |
+| 9 | STAR Methods completeness | **Partly.** Equations, versions and the route reconciliation are in. What remains is the deposit identifiers and the bench details, which are the 14 items in `NEXT_STEPS.md` and need the author. |
 
-The referee's own summary is that none of these requires new experiments or new datasets — only a smaller set
-of clearly defined claims supported by the analyses already run.
