@@ -30,6 +30,8 @@ The manuscript rebuilds: summary 145 words, main text 6,993 (cap 7,000), 52 refe
 | 12 | Methods invoked DESeq2 and edgeR as validation of the one-endpoint dispersion fit. | Analogy removed; the model was already fully specified, and it now says no cross-feature moderation applies with one endpoint. (References 53 → 52.) | `crm_methods.py` |
 | 13 | "None of these is a curated population" — ambiguous antecedent; the TCR libraries **do** carry read-level frequencies, which S18D plots. | Scoped to the Devilder records, with the TCR frequencies stated and framed as endpoints of selection. | `crm_methods.py`, Figure S18D |
 | 14 | "ClairS rejected 11 of its 12 candidates, **including neither** of the two carried by 20% or more" — says the opposite of what was meant. | "…; of the two carried by 20% or more of reads, a level at which it recalled nearly all clean planted mutations, neither passed." | `crm_numbers.py:486` |
+| 16 | **The mOrange separation folds were wrong.** Results gave 105-, 8,102- and 2,033-fold. Two compounding faults: the denominator was floored at a hard-coded `1e-6` (so the constant, not the data, set the fold — `1e-5` would have given Ugi 810, `1e-7` 81,022), and `mutation_frequency_x1e3` is rounded to four decimals, so dead-AID libraries with real mutations stored as exactly `0.0` and were then floored. | Corrected to **20-, 1,002- and 103-fold**. UNG was out 20× from the rounding alone. Frequencies are now computed from counts; only a library that genuinely saw nothing is floored, at one event on its own denominator (the Figure 4F / Table S3 convention). Results states that only the Ugi arm rests on a floored denominator. | `out/public/morange/project.json`; `crm_numbers.py` |
+| 17 | Results said "Calibrated against the dead-AID libraries of the same experiments", which the referee read as each arm calibrating itself. | "Calibrated against **that arm's** dead-AID libraries" — only the empty arm's three are controls, which is what the code does. Settles major issue 2's first half. | `project.json` control flags |
 | 15 | Resource availability claimed files "**have been** deposited at [data deposit DOI]" with the identifier unresolved. | "will be deposited … and will be publicly available as of the date of publication". `lab_details.py` now prints a reminder to switch the tense once the identifiers resolve. | build checklist |
 
 ### Overclaims bounded
@@ -81,7 +83,37 @@ The manuscript rebuilds: summary 145 words, main text 6,993 (cap 7,000), 52 refe
 
 ---
 
-## 2. Needs the author (could not be settled from the repository)
+## 2. Needs the author: a floor-dependent significance claim at OT1 and OT2
+
+Found while auditing the figures, not raised by the referee, and it bears on a claim rather than a label.
+
+Results says the MLLT1/MLLT3 double knockout sits "**below the AID-competent libraries (p = 0.034 and
+2.6 × 10⁻⁵)**". Both p values come from a Welch test on `log10(mutation_frequency_x1e3)` with frequencies
+hand-floored at `1e-4` (`crm_numbers.py`, the `lg` lambda). The floor decides both:
+
+| floor | OT1 p | OT2 p |
+|---|---|---|
+| 1e-3 | 0.0085 | 5.6e-05 |
+| **1e-4 (used)** | **0.034** | **2.6e-05** |
+| 1e-5 | 0.070 | 1.5e-05 |
+| 1e-6 | 0.106 | 9.8e-06 |
+
+- **OT1 crosses the significance threshold** on the choice of constant: significant at 1e-3 and 1e-4, not
+  significant at 1e-5 or 1e-6. Nothing in the data distinguishes those floors.
+- **OT2 is degenerate.** All three dKO libraries carried no mutations, so after flooring the group has zero
+  variance; SciPy warns of catastrophic cancellation. A t test against a varianceless group is not meaningful,
+  and its p value is set by the floor.
+
+The irony is that the comment directly above that code already rejects folds for this exact reason ("the
+floor, not the data, would then set its size"), then uses a floored log for the test.
+
+The counts do not need a test and are far stronger: at OT1 the dKO libraries made 1, 1 and 0 calls and at OT2
+0, 0 and 0, against hundreds of mutations in the AID-competent libraries. **Recommended:** drop the two
+floor-dependent p values and let the counts carry the sentence, or replace them with a count-based exact test.
+The dKO-versus-control comparison (p = 0.45 and 0.56), which is the claim that the knockout returns to the
+AID-null level, does not depend on this hand floor. **Not changed, because it alters a scientific claim.**
+
+## 3. Needs the author (could not be settled from the repository)
 
 1. **526 bp vs 529 bp (Methods, group-test simulation).** The script that produced "pooled reads 0.91–0.94;
    negative binomial 0.050–0.057; Welch 0.037–0.043" is not in `crm/`, `src/shmtrace/` or `tests/`. Either the
@@ -95,7 +127,7 @@ The manuscript rebuilds: summary 145 words, main text 6,993 (cap 7,000), 52 refe
 
 ---
 
-## 3. Still open: the nine major issues
+## 4. Still open: the nine major issues
 
 These need analysis or an authorial decision, and none has been acted on. In the referee's own priority order:
 
