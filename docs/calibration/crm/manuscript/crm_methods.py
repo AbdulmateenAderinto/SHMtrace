@@ -348,6 +348,19 @@ METHODS = [
           "rule removed with its read count, depth and frequency, so a library with a large mutated clone can be "
           "recognized and its sites inspected."),
     ("h2", "Benchmark against other callers"),
+    ("p", "Figure 4 and Table S2 are built by `crm/benchmark_real.py`, which drives the calling stage "
+          "directly so that every caller sees exactly the same reads; the product itself runs `run_project`. "
+          "Because those are two code paths, they were compared library by library (`crm/route_check.py`). On "
+          "the J_{H}4 and N114 libraries of this study the two agree exactly, all twelve giving identical "
+          "calls. On the four public nanopore datasets they do not, because the leave-one-control-out margin "
+          "is fitted over a different set: the benchmark route fits it from the two peers of each held-out "
+          "control, `run_project` across all three together, so the thresholds differ. Counts then move in "
+          "both directions, for instance 88 against 101 calls in one S\u03bc wild-type library and 6 against 1 "
+          "in one *Pim1* wild type. The separations are unchanged in direction and in order of magnitude "
+          "under either route (J_{H}4 141 against 141, N114 85 against 84, S\u03bc LPS 66 against 84, S\u03bc "
+          "CH12 94 against 171, OT1 53 against 46, OT2 28 against 24), and *Pim1* stays below separation "
+          "either way, at 1.8 against 0.8. Figure 4 therefore reports the benchmark route throughout, for "
+          "comparability between callers, and Table S1 reports `run_project`, where the two coincide."),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
           "called with LoFreq 2.1.5 `call`, restricted to the analysis window, at three settings: default settings "
