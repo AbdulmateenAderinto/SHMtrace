@@ -202,7 +202,7 @@ STEPS = [
 EXPECTED = [
     "With three wild-type and three *Aicda*^{−/−} mice at 500 reads per library, expect approximately "
     "{m_wt_range} unique variants per wild-type library and {m_ko_range} per control, which corresponds to a "
-    "group difference of at least {ont_fold}-fold (Figure 3A). The spectrum should include both G:C and A:T "
+    "group difference around {ont_fold}-fold (Figure 3A). The spectrum should include both G:C and A:T "
     "mutations with a bias toward transitions (Figure 3C), and mutations should be concentrated in the first "
     "450 bp of the intron (Figure 3D). Libraries dominated by one clone, which is common in Peyer's patches, have "
     "a low read-weighted mutation frequency; the clone-weighted frequency corrects for this (Figure 4A).",
@@ -220,7 +220,8 @@ QUANT = [
     "with a parametric bootstrap, a Welch test on log rates, and an exact permutation test. Tests that pool reads "
     "across animals are shown only for contrast, because they report a difference in more than 90% of "
     "simulated experiments without one. Compare densities only between libraries analyzed at the same depth. "
-    "Controls without calls are placed at their one-event density, so fold changes are lower bounds. Calls are "
+    "Controls without calls are placed at their one-event density, so such a fold depends on that convention "
+    "and is not a statistical lower bound. Calls are "
     "filtered apparent variants; the exclusion criteria are the read-preparation steps and the germline filter "
     "(sites at which ≥ 50% of reads differ from the reference), and both are reported.",
 ]
@@ -281,8 +282,8 @@ RESOURCE = [
     ("Technical contact", "Technical questions on executing this protocol should be directed to and will be "
                           "answered by the technical contact, Abdulmateen Aderinto ({lab_tech_email})."),
     ("Materials availability", "This study did not generate new unique reagents."),
-    ("Data and code availability", "The nanopore reads, Sanger chromatograms and SHMtrace outputs shown here are "
-     "deposited with the companion article ({lab_sra}; {lab_data_doi}). SHMtrace v{shmtrace_version}, its desktop application and "
+    ("Data and code availability", "The nanopore reads, Sanger chromatograms and SHMtrace outputs shown here "
+     "will be deposited with the companion article ({lab_sra}; {lab_data_doi}). SHMtrace v{shmtrace_version}, its desktop application and "
      "documentation are available at {lab_code_doi} and {lab_github}."),
 ]
 ACK = ("We thank the University of Toronto flow cytometry facility and members of the Martin laboratory. "
