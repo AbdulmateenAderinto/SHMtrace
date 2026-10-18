@@ -165,14 +165,14 @@ positions (item 21). What remains for the author is section 5.
 
 ## 5. The nine major issues
 
-Six are done, one needs an authorial decision, two remain.
+Seven are done, one is declined with reasons, one remains with the author.
 
 | # | issue | status |
 |---|---|---|
 | 1 | Benchmark vs production route | **Done.** `crm/route_check.py` runs both over all seven datasets. J_H4 and N114 agree exactly (12/12); the four public sets differ, because the leave-one-control-out margin is fitted over a different set. Every separation conclusion survives, and *Pim1* weakens from 1.8 to 0.8, strengthening the limit-of-detection claim. In Methods. |
 | 2 | mOrange control fitting | **Done.** Only the empty arm's three dead-AID libraries are controls, and Exp3 is set aside as noisy; Results now says "that arm's dead-AID libraries". Settled with the fold correction (section 1, item 16). |
 | 3 | Mode matrix | **Done.** Methods now sets out all four control counts: none, one, two, three or more, with what each does to the background, the margin, the correction, indels and the noisy-control rule, and notes that the output's `multiple_testing` field records which was used. The TAM reporter arm is named as the one-control case whose calibration inverted. |
-| 4 | Clone-weighted estimand | **Needs the author.** The referee proposes "lineage-consensus burden". Mechanical to apply but it is the paper's vocabulary, across Results, Discussion, Methods, two figures and a table. Not chosen unilaterally. |
+| 4 | Clone-weighted estimand | **Declined, with the substance already covered.** The author keeps "clone-weighted frequency". The referee's objection was that the endpoint changes mutation *inclusion* as well as lineage *weighting*, and that the name hides the first. The definition in STAR Methods states both, in the passage where the three measures are compared: a mutation counts when at least half the reads of its clone carry it, and each clone counts once whatever its size. A reader comparing the endpoints is therefore told the inclusion rule at the point of comparison, not only in the clones section. The name stays; the ambiguity the referee was guarding against does not arise. |
 | 5 | CSR ambiguity | **Done.** `crm/switch_ambiguity_sensitivity.py` drops every ambiguous junction, 2–21% of each sample, and re-runs the comparisons. Thirteen of fifteen hold; two move in opposite directions and are flagged provisional in Methods and the S16 legend. |
 | 6 | TCR and Devilder variant recovery | **Done for Devilder, impossible for the TCR.** All 150 published mutations across the 42 selected clusters are recovered, none missed and none added. No equivalent list is published for the TCR libraries, whose deposit carries alignments only; Methods says so. |
 | 7 | Effect sizes and multiplicity | **Done.** The fifteen S16C comparisons are unadjusted and reported with both group means; Benjamini–Hochberg across them changes nothing, nine significant before and after. Figure S18A is a single pre-specified contrast, so no adjustment arises. In Methods. |
