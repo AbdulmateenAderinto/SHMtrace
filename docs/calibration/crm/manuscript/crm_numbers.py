@@ -832,6 +832,57 @@ def compute():
             ctga = [x["pct_CT_GA"] for x in rp["samples"] if x["group"] == "WT" and x["pct_CT_GA"]]
             N.update(smur_s5f_lo=f2(min(s5)), smur_s5f_hi=f2(max(s5)),
                      smur_ctga_lo=f0(min(ctga)), smur_ctga_hi=f0(max(ctga)))
+    # ---------------- engineered AID diversification (crm/liu_mutators.py, tam_*.py, tcr_bassan.py,
+    # devilder_clones.py). crm/out is not under version control, so each block is optional.
+    liu_p = CRM / "out/liu/liu_mutators.json"
+    if liu_p.exists():
+        ls = _load(liu_p)["samples"]
+        get = lambda pfx, k: [v[k] for n_, v in ls.items() if n_.startswith(pfx) and v[k] is not None]  # noqa: E731
+        for tag, aid, apo in (("wt", "AID_wt293T", "A3A_wt293T"), ("ko", "AID_ungmsh2", "A3A_ungmsh2")):
+            for key, short in (("pct_GC_in_WRC_GYW", "wrc"), ("pct_CT_GA", "ctga")):
+                x, y = get(aid, key), get(apo, key)
+                N[f"eng_{tag}_{short}_aid"] = f0(np.mean(x))
+                N[f"eng_{tag}_{short}_apo"] = f0(np.mean(y))
+                N[f"eng_{tag}_{short}_p"] = pfmt(float(stats.ttest_ind(x, y, equal_var=False).pvalue))
+        nc = [v["unique_mutations"] for n_, v in ls.items() if n_.startswith("NC")]
+        N["eng_nc_hi"] = f0(max(nc))
+    foot_p = CRM / "out/tam/footprint.json"
+    if foot_p.exists():
+        fb = _load(foot_p)["best_per_guide"]
+        clean = [v for v in fb.values() if v["rate_per_1e3"] > 50]
+        N["eng_guides_clean"] = word(len(clean))
+        N["eng_guide_lo"] = f0(min(v["rate_per_1e3"] for v in clean))
+        N["eng_guide_hi"] = f0(max(v["rate_per_1e3"] for v in clean))
+        N["eng_guide_fold_lo"] = f0(min(v["fold"] for v in clean))
+        N["eng_guide_fold_hi"] = f0(max(v["fold"] for v in clean))
+    sat_p = CRM / "out/tam/saturation.json"
+    if sat_p.exists():
+        t_ = _load(sat_p)["totals"]
+        N["eng_sat"] = ", ".join(str(t_[f"{k}_sgRNAs"]) for k in (3, 5, 7, 10))
+    tam_p = CRM / "out/tam/tam_reporter.json"
+    if tam_p.exists():
+        cal = _load(tam_p)["calibrated_run"]["samples"]
+        N["eng_tam_ctrl"] = f0(cal["mock"]["unique_mutations"])
+        N["eng_tam_case"] = word(cal["dCas9_AIDX_sgRNA"]["unique_mutations"])
+        raw = _load(tam_p)["raw_mismatch_per_1e3"]
+        amp = "amp_CCTGACCTACGGCGTGCAGT"
+        N["eng_tam_raw_case"] = f0(raw["dCas9_AIDX_sgRNA"][amp])
+        N["eng_tam_raw_ctrl"] = f0(raw["mock"][amp])
+    dev_p = CRM / "out/devilder/devilder_clones.json"
+    if dev_p.exists():
+        rnds = _load(dev_p)["rounds"]
+        ann = [c for v in rnds.values() for c in v if c["published_mutations"]]
+        ok = [c for c in ann if not c["published_not_recovered"] and not c["recovered_not_published"]]
+        N["eng_dev_n"] = f0(len(ann))
+        N["eng_dev_ok"] = f0(len(ok))
+    tcr_p = CRM / "out/tcr/tcr_bassan.json"
+    if tcr_p.exists():
+        ts = _load(tcr_p)["samples"]
+        base = ts["h5_wt"]["mutation_frequency_x1e3"]
+        oth = [v["mutation_frequency_x1e3"] for k, v in ts.items() if k != "h5_wt"]
+        N["eng_tcr_base"] = f2(base)
+        N["eng_tcr_lo"] = f2(min(oth))
+        N["eng_tcr_hi"] = f2(max(oth))
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())

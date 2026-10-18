@@ -66,13 +66,14 @@ def main():
         ys = [row + 0.86 * p_[k] / top for k in xs]
         ax.fill_between(xs, row, ys, color=GUIDE_C[g], lw=0, alpha=0.9)
         ax.axhline(row, color=SOFT, lw=0.4)
-        ax.text(-6, row + 0.40, g.replace("sgRNA_", "#"), ha="right", va="center", fontsize=5.5,
+        ax.text(-10, row + 0.40, g.replace("sgRNA_", "#"), ha="right", va="center", fontsize=5.5,
                 color=GUIDE_C[g])
         peak = max(xs, key=lambda k: p_[k])
         ax.text(peak + 5, row + 0.62, f"{top:.0f}", fontsize=4.6, color=GUIDE_C[g], va="center")
-    ax.set_xlim(-14, 245)
+    ax.set_xlim(-42, 245)
     ax.set_ylim(0, 5.35)
     ax.set_yticks([])
+    ax.spines["left"].set_visible(False)      # no y scale here, and it collided with the track labels
     ax.set_xlabel("Position in the amplicon (bp)")
     ax.set_title("The position follows the guide", fontsize=7)
     ax.text(0.5, -0.30, "five sgRNAs on one amplicon; each track scaled to its own peak, whose\n"

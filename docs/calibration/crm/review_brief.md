@@ -26,7 +26,7 @@ same run, and groups are compared with the animal, not the read, as the unit. Th
 |---|---|
 | `01_Manuscript.pdf` | Main text, figures 1-7 with legends, STAR Methods, references |
 | `01_Manuscript.txt` | The same as plain text (layout preserved), for easier quoting |
-| `02_Supplement_Document_S1.pdf` | Document S1: supplementary figures S1-S17 and tables S1, S3, S4, S5 |
+| `02_Supplement_Document_S1.pdf` | Document S1: supplementary figures S1-S18 and tables S1, S3, S4, S5 |
 | `02_Supplement_Document_S1.txt` | The same as plain text |
 | `03_Highlights_eTOC_Motivation.txt` | Highlights, eTOC blurb, Motivation statement |
 | `04_Table_S2_benchmark.xlsx` | Table S2, the benchmark spreadsheet |

@@ -594,6 +594,26 @@ SUPP_FIGS = [
      "libraries, where no layout difference remains; treatment is a nuisance factor here and the three "
      "wild-type libraries are one per treatment. Targeting index and C\u2192T/G\u2192A share are of the "
      "wild-type calls."),
+    ("Figure S18. Engineered AID diversification in four public datasets, related to Figure 7",
+     FIG / "FigureS18_engineered.png",
+     "(A) One GFP substrate edited by a panel of deaminases delivered alike (SRP159221), three replicates per "
+     "arm: the share of calls at WRC/GYW (circles) and the share that are C\u2192T or G\u2192A (squares), in "
+     "wild-type and in UNG/MSH2-null 293T. Bars, group means. The motif share separates AID from APOBEC3A in "
+     "both backgrounds; the transition share does so only in wild-type cells, because losing uracil excision "
+     "drives transitions whichever enzyme made the uracil. (B) Mismatches per 1,000 bases at Q \u2265 30 along "
+     "one ABL exon-6 amplicon, for five libraries differing only in which sgRNA they carry (SRP075898). Each "
+     "track is scaled to its own peak, whose height is given, so a weak guide stays visible; the arm is "
+     "multiplexed and all three of its amplicons were analysed. #6, #9 and #15 peak at distinct positions at "
+     "116\u2013137 per 1,000 against a background near 1. #4 passes a fold test on a low local baseline but "
+     "reaches only 6 per 1,000, and #7's peak lies where two other guides are also high, so its fold "
+     "understates it. These are per-position rates, not mutation calls. (C) Positions where a library sits at "
+     "least five-fold above the lowest of the other three at that base, against the number of sgRNAs the "
+     "library carries. The baseline leaves each library out of its own comparison. A zero may mean those "
+     "guides target outside the amplicons recovered here. (D) An AID-diversified MAGE-A1 TCR (figshare "
+     "12803501) called against the 1,785-bp ancestral construct reconstructed from the deposit: the one "
+     "available baseline library against ten diversified and selected populations. With a single baseline, and "
+     "that baseline belonging to one founder, no false-discovery rate is claimed. Analyses in "
+     "`crm/liu_mutators.py`, `crm/tam_footprint.py`, `crm/tam_saturation.py` and `crm/tcr_bassan.py`."),
 ]
 
 if __name__ == "__main__":
