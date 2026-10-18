@@ -144,7 +144,7 @@ METHODS = [
           "against, so it is made only when at least two other controls remain, that is with three or more "
           "controls; with exactly two, the more variable library is named in the report but not left out, "
           "because which of the two is unusual cannot be established. The rule was written for one public "
-          "dataset, the Ramos clones of Figure 7F, in which a single *Aicda*^{−/−} clone suppressed every call; "
+          "dataset, the Ramos clones of Figure 7D, in which a single *Aicda*^{−/−} clone suppressed every call; "
           "it was then applied to the other datasets and was already fixed when the OT1 and OT2 libraries were "
           "analyzed; at OT1, control KO2 was also excluded from the decoys. It is therefore a rule derived "
           "from data rather than a pre-registered one, and it is reported here so that its effect can be judged. "
@@ -266,7 +266,7 @@ METHODS = [
           "shared between animals beyond chance (Poisson test weighted by mutation frequency across animals), "
           "control clones with excess mutations, label mismatches, and outliers in mutation load."),
     ("p", "The implemented Sanger route counts quality-filtered mismatches without a per-call significance test. The "
-          "AID-null clones can measure is the error itself: the share of their bases at quality \u2265 20 that "
+          "AID-null clones measure the observed mismatch background: the share of their bases at quality \u2265 20 that "
           "mismatch the reference, after their own germline differences are removed, per reported quality and "
           "per position. Each library is then charged its own bases at those rates, giving the calls the "
           "background alone would produce, reported per animal beside its calls; a position at which more than "
@@ -395,7 +395,9 @@ METHODS = [
           "positions 21–249, 5,000 reads per replicate), and PRJNA820976 (Ramos VDJ, positions 26–446, 20,000 "
           "reads per clone, with indel calling) were analyzed with the same analysis engine and Illumina settings, "
           "using the AID-null groups as controls and the S5F model. PRJNA170048 (mOrange reporter, positions "
-          "75–693 of the original numbering, 200,000 of the first 600,000 reads per library, about 10,600 reads "
+          "75–693 of the study's own numbering, which is positions 31–649 of the 679-bp reference rebuilt "
+          "here: that reference begins at position 45 of the study's numbering, so the two differ by a "
+          "constant offset of 44. 200,000 of the first 600,000 reads per library, about 10,600 reads "
           "per position) was analyzed the same way, with the catalytically dead AID-E58Q-ER libraries of the "
           "empty-vector arm as controls and the dead-AID libraries of the other two arms left as samples; its "
           "reference was rebuilt from the position and reference-nucleotide columns of the study's own "
@@ -453,14 +455,20 @@ METHODS = [
           "off-target arm of that project was not analysed: it is fragmented material and would have to be "
           "forced through amplicon-shaped gates. The MAGE-A1 TCR deposit[@bassan2021] supplies mapped CCS "
           "alignments but not its reference, which was reconstructed exactly from their CIGAR and MD tags "
-          "(1,785 bp, no disagreement between reads) and verified against the project's own J_{H}4 reference; "
+          "(1,785 bp, matching the length its own SAM header declares, with no disagreement among reads at any "
+          "covered base). Its identity to the physical construct was not independently verified, because the "
+          "deposit does not publish that sequence; "
           "`11_h12_HA` holds 19 reads and was excluded by count, and `1_h5_wt` is the one available baseline "
           "and belongs to founder h5, so it is not treated as a matched AID-null control for the others "
           "(`crm/tcr_prepare.py`, `crm/tcr_bassan.py`). The anti-HLA-A2 clones[@devilder2019] were taken from "
           "the study's Additional file 1, which publishes each selected cluster's nucleotide sequence "
           "together with the authors' own list of its mutations; each cluster is kept separate and nothing is "
-          "collapsed to a consensus (`crm/devilder_clones.py`). None of these is a curated population, so no "
-          "population frequency, unselected distribution or technical error rate is computed from them."),
+          "collapsed to a consensus (`crm/devilder_clones.py`). The Devilder records are selected cluster sequences, "
+          "not a sampled population, so they are used to compare variant identities and no population "
+          "frequency, unselected distribution or technical error rate is computed from them. The TCR read "
+          "libraries do carry read-level frequencies within each selected sample (Figure S18D), but those "
+          "samples are themselves selected, so a frequency there is an endpoint of selection and not a "
+          "mutation rate."),
     ("h2", "Public Illumina Sμ mutation libraries"),
     ("p", "GSE77788[@compagno2017] holds Sμ amplicons from wild-type and *Aicda*^{−/−} primary B cells treated "
           "with DMSO, idelalisib or duvelisib, three replicates per genotype and treatment. The deposit mixes "
@@ -486,7 +494,8 @@ QUANT = [
     "tests are reported alongside it as sensitivity analyses, and Figure 3G compares all three. "
     "The negative-binomial test models each library's mutation count k with mean n·r, where n is that library's "
     "bases and r its group's rate, and variance n·r + φ(n·r)^{2} with one dispersion φ shared by both groups and "
-    "fitted by maximum likelihood under the full model, as DESeq2[@love2014] and edgeR do. The statistic is the "
+    "fitted by maximum likelihood under the full model. No moderation or shrinkage across features is applied, "
+    "since there is one endpoint. The statistic is the "
     "likelihood ratio against a common rate, and its null distribution comes from 499 parametric bootstrap "
     "samples drawn under that common rate with the fitted φ, because two to ten libraries per group are too few "
     "for the asymptotic χ^{2}. A group with no calls keeps rate zero rather than being floored. "
@@ -654,6 +663,19 @@ TABLE1 = [
     ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (619 bp)",
      "AID-ER in NIH-3T3 cells, 3 experiments x 3 repair contexts", "catalytically dead AID-E58Q-ER",
      "experiment", "Figure 7"),
+    ("PRJNA831666[@vincendeau2022]", "PacBio", "Sμ–Sγ1 switch junctions", "3 Wt, 3 *Shld1*, 3 *Xlf*, 3 double",
+     "none (repair genotypes, no AID-null arm)", "mouse", "Figure S16"),
+    ("GSE77788[@compagno2017]", "Illumina", "Sμ (216 bp shared; 221 bp repeats)",
+     "9 Wt, 3 treatments", "9 *Aicda*^{−/−}, same treatments", "culture", "Figure S17"),
+    ("SRP159221[@liu2018]", "Illumina", "EGFP reporter (238 bp)", "AID and APOBEC editors, 3 each",
+     "3 no-editor libraries", "culture", "Figure S18A"),
+    ("SRP075898[@ma2016]", "Illumina", "EGFP reporter and ABL exon 6 (multiplexed)",
+     "tethered and untethered editors; 5 sgRNAs; 3–10 sgRNA pools", "1 no-editor library (insufficient)",
+     "library", "Figure S18B, S18C"),
+    ("figshare 12803501[@bassan2021]", "PacBio", "engineered TCR construct (1,785 bp)",
+     "10 diversified and selected populations", "1 parental library of one founder", "population", "Figure S18D"),
+    ("Devilder et al.[@devilder2019]", "Sanger (published sequences)", "antibody V_{H} (423 bp)",
+     "42 selected clusters, 2 rounds", "parental construct as reference", "cluster", "STAR Methods"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "simulated library", "Figures 3 and 5"),
 ]

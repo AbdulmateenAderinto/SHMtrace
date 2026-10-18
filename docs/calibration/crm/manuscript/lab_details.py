@@ -77,3 +77,7 @@ if __name__ == "__main__":
     print(f"{len(DETAILS) - len(left)} of {len(DETAILS)} details filled; still missing:")
     for d in left:
         print(" -", d)
+    if any("DOI" in d or "SRA" in d or "accession" in d.lower() for d in left):
+        print("\nWhile a deposit identifier is unresolved, Data and code availability says the files "
+              "\"will be deposited\". Switch those two sentences to \"have been deposited\" only once "
+              "the identifiers resolve.")

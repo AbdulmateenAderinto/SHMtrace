@@ -52,7 +52,7 @@ def main():
     ax.scatter([], [], s=13, color=INK, label="unique junctions")
     ax.legend(fontsize=4.8, loc="lower left", ncol=3, frameon=False, handletextpad=0.1, columnspacing=0.7,
               bbox_to_anchor=(-0.02, -0.02))
-    ax.text(0.5, -0.30, "reads per unique junction differ 1.1\u201323\u00d7 between samples",
+    ax.text(0.5, -0.30, "reads per unique junction range from 1.1 to 23 across samples",
             transform=ax.transAxes, ha="center", fontsize=5, color=MID)
     letter(ax, "A", dx=-0.22)
     # B: microhomology classes

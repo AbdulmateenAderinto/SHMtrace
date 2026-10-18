@@ -38,8 +38,11 @@ def profile_panel(ax, key, title):
     for (c, r), col in zip(ctl.items(), CTRL_SHADES, strict=False):
         ax.plot(xs, r, color=col, lw=0.7, label=f"{c} (AID-null)")
     rs = [spearmanr(ctl[a], ctl[b], nan_policy="omit")[0] for a, b in combinations(ctl, 2)]
+    # a Spearman coefficient is a rank statistic; squaring it is not a share of variance, so the panel
+    # reports the correlations themselves (minor 18)
+    print(f"   {title}: between-control Spearman r = {min(rs):.2f}-{max(rs):.2f} ({len(rs)} pairs)")
     ax.text(0.99, 0.95, f"between controls: Spearman r = {min(rs):.2f}–{max(rs):.2f}\n"
-            f"(one control explains {100 * min(rs) ** 2:.0f}–{100 * max(rs) ** 2:.0f}% of another's variation)",
+            "(weak rank agreement position by position)",
             transform=ax.transAxes, ha="right", va="top", fontsize=5.6, color=INK, linespacing=1.3)
     # the controls on their own scale: the AID-active curve is an order of magnitude higher and hides them
     ins = ax.inset_axes([0.055, 0.40, 0.42, 0.32], facecolor="white", zorder=5)

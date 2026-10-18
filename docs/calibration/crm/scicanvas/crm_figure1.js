@@ -85,7 +85,7 @@
     TC(name, gx + 39, base + 8, { fontSize: SM, color: col });
   });
   SEG(gx0, base, gx0 + 224, base, 1.6, INK);
-  T('AID-null controls from the same run; estimated FDR ≤ 0.05', ax + 20, 552, { fontSize: SM, color: TEAL, bold: true });
+  T('AID-null controls from the same run; empirical FDR target 0.05', ax + 20, 552, { fontSize: SM, color: TEAL, bold: true });
 
   // ───────── B. Inputs and read preparation ─────────
   panel('B', 'Inputs and read preparation', 720, 10);
@@ -187,7 +187,7 @@
   [[0.36], [0.5], [0.62], [0.74], [0.88], [0.97]].forEach(([f]) => E(x2 + 20 + f * 120, R1 + 90, 11, { fill: '#ffffff', stroke: CTRL, strokeWidth: 1.5 }));
   SEG(x2 + 16, R1 + 106, x2 + 144, R1 + 106, 1.6, INK);
   DASH(x2 + 20 + 0.31 * 120, R1 + 52, x2 + 20 + 0.31 * 120, R1 + 104, 1.6, TEAL, 5, 4);
-  side(['decoys (open)', 'set the threshold:', 'FDR ≤ 0.05'], x2 + 160, R1 + 50);
+  side(['decoys (open)', 'set the threshold:', 'FDR target 0.05'], x2 + 160, R1 + 50);
   // 1 (Sanger): every substitution at Q >= 20 in a trace is counted
   const [s1, xs1] = step(0, R2, CH, 'Count the mismatches', SANG, 1);
   I('s-sanger-chromatogram-trace-only', xs1 + 80, R2 + 86, 96);
@@ -202,19 +202,19 @@
   // 3 (both): germline alleles out; calls only inside the covered window
   const [sh1, xg] = step(2, R1, SHH, 'Germline and window', MID, 3);
   const gx = xg + 20, gw = cw - 40, wl = gx + 0.18 * gw, wr = gx + 0.86 * gw;
-  R(wl, R1 + 58, wr - wl, 142, { fill: WIN });
+  R(wl, R1 + 58, wr - wl, 110, { fill: WIN });
   TC('covered window', (wl + wr) / 2, R1 + 62, { fontSize: SM, color: TEAL });
   const gcol = 0.6, hits3 = [[0.3, 1], [0.42, 3], [0.74, 0], [0.5, 4], [0.07, 2], [0.95, 5]];
   for (let r = 0; r < 6; r++) {
-    R(gx, R1 + 96 + r * 15, gw, 7, { fill: FAINT, radius: 3.5 });
-    E(gx + gcol * gw, R1 + 99.5 + r * 15, 10, { fill: INK });
+    R(gx, R1 + 88 + r * 14, gw, 7, { fill: FAINT, radius: 3.5 });
+    E(gx + gcol * gw, R1 + 91.5 + r * 14, 10, { fill: INK });
   }
   hits3.forEach(([f, r]) => {
     const inWin = gx + f * gw > wl && gx + f * gw < wr;
-    E(gx + f * gw, R1 + 99.5 + r * 15, 10, inWin ? { fill: MUT } : { fill: '#ffffff', stroke: OUTL, strokeWidth: 1.5 });
+    E(gx + f * gw, R1 + 91.5 + r * 14, 10, inWin ? { fill: MUT } : { fill: '#ffffff', stroke: OUTL, strokeWidth: 1.5 });
   });
-  X(gx + gcol * gw, R1 + 184);
-  lines(['germline (≥ 50% of reads) out;', 'calls inside the window only;', 'indels optional'], xg + 16, R1 + 222, { color: MID }, 22);
+  X(gx + gcol * gw, R1 + 172);
+  lines(['window first, then alleles in', '≥ 50% of reads set aside and', 'reported, not dropped, before', 'any test; indels optional', '(opt-in: known ancestor)'], xg + 16, R1 + 192, { color: MID }, 20);
   // 4 (both): the automatic checks, as four glyphs
   const [sh2, xc] = step(3, R1, SHH, 'Automatic checks', MID, 4);
   const gwid = (cw - 36) / 2, gX = (j) => xc + 12 + j * (gwid + 12), gY = (i) => R1 + 62 + i * 116;

@@ -193,8 +193,11 @@ def compute():
             lost = [x["planted_at_mask"] for x in rs]
             N[f"mask{tag}_lost"] = f"{min(lost)}–{max(lost)}" if min(lost) != max(lost) else str(lost[0])
             N[f"mask{tag}_kept"] = str(sum(x["planted_at_mask_called"] for x in rs))
-            N[f"mask{tag}_rw"] = f"{min(err(rs, 'read_weighted')):.0f}"
-            N[f"mask{tag}_cw"] = f"{min(err(rs, 'clone_weighted')):.0f}"
+            # the worst run of the three, reported as the size of the shortfall; the prose says "below the
+            # truth", so a key that is not a shortfall must not be written as one (minor 24)
+            for key, metric in (("rw", "read_weighted"), ("cw", "clone_weighted")):
+                worst = min(err(rs, metric))
+                N[f"mask{tag}_{key}"] = f"{abs(worst):.0f}" if worst < 0 else f"+{worst:.0f}"
         N["mask_runs"] = f0(len(runs.get("expanded_mutated_60") or []))
     # ---------------- quantification
     q = _load(OUT / "quant_accuracy_jh4/runs.json") + _load(OUT / "quant_accuracy_n114/runs.json")

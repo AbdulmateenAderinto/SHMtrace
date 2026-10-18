@@ -94,7 +94,7 @@ def main():
         ticks.append(f"{kind}\n{GLAB[g].split('$')[0]}")
     ax.set_xticks(range(4), ticks)
     ax.set_ylim(0, 40)
-    ax.set_ylabel("% of mutations at G:C")
+    ax.set_ylabel("% of all mutations")
     ax.set_title("G:C Ts and Tv", fontsize=7)
     letter(ax, "B", dx=-0.3)
 

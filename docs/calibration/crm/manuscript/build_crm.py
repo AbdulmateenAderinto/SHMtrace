@@ -326,10 +326,10 @@ def main(outdir):
 
 STATS = [
     ("J_{H}4, Wt vs *Aicda*^{−/−} (nanopore, unique-variant density)", "Welch t on log_{10}; n = 3 vs 3",
-     "≥ {ont_fold}-fold; p = {ont_p}"),
+     "{ont_fold}-fold; p = {ont_p}"),
     ("J_{H}4, Wt vs *Aicda*^{−/−} (Sanger, unique-variant density)", "Welch t on log_{10}; n = 3 vs 3",
      "{sanger_fold}-fold; p = {sanger_p}"),
-    ("N114, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "≥ {sep_n114}-fold"),
+    ("N114, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "{sep_n114}-fold"),
     ("J_{H}4, full length (positions 90–1,230)", "geometric means", "{full_wt} vs {full_ko} × 10^{−5}; ~{full_fold}-fold"),
     ("Spectrum, Sanger vs nanopore (12 types, 3 Wt mice)", "Pearson r [95% CI]; slope",
      "r = {r_spec} [{r_spec_ci}]; slope {slope}"),
@@ -424,8 +424,7 @@ SUPP_FIGS = [
      "excluded, in each AID-null library (red) and averaged over the AID-active libraries (blue); J_{H}4, 500 "
      "reads per library; Sμ (PRJNA1481264), 2,000. Insets, the controls alone on their own scale, on which the "
      "small recurrent artifacts are visible. r, Spearman correlation between pairs of controls: the controls "
-     "agree only weakly position by position, one explaining 1–4% (J_{H}4) and 9–20% (Sμ) of another's "
-     "variation. Recurrent artifacts are therefore a tendency of the chemistry and sequence context rather than "
+     "agree only weakly position by position (r = 0.12–0.20 over three pairs in J_{H}4 and 0.29–0.45 in Sμ). Recurrent artifacts are therefore a tendency of the chemistry and sequence context rather than "
      "a fixed per-position fingerprint, which is why the error model pools over substitution type, strand and "
      "base quality and shrinks each position towards that pooled rate instead of trusting its own count "
      "(STAR Methods). (C and D) "
@@ -545,8 +544,10 @@ SUPP_FIGS = [
      "Profiles: density and mutation frequency; the 12-type spectrum, corrected for base composition; AID "
      "(WRC/GYW) and Polη (WA/TW) hotspots; position along the amplicon; clones and mutation trees; indels; and, "
      "for Sanger, how many calls the background explains. Bookkeeping checks are reported beside the results and "
-     "never applied: a trace filed under two animals on purpose is kept under both, and an accidental copy is "
-     "counted once. Sample-sheet rows are illustrative. Figure S14 gives the rule and equation behind each step."),
+     "never applied: a trace filed under two animals on purpose is kept under both, and a suspected "
+     "accidental copy is flagged, not removed. Dropping a clone is a separate, authored act: rows the "
+     "sample sheet marks as excluded are not analysed, and every excluded clone is listed with its reason. "
+     "Sample-sheet rows are illustrative. Figure S14 gives the rule and equation behind each step."),
     ("Figure S14. How SHMtrace turns reads into calls, related to STAR Methods",
      [FIG / "FigureS14_engine.png"],
      "Each of the six stages of the analysis, with the rule it applies and that rule working on the J_{H}4 "
@@ -575,7 +576,8 @@ SUPP_FIGS = [
      "bases. (C) Mean microhomology per mouse; bars, genotype means; p, Welch test against wild type with three "
      "mice per genotype. The permutation test over the same values cannot return less than 0.1 at this sample "
      "size and is given in `crm/out/switch_pacbio/comparisons.csv`. (D) Share of unique junctions whose "
-     "acceptor-side segment aligns equally well at more than one position, measured by re-aligning that segment "
+     "acceptor-side segment has another placement within five matched bases of its best one, measured by "
+     "re-aligning that segment "
      "on its own. The module's own ambiguity flag reports 0% in every sample, because minimap2 returns no "
      "secondary alignment for these reads; acceptor breakpoints in the repeats are therefore approximate. This "
      "dataset has no AID-null arm and does not test the substitution caller's control calibration."),
@@ -591,8 +593,9 @@ SUPP_FIGS = [
      "*Aicda*^{\u2212/\u2212} libraries stay at background in every treatment, and wild-type means rise with "
      "both inhibitors, but replicates within a treatment differ by more than the treatments do, so this window "
      "does not resolve the drug effect. (C) The genotype contrast in window C, using only the twelve paired "
-     "libraries, where no layout difference remains; treatment is a nuisance factor here and the three "
-     "wild-type libraries are one per treatment. Targeting index and C\u2192T/G\u2192A share are of the "
+     "libraries, where no layout difference remains. The three wild-type libraries are one per treatment, "
+     "so treatment is confounded with replicate on that side and the genotypes are pooled across treatments "
+     "as a descriptive contrast, not a balanced design. Targeting index and C\u2192T/G\u2192A share are of the "
      "wild-type calls."),
     ("Figure S18. Engineered AID diversification in four public datasets, related to Figure 7",
      FIG / "FigureS18_engineered.png",

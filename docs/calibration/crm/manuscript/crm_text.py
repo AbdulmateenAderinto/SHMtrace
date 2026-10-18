@@ -19,8 +19,8 @@ SUMMARY = (
     "candidate substitutions in read libraries against errors measured in matched activation-induced cytidine "
     "deaminase (AID)-deficient controls from the same run and compares biological replicates. "
     "Sanger mismatches are counted at a quality threshold, with background reported separately. We evaluated "
-    "SHMtrace using planted mutations, simulated lineages, and ten loci from seven laboratories across three "
-    "platforms. It retained {ctl_rec} AID-null calls per assay and separated AID-active from AID-null libraries "
+    "SHMtrace using planted mutations, simulated lineages, ten loci from seven laboratories across three "
+    "platforms, and further public datasets on a fourth. It retained {ctl_rec} AID-null calls per assay and separated AID-active from AID-null libraries "
     "{sep_lo}–{sep_hi}-fold in four of five nanopore assays, compared with {lf_lo}–{lf_hi}-fold and "
     "{gen_lo}–{gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger sequencing of the same "
     "mice gave similar pooled spectra. Re-analysis of three published Sanger studies recovered principal "
@@ -47,7 +47,7 @@ HIGHLIGHTS = [
     "Nanopore gives spectra similar to Sanger, plus whole-amplicon maps and mutation trees",
     "Re-running three published Sanger studies recovers their principal comparisons",
 ]
-ETOC = ("Aderinto and Martin present SHMtrace for somatic hypermutation analysis of amplicon reads and Sanger traces. Read-library candidates are tested against matched control errors; Sanger mismatches are counted with background reported separately. Benchmarks assess recall, false calls, biological comparisons and reproducibility across three platforms.")
+ETOC = ("Aderinto and Martin present SHMtrace for somatic hypermutation analysis of amplicon reads and Sanger traces. Read-library candidates are tested against matched control errors; Sanger mismatches are counted with background reported separately. Benchmarks assess recall, false calls, biological comparisons and reproducibility across four platforms.")
 
 INTRO = [
     "Somatic hypermutation (SHM) diversifies immunoglobulin (Ig) genes in germinal-center B cells. It is "
@@ -71,20 +71,21 @@ INTRO = [
     "sequence contexts[@delahaye2021].",
     "Two common analysis practices make this problem worse. First, general-purpose low-frequency variant callers "
     "judge each base by its own quality score[@wilm2012], and the simple rules used in commercial software test "
-    "candidates one at a time without correcting for the number of tests[@kearse2012]. Neither approach accounts "
-    "for the errors that a particular library makes, so sequencing errors that recur at one position, whether "
-    "from PCR, homopolymers, or a co-amplified paralog, are wrongly counted as SHM mutations. Second, reads from one animal are often "
+    "candidates one at a time without correcting for the number of tests[@kearse2012]. In the configurations "
+    "evaluated here, neither measures the errors a particular library makes, so mismatches that recur at one "
+    "position, from PCR, sequence context or a co-amplified paralog, can be counted as SHM mutations. "
+    "Second, reads from one animal are often "
     "pooled and treated as independent replicates, which overstates certainty because reads from the same "
     "animal share clones and PCR history[@lazic2010]. SHM studies already include the control that addresses "
     "the first: libraries from AID-null animals or cells, sequenced alongside the samples. The second is a "
     "matter of design, one value per animal. "
-    "Existing SHM software summarizes mutations once they have been called[@maccarthy2009,@gupta2015,@yaari2013] "
+    "Existing SHM software summarizes mutations once called[@maccarthy2009,@gupta2015,@yaari2013] "
     "but does not use these controls to decide which differences are mutations.",
     "Here we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
-    "same run, compares groups with the animal as the unit, and runs the whole workflow from "
+    "same run, compares groups with the animal as the unit, and runs from "
     "delivered reads or chromatograms to group statistics. We validated it with planted mutations, "
-    "simulated lineages, ten loci from seven laboratories, three platforms, Sanger "
-    "sequencing of the same mice, and the deposited clones of three published Sanger studies, and compared it against LoFreq[@wilm2012], the long-read somatic callers "
+    "simulated lineages, ten loci from seven laboratories across four platforms, Sanger "
+    "sequencing of the same mice, and deposited clones from three published Sanger studies, and compared it against LoFreq[@wilm2012], the long-read somatic callers "
     "ClairS[@zheng2026] and DeepSomatic[@park2026], the germline callers Clair3[@zheng2022] and "
     "DeepVariant[@poplin2018], and the uncorrected Geneious test[@kearse2012].",
 ]
@@ -164,10 +165,9 @@ RESULTS = [
           "{ds_real_pass} in total across the three libraries, where SHMtrace called {jh4_wt_rec}; on the three "
           "pMX-*Aicda* N114 subclones, ClairS passed {cs_real_n114_pass} and DeepSomatic at most "
           "{ds_real_n114_pass}, where SHMtrace called {n114_aid_rec}. In Wt3, ClairS rejected {cs_real_rej} of "
-          "its {cs_real_cand} candidates, including {cs_real_hi_pass} of the {cs_real_hi} carried by 20% or more "
-          "of reads, a level at which it recalled nearly all clean planted mutations. SHM rarely reaches the allele "
-          "fractions where these callers recovered planted mutations: of the {af_n} calls SHMtrace made in the AID-active libraries of "
-          "the four loci, {af_lt1}% were carried by fewer than 1% of reads, {af_lt5}% by fewer than 5%, and "
+          "its {cs_real_cand} candidates; of the {cs_real_hi} carried by 20% or more of reads, a level at which "
+          "it recalled nearly all clean planted mutations, {cs_real_hi_pass} passed. The calls SHMtrace retained rarely reach such "
+          "fractions: of the {af_n} in the AID-active libraries of the four loci, {af_lt1}% were carried by fewer than 1% of reads, {af_lt5}% by fewer than 5%, and "
           "{af_lt20}% by fewer than 20% (Figure 2E). {germ_recall}, as expected for "
           "germline callers, which look for variants carried by about half or all of the reads (Table S2)."),
     ("p", "N114 V-region reads gave similar results (Figure 3B). SHMtrace recalled {sp_n114_recall}% of "
@@ -287,13 +287,14 @@ RESULTS = [
 
     ("h", "Nanopore and Sanger sequencing give similar profiles in the same mice"),
     ("p", "The same six mice had previously been analyzed by cloned-amplicon Sanger sequencing[@barbulescu2025]. We "
-          "re-analyzed their 447 chromatograms with SHMtrace's Sanger mode and compared the two platforms over "
-          "the 529-bp window that the Sanger clones read cleanly (Figures 5 and S7). Both platforms separated Wt from "
+          "re-analyzed the 184 of their 447 archived chromatograms that the sample sheet files to these mice, "
+          "134 of which yielded clones, and compared the two platforms over the 529-bp window that those "
+          "clones read cleanly (Figures 5 and S7). Both platforms separated Wt from "
           "*Aicda*^{−/−} mice (Sanger, {sanger_fold}-fold, p = {sanger_p}; nanopore, {ont_fold}-fold with two "
           "controls without calls counted at one event, "
-          "p = {ont_p}; Welch tests on log densities, n = 3 per group; Figure 5A). The pooled substitution "
-          "spectra were similar (Pearson r = {r_spec} over 12 types pooled from three mice, an interval of "
-          "{r_spec_ci} that reflects the types, not the mice; slope = {slope}; Figure 5B), as were "
+          "p = {ont_p}; Welch tests on log densities, n = 3 per group; Figure 5A). The spectra pooled across "
+          "the three mice were similar over the 12 substitution types (descriptive Pearson "
+          "r = {r_spec}; slope = {slope}; Figure 5B), as were "
           "the distribution of mutations along the intron (r = {r_pos} in 25-bp bins; Figure 5C) and the use of "
           "AID hotspots (Figure 5D). G:C mutations fell at WRC/GYW motifs in {hot_gc_s}% (Sanger) and "
           "{hot_gc_o}% (nanopore) of cases, and A:T mutations at WA/TW motifs in {hot_at_s}% and {hot_at_o}%, "
@@ -482,8 +483,8 @@ DISCUSSION = [
     "The comparison with LoFreq should be read with its design in mind. LoFreq was developed for deep "
     "short-read data with well-calibrated qualities; on nanopore reads its base-alignment correction suppressed "
     "almost every call, and without it LoFreq still required five or more supporting reads. This is not a defect "
-    "of LoFreq on its intended data, but it shows that a per-base error model cannot know an SHM assay's "
-    "library-specific background. Nanopore qualities were conservative up to about Q30, but above Q40 the "
+    "of LoFreq on its intended data, but a per-base error model fitted without matched controls had no way "
+    "to reach this assay's library-specific background. Nanopore qualities were conservative up to about Q30, but above Q40 the "
     "measured error stopped falling and differed between runs ({q40_lo}–{q40_hi} × 10^{−5}; Figure S2), a "
     "run-specific error that only same-run controls measure. ClairS and DeepSomatic use a matched normal but "
     "learned somatic variation from human cancer genomes and synthetic variants; they called clean planted "
@@ -555,11 +556,11 @@ RESOURCE = [
                      "the lead contact, Alberto Martin (alberto.martin@utoronto.ca)."),
     ("Materials availability", "This study did not generate new unique reagents."),
     ("Data and code availability", "Nanopore reads of the J_{H}4 and N114 libraries, the Sanger chromatograms and "
-     "clone records, SHMtrace project files, per-library read accounting and all benchmark outputs have been "
-     "deposited at {lab_data_doi} and are publicly available as of the date of publication; accession numbers are "
+     "clone records, SHMtrace project files, per-library read accounting and all benchmark outputs "
+     "will be deposited at {lab_data_doi} and will be publicly available as of the date of publication; accession numbers are "
      "listed in the key resources table. The public datasets analyzed are listed in Table 1 and the key resources "
-     "table. SHMtrace (v{shmtrace_version}), including the desktop application, and all analysis and figure code have been "
-     "deposited at {lab_code_doi} and are publicly available as of the date of publication. The deposit carries a "
+     "table. SHMtrace (v{shmtrace_version}), including the desktop application, and all analysis and figure code "
+     "will be deposited at {lab_code_doi} and will be publicly available as of the date of publication. The deposit carries a "
      "file manifest with SHA-256 checksums, the sample sheets, the per-library read accounting, and the "
      "intermediate tables each figure reads. It also carries a record of the environment the analyses were run "
      "in (interpreter, package and external-tool versions, and the commit the manuscript was built from) and a "

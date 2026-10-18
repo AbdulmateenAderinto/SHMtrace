@@ -167,7 +167,7 @@ def main():
             pos += 1
     ax.set_xticks([t[0] for t in ticks], [t[1] for t in ticks])
     ax.set_ylim(0, 35)
-    ax.set_ylabel("% of mutations at G:C")
+    ax.set_ylabel("% of all mutations")
     ax.set_title("G:C transitions and transversions", fontsize=7)
     letter(ax, "D", dx=-0.22)
 

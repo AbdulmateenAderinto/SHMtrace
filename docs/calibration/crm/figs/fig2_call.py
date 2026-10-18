@@ -81,7 +81,7 @@ def fdr_panel(ax, d, case):
     kept = [bisect_right(pv, t) for t in ts]
     false = [np.mean([bisect_right(p, t) * max(1.0, c["bases"] / b) for p, b in decoys]) for t in ts]
     ax.plot(ts, kept, color=CASE, lw=1.1, label=f"{case} candidates with p ≤ t")
-    ax.plot(ts, false, color=CTRL, lw=1.1, label="false calls the controls predict")
+    ax.plot(ts, false, color=CTRL, lw=1.1, label="decoy-estimated false calls")
     ax.plot(ts, [0.05 * k for k in kept], color=CTRL, lw=0.7, ls=":", label="5% of the candidates kept")
     thr = c["threshold"]
     n_kept = bisect_right(pv, thr)
@@ -89,6 +89,7 @@ def fdr_panel(ax, d, case):
     ax.set_xscale("log")
     ax.set_yscale("symlog", linthresh=1)
     ax.set_ylim(0, max(kept) * 2.5)
+    ax.set_xlim(ts[0], 1)          # a p-value threshold cannot exceed 1; do not let the log view run to 10
     ax.set_xlabel("p-value threshold t")
     ax.set_ylabel("Count")
     ax.set_title(f"Control FDR, {LOCI[d['dataset']]} {case}", fontsize=6.6)

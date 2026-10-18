@@ -48,7 +48,7 @@ def main():
         ax.add_patch(plt.Rectangle((lo, y), hi - lo, 0.26, color=c, alpha=0.2, lw=0))
         ax.plot([lo, hi], [y + 0.13, y + 0.13], color=c, lw=1.3)
         ax.text(-8, y + 0.13, lab, ha="right", va="center", fontsize=5.3, color=c)
-    letter(ax, "A", dx=-0.055, dy=-0.05)
+    letter(ax, "A", dx=-0.055, dy=0.99)   # upper-left of the schematic, not below it
     # B: the window every library reads
     ax = fig.add_subplot(gs[1, 0])
     for i, t in enumerate(TREAT):
@@ -87,7 +87,10 @@ def main():
     ax.text(0.5, 0.60, f"calls carry the AID signature:\ntargeting index {min(s5):.2f}–{max(s5):.2f}, "
                        f"C→T/G→A {min(ct):.0f}–{max(ct):.0f}%",
             transform=ax.transAxes, ha="center", va="top", fontsize=5, color=MID)
-    ax.text(0.5, -0.24, "no layout difference here: every library is paired",
+    # the groups are not balanced: one wild-type library per treatment against three AID-null, so
+    # treatment and replicate are confounded on the wild-type side (minor 16)
+    ax.text(0.5, -0.24, "every library here is paired, so no layout difference; but one wild-type\n"
+                        "library per treatment against three AID-null, pooled as a descriptive contrast",
             transform=ax.transAxes, ha="center", fontsize=5, color=SOFT)
     letter(ax, "C", dx=-0.17)
     save(fig, "FigureS17_public_smu")

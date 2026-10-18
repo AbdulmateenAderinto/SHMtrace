@@ -75,9 +75,12 @@ def main():
     ax.set_yticks([])
     ax.spines["left"].set_visible(False)      # no y scale here, and it collided with the track labels
     ax.set_xlabel("Position in the amplicon (bp)")
-    ax.set_title("The position follows the guide", fontsize=7)
+    # the deposit names the sgRNAs but does not publish their protospacer coordinates, so the panel shows
+    # where each library's excess sits, not its distance from a guide (minor 11)
+    ax.set_title("Each library's excess peaks at its own position", fontsize=6.6)
     ax.text(0.5, -0.30, "five sgRNAs on one amplicon; each track scaled to its own peak, whose\n"
-                        "height in mismatches per 10$^3$ is given. Rates, not calls.",
+                        "height in mismatches per 10$^3$ is given. Rates, not calls. The deposit\n"
+                        "does not publish protospacer coordinates, so guides are not drawn.",
             transform=ax.transAxes, ha="center", va="top", fontsize=4.8, color=MID)
     letter(ax, "B", dx=-0.1)
     # C: sites against guides
@@ -85,8 +88,8 @@ def main():
     ns = [int(k.split("_")[0]) for k in sat]
     vals = [sat[k] for k in sat]
     order = np.argsort(ns)
-    ax.plot([ns[i] for i in order], [vals[i] for i in order], color=INK, lw=1.1, marker="o", ms=4,
-            zorder=3)
+    # points only: a joining line would read as a dose-response across four unreplicated libraries
+    ax.scatter([ns[i] for i in order], [vals[i] for i in order], color=INK, s=20, zorder=3)
     for i in order:
         ax.annotate(str(vals[i]), (ns[i], vals[i]), xytext=(0, 6), textcoords="offset points",
                     ha="center", fontsize=5, color=MID)
@@ -94,8 +97,11 @@ def main():
     ax.set_xlabel("sgRNAs carried by the library")
     ax.set_ylabel("Localised sites")
     ax.set_ylim(-6, 80)
-    ax.set_title("More guides, more sites", fontsize=7)
-    ax.text(0.03, 0.88, "a site sits ≥ 5× above the lowest of\nthe other libraries at that base",
+    ax.set_title("Localised sites in four guide-pool libraries", fontsize=6.6)
+    # a descriptive leave-one-out contrast, not a calibrated localisation test: the four libraries are
+    # unreplicated and cover different targets, so no dose-response is claimed (minor 12)
+    ax.text(0.03, 0.86, "a site sits ≥ 5× above the lowest of the\nother libraries at that base; four "
+                        "unreplicated\nlibraries, so this is a descriptive contrast",
             transform=ax.transAxes, fontsize=4.8, color=MID)
     letter(ax, "C", dx=-0.2)
     # D: the TCR against its own ancestor
@@ -105,13 +111,21 @@ def main():
     others = [k for k in s if k != base]
     ax.scatter([0] * 1, [s[base]["mutation_frequency_x1e3"]], s=22, marker="D", facecolor=BASE_C,
                edgecolor="white", lw=0.4, zorder=4)
-    xs = np.linspace(0.75, 1.25, len(others))
-    ax.scatter(xs, [s[k]["mutation_frequency_x1e3"] for k in others], s=14, facecolor=AID_C,
-               edgecolor="white", lw=0.3, zorder=3)
-    ax.plot([0.72, 1.28], [np.mean([s[k]["mutation_frequency_x1e3"] for k in others])] * 2,
-            color=AID_C, lw=1.2)
-    ax.set_xticks([0, 1], ["the available\nbaseline", "diversified and\nselected (n = 10)"], fontsize=5.3)
-    ax.set_xlim(-0.45, 1.6)
+    # the baseline belongs to founder h5, so h5's descendants have a relationship to it that h7, h8 and h12
+    # do not; a single pooled mean would hide that, so the samples are grouped by founder (minor 13)
+    founders = sorted({k.split("_")[0] for k in others}, key=lambda f: (f != "h5", f))
+    ticks, labels = [0], ["the available\nbaseline (h5)"]
+    for i, f in enumerate(founders, start=1):
+        mine = [k for k in others if k.split("_")[0] == f]
+        xs = np.linspace(i - 0.16, i + 0.16, len(mine))
+        ax.scatter(xs, [s[k]["mutation_frequency_x1e3"] for k in mine], s=14, facecolor=AID_C,
+                   edgecolor="white", lw=0.3, zorder=3)
+        ax.plot([i - 0.22, i + 0.22], [np.mean([s[k]["mutation_frequency_x1e3"] for k in mine])] * 2,
+                color=AID_C, lw=1.2)
+        ticks.append(i)
+        labels.append(f"{f}\n(n = {len(mine)})")
+    ax.set_xticks(ticks, labels, fontsize=5.3)
+    ax.set_xlim(-0.5, len(founders) + 0.5)
     ax.set_ylabel("Mutation frequency per 10$^3$")
     ax.set_title("An AID-diversified TCR", fontsize=7)
     ax.text(0.98, 0.04, "one baseline library, so no\nfalse-discovery rate is claimed",
