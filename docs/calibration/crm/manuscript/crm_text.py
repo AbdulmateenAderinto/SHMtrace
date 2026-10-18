@@ -271,8 +271,8 @@ RESULTS = [
           "and {ot2_gc}% at G:C over {ot1_n} and {ot2_n} calls). Deleting the histone readers MLLT1 and MLLT3, "
           "which concentrate AID at these loci, returned both to the *Aicda*^{−/−} level: at OT1 {ot1_dko} "
           "calls ({ot1_dko_dens} per 10^{5} bases) and at OT2 {ot2_dko} ({ot2_dko_dens}), neither separable "
-          "from the controls (p = {ot1_p_dko_ko} and {ot2_p_dko_ko}) and both below the AID-competent "
-          "libraries (p = {ot1_p_dko} and {ot2_p_dko}), reproducing the published effect from the reads alone. "
+          "from the controls (p = {ot1_p_dko_ko} and {ot2_p_dko_ko}) and both far below the AID-competent "
+          "counts above, reproducing the published effect from the reads alone. "
           "At OT1 the noisy-control rule left control {ot1_ctl_drop} out of the decoys that set the threshold, "
           "so the threshold there rests on two controls (Limitations)."),
     ("p", "The leave-one-control-out margin behaved as intended (Figure 4H). Taken at face value, the control "

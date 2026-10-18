@@ -83,13 +83,11 @@ The manuscript rebuilds: summary 145 words, main text 6,993 (cap 7,000), 52 refe
 
 ---
 
-## 2. Needs the author: a floor-dependent significance claim at OT1 and OT2
+## 2. A floor-dependent significance claim at OT1 and OT2, found in the figure audit and now fixed
 
-Found while auditing the figures, not raised by the referee, and it bears on a claim rather than a label.
-
-Results says the MLLT1/MLLT3 double knockout sits "**below the AID-competent libraries (p = 0.034 and
-2.6 × 10⁻⁵)**". Both p values come from a Welch test on `log10(mutation_frequency_x1e3)` with frequencies
-hand-floored at `1e-4` (`crm_numbers.py`, the `lg` lambda). The floor decides both:
+Not raised by the referee. Results said the MLLT1/MLLT3 double knockout sat "below the AID-competent
+libraries (p = 0.034 and 2.6 × 10⁻⁵)". Both came from a Welch test on `log10(mutation_frequency_x1e3)`
+with frequencies hand-floored at `1e-4`, and the floor decided them:
 
 | floor | OT1 p | OT2 p |
 |---|---|---|
@@ -98,20 +96,20 @@ hand-floored at `1e-4` (`crm_numbers.py`, the `lg` lambda). The floor decides bo
 | 1e-5 | 0.070 | 1.5e-05 |
 | 1e-6 | 0.106 | 9.8e-06 |
 
-- **OT1 crosses the significance threshold** on the choice of constant: significant at 1e-3 and 1e-4, not
-  significant at 1e-5 or 1e-6. Nothing in the data distinguishes those floors.
-- **OT2 is degenerate.** All three dKO libraries carried no mutations, so after flooring the group has zero
-  variance; SciPy warns of catastrophic cancellation. A t test against a varianceless group is not meaningful,
-  and its p value is set by the floor.
+OT1 crossed the significance threshold on the constant alone, and OT2 was degenerate: every dKO library saw
+nothing, so after flooring that group had zero variance and SciPy warned of catastrophic cancellation.
+The comment directly above that code already rejected folds for this reason, then used a floored log for a test.
 
-The irony is that the comment directly above that code already rejects folds for this exact reason ("the
-floor, not the data, would then set its size"), then uses a floored log for the test.
+**Fixed.** Both p values are gone from Results, which now reads "neither separable from the controls
+(p = 0.45 and 0.56) and both far below the AID-competent counts above". The counts are unambiguous and are
+stated in the preceding sentence: 1, 1 and 0 calls at OT1 and 0, 0 and 0 at OT2, against 28, 23 and 27 at OT2
+and comparable numbers at OT1. The floored computation was deleted from `crm_numbers.py` so it cannot be
+reused, with a comment recording why.
 
-The counts do not need a test and are far stronger: at OT1 the dKO libraries made 1, 1 and 0 calls and at OT2
-0, 0 and 0, against hundreds of mutations in the AID-competent libraries. **Recommended:** drop the two
-floor-dependent p values and let the counts carry the sentence, or replace them with a count-based exact test.
-The dKO-versus-control comparison (p = 0.45 and 0.56), which is the claim that the knockout returns to the
-AID-null level, does not depend on this hand floor. **Not changed, because it alters a scientific claim.**
+**The pipeline's own log test was checked and kept.** `_welch_log` censors a zero to a third of the smallest
+observed value — data-derived, documented as pulling towards no difference, and stable: OT1's reported
+p = 0.035 comes out at 0.0347, and 0.030 if a half is used instead. That is a different thing from a constant
+chosen independently of the data, so the remaining p values stand.
 
 ## 3. Needs the author (could not be settled from the repository)
 

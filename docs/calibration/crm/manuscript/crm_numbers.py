@@ -511,10 +511,13 @@ def compute():
         for g, tag in (("vehicle", "wt"), ("dKO", "dko"), ("AID_KO", "ko")):
             N[f"{k}_{tag}_dens"] = f2(grp[g]["unique_density_x1e5_mean"])
             N[f"{k}_{tag}_sd"] = f2(grp[g]["unique_density_x1e5_sd"])
-        # the double knockout is at the Aicda-/- level, so it is tested against both the controls and the vehicle
-        lg = lambda g, by=by: [math.log10(max(s["mutation_frequency_x1e3"] or 0, 1e-4))  # noqa: E731
-                               for s in by[g]]
-        N[f"{k}_p_dko"] = pfmt(float(stats.ttest_ind(lg("vehicle"), lg("dKO"), equal_var=False)[1]))
+        # No test is quoted for the double knockout against the AID-competent libraries. Both groups would
+        # have to be floored first, every OT2 dKO library having seen nothing, and the floor then decides the
+        # answer: on log frequency floored at 1e-4 OT1 gave p = 0.034, but 0.0085 at 1e-3 and 0.106 at 1e-6,
+        # crossing the significance threshold on the constant alone, while OT2's floored dKO group has zero
+        # variance and makes the t statistic meaningless. The counts are unambiguous and are what the text
+        # reports: 1, 1 and 0 calls at OT1 and 0, 0 and 0 at OT2, against hundreds in the AID-competent
+        # libraries. The dKO-against-control comparison below needs no such floor.
         N[f"{k}_p_dko_ko"] = pfmt(grp["dKO"]["unique_density_x1e5_p_welch_log_vs_AID_KO"])
         vs = [v for s in by["vehicle"] for v in o["variants"] if v["sample"] == s["sample"]]
         N[f"{k}_gc"] = pct(sum(v["ref"] in "CG" for v in vs) / len(vs))
