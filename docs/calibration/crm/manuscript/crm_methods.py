@@ -679,7 +679,7 @@ TABLE1 = [
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "simulated library", "Figures 3 and 5"),
 ]
-TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers ten SHM target loci from seven laboratories; rRNA is excluded. Lengths are analysis windows; the mOrange amplicon is 679 bp.")
+TABLE1_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers fourteen SHM target loci from thirteen laboratories, counting J_{H}4 once across the rows that share it; the rRNA operons and the Sμ–Sγ1 junctions, which are class switching rather than SHM, are excluded from that count. Lengths are analysis windows; the mOrange amplicon is 679 bp.")
 
 SUPPLEMENT = [
     "Document S1. Figures S1–S18 and Tables S1 and S3–S5",
