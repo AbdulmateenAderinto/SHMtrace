@@ -132,6 +132,10 @@ def compute():
              sp_n114_lfnb=pct(s["n114"]["lofreq_nobaq"]["recall"]),
              sp_n114_gen_recall=pct(s["n114"]["geneious"]["recall"]), sp_n114_gen_fp=f1(s["n114"]["geneious"]["fp"]),
              sp_n114_gen_fdr=f"{s['n114']['geneious']['fdr']:.3f}",
+             # The two Benjamini-Hochberg figures come from different places, and the file names invite a
+             # mistake: spikein_jh4_bh.json IS the J_H4 BH run, but spikein_n114_bh.json is NOT the N114 one.
+             # It is the run that uses the first, noisier C3 library as a control (FDR 0.105, reported below as
+             # c31_bh_fdr). N114's own BH result is the recommended_bh caller inside spikein_n114.json.
              sp_n114_bh_fdr=f"{spike('n114', 'recommended_bh')['fdr']:.3f}",
              sp_jh4_bh_fdr=f"{spike('jh4_bh', 'recommended')['fdr']:.3f}")
     for k in ("su_lps", "pim1"):
