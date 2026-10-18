@@ -588,7 +588,11 @@ SUPP_FIGS = [
      "acceptor-side segment has another placement within five matched bases of its best one, measured by "
      "re-aligning that segment "
      "on its own. The module's own ambiguity flag reports 0% in every sample, because minimap2 returns no "
-     "secondary alignment for these reads; acceptor breakpoints in the repeats are therefore approximate. This "
+     "secondary alignment for these reads; acceptor breakpoints in the repeats are therefore approximate. "
+     "Dropping every ambiguous junction removes 2\u201321% of a sample's junctions and leaves 13 of the 15 "
+     "comparisons in (C) on the same side of 0.05; the two that move are *Shld1*^{\u2212/\u2212} "
+     "microhomology \u2265 4 nt, which strengthens, and *Xlf*^{\u2212/\u2212} insertions, which weakens "
+     "(STAR Methods). This "
      "dataset has no AID-null arm and does not test the substitution caller's control calibration."),
     ("Figure S17. Public S\u03bc mutation libraries under PI3K\u03b4 blockade, related to Figure 7",
      FIG / "FigureS17_public_smu.png",

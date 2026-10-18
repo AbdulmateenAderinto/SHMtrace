@@ -456,7 +456,13 @@ METHODS = [
           "both are reported. Acceptor-breakpoint ambiguity was measured directly, by re-aligning each "
           "junction's first 60 acceptor bases on their own with the short-read preset and counting placements "
           "within five matched bases of the best, because the module's own flag depends on secondary alignments "
-          "that minimap2 does not report for these reads."),
+          "that minimap2 does not report for these reads. What that ambiguity costs the comparisons was then "
+          "measured rather than assumed (`crm/switch_ambiguity_sensitivity.py`): dropping every junction whose "
+          "acceptor segment has more than one near-equal placement removes 2\u201321% of a sample's junctions, "
+          "and 13 of the 15 genotype comparisons stay on the same side of 0.05. Two do not, in opposite "
+          "directions: microhomology of four bases or more in *Shld1*^{\u2212/\u2212} strengthens from p = 0.065 "
+          "to 0.005, and insertions in *Xlf*^{\u2212/\u2212} weaken from p = 0.016 to 0.060. Those two should be "
+          "read as provisional."),
     ("h2", "Public engineered-diversification datasets"),
     ("p", "Four datasets in which a deaminase is directed deliberately were analysed against the construct "
           "each experiment began with, which is what `ancestral_reference` is for: there the reference is a "
