@@ -178,6 +178,7 @@ def main():
     shutil.copy(OUT / "Table_S2_benchmark.xlsx", pkg / "04_Table_S2_benchmark.xlsx")
     shutil.copy(CRM / "REVIEW_RESPONSE.md", pkg / "05_REVIEW_RESPONSE.md")
     shutil.copy(CRM / "HANDOVER.md", pkg / "06_HANDOVER.md")
+    shutil.copy(CRM / "REFEREE_RESPONSE.md", pkg / "07_REFEREE_RESPONSE.md")
 
     # figures: the main figures, then every image Document S1 embeds, taken from the build's own list so the set
     # cannot drift from the document

@@ -6,6 +6,13 @@ on trust. Every number below is recomputed by the packaging script and recorded 
 
 Repository state: `{head}` (working tree clean). Your patch was made against `83a908c`.
 
+**This package was rebuilt on 18 October and carries more than the answer to your review.** Since the
+17 October response the manuscript gained six public datasets (Figures S16–S18 and six new Table 1 rows),
+and an external referee report was acted on: confirmed errors in Figures S6, S8D, S9B, Table S3, the
+Figure 1C and S13 legends and several Methods statements, with a number of overclaims bounded. Those
+changes are listed item by item, with what was verified against what, in `07_REFEREE_RESPONSE.md`.
+Figures 1, 2, 5 and S6 in this package therefore differ from the ones in the 17 October package.
+
 ## What happened to your patch
 
 **Applied unmodified** as commit `3317fd9`, so its provenance stays separate from what followed. Before
