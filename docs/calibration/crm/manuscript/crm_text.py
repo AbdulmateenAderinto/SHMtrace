@@ -5,8 +5,8 @@ build_crm.py (keys in braces, e.g. {ldha_fold}); everything else is written out 
 the analysis outputs listed in STAR Methods.
 """
 
-TITLE = ("Control-calibrated profiling of somatic hypermutation from cloning-free long reads, Sanger traces "
-         "and short reads")
+TITLE = ("SHMtrace calls somatic hypermutation and other AID-driven mutation with a measured "
+         "false-discovery rate")
 RUNNING = "Control-calibrated SHM profiling"
 AUTHORS = "Abdulmateen Aderinto^{1,3} and Alberto Martin^{1,2,*}"
 AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1A8, Canada",

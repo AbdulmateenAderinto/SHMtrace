@@ -5,8 +5,8 @@ a co-author checking it before submission. Be specific and blunt. Praise is not 
 
 ## What it is
 
-**Title:** Control-calibrated profiling of somatic hypermutation from cloning-free long reads, Sanger traces and
-short reads. Aderinto and Martin, University of Toronto. Unpublished; not yet submitted.
+**Title:** SHMtrace calls somatic hypermutation and other AID-driven mutation with a measured
+false-discovery rate. Aderinto and Martin, University of Toronto. Unpublished; not yet submitted.
 
 **Target journal:** *Cell Reports Methods* (Cell Press). A shorter companion version for *STAR Protocols* exists and
 is not included.
