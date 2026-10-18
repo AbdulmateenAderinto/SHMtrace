@@ -582,9 +582,22 @@ def compute():
             au[f"Exp{e}_{arm}_AID"]["pct_transition_at_GC"] for e in (1, 2, 3)) / 100)
         N[f"mo_{arm.lower()}_calls"] = f0(sum(ms[f"Exp{e}_{arm}_AID"]["unique_mutations"] for e in (1, 2, 3)))
         N[f"mo_{arm.lower()}_dead"] = f0(sum(ms[f"Exp{e}_{arm}_AIDE58Q"]["unique_mutations"] for e in (1, 2, 3)))
-        g = lambda k, arm=arm: statistics.geometric_mean(   # noqa: E731
-            [max(ms[f"Exp{e}_{arm}_{k}"]["mutation_frequency_x1e3"] or 0, 1e-6) for e in (1, 2, 3)])
+        # Two traps here, both of which inflate the fold.
+        # First, mutation_frequency_x1e3 is rounded to four decimals, so a dead-AID library with a few
+        # mutations in 1.24e8 bases stores as exactly 0.0 and looks mutation-free; the frequency is therefore
+        # recomputed from the counts. Second, a library that genuinely saw nothing sits at the frequency one
+        # event would give on its own denominator, the convention of Figure 4F and Table S3, not at a fixed
+        # constant: a constant sets the fold by itself (1e-6 gave Ugi 8,102-fold, 1e-5 would give 810).
+        def g(k, arm=arm):
+            def one(e):
+                x = ms[f"Exp{e}_{arm}_{k}"]
+                t, b = x.get("mutations_total") or 0, x["frequency_bases"]
+                return 1000.0 * t / b if t else 1000.0 / b
+            return statistics.geometric_mean([one(e) for e in (1, 2, 3)])
         N[f"mo_{arm.lower()}_fold"] = f0(g("AID") / g("AIDE58Q"))
+        # how much of each denominator is a floor rather than a measurement, so the text can say so
+        N[f"mo_{arm.lower()}_dead_zero"] = f0(sum(
+            not (ms[f"Exp{e}_{arm}_AIDE58Q"].get("mutations_total") or 0) for e in (1, 2, 3)))
         gr = lambda k, arm=arm: statistics.geometric_mean(  # noqa: E731
             [au[f"Exp{e}_{arm}_{k}"]["freq_x1e3"] for e in (1, 2, 3)])
         N[f"mo_{arm.lower()}_fold_raw"] = f1(gr("AID") / gr("AIDE58Q"))
