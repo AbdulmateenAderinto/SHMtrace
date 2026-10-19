@@ -180,6 +180,38 @@ def check_paired_settings(n):
         f"{n['mask60_lost']} and {n['mask80_lost']}; the text must give both")
 
 
+def journal_word_count():
+    """What Cell Reports Methods counts against its 7,000-word limit.
+
+    "Research articles should be under 7,000 words, not including the reference list or the STAR
+    Methods" (cell.com/cell-reports-methods/information-for-authors/article-types, read 2026-10-18).
+    Those two are the only exclusions named, so everything else in the main-text manuscript counts:
+    the summary, keywords, resource availability, the declarations, the supplemental-information
+    index and, by far the largest of them, the figure titles and legends. Counting only
+    introduction to limitations, as this build did until now, understated the total by about a
+    quarter and let the manuscript sit well over the limit while the build reported it as compliant.
+
+    Document S1 is a separate supplemental file, so supplemental figure legends are not counted."""
+    W = lambda *t: word_count([("p", x) for x in t if x])   # noqa: E731
+    parts = [
+        ("title, authors, affiliations", W(T.TITLE, T.AUTHORS, *T.AFFIL)),
+        ("summary", W(T.SUMMARY)),
+        ("keywords", W(T.KEYWORDS)),
+        ("introduction", W(*T.INTRO)),
+        ("results", W(*[x for _k, x in T.RESULTS])),
+        ("discussion", W(*T.DISCUSSION)),
+        ("limitations of the study", W(T.LIMITATIONS)),
+        ("resource availability", W(*[h for h, _x in T.RESOURCE], *[x for _h, x in T.RESOURCE])),
+        ("acknowledgments", W(T.ACK)),
+        ("author contributions", W(T.CONTRIB)),
+        ("declaration of interests", W(T.INTERESTS)),
+        ("declaration of generative AI", W(T.AI_DECL)),
+        ("supplemental information index", W(*M.SUPPLEMENT)),
+        ("figure titles and legends", W(*[x for x, _l in M.LEGENDS], *[l for _x, l in M.LEGENDS])),
+    ]
+    return sum(v for _k, v in parts), parts
+
+
 def check_limits():
     words = lambda s: len(s.split())   # noqa: E731
     sw = word_count([("p", T.SUMMARY)])
@@ -274,8 +306,13 @@ def main(outdir):
     path = out / "SHMtrace_CellReportsMethods.docx"
     m.save(path)
     mw = word_count(main_blocks)
-    print(f"{path}\nsummary {sw} words; main text (introduction to limitations) {mw} words; references {len(m.order)}")
-    assert mw < 7000, "main text over 7,000 words"
+    jw, parts = journal_word_count()
+    print(f"{path}\nsummary {sw} words; introduction to limitations {mw} words; references {len(m.order)}")
+    print(f"journal count (all but references and STAR Methods) {jw} words of 7,000")
+    if jw >= 7000:
+        for k, v in sorted(parts, key=lambda kv: -kv[1]):
+            print(f"    {k:34s} {v:>5}")
+
     # legends and figures live in different files and have drifted apart before, so check them against
     # each other here rather than trusting a later read-through (legend_check.py)
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -376,6 +413,9 @@ def main(outdir):
             widths=[28, 20, 28, 32, 28, 20, 18], size=7.5)
     s.save(out / "Document_S1.docx")
     print("Document S1 written")
+    # last, so that both documents are on disk to work from even while the manuscript is over length
+    assert jw < 7000, (f"manuscript is {jw} words by the journal's count, {jw - 6999} over; the limit "
+                       "excludes only the reference list and the STAR Methods")
 
 
 STATS = [
