@@ -60,16 +60,16 @@ INTRO = [
     "cofactors, and the repair pathways that act on its lesions[@dinoia2002,@rada2004,@rada2002,@zeng2001]. In mice, "
     "the most widely used reporter is the intron downstream of J_{H}4, a non-coding region that mutates like a V gene "
     "but is not subject to antigen selection[@jolly1997,@lebecque1990].",
-    "This assay has changed little in decades. Amplicons are cloned into bacteria and sequenced colony "
-    "by colony, which takes days of hands-on work and yields tens of sequences per animal[@sible2021]. "
-    "Our goal is to analyze this genomic reporter while retaining linkage between mutations across the "
-    "amplicon; short reads may not span the complete region[@martin2023]. Long reads from Oxford Nanopore Technologies (ONT) now reach "
-    "modal accuracies above 99% with R10.4.1 flow cells[@zhang2023,@sereika2022,@sanderson2024] and have been "
-    "used to sequence Ig genes where consensus sequencing can absorb errors[@minervini2021,@subassatish2022]. "
-    "Calling rare substitutions from single reads across a polyclonal population is harder. A wild-type J_{H}4 "
-    "intron carries roughly one mutation per 100 bases, whereas the residual error of a single filtered read is "
-    "within one or two orders of magnitude of that rate and is concentrated at particular positions and "
-    "sequence contexts[@delahaye2021].",
+    "The same measurement is made on several platforms, each reporting a different kind of evidence. "
+    "Cloned-amplicon Sanger sequencing reads one molecule at a time at high per-base confidence, "
+    "which is why it is the comparison used here, though it yields tens of sequences per animal[@sible2021]. "
+    "Short reads give depth but may not span the complete region[@martin2023]. Long reads span it, so mutations "
+    "stay linked across the amplicon: nanopore accuracy now reaches modal values above 99% with R10.4.1 flow "
+    "cells[@zhang2023,@sereika2022,@sanderson2024], and nanopore has been used to sequence Ig genes where "
+    "consensus sequencing can absorb errors[@minervini2021,@subassatish2022]. What the platforms share is the "
+    "need to separate AID-driven mutation from their own error. A wild-type J_{H}4 intron carries roughly one "
+    "mutation per 100 bases, whereas the residual error of a single filtered read is within one or two orders of "
+    "magnitude of that rate and is concentrated at particular positions and sequence contexts[@delahaye2021].",
     "Two common analysis practices make this problem worse. First, general-purpose low-frequency variant callers "
     "judge each base by its own quality score[@wilm2012], and the simple rules used in commercial software test "
     "candidates one at a time without correcting for the number of tests[@kearse2012]. In the configurations "
@@ -450,11 +450,12 @@ RESULTS = [
 ]
 
 DISCUSSION = [
-    "The principal contribution of this study is a variant-calling framework that replaces the two assumptions that "
-    "make low-frequency calling from single reads unreliable for SHM. Instead of trusting quality scores, SHMtrace "
+    "The principal contribution of this study is a framework that measures AID-driven mutation from whatever a "
+    "platform delivers, reads or chromatograms, and replaces the two assumptions that make low-frequency calling "
+    "from single reads unreliable for SHM. Instead of trusting quality scores, SHMtrace "
     "measures the background in the AID-null libraries that SHM studies already include, at the level of substitution "
     "type, strand, and base quality, and it checks this calibration by holding out each control in turn. Instead of "
-    "treating reads as replicates, it tests animals. Both choices matter in practice. A quality-based caller either "
+    "treating reads as replicates, it tests animals. A quality-based caller either "
     "missed most true mutations in nanopore reads or, when made permissive, called as much background as the "
     "uncorrected rule, and pooling reads produced false positives in more than 90% of simulated experiments without a "
     "true difference.",
@@ -475,12 +476,15 @@ DISCUSSION = [
     "mutations matter more than a clean background, a sensitive mode applies the same test at an FDR of 0.20. On "
     "planted mutations it recalled {sens_jh4_1}% of single-read mutations on J_{H}4 and {sens_n114_1}% on N114, more "
     "than the Geneious rule, with observed FDRs of {sens_jh4_fdr} and {sens_n114_fdr}, close to the nominal level.",
-    "Long reads change what an SHM experiment can report. Because the whole amplicon is read at once, the 3′ decline "
-    "of mutation is visible without tiling. Because the V(D)J junction identifies clones, an expanded or jackpotted "
-    "clone no longer dominates the mutation frequency. In addition, the mutations within a clone can be ordered into a "
-    "tree. Sanger sequencing of the same mice, re-analyzed from the chromatograms, agreed with nanopore sequencing on "
-    "spectrum, position, and hotspot use; what each workflow measured here is set out in Figure S12. The re-analysis "
-    "also exposed consequential bookkeeping problems in the traditional assay, which SHMtrace now checks explicitly.",
+    "What each platform contributes to an SHM experiment differs, and SHMtrace reads all four. A Sanger clone is "
+    "one molecule read once, so its mutations are read directly and its AID-null clones measure a background "
+    "reported beside the counts rather than used to test each call. Nanopore and Illumina libraries carry matched "
+    "AID-null arms, so each candidate is tested against the errors those controls make: nanopore spans the "
+    "whole amplicon, making the 3′ decline visible without tiling, identifying clones from the V(D)J junction "
+    "and ordering their mutations into a tree, while Illumina gives depth without that linkage. PacBio combines length with per-base accuracy, used here on class-switch junctions and an "
+    "engineered construct; neither deposit carries an AID-null arm, so those are reported without "
+    "control-calibrated calls. Figure S12 sets out what each measured; the Sanger re-analysis also exposed "
+    "bookkeeping problems that SHMtrace now checks explicitly.",
     "Because the engine reads deposited clones as readily as new reads, a published SHM analysis can be re-run from "
     "the records that accompany it, once each clone is linked to its animal. Across three studies SHMtrace recovered "
     "the direction and significance of the principal reported changes: the fall in mutation frequency in both J_{H}4 "
