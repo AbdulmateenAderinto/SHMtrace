@@ -305,6 +305,19 @@ def compute():
             f"the Sanger archive holds {seen} chromatograms, not the {SANGER_ARCHIVE_TRACES} the "
             "Results quote; update SANGER_ARCHIVE_TRACES and SANGER_VS_NANOPORE.md together")
     N["sanger_archive"] = str(SANGER_ARCHIVE_TRACES)
+    # the Figure S7 accounting: what the sheet submitted after its own exclusions, and the clones
+    # each mouse returned. "103 total" is a count of clones, not a power of ten, which is why it is
+    # built here rather than written into the legend where a stray 10^{3} could pass unnoticed.
+    with open(CAL / "samplesheets/jh4_manuscript.csv") as fh:
+        flagged = sum(1 for r in csv.DictReader(fh) if r["exclude"].strip())
+    N["sanger_excluded"] = str(flagged)
+    N["sanger_submitted"] = str(int(N["sanger_sheet"]) - flagged)
+    seq = st["density_sanger"]["sequences"]
+    wt, ko = [seq[m] for m in ("WT2", "WT3", "WT4")], [seq[m] for m in ("A1", "A2", "A3")]
+    N["sanger_wt_clones"] = ", ".join(str(x) for x in wt[:-1]) + f" and {wt[-1]}"
+    N["sanger_ko_clones"] = ", ".join(str(x) for x in ko[:-1]) + f" and {ko[-1]}"
+    N["sanger_wt_total"], N["sanger_ko_total"] = str(sum(wt)), str(sum(ko))
+    N["sanger_failed"] = str(int(N["sanger_submitted"]) - int(N["sanger_clones"]))
     do, ds = st["density_ont"], st["density_sanger"]
     N.update(ont_fold=f0(do["fold"]), ont_p=pfmt(do["p_welch_log"]), sanger_fold=f0(ds["fold"]),
              sanger_p=pfmt(ds["p_welch_log"]), ont_wt_geo=f0(do["wt_geomean"]), ont_ko_geo=f2(do["ko_geomean"]),

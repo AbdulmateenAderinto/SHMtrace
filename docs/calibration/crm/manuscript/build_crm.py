@@ -538,14 +538,21 @@ SUPP_FIGS = [
      "each of the 500 reads of a wild-type (C) and an *Aicda*^{−/−} (D) J_{H}4 library; colored, at sites SHMtrace "
      "called; gray, other mismatches. Reads are sorted by clone (dotted lines between the largest clones) and by "
      "mutation load."),
+    # The failure split (22 paralog amplicons, 12 short of a Q>=20 segment, 11 unmapped, three too
+    # short) is still written out: the pipeline keeps only the traces it analysed, so the per-trace
+    # gating reasons cannot be recomputed from its output. The total and the paralog count are the
+    # two the archive manifest confirms independently.
     ("Figure S7. Sanger re-analysis, related to Figure 5 (page 1 of 2)",
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
      "Top, per-mouse Sanger substitution matrices at Q≥20. Bottom, fraction of Wt clones with a high-quality base at "
-     "each J_{H}4 position and calls per 10^{3} observed bases; shading, the shared 529-bp window. Of 447 archived "
-     "chromatograms from eight sequencing orders, 184 were assigned to the six mice used for nanopore sequencing. Two "
-     "explicitly excluded traces were not processed. Of the remaining 182, 48 failed analysis: 22 paralog amplicons, "
-     "12 without a contiguous 20-base Q≥20 segment, 11 unmapped and three too short. The 134 analyzed clones comprised "
-     "37, 40 and 26 Wt clones (10^{3} total) and 11, 10 and 10 AID-null clones (31 total). Bookkeeping checks flag "
+     "each J_{H}4 position and calls per 10^{3} observed bases; shading, the shared 529-bp window. Of "
+     "{sanger_archive} archived chromatograms from eight sequencing orders, {sanger_sheet} were assigned to the six "
+     "mice used for nanopore sequencing, of which {sanger_excluded} were excluded in the sample sheet and not "
+     "processed. Of the remaining {sanger_submitted}, {sanger_failed} failed analysis: 22 paralog amplicons, 12 "
+     "without a contiguous "
+     "20-base Q≥20 segment, 11 unmapped and three too short. The {sanger_clones} analyzed clones comprised "
+     "{sanger_wt_clones} Wt clones ({sanger_wt_total} total) and {sanger_ko_clones} AID-null clones "
+     "({sanger_ko_total} total). Bookkeeping checks flag "
      "potential problems without automatically removing clones."),
     ("Figure S7. Sanger bookkeeping checks, related to Figure 5 (page 2 of 2)",
      [FIG / "FigureS7_bookkeeping.png"],
