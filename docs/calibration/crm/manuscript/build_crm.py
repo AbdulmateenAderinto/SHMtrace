@@ -230,6 +230,11 @@ def main(outdir):
     mw = word_count(main_blocks)
     print(f"{path}\nsummary {sw} words; main text (introduction to limitations) {mw} words; references {len(m.order)}")
     assert mw < 7000, "main text over 7,000 words"
+    # legends and figures live in different files and have drifted apart before, so check them against
+    # each other here rather than trusting a later read-through (legend_check.py)
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import legend_check
+    assert legend_check.main() == 0, "legends disagree with the figures they describe"
     # details only the authors can supply are left as "[description]": name them rather than let a placeholder
     # reach a reviewer unnoticed (lab_details.py holds them)
     import lab_details
