@@ -440,22 +440,24 @@ SUPP_FIGS = [
      "shared a flow cell."),
     ("Figure S3. Single-read estimate, power, UMI consensus and planted indels, related to Figure 3",
      FIG / "FigureS3.png",
-     "(A) Change in the aggregate single-read estimate after planting one-read mutations into held-out J_{H}4 "
-     "controls; three controls and three draws per mutation amount. Dashed line, identity. (B) Simulated power to "
-     "detect a two-fold difference between AID-proficient groups using a two-sided Welch test on log rates at α = "
-     "0.05. Simulations used the J_{H}4 pilot (three Wt mice, 500 reads each), negative-binomial counts with "
-     "pilot-derived clumping, log-normal between-animal variation and 1,000 experiments per point. Dotted line, 80% "
-     "power. The unique-density estimate reaches this level at approximately 24 animals per group, beyond the plotted "
-     "range. Shading spans a between-animal coefficient of variation (CV) of 0.44, the lower 95% bound from three "
-     "mice, to 1.9, twice the point estimate and a specified pessimistic scenario. With **two** degrees of freedom, "
-     "the upper confidence bound is effectively unbounded; uncertainty in the pilot CV therefore limits the power "
-     "estimate. (C) False calls with and without consensus in simulated UMI libraries derived from three held-out "
-     "controls. (D) Recall by supporting-read count for ten indels of 1–40 bp planted per draw, with eight draws per "
-     "control and 240 indels per amplicon. Vertical lines, range across three controls; shading, one- and two-read "
-     "events excluded by the three-read minimum. Legends report recall for events supported by ≥3 reads; panel "
-     "annotations give false-call counts. All eight J_{H}4 false calls represent the same 28-bp deletion in four reads "
-     "of one control, recurring across draws. Its 5-bp microhomology is consistent with a pre-existing molecule, "
-     "although its origin was not independently established."),
+     "(A) Change in the aggregate single-read estimate against one-read mutations planted into held-out J_{H}4 control "
+     "libraries (three controls; three replicates per amount); dashed line, identity. (B) Power to detect a two-fold "
+     "difference between two AID-proficient groups at α = 0.05, two-sided, with the Welch test on log rates, by "
+     "animals per group, simulated from the J_{H}4 wild-type pilot (3 mice, 500 reads each; 1,000 experiments per "
+     "point; negative-binomial counts with the pilot's clumping, animals log-normal with the pilot's between-animal "
+     "coefficient of variation, CV). Dotted line, 80% power; for unique density the estimate reaches it at about 24 "
+     "animals per group, so the plotted range does not by itself identify the number required. Shading, the same curve "
+     "with the CV at the lower end of its 95% interval from 3 mice (0.44) and at twice the estimate (1.9), a stated "
+     "pessimistic case: with 2 degrees of freedom the interval's upper end is effectively unbounded, so the CV, not "
+     "the simulation, is what limits this calculation. (C) False calls per library with and without UMI consensus in "
+     "simulated UMI libraries built from real control reads (three held-out controls). (D) Recall of indels planted "
+     "into reads of a held-out AID-null library, by the number of reads carrying each: 10 insertions or deletions of "
+     "1–40 bp per draw, 8 draws per control, 240 planted indels per amplicon; vertical lines, the range of the three "
+     "held-out controls; shading, the one- and two-read region the three-read floor excludes (STAR Methods). Legend, "
+     "recall of the indels carried by three or more reads; above the panel, the false calls each cost. On J_{H}4 these "
+     "are not eight events but one: the same 28-bp deletion, in the same four reads of one control, in every draw. It "
+     "carries 5-bp microhomology at its ends, so it is most likely a molecule the material already held rather than a "
+     "calling error."),
     ("Figure S4. N114 V-region results, related to Figure 4 (page 1 of 2)",
      [MC / "Figure4_hybridoma_combined.png"],
      "(A) N114 unique-variant density per subclone, n = 3 per vector. Empty-vector subclones without calls are plotted "
@@ -470,24 +472,32 @@ SUPP_FIGS = [
      "the corresponding library's calls."),
     ("Figure S5. Sequencing depth and unique-variant discovery, related to Figure 4",
      FIG / "FigureS5.png",
-     "J_{H}4 (A, B) and N114 (C, D) were subsampled to 30–1,000 reads per library, with five independent draws at each "
-     "depth and fresh control calibration for each draw. Points, individual draws; lines, means; blue, AID-active; "
-     "red, AID-null. Zero-call libraries occupy a separate plotting row without an event floor; KO1 and KO3 remained "
-     "at zero at every depth. Panels A and C show calls; B and D show unique-variant density against depth. Density "
-     "falls as distinct calls saturate while base observations continue to increase; comparisons therefore require a "
-     "stated depth. (E) Calls recovered at 500 reads as a percentage of the mean at 1,000 reads: {depth_jh4_500}% for "
-     "J_{H}4 and {depth_n114_500}% for N114. These are depth comparisons rather than evidence of saturation. Wt2 "
-     "yielded 7–60 calls at 30 reads and 212–244 at 500 reads, illustrating increased sampling variability at low "
-     "depth."),
+     "Every library was analyzed at 30–1,000 reads, and the whole analysis was repeated five times at each depth with "
+     "a different random draw of usable reads, the AID-null controls redrawn and recalibrated at that depth each time, "
+     "so the spread shown is the spread a single run would have had. (A and B) J_{H}4 unique variants and "
+     "unique-variant density against depth; (C and D) the same for N114. Points, the five draws of each library; "
+     "lines, their mean; blue, AID-active libraries, red, AID-null. A library with no calls has a density of zero, "
+     "which has no logarithm: those draws are drawn on the \"0\" row below the dotted break rather than floored to a "
+     "small number, and they are common (J_{H}4 KO1 and KO3 called nothing at any depth in any draw). Density falls "
+     "with depth because its numerator, distinct calls, saturates while its denominator keeps growing, so a density is "
+     "only comparable at a stated depth. (E) What 500 reads, the depth used throughout, had reached in each AID-active "
+     "library: calls at 500 reads as a percentage of that library's mean at 1,000, the largest depth tested; points, "
+     "draws; bars, means; {depth_jh4_500}% (J_{H}4) and {depth_n114_500}% (N114) on average. This is a comparison with "
+     "the largest depth tested here, not evidence that discovery has reached an asymptote. At 30 reads one draw is not "
+     "informative: J_{H}4 Wt2 gave between 7 and 60 calls across its five draws, against 212 to 244 at 500 reads."),
     ("Figure S6. The background along the amplicon and in each read, related to Figure 4",
      FIG / "FigureS6.png",
-     "(A, B) Positional Q≥20 mismatch rates at J_{H}4 (500 reads) and Sμ (2,000 reads), excluding germline "
-     "differences. Red, individual AID-null libraries; blue, mean of AID-active libraries. Insets show control rates "
-     "on their own scale. Pairwise Spearman correlations among the three controls were 0.12–0.20 for J_{H}4 and "
-     "0.29–0.45 for Sμ. This limited positional concordance motivates shrinkage toward pooled rates rather than "
-     "reliance on a fixed site-specific error profile. (C, D) Q≥20 mismatches after germline exclusion in 500 reads "
-     "from Wt and AID-null libraries, ordered by clone and mutation load, with dotted lines separating the largest "
-     "clones. Colored marks indicate called substitutions; gray marks indicate other mismatches."),
+     "(A and B) Mismatches at base quality ≥ 20 at every position of the analysis window, germline sites excluded, in "
+     "each AID-null library (red) and averaged over the AID-active libraries (blue); J_{H}4, 500 reads per library; Sμ "
+     "(PRJNA1481264), 2,000. Insets, the controls alone on their own scale, on which the small recurrent artifacts are "
+     "visible. r, Spearman correlation between pairs of controls: the controls agree only weakly position by position "
+     "(r = 0.12–0.20 over three pairs in J_{H}4 and 0.29–0.45 in Sμ). Recurrent artifacts are therefore a tendency of "
+     "the chemistry and sequence context rather than a fixed per-position fingerprint, which is why the error model "
+     "pools over substitution type, strand and base quality and shrinks each position towards that pooled rate instead "
+     "of trusting its own count (STAR Methods). (C and D) Every mismatch at quality ≥ 20 (germline sites excluded) in "
+     "each of the 500 reads of a wild-type (C) and an *Aicda*^{−/−} (D) J_{H}4 library; colored, at sites SHMtrace "
+     "called; gray, other mismatches. Reads are sorted by clone (dotted lines between the largest clones) and by "
+     "mutation load."),
     ("Figure S7. Sanger re-analysis, related to Figure 5 (page 1 of 2)",
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
      "Top, per-mouse Sanger substitution matrices at Q≥20. Bottom, fraction of Wt clones with a high-quality base at "
