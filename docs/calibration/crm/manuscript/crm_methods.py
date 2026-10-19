@@ -513,7 +513,7 @@ METHODS = [
           "their variants are reported without such a comparison. The Devilder records are selected cluster sequences, "
           "not a sampled population, so they are used to compare variant identities and no population frequency, "
           "unselected distribution or technical error rate is computed from them. The TCR read libraries do carry "
-          "read-level frequencies within each selected sample (Figure S18D), but those samples are themselves "
+          "read-level frequencies within each selected sample, but those samples are themselves "
           "selected, so a frequency there is an endpoint of selection and not a mutation rate."),
     ("h2", "Public Illumina Sμ mutation libraries"),
     ("p", "GSE77788[@compagno2017] comprises Sμ libraries from Wt/Aicda−/− primary B cells under DMSO, idelalisib or "
@@ -683,11 +683,11 @@ TABLE_S6 = [
      "3 no-editor libraries", "culture", "Figure S18A"),
     ("SRP075898[@ma2016]", "Illumina", "EGFP reporter and ABL exon 6 (multiplexed)",
      "tethered and untethered editors; 5 sgRNAs; 3–10 sgRNA pools", "1 no-editor library (insufficient)",
-     "library", "Figure S18B, S18C"),
+     "library", "STAR Methods"),
     ("figshare 12803501[@bassan2021]", "PacBio", "engineered TCR construct (1,785 bp)",
-     "10 diversified and selected populations", "1 parental library of one founder", "population", "Figure S18D"),
+     "10 diversified and selected populations", "1 parental library of one founder", "population", "STAR Methods"),
     ("Devilder et al.[@devilder2019]", "Sanger (published sequences)", "antibody V_{H} (423 bp)",
-     "42 selected clusters, 2 rounds", "parental construct as reference", "cluster", "STAR Methods"),
+     "42 selected clusters, 2 rounds", "parental construct as reference", "cluster", "Figure S18B"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "simulated library", "Figures 3 and 5"),
 ]

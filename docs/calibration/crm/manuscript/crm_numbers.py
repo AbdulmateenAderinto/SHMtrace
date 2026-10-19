@@ -948,6 +948,9 @@ def compute():
         ok = [c for c in ann if not c["published_not_recovered"] and not c["recovered_not_published"]]
         N["eng_dev_n"] = f0(len(ann))
         N["eng_dev_ok"] = f0(len(ok))
+        N["eng_dev_mut"] = f0(sum(len(c["published_mutations"]) for c in ann))
+        # four clusters recur between the two rounds, so the entries outnumber the clusters
+        N["eng_dev_distinct"] = f0(len({c["cluster"] for c in ann}))
     tcr_p = CRM / "out/tcr/tcr_bassan.json"
     if tcr_p.exists():
         ts = _load(tcr_p)["samples"]

@@ -1,15 +1,14 @@
-"""Figure S18: engineered AID diversification, four public datasets.
+"""Figure S18: engineered AID diversification.
 
 A    AID against an APOBEC on one GFP substrate: what separates them and what does not (SRP159221)
-B    the mutation position follows the guide, five sgRNAs on one amplicon (SRP075898)
-C    localised sites against the number of guides carried (SRP075898)
-D    an AID-diversified TCR against its own ancestral construct (figshare 12803501)
+B    an AID-diversified antibody V_H against the authors' own list of its mutations (Devilder et al.)
 
-Only completed analyses are drawn. Panels B and C are per-position mismatch rates, not mutation calls, and
-say so; A and D are calls from the project workflow. Data from crm/liu_mutators.py, crm/tam_footprint.py,
-crm/tam_saturation.py and crm/tcr_bassan.py.
+A is calls from the project workflow against replicated no-editor controls. B is the only engineered
+analysis with an external ground truth: the comparator is the authors' published mutation list, not
+another run of this software. Data from crm/liu_mutators.py and crm/devilder_clones.py.
 """
 import json
+from collections import Counter
 
 import numpy as np
 from matplotlib import gridspec
@@ -24,12 +23,10 @@ GUIDE_C = {"sgRNA_4": "#8ab0d0", "sgRNA_6": "#d9952b", "sgRNA_7": "#b4bec8",
 def main():
     setup()
     liu = json.load(open(DATA / "liu/liu_mutators.json"))["samples"]
-    foot = json.load(open(DATA / "tam/footprint.json"))
-    sat = json.load(open(DATA / "tam/saturation.json"))["totals"]
-    tcr = json.load(open(DATA / "tcr/tcr_bassan.json"))
-    fig = plt.figure(figsize=(FULL, 108 * MM))
-    gs = gridspec.GridSpec(2, 2, figure=fig, left=0.08, right=0.98, top=0.92, bottom=0.11,
-                           wspace=0.33, hspace=0.62)
+    dev = json.load(open(DATA / "devilder/devilder_clones.json"))["rounds"]
+    fig = plt.figure(figsize=(FULL, 62 * MM))
+    gs = gridspec.GridSpec(1, 2, figure=fig, left=0.085, right=0.975, top=0.87, bottom=0.27,
+                           wspace=0.30)
     # A: what separates the two deaminases
     ax = fig.add_subplot(gs[0, 0])
     groups = [("wild-type 293T", "AID_wt293T", "A3A_wt293T"), ("UNG/MSH2-null", "AID_ungmsh2", "A3A_ungmsh2")]
@@ -43,7 +40,7 @@ def main():
                 ax.plot([x - 0.14, x + 0.14], [np.mean(vals)] * 2, color=col, lw=1.2)
     ax.set_xticks([0.17, 1.27, 2.77, 3.87], ["WRC/\nGYW", "C→T/\nG→A", "WRC/\nGYW", "C→T/\nG→A"], fontsize=5)
     for x, lab in ((0.72, "wild-type"), (3.32, "UNG/MSH2-null")):
-        ax.text(x, -0.30, lab, transform=ax.get_xaxis_transform(), ha="center", fontsize=5.5, color=MID)
+        ax.text(x, -0.26, lab, transform=ax.get_xaxis_transform(), ha="center", fontsize=5.5, color=MID)
     ax.set_ylabel("Share of calls (%)")
     ax.set_ylim(0, 100)
     ax.set_title("One substrate, two deaminases", fontsize=7)
@@ -53,92 +50,40 @@ def main():
     ax.text(0.98, 0.04, "the motif separates them in both;\nthe transition share only in wild type",
             transform=ax.transAxes, ha="right", fontsize=4.8, color=MID)
     letter(ax, "A", dx=-0.2)
-    # B: the position follows the guide, one track per guide so the peaks do not overlap
+    # B: every mutation the authors list, against what SHMtrace called in the same cluster. The
+    # comparator is their published list, so this is the one engineered panel with outside truth.
     ax = fig.add_subplot(gs[0, 1])
-    prof = foot["amplicons"]["amp1_GTCTTGTTGG"]["profiles_per_1e3"]
-    order = ["sgRNA_4", "sgRNA_6", "sgRNA_7", "sgRNA_9", "sgRNA_15"]
-    # each track is scaled to its own maximum: the panel is about where the excess sits, not how big it is,
-    # and a shared scale makes the smallest guide's peak invisible
-    # Protospacers of the + strand guides, as 0-based spans in this amplicon. Derived from Ma et al.
-    # Supplementary Figure 9, which draws each sgRNA on the ABL exon 6 sequence and marks its PAM but does
-    # not number them: each PAM was located in the amplicon consensus and the protospacer taken as the 20 nt
-    # 5' of it. The guides are therefore drawn unlabelled, as the source figure presents them.
-    PROTOSPACERS = [(0, 10), (5, 24), (46, 65), (56, 75), (83, 102), (98, 117), (113, 132), (146, 165),
-                    (209, 228)]
-    for a, b in PROTOSPACERS:
-        ax.axvspan(a, b, color=SOFT, alpha=0.16, lw=0, zorder=0)
-    for row, g in enumerate(order):
-        p_ = prof[g]
-        xs = [k for k, r in enumerate(p_) if r is not None]
-        top = max(p_[k] for k in xs)
-        ys = [row + 0.86 * p_[k] / top for k in xs]
-        ax.fill_between(xs, row, ys, color=GUIDE_C[g], lw=0, alpha=0.9)
-        ax.axhline(row, color=SOFT, lw=0.4)
-        ax.text(-10, row + 0.40, g.replace("sgRNA_", "#"), ha="right", va="center", fontsize=5.5,
-                color=GUIDE_C[g])
-        peak = max(xs, key=lambda k: p_[k])
-        ax.text(peak + 5, row + 0.62, f"{top:.0f}", fontsize=4.6, color=GUIDE_C[g], va="center")
-    ax.set_xlim(-42, 245)
-    ax.set_ylim(0, 5.35)
-    ax.set_yticks([])
-    ax.spines["left"].set_visible(False)      # no y scale here, and it collided with the track labels
-    ax.set_xlabel("Position in the amplicon (bp)")
-    # the deposit names the sgRNAs but does not publish their protospacer coordinates, so the panel shows
-    # where each library's excess sits, not its distance from a guide (minor 11)
-    ax.set_title("Each library's peak falls in a protospacer", fontsize=6.6)
-    ax.text(0.5, -0.30, "five sgRNAs on one amplicon; each track scaled to its own peak, whose\n"
-                        "height in mismatches per 10$^3$ is given. Rates, not calls. Shaded, the\n"
-                        "+ strand protospacers; the source figure does not number its guides.",
-            transform=ax.transAxes, ha="center", va="top", fontsize=4.8, color=MID)
-    letter(ax, "B", dx=-0.1)
-    # C: sites against guides
-    ax = fig.add_subplot(gs[1, 0])
-    ns = [int(k.split("_")[0]) for k in sat]
-    vals = [sat[k] for k in sat]
-    order = np.argsort(ns)
-    # points only: a joining line would read as a dose-response across four unreplicated libraries
-    ax.scatter([ns[i] for i in order], [vals[i] for i in order], color=INK, s=20, zorder=3)
-    for i in order:
-        ax.annotate(str(vals[i]), (ns[i], vals[i]), xytext=(0, 6), textcoords="offset points",
-                    ha="center", fontsize=5, color=MID)
-    ax.set_xticks(sorted(ns))
-    ax.set_xlabel("sgRNAs carried by the library")
-    ax.set_ylabel("Localised sites")
-    ax.set_ylim(-6, 80)
-    ax.set_title("Localised sites in four guide-pool libraries", fontsize=6.6)
-    # a descriptive leave-one-out contrast, not a calibrated localisation test: the four libraries are
-    # unreplicated and cover different targets, so no dose-response is claimed (minor 12)
-    ax.text(0.03, 0.86, "a site sits ≥ 5× above the lowest of the\nother libraries at that base; four "
-                        "unreplicated\nlibraries, so this is a descriptive contrast",
-            transform=ax.transAxes, fontsize=4.8, color=MID)
-    letter(ax, "C", dx=-0.2)
-    # D: the TCR against its own ancestor
-    ax = fig.add_subplot(gs[1, 1])
-    s = tcr["samples"]
-    base = "h5_wt"
-    others = [k for k in s if k != base]
-    ax.scatter([0] * 1, [s[base]["mutation_frequency_x1e3"]], s=22, marker="D", facecolor=BASE_C,
-               edgecolor="white", lw=0.4, zorder=4)
-    # the baseline belongs to founder h5, so h5's descendants have a relationship to it that h7, h8 and h12
-    # do not; a single pooled mean would hide that, so the samples are grouped by founder (minor 13)
-    founders = sorted({k.split("_")[0] for k in others}, key=lambda f: (f != "h5", f))
-    ticks, labels = [0], ["the available\nbaseline (h5)"]
-    for i, f in enumerate(founders, start=1):
-        mine = [k for k in others if k.split("_")[0] == f]
-        xs = np.linspace(i - 0.16, i + 0.16, len(mine))
-        ax.scatter(xs, [s[k]["mutation_frequency_x1e3"] for k in mine], s=14, facecolor=AID_C,
-                   edgecolor="white", lw=0.3, zorder=3)
-        ax.plot([i - 0.22, i + 0.22], [np.mean([s[k]["mutation_frequency_x1e3"] for k in mine])] * 2,
-                color=AID_C, lw=1.2)
-        ticks.append(i)
-        labels.append(f"{f}\n(n = {len(mine)})")
-    ax.set_xticks(ticks, labels, fontsize=5.3)
-    ax.set_xlim(-0.5, len(founders) + 0.5)
-    ax.set_ylabel("Mutation frequency per 10$^3$")
-    ax.set_title("An AID-diversified TCR", fontsize=7)
-    ax.text(0.98, 0.04, "one baseline library, so no\nfalse-discovery rate is claimed",
-            transform=ax.transAxes, ha="right", fontsize=4.8, color=SOFT)
-    letter(ax, "D", dx=-0.22)
+    pts, rounds = Counter(), []
+    for rnd, clusters in dev.items():
+        n_c = n_m = 0
+        for c in clusters:
+            if not c["published_mutations"]:
+                continue
+            pts[(len(c["published_mutations"]), len(c["recovered_substitutions"]), rnd)] += 1
+            n_c += 1
+            n_m += len(c["published_mutations"])
+        rounds.append((rnd, n_c, n_m))
+    hi = max(max(a, b) for a, b, _r in pts) + 1
+    ax.plot([0, hi], [0, hi], color=SOFT, lw=0.8, ls="--", zorder=1)
+    for (x, y, rnd), n in sorted(pts.items()):
+        col, mark = (AID_C, "o") if rnd == "R1" else (BASE_C, "s")
+        ax.scatter([x], [y], s=9 + 7 * n, marker=mark, facecolor=col, edgecolor="white", lw=0.4, zorder=3)
+    for rnd, n_c, n_m in sorted(rounds):
+        col, mark = (AID_C, "o") if rnd == "R1" else (BASE_C, "s")
+        ax.scatter([], [], s=14, marker=mark, color=col,
+                   label=f"round {rnd[-1]}: {n_c} entries, {n_m} mutations")
+    ax.set_xlim(0, hi)
+    ax.set_ylim(0, hi)
+    ax.set_xlabel("Mutations the authors list")
+    ax.set_ylabel("Mutations SHMtrace called")
+    ax.set_title("An external list, cluster by cluster", fontsize=7)
+    ax.legend(fontsize=4.8, loc="upper left", frameon=False, handletextpad=0.1)
+    tot_c = sum(n for _r, n, _m in rounds)
+    tot_m = sum(m for _r, _n, m in rounds)
+    ax.text(0.97, 0.06, f"{tot_m}/{tot_m} recovered, none added,\nover {tot_c} cluster entries; "
+                        "marker area, entries", transform=ax.transAxes, ha="right", fontsize=4.8, color=MID)
+    letter(ax, "B", dx=-0.22)
+
     save(fig, "FigureS18_engineered")
 
 

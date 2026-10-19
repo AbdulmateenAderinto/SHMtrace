@@ -341,6 +341,10 @@ def main(outdir):
 
     # ---- Document S1
     s = Manuscript(line_numbers=False)
+    # Document S1 carries no reference list of its own and its footnotes say the superscripts cite
+    # the manuscript's. Seed its citation order from the manuscript so they actually do: numbered
+    # independently, every supplemental superscript pointed at the wrong paper.
+    s.order = list(m.order)
     s.para("Supplemental information", size=14, bold=True)
     s.para(T.TITLE, size=11)
     for title, img, legend in SUPP_FIGS:
@@ -719,31 +723,22 @@ SUPP_FIGS = [
      "twelve paired libraries (three Wt and nine *Aicda*^{−/−}). Each Wt treatment has only one replicate, so pooled "
      "treatment groups do not provide a balanced treatment comparison. Targeting index and C→T/G→A share refer to Wt "
      "calls."),
-    ("Figure S18. Engineered AID diversification in four public datasets, related to Figure 7",
+    ("Figure S18. Engineered AID diversification, related to Figure 7",
      FIG / "FigureS18_engineered.png",
      "(A) One GFP substrate edited by a panel of deaminases delivered alike (SRP159221), three replicates per "
      "arm: the share of calls at WRC/GYW (circles) and the share that are C\u2192T or G\u2192A (squares), in "
      "wild-type and in UNG/MSH2-null 293T. Bars, group means. The motif share separates AID from APOBEC3A in "
      "both backgrounds; the transition share does so only in wild-type cells, because losing uracil excision "
-     "drives transitions whichever enzyme made the uracil. (B) Mismatches per 1,000 bases at Q \u2265 30 along "
-     "one ABL exon-6 amplicon, for five libraries differing only in which sgRNA they carry (SRP075898). Each "
-     "track is scaled to its own peak, whose height is given, so a weak guide stays visible; the arm is "
-     "multiplexed and all three of its amplicons were analysed. Shading marks the + strand protospacers, "
-     "located by taking each PAM drawn in Ma et al.'s Supplementary Figure 9 and reading the 20 bases 5' "
-     "of it; that figure does not number its guides, so the bands are unlabelled. Every library's highest "
-     "peak falls inside one. #6, #9 and #15 peak at distinct positions at "
-     "116\u2013137 per 1,000 against a background near 1. #4 passes a fold test on a low local baseline but "
-     "reaches only 6 per 1,000, and #7's peak lies where two other guides are also high, so its fold "
-     "understates it. These are per-position rates, not mutation calls. (C) Positions where a library sits at "
-     "least five-fold above the lowest of the other three at that base, against the number of sgRNAs the "
-     "library carries. The baseline leaves each library out of its own comparison. All four pools target the "
-     "same 100-bp window of ABL exon 6 (positions 201–300), and only seven guides fit inside it, so the "
-     "ten-guide pool adds three that flank it[@ma2016]; the zero at three guides is therefore too little "
-     "signal to clear the five-fold threshold, not guides aimed elsewhere. (D) An AID-diversified MAGE-A1 TCR (figshare "
-     "12803501) called against the 1,785-bp ancestral construct reconstructed from the deposit: the one "
-     "available baseline library against ten diversified and selected populations. With a single baseline, and "
-     "that baseline belonging to one founder, no false-discovery rate is claimed. Analyses in "
-     "`crm/liu_mutators.py`, `crm/tam_footprint.py`, `crm/tam_saturation.py` and `crm/tcr_bassan.py`."),
+     "drives transitions whichever enzyme made the uracil. This is the one engineered dataset with replicated "
+     "no-editor controls, so its calls are control-calibrated. (B) An AID-diversified antibody V_{H} against "
+     "the mutations its authors list for the same clusters[@devilder2019]. Each marker is one cluster entry, "
+     "its area the number of entries sharing that pair of counts; dashed line, equality. SHMtrace recovers "
+     "{eng_dev_mut} of the {eng_dev_mut} listed mutations and calls none the authors do not, over {eng_dev_n} "
+     "entries across the study's two selection rounds. Those entries cover {eng_dev_distinct} distinct "
+     "clusters, four of which recur between rounds, so the comparison is made against the deposit's own "
+     "per-round listing rather than a deduplicated set. This is the only engineered analysis whose comparator "
+     "is an independently curated list rather than another run of this software. Analyses in "
+     "`crm/liu_mutators.py` and `crm/devilder_clones.py`."),
 ]
 
 if __name__ == "__main__":
