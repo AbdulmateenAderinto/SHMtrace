@@ -200,7 +200,7 @@ def journal_word_count():
         ("introduction", W(*T.INTRO)),
         ("results", W(*[x for _k, x in T.RESULTS])),
         ("discussion", W(*T.DISCUSSION)),
-        ("limitations of the study", W(T.LIMITATIONS)),
+        ("limitations of the study", W(*T.LIMITATIONS)),
         ("resource availability", W(*[h for h, _x in T.RESOURCE], *[x for _h, x in T.RESOURCE])),
         ("acknowledgments", W(T.ACK)),
         ("author contributions", W(T.CONTRIB)),
@@ -260,8 +260,9 @@ def main(outdir):
         m.para(p)
         main_blocks.append(("p", p))
     m.heading("Limitations of the study", 2)
-    m.para(T.LIMITATIONS)
-    main_blocks.append(("p", T.LIMITATIONS))
+    for p in T.LIMITATIONS:      # the author splits the limitations across four paragraphs
+        m.para(p)
+        main_blocks.append(("p", p))
     m.heading("Resource availability", 1)
     for h, t in T.RESOURCE:
         m.heading(h, 2)
