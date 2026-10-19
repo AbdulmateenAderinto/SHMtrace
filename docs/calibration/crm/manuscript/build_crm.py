@@ -130,6 +130,22 @@ def check_figure_numbers(n):
             raise RuntimeError(f"graphical abstract is stale: expected '{text}' in scicanvas/crm_ga.js")
 
 
+def check_paired_settings(n):
+    """STAR Methods reports the shared-artifact and case-only resamples once, "in both settings".
+    That wording is only honest while exclusion on and off agree, so the build checks it rather
+    than trusting the prose: if they ever diverge, the sentence has to name both numbers again."""
+    for cond in ("one_noisy", "shared", "case_only"):
+        for field in ("any", "n"):
+            on, off = n[f"fdv_null_{cond}_on_{field}"], n[f"fdv_null_{cond}_off_{field}"]
+            assert on == off, (f"STAR Methods says the {cond} resamples gave the same result with "
+                               f"exclusion on and off, but {field} is {on} vs {off}; the text must "
+                               "report both settings separately")
+    # the masking passage quotes one figure for the 60% and 80% dominant-clone libraries
+    assert n["mask60_lost"] == n["mask80_lost"], (
+        f"STAR Methods quotes one loss figure for 60% and 80% dominance, but they are "
+        f"{n['mask60_lost']} and {n['mask80_lost']}; the text must give both")
+
+
 def check_limits():
     words = lambda s: len(s.split())   # noqa: E731
     sw = word_count([("p", T.SUMMARY)])
@@ -147,6 +163,7 @@ def main(outdir):
     n = {**crm_numbers.compute(), **public_numbers()}
     fill_modules(n)
     check_figure_numbers(n)
+    check_paired_settings(n)
     sw = check_limits()
     m = Manuscript()
     # ---- title page
@@ -562,7 +579,7 @@ SUPP_FIGS = [
      "did not overlap. These are conditional resampling experiments using existing libraries, rather than independent "
      "preparations or a new sequencing run. Unless stated otherwise, analyses used three controls and 500 reads. Teal, "
      "exclusion enabled; amber, exclusion disabled, paired on identical inputs. (A) All-null resamples with any `call` "
-     "and 95% Clopper–Pearson intervals; n = 25 per setting for unmodified background and one noisy control, and n = 5 "
+     "and 95% Clopper–Pearson intervals; n = {fdv_null_none_on_n} per setting for unmodified background and one noisy control, and n = {fdv_null_case_only_on_n} "
      "for case-only and shared artifacts. Any discovery gives an all-null false-discovery proportion (FDP) of 1. (B) "
      "Mean false calls ± SEM. (C) Individual FDPs in mutation-bearing resamples, five per condition and setting; black "
      "bars, means; dashed line, nominal 5% target. (D) Exclusion rate under a heterogeneous null; n = 5 per setting "

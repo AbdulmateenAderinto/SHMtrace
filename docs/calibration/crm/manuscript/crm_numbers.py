@@ -771,10 +771,8 @@ def compute():
             a_ = [_cls(m, keys) for m in mice["Samhd1_WT"]]
             b_ = [_cls(m, keys) for m in mice["Samhd1_KO"]]
             pv = float(stats.ttest_ind(a_, b_)[1])
-            N[f"sw_{k}_p"] = ("p = " + pfmt(pv)) if k == "at_ts" and pv >= 0.05 else pfmt(pv)
-        N["sw_at_ts_p"] = "p = " + pfmt(float(stats.ttest_ind(
-            [_cls(m, CL["at_ts"]) for m in mice["Samhd1_WT"]],
-            [_cls(m, CL["at_ts"]) for m in mice["Samhd1_KO"]])[1]))
+            # all five classes carry a bare p value, as the sentences that use them supply "p ="
+            N[f"sw_{k}_p"] = pfmt(pv)
         # total mutation per animal, Welch on log frequency (the study tested it by ANOVA with Holm-Sidak, p = 0.07)
         lf = lambda ms: [math.log10(per[m]["freq_x1e4"]) for m in ms]  # noqa: E731
         N["sw_tot_p"] = pfmt(float(stats.ttest_ind(lf(mice["Samhd1_WT"]), lf(mice["Samhd1_KO"]),
