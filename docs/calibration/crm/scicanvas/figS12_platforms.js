@@ -6,9 +6,9 @@
   // same six mice (Figure 5) and the long-read results (Figure 6).
   // Every number is one the article reports. Built with manuscript_corrected/figure1_scicanvas/build.js into
   // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
-  const W = 1400, BAND = 392, H = 742 + BAND, o = [];
+  const W = 1400, BAND = 392, PB = 300, H = 742 + BAND + PB, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
-  const TEAL = '#1f6f8b', PACB = '#9a3439', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
+  const TEAL = '#1f6f8b', PACB = '#9a3439', PACBF = '#e2c2c2', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
   const F = 'arial', TITLE = 22.5, HEAD = 20.5, SM = 17.5;
 
   const T = (text, x, y, e = {}) => { const t = Make.text(text, x, y, { fontSize: SM, color: INK, family: F, ...e }); o.push(t); return t; };
@@ -138,11 +138,47 @@
   lines(['Illumina settings: minimap2 sr preset; error gate 0.02 per base;',
     'minimum alignment ≤ 100 bp; then the same control test and FDR.',
     'The Ldha and CH12F3 files carry a flat Q30 (SRA), so their error',
-    'model has a single quality level; the Ramos files keep binned ones.',
-    'PacBio: HiFi, median of 12 samples; no AID-null arm in that deposit.'], lx, ly + 192);
+    'model has a single quality level; the Ramos files keep binned ones.'], lx, ly + 192);
+
+  // ───────── PacBio: one read carries a whole switch junction ─────────
+  // The only platform here whose read spans two loci at once: a HiFi read runs from the Sμ donor,
+  // through the join, into the Sγ1 acceptor. Lengths from crm/out/switch_pacbio/switch_pacbio.json
+  // (median junction-bearing read over the 12 samples); microhomology classes are that study's own
+  // unique junctions. The donor/acceptor split varies with where the break falls, so the bar is drawn
+  // at the median length but its split is schematic.
+  const py = 300 + BAND + 10;
+  T('PACBIO: ONE READ ACROSS A SWITCH JUNCTION', 20, py, { fontSize: TITLE, bold: true, color: PACB });
+  T('the donor, the join and the acceptor on a single HiFi read', 20, py + 30, { color: SOFT, italic: true });
+  R(20, py + 60, 1360, 2.6, { fill: PACB });
+  const jx = 170, jw = 600, jsplit = 0.44, jy = py + 104;
+  R(jx, jy, jw * jsplit, 16, { fill: PACB, radius: 2 });
+  R(jx + jw * jsplit, jy, jw * (1 - jsplit), 16, { fill: PACBF, radius: 2 });
+  R(jx + jw * jsplit - 1.6, jy - 7, 3.2, 30, { fill: INK });
+  TC('join', jx + jw * jsplit, jy - 30, { color: INK, bold: true });
+  TC('Sμ donor', jx + jw * jsplit / 2, jy + 26, { color: PACB });
+  TC('Sγ1 acceptor', jx + jw * jsplit + jw * (1 - jsplit) / 2, jy + 26, { color: MID });
+  T('6,126 bp median', jx + jw + 16, jy - 4, { color: MID });
+  lines(['Only this platform reads both sides of a junction on one molecule, so the join itself, its',
+    'microhomology and any inserted bases are read directly rather than inferred. The bar is the median',
+    'junction-bearing read over the study\u2019s twelve samples; where the break falls varies between',
+    'reads, so the split drawn here is schematic.'], jx, jy + 52);
+  // what the junctions look like, from the study's own unique junctions
+  const mh = [['blunt', 14.4], ['1–3 nt', 38.1], ['≥ 4 nt', 12.6], ['inserted bases', 34.9]];
+  const mhx = 1010, mhw = 330;
+  T('Microhomology at the join', mhx, py + 74, { bold: true });
+  let mhy = py + 102;
+  mh.forEach(([lab, pct]) => {
+    TJ(lab, mhx, mhy - 3, { color: MID });
+    R(mhx + 118, mhy, (mhw - 160) * pct / 100, 12, { fill: PACB, radius: 2 });
+    T(`${pct}%`, mhx + 118 + (mhw - 160) * pct / 100 + 6, mhy - 3, { color: MID });
+    mhy += 22;
+  });
+  lines(['Reads per unique junction run 1.1–23.3 between samples, so junction counts measure',
+    'long-range PCR recovery and not switching efficiency. That deposit has no AID-null arm.'],
+    jx, jy + 148);
 
   // ───────── bottom: what each gives ─────────
-  const cy = 306 + BAND, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
+  const cy = 306 + BAND + PB, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
   const card = (x, title, colour, fill, stroke) => {
     R(x, cy, cw, ch, { fill, stroke, strokeWidth: 1.6, radius: 10 });
     T(title, x + 16, cy + 12, { fontSize: HEAD, bold: true, color: colour });

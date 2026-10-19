@@ -618,6 +618,8 @@ def compute():
         jl = sorted(v["read_len_median_junction"] for v in sm.values())
         N["pacbio_len"] = f"{round(statistics.median(jl)):,}"
         N["pacbio_n"] = f0(len(sm))
+        rpj = sorted(v["reads_per_unique_junction"] for v in sm.values())
+        N["pacbio_rpj"] = f"{rpj[0]:.1f}\u2013{rpj[-1]:.1f}"
     fig2n = _load(OUT / "fig2_numbers.json")
     N.update(af_n=f"{fig2n['af_calls']:,}", af_lt1=pct(fig2n["af_share_below"]["1"] / 100),
              af_lt5=pct(fig2n["af_share_below"]["5"] / 100), af_lt20=f"{fig2n['af_share_below']['20']:.1f}")
