@@ -142,11 +142,12 @@ def main():
     mol = np.mean([r["umi"]["molecules_analysed"] for r in runs
                    if (r["amplicon"], r["scenario"]) in cells])
     ax.set_xticks(x, ["J$_H$4\npoly", "J$_H$4\nlow", "N114\nsub", "N114\nlow"])
-    ax.set_ylim(0, 112)
+    ax.set_ylim(0, 126)
     ax.set_ylabel("Planted mutations recalled (%)")
     ax.set_title("Recall under consensus", fontsize=7)
-    ax.text(0.5, 0.06, f"{mol:.0f} molecules per library from 500 reads", transform=ax.transAxes,
-            ha="center", fontsize=5.2, color=MID)
+    # above the bars: every bar here clears 90%, so there is no room inside them
+    ax.text(0.5, 0.955, f"{mol:.0f} molecules per library from 500 reads", transform=ax.transAxes,
+            ha="center", va="top", fontsize=5.2, color=MID)
     letter(ax, "E", dx=-0.3)
 
     save(fig, "FigureS3")
