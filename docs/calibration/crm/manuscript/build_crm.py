@@ -546,9 +546,10 @@ SUPP_FIGS = [
      [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
      "Top, per-mouse Sanger substitution matrices at Q≥20. Bottom, fraction of Wt clones with a high-quality base at "
      "each J_{H}4 position and calls per 10^{3} observed bases; shading, the shared 529-bp window. Of "
-     "{sanger_archive} archived chromatograms from eight sequencing orders, {sanger_sheet} were assigned to the six "
-     "mice used for nanopore sequencing, of which {sanger_excluded} were excluded in the sample sheet and not "
-     "processed. Of the remaining {sanger_submitted}, {sanger_failed} failed analysis: 22 paralog amplicons, 12 "
+     "{sanger_archive} chromatograms in the eight archived sequencing orders, which cover that study’s wild-type, "
+     "*Mkln1*-deficient and AID-null mice and also hold six traces of an unrelated amplicon, {sanger_sheet} were "
+     "filed to the six mice used for nanopore sequencing; {sanger_excluded} of those were excluded in the sample "
+     "sheet and not processed. Of the remaining {sanger_submitted}, {sanger_failed} failed analysis: 22 paralog amplicons, 12 "
      "without a contiguous "
      "20-base Q≥20 segment, 11 unmapped and three too short. The {sanger_clones} analyzed clones comprised "
      "{sanger_wt_clones} Wt clones ({sanger_wt_total} total) and {sanger_ko_clones} AID-null clones "

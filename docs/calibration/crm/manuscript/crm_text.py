@@ -241,8 +241,9 @@ RESULTS = [
           "longer target than to the shorter competing reference."),
 
     ("h", "Nanopore and Sanger profiles agree in matched mice"),
-    ("p", "Of {sanger_archive} archived chromatograms[@barbulescu2025], {sanger_sheet} were assigned to the six "
-          "nanopore-sequenced mice and {sanger_clones} yielded "
+    ("p", "The eight archived sequencing orders of that study[@barbulescu2025] hold {sanger_archive} chromatograms "
+          "across all of its mice; the {sanger_sheet} filed to the six sequenced by nanopore yielded "
+          "{sanger_clones} "
           "analyzed clones (Figures 5 and S7). Across the shared 529-bp window, both platforms separated Wt from "
           "*Aicda*^{−/−} mice: Sanger, {sanger_fold}-fold (p = {sanger_p}); nanopore, {ont_fold}-fold with zero-call "
           "controls assigned one event (p = {ont_p}; log-density Welch tests, n = 3 per group). Pooled spectra "
