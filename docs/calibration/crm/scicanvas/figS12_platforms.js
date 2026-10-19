@@ -6,7 +6,7 @@
   // same six mice (Figure 5) and the long-read results (Figure 6).
   // Every number is one the article reports. Built with manuscript_corrected/figure1_scicanvas/build.js into
   // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
-  const W = 1400, BAND = 392, PB = 300, H = 742 + BAND + PB, o = [];
+  const W = 1400, BAND = 392, PB = 232, H = 742 + BAND + PB, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
   const TEAL = '#1f6f8b', PACB = '#9a3439', PACBF = '#e2c2c2', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
   const F = 'arial', TITLE = 22.5, HEAD = 20.5, SM = 17.5;
@@ -146,36 +146,31 @@
   // (median junction-bearing read over the 12 samples); microhomology classes are that study's own
   // unique junctions. The donor/acceptor split varies with where the break falls, so the bar is drawn
   // at the median length but its split is schematic.
-  const py = 300 + BAND + 10;
+  const py = 300 + BAND + 8;
   T('PACBIO: ONE READ ACROSS A SWITCH JUNCTION', 20, py, { fontSize: TITLE, bold: true, color: PACB });
   T('the donor, the join and the acceptor on a single HiFi read', 20, py + 30, { color: SOFT, italic: true });
   R(20, py + 60, 1360, 2.6, { fill: PACB });
-  const jx = 170, jw = 600, jsplit = 0.44, jy = py + 104;
+  const jx = 170, jw = 600, jsplit = 0.44, jy = py + 108;
   R(jx, jy, jw * jsplit, 16, { fill: PACB, radius: 2 });
   R(jx + jw * jsplit, jy, jw * (1 - jsplit), 16, { fill: PACBF, radius: 2 });
   R(jx + jw * jsplit - 1.6, jy - 7, 3.2, 30, { fill: INK });
-  TC('join', jx + jw * jsplit, jy - 30, { color: INK, bold: true });
-  TC('Sμ donor', jx + jw * jsplit / 2, jy + 26, { color: PACB });
-  TC('Sγ1 acceptor', jx + jw * jsplit + jw * (1 - jsplit) / 2, jy + 26, { color: MID });
+  TC('join', jx + jw * jsplit, jy - 32, { color: INK, bold: true });
+  TC('S\u03bc donor', jx + jw * jsplit / 2, jy + 26, { color: PACB });
+  TC('S\u03b31 acceptor', jx + jw * jsplit + jw * (1 - jsplit) / 2, jy + 26, { color: MID });
   T('6,126 bp median', jx + jw + 16, jy - 4, { color: MID });
-  lines(['Only this platform reads both sides of a junction on one molecule, so the join itself, its',
-    'microhomology and any inserted bases are read directly rather than inferred. The bar is the median',
-    'junction-bearing read over the study\u2019s twelve samples; where the break falls varies between',
-    'reads, so the split drawn here is schematic.'], jx, jy + 52);
+  // the detail belongs in the legend; two lines here, as in the other bands
+  lines(['the join, its microhomology and any inserted bases are read, not inferred;',
+    'reads per unique junction run 1.1\u201323.3, so counts track PCR recovery, not switching'], 20, jy + 60);
   // what the junctions look like, from the study's own unique junctions
-  const mh = [['blunt', 14.4], ['1–3 nt', 38.1], ['≥ 4 nt', 12.6], ['inserted bases', 34.9]];
-  const mhx = 1010, mhw = 330;
-  T('Microhomology at the join', mhx, py + 74, { bold: true });
-  let mhy = py + 102;
-  mh.forEach(([lab, pct]) => {
-    TJ(lab, mhx, mhy - 3, { color: MID });
-    R(mhx + 118, mhy, (mhw - 160) * pct / 100, 12, { fill: PACB, radius: 2 });
-    T(`${pct}%`, mhx + 118 + (mhw - 160) * pct / 100 + 6, mhy - 3, { color: MID });
-    mhy += 22;
+  const mh = [['blunt', 14.4], ['1\u20133 nt', 38.1], ['\u2265 4 nt', 12.6], ['inserted bases', 34.9]];
+  const mhx = 1010, mhbar = 150;
+  T('Microhomology at the join', mhx, py + 86, { bold: true });
+  mh.forEach(([lab, pct], r) => {
+    const y = py + 114 + r * 22;
+    TJ(lab, mhx, y - 3, { color: MID });
+    R(mhx + 118, y, mhbar * pct / 100, 12, { fill: PACB, radius: 2 });
+    T(`${pct}%`, mhx + 118 + mhbar * pct / 100 + 6, y - 3, { color: MID });
   });
-  lines(['Reads per unique junction run 1.1–23.3 between samples, so junction counts measure',
-    'long-range PCR recovery and not switching efficiency. That deposit has no AID-null arm.'],
-    jx, jy + 148);
 
   // ───────── bottom: what each gives ─────────
   const cy = 306 + BAND + PB, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
