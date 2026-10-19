@@ -10,6 +10,7 @@ Numbers for the public Illumina sets are read from out/public/*/project.json; th
 recovery from out/single_read_spike.json. Journal limits are checked and the build stops if any is
 exceeded.
 """
+import collections
 import json
 import re
 import sys
@@ -122,6 +123,39 @@ def fill_modules(n):
     STATS, SUPP_FIGS = fill_all(STATS, n), fill_all(SUPP_FIGS, n)
 
 
+NUMWORD = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight",
+           9: "nine", 10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen",
+           15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty"}
+
+
+def dataset_counts():
+    """The loci and laboratory counts the Summary, Discussion and Table S6 footnote all quote, taken
+    from the table itself through M.TABLE_S6_LOCI rather than written out in three places.
+
+    Every row of the table must be classified and every classification must name a row, so adding a
+    dataset fails the build instead of leaving the counts stale. A locus is counted once however many
+    rows share it, and a row whose locus is not an AID target counts towards neither total."""
+    rows = {r[0] for r in M.TABLE_S6}
+    declared = set(M.TABLE_S6_LOCI)
+    assert rows == declared, (f"Table S6 and its locus classification disagree; rows not classified: "
+                              f"{sorted(rows - declared)}; classified but absent: {sorted(declared - rows)}")
+    cls, labs = {}, set()
+    for dataset, (lab, loci) in M.TABLE_S6_LOCI.items():
+        for locus, c in loci:
+            if c == "none":
+                continue
+            assert cls.setdefault(locus, c) == c, f"{locus} is classified two ways"
+            if lab:
+                labs.add(lab)
+    counts = collections.Counter(cls.values())
+    n_loci = len(cls)
+    assert counts["ig"] + counts["off"] + counts["construct"] == n_loci
+    # the prose spells these out; past twenty it would read badly as a word, so use the digits
+    w = lambda i: NUMWORD.get(i, str(i))   # noqa: E731
+    return {"ds_loci": w(n_loci), "ds_labs": w(len(labs)), "ds_shm": w(counts["ig"]),
+            "ds_offtarget": w(counts["off"]), "ds_engineered": w(counts["construct"])}
+
+
 def check_figure_numbers(n):
     """The graphical abstract is drawn in SciCanvas with its numbers typed in: they must match the analysis."""
     ga = (CRM / "scicanvas/crm_ga.js").read_text()
@@ -160,7 +194,7 @@ def check_limits():
 def main(outdir):
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
-    n = {**crm_numbers.compute(), **public_numbers()}
+    n = {**crm_numbers.compute(), **public_numbers(), **dataset_counts()}
     fill_modules(n)
     check_figure_numbers(n)
     check_paired_settings(n)

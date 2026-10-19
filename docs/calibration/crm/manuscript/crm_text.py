@@ -19,7 +19,7 @@ SUMMARY = (
     "activation-induced cytidine deaminase (AID)-deficient libraries and compare biological replicates. A "
     "complementary Sanger workflow quantifies substitutions and reports control-derived background separately. "
     "Evaluation included planted mutations, recalled at measured false-discovery rates of {sp_jh4_fdr} and "
-    "{sp_n114_fdr}, simulated lineages, and fourteen loci from thirteen laboratories across four sequencing "
+    "{sp_n114_fdr}, simulated lineages, and {ds_loci} loci from {ds_labs} laboratories across four sequencing "
     "platforms. Across five nanopore assays, SHMtrace reduced substitution calls in AID-null controls by "
     "{ctl_red_lo}–{ctl_red_hi}% relative to the uncorrected Geneious rule. In four assays, AID-active and AID-null "
     "libraries showed {sep_lo}–{sep_hi}-fold separation in unique-variant density under the stated zero-call "
@@ -85,7 +85,7 @@ INTRO = [
     "Here we describe SHMtrace, which calibrates each call against matched AID-null libraries from the "
     "same run, compares groups with the animal as the unit, and runs from "
     "delivered reads or chromatograms to group statistics. We validated it with planted mutations, "
-    "simulated lineages, fourteen loci from thirteen laboratories across four platforms, Sanger "
+    "simulated lineages, {ds_loci} loci from {ds_labs} laboratories across four platforms, Sanger "
     "sequencing of the same mice, and deposited clones from three published Sanger studies, and compared it against LoFreq[@wilm2012], the long-read somatic callers "
     "ClairS[@zheng2026] and DeepSomatic[@park2026], the germline callers Clair3[@zheng2022] and "
     "DeepVariant[@poplin2018], and the uncorrected Geneious test[@kearse2012].",

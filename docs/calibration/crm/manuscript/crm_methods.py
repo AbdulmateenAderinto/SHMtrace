@@ -642,7 +642,46 @@ TABLE_S6 = [
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "simulated library", "Figures 3 and 5"),
 ]
-TABLE_S6_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers fourteen AID-targeted loci from thirteen laboratories, counting J_{H}4 once across the rows that share it: six somatic hypermutation targets, four AID-targeted loci that are not SHM (Sμ, *Pim1*, OT1 and OT2), and four engineered substrates. The rRNA operons are excluded; the Sμ–Sγ1 junctions are class switching at Sμ and are not counted again. Lengths are analysis windows; the mOrange amplicon is 679 bp. Superscript numbers cite the main manuscript's reference list.")
+# What each row of Table S6 contributes to the counts the footnote quotes: the laboratory that
+# produced it, and the AID-targeted locus or loci it covers, under the class the footnote counts.
+# The counts are derived from this (build_crm.dataset_counts), so a row added to TABLE_S6 has to be
+# classified here or the build stops rather than leaving the prose stale. A locus is counted once
+# however many rows share it, which is what "counting J_{H}4 once" means, and one row may cover two
+# loci. Classes:
+#   ig         an immunoglobulin locus or V region diversified by somatic hypermutation
+#   off        AID-targeted but not SHM: the switch region and the off-target genes
+#   construct  an engineered, non-immunoglobulin substrate
+#   none       not an AID target, so it counts towards neither the loci nor the laboratories
+JH4, N114 = "J_{H}4 intron", "N114 V region"
+TABLE_S6_LOCI = {
+    "J_{H}4, this study": ("martin", ((JH4, "ig"),)),
+    "N114, this study": ("martin", ((N114, "ig"),)),
+    "J_{H}4 Sanger, same mice": ("martin", ((JH4, "ig"),)),
+    "J_{H}4 Sanger, published study[@barbulescu2024]": ("martin", ((JH4, "ig"),)),
+    "J_{H}4 Sanger, published study[@barbulescu2025]": ("martin", ((JH4, "ig"),)),
+    # one BioProject from one laboratory, covering the switch region and three off-target loci
+    "PRJNA1481264, Sμ": ("ircm", (("Sμ", "off"),)),
+    "PRJNA1481264, *Pim1*": ("ircm", (("*Pim1*", "off"),)),
+    "PRJNA1481264, OT1 and OT2": ("ircm", (("OT1", "off"), ("OT2", "off"))),
+    "PRJNA973112[@sharma2023]": ("sharma", ((JH4, "ig"),)),      # a 70-bp window of the same intron
+    "PRJNA918596[@wang2023]": ("wang", (("CH12 VDJ", "ig"),)),
+    "PRJNA820976[@wu2022]": ("wu", (("Ramos IGH VDJ", "ig"),)),
+    # the rRNA operons are not an AID target; they test UMI consensus, not calling
+    "Karst et al.[@karst2021]": ("karst", (("rRNA operons", "none"),)),
+    "SW_{HEL} Sanger, published study[@thientosapol2018]": ("thientosapol", (("SW_{HEL} V_{H}10", "ig"),)),
+    "PRJNA170048[@perezduran2012]": ("perezduran", (("mOrange reporter", "construct"),)),
+    # class switching at Sμ, so the junctions do not add a locus
+    "PRJNA831666[@vincendeau2022]": ("vincendeau", (("Sμ", "off"),)),
+    "GSE77788[@compagno2017]": ("compagno", (("Sμ", "off"),)),
+    "SRP159221[@liu2018]": ("liu", (("EGFP reporter", "construct"),)),
+    "SRP075898[@ma2016]": ("ma", (("EGFP reporter and ABL exon 6", "construct"),)),
+    "figshare 12803501[@bassan2021]": ("bassan", (("engineered TCR construct", "construct"),)),
+    "Devilder et al.[@devilder2019]": ("devilder", (("antibody V_{H}", "ig"),)),
+    # simulations are built on two loci already counted, and are nobody's separate dataset
+    "Simulations": (None, ((JH4, "ig"), (N114, "ig"))),
+}
+
+TABLE_S6_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers {ds_loci} AID-targeted loci from {ds_labs} laboratories, counting J_{H}4 once across the rows that share it: {ds_shm} somatic hypermutation targets, {ds_offtarget} AID-targeted loci that are not SHM (Sμ, *Pim1*, OT1 and OT2), and {ds_engineered} engineered substrates. The rRNA operons are excluded; the Sμ–Sγ1 junctions are class switching at Sμ and are not counted again. Lengths are analysis windows; the mOrange amplicon is 679 bp. Superscript numbers cite the main manuscript's reference list.")
 
 SUPPLEMENT = [
     "Document S1. Figures S1–S18 and Tables S1 and S3–S6",
