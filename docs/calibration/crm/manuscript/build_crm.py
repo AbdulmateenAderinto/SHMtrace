@@ -506,8 +506,9 @@ SUPP_FIGS = [
      "SHMtrace finds; for total mutation (a) the two columns use different tests, the paper's one-way ANOVA and "
      "SHMtrace's Welch test on per-animal log frequency, so they agree in direction but not in inference. Unlike Figures S8 and S9 this study deposits sequences rather than chromatograms, so the "
      "chromatogram reading and the bookkeeping checks are not exercised; it has no *Aicda*^{\u2212/\u2212} arm, "
-     "and Sanger error (about 2 in 10^{5} bases, measured in the AID-null clones of those two studies) is some "
-     "500-fold below the mutation frequency here."),
+     "so the Sanger error rate has to be carried over from the AID-null clones of those two studies "
+     "(about 20 in 10^{5} bases at Q \u2265 20 in each), roughly 10-fold below the mutation frequency "
+     "measured here."),
     ("Figure S11. Full-length spectra, related to Figure 6 (page 1 of 2)",
      [MC / "FigureS_spectrum_529_vs_fulllength.png"],
      "Pooled wild-type spectra over the 529-bp window and the full 1,141-bp interval (Pearson r = {s1_r}). Mutation trees continue on the next page."),
