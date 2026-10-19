@@ -106,11 +106,15 @@ def main(review=False):
     # every figure and table named in the manuscript sources must exist
     built = {re.match(r"(Figure S?\d+|Table S?\d+)", t).group(1).replace(" ", "")
              for t, *_ in figs if re.match(r"(Figure S?\d+|Table S?\d+)", t)}
-    built |= {f"Table{n}" for n in ("1",)} | {f"TableS{i}" for i in range(1, 6)}
+    # Tables S1-S6 are built straight onto Document S1 rather than carried in the legend list;
+    # there is no main table, since seven figures already reach the figures-and-tables limit.
+    built |= {f"TableS{i}" for i in range(1, 7)}
     text = "".join(p.read_text() for p in (CRM / "manuscript").glob("crm_*.py"))
-    # "Supplementary Figure 9" is Ma et al.'s figure, not one of ours, so references carrying another
-    # paper's qualifier are left out
-    named = {f"{k}{n}" for k, n in re.findall(r"(?<!Supplementary )\b(Figure|Table) (S?\d+)", text)}
+    # A reference to another work's display item is not a reference to ours. "Supplementary Figure 9"
+    # is Ma et al.'s, and "the source study's Table 1" is the SWHEL paper's own dataset table, which
+    # keeps its number even though this manuscript no longer has a Table 1 of its own.
+    named = {f"{k}{n}" for k, n in re.findall(
+        r"(?<!Supplementary )(?<!study's )(?<!paper's )\b(Figure|Table) (S?\d+)", text)}
     dangling = sorted(n for n in named - built if not n.startswith("Figure") or "S" in n or int(
         n.replace("Figure", "")) > 7)
     for n in dangling:
