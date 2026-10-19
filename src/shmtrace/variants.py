@@ -269,6 +269,9 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     # accumulated are the same, in the same order, as a plain per-base loop.
     ref_u = ref.upper()
     want_quals = model in ("qcal", "sanger")
+    # the floor on one-read calls needs the best supporting base's quality, which
+    # only the models that read qualities at all can supply
+    single_q = (p.single_read_call_min_quality or 0) if want_quals else 0
     want_qsum = model == "geneious"
     want_err = model not in ("qcal", "sanger", "geneious")
     want_s_err = model == "strand"
@@ -314,6 +317,7 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     candidates: list[Variant] = []
     pvals: list[float] = []
     germline_removed = 0
+    single_q_removed = 0
     germline_sites: list = []
     n_hypotheses = 0
     germline_on = not p.ancestral_reference
@@ -344,6 +348,15 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
             c = counts[rpos].get(alt, 0)
             if c < p.min_variant_reads:
                 continue
+            if single_q and c == 1:
+                # one read, and its base is one the basecaller was unsure of: a
+                # nanopore miscall far more often than a mutation. Dropped before
+                # the test, so it is not a hypothesis and not a decoy candidate.
+                best = max((q for st in (1, -1) for q in alt_quals.get((rpos, alt, st), ())),
+                           default=0)
+                if best < single_q:
+                    single_q_removed += 1
+                    continue
             freq = c / d
             if (germline_on and d >= germline_min_depth
                     and freq >= p.germline_freq_threshold):   # fixed/germline -> not SHM
@@ -430,6 +443,7 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         # (1-based position, alt, reads carrying it, depth) for each one
         "germline_sites": germline_sites,
         "candidates_tested": len(candidates),
+        "single_read_low_quality_removed": single_q_removed,
         "hypotheses": n_hypotheses if p.bh_family == "all" else len(candidates),
         "multiple_testing": "none" if model == "sanger" else
                             ("control" if control_threshold is not None or (p.multiple_testing == "control" and decoys)
