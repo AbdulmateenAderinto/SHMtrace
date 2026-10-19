@@ -232,6 +232,17 @@ class Params:
     # share of real bases the cut removes. 35 suits current nanopore (Dorado
     # sup, Q capped at 50); 0 or None turns the estimate off.
     single_read_min_quality: int | None = 35
+    # The same floor, applied to one-read mutations the caller *reports* rather
+    # than to the aggregate estimate. A one-read candidate whose best supporting
+    # base is below this is not tested at all, in the sample and in the decoy
+    # controls alike, so the control-based threshold is re-derived on the
+    # survivors. Nanopore miscalls carry low base qualities and real bases do
+    # not, so the floor removes most one-read false calls at little cost in
+    # recall; it is measured in docs/calibration/SINGLE_READ.md. None or 0
+    # leaves one-read candidates to the statistical test alone, which is what
+    # every published number used. Only the quality-calibrated ("qcal") and
+    # Sanger models read base qualities, so it has no effect on the others.
+    single_read_call_min_quality: int | None = None
 
     # ---- indels ---------------------------------------------------------------
     # exclude_indels=False calls insertions and deletions (indels.py). Only

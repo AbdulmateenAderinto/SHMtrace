@@ -97,6 +97,49 @@ half of any library's correctly read bases, as with an older basecaller, it is
 lowered in steps of 5, but not below Q20. The result records the cut used
 (`q_min`) and the one asked for.
 
+## The same floor under one-read *calls*
+
+`single_read_call_min_quality` applies this floor to the one-read mutations the
+caller reports, not just to the aggregate estimate. A one-read candidate whose
+best supporting base falls below it is dropped before the test, in the sample
+and in the decoy controls alike, so the control-based threshold is re-derived on
+what is left. It is **off by default**: every published number was produced
+without it.
+
+What it buys, measured on three benchmarks (`crm/spikein.py --profiles
+recommended_q30,recommended_q30_fdr20`, and the polyclonal lineage simulation):
+
+| Benchmark | Setting | False calls / library | FDR | One-read recall |
+|---|---|---:|---:|---:|
+| J_H4 spike-in | published | 2.4 | 0.048 | 0.300 |
+| | + Q30 floor | 2.4 | 0.048 | 0.300 |
+| N114 spike-in | published | 2.6 | 0.045 | 0.578 |
+| | + Q30 floor | 2.3 | 0.041 | 0.578 |
+| Lineage simulation | published | 13.7 | 0.034 | 0.852 |
+| | + Q30 floor | 8.7 | 0.024 | 0.825 |
+
+At the default false-discovery rate the floor is close to free: it is a no-op on
+J_H4, removes false calls at no cost on N114, and on the lineage simulation
+removes a third of them for three points of one-read recall.
+
+It matters more under a looser rate, which is where one-read calls are won:
+
+| Benchmark | α 0.20 | α 0.20 + Q30 floor |
+|---|---|---|
+| J_H4 spike-in | 11.9 false / library, one-read 0.722 | 7.0 false, one-read 0.667 |
+| N114 spike-in | 11.0 false / library, one-read 0.867 | 6.0 false, one-read 0.844 |
+| Lineage simulation | 50.7 false / library, one-read 0.961 | 15.7 false, one-read 0.897 |
+
+The floor roughly halves what the sensitive mode costs while keeping most of
+what it gains. On the real J_H4 libraries at α 0.20 it changes wild-type calls
+from 249, 387 and 86 to 230, 346 and 82, with the *Aicda*^-/- controls at 0, 3
+and 0 either way.
+
+The idealised-quality caveat above applies here with more force: a planted
+mutation always sits on a base the basecaller read confidently, so these
+benchmarks cannot show what the floor costs on a real mutation that falls in a
+low-quality stretch. That cost is real and unmeasured.
+
 ## Limits
 
 - **Controls are required.** With no control, or a single control (which has

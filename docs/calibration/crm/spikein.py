@@ -39,7 +39,17 @@ VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             "qcal_uncorrected": ("recommended", {"multiple_testing": "none"}),
             # base-quality recalibration from the controls (recal.py)
             "recommended_recal": ("recommended", {"recalibrate": True}),
-            "sensitive_recal": ("sensitive", {"recalibrate": True})}
+            "sensitive_recal": ("sensitive", {"recalibrate": True}),
+            # a base-quality floor under one-read calls, alone and with a looser FDR:
+            # nanopore miscalls carry low qualities, so the floor is meant to pay for
+            # the sensitivity a looser alpha buys (docs/calibration/SINGLE_READ.md)
+            "recommended_q30": ("recommended", {"single_read_call_min_quality": 30}),
+            "recommended_q30_fdr10": ("recommended", {"single_read_call_min_quality": 30,
+                                                      "fdr_alpha": 0.10}),
+            "recommended_q30_fdr20": ("recommended", {"single_read_call_min_quality": 30,
+                                                      "fdr_alpha": 0.20}),
+            "recommended_q25_fdr20": ("recommended", {"single_read_call_min_quality": 25,
+                                                      "fdr_alpha": 0.20})}
 
 
 def run(key, reps, n_sites, seed=1):
