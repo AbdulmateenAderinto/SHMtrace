@@ -162,6 +162,13 @@ def check_figure_numbers(n):
     for text in (f"{n['ctl_rec']} calls per control set", f"r = {n['r_spec']}"):
         if text not in ga:
             raise RuntimeError(f"graphical abstract is stale: expected '{text}' in scicanvas/crm_ga.js")
+    # Figure S12's read-span bars are drawn from lengths typed into the builder, so the PacBio one
+    # is checked against the switch data the legend quotes
+    s12 = (CRM / "scicanvas/figS12_platforms.js").read_text()
+    pb = n["pacbio_len"].replace(",", "")
+    if f", {pb}, PACB]" not in s12:
+        raise RuntimeError(f"Figure S12 is stale: expected the PacBio bar at {pb} bp in "
+                           "scicanvas/figS12_platforms.js")
 
 
 def check_paired_settings(n):
@@ -626,7 +633,7 @@ SUPP_FIGS = [
      [CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
      "Mutation-tree reconstructions for the most branched clone in each Wt mouse. Trees summarize relationships among "
      "sequenced reads (Figure 6); the corresponding cellular lineages were not independently established."),
-    ("Figure S12. Sequencing units, coverage and Illumina read preparation, related to Figures 5–7",
+    ("Figure S12. What a read means on each of the four platforms, related to Figures 5–7",
      [FIG / "FigureS12_platforms.png"],
      "Top, Sanger and nanopore sequencing units drawn on a common base-pair scale. A Sanger clone represents one "
      "PCR-derived molecule sequenced over the shared 529-bp window. The eight nanopore reads are experimental Wt3 "
@@ -640,7 +647,10 @@ SUPP_FIGS = [
      "(PRJNA918596; 96.7% merged). Agreeing overlap bases have summed qualities capped at Q60; disagreements retain "
      "the higher-quality call or become N at tied qualities. Adapter read-through is removed, and pairs with <20-bp "
      "overlap are discarded. Overlap disagreements occurred at 0.13% and 0.55% of bases, respectively. Right, coverage "
-     "of each study locus by a single processed read. Merged reads enter the Figure 1 workflow using the minimap2 sr "
+     "of each study locus by a single processed read, the PacBio switch junctions among them: a junction-bearing "
+     "HiFi read runs to {pacbio_len} bases, the median over that study’s {pacbio_n} samples, so its bar is "
+     "clipped. That deposit has no AID-null arm, so those reads give junction structure rather than calibrated "
+     "calls. Merged reads enter the Figure 1 workflow using the minimap2 sr "
      "preset, an expected-error limit of 0.02 per base and a minimum alignment requirement of no more than 100 bp. "
      "PRJNA973112 and PRJNA918596 contain uniformly Q30 bases, yielding one quality level in the error model; "
      "PRJNA820976 retains binned qualities (`crm/scicanvas/s12_illumina.py`). Bottom, measurements obtained from the "

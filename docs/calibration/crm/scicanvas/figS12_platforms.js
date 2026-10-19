@@ -8,7 +8,7 @@
   // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
   const W = 1400, BAND = 392, H = 742 + BAND, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
-  const TEAL = '#1f6f8b', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
+  const TEAL = '#1f6f8b', PACB = '#9a3439', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
   const F = 'arial', TITLE = 22.5, HEAD = 20.5, SM = 17.5;
 
   const T = (text, x, y, e = {}) => { const t = Make.text(text, x, y, { fontSize: SM, color: INK, family: F, ...e }); o.push(t); return t; };
@@ -115,19 +115,32 @@
   R(204, ky + 4, 26, 10, { fill: ILLF, radius: 2 }); T('read once', 238, ky - 2, { color: MID });
   R(336, ky - 1, 3, 20, { fill: ERR }); T('disagreement: better call kept, N on a tie', 348, ky - 2, { color: MID });
   // how much of the locus one read covers, to scale
-  const lx = 760, bx0 = 948, kb = 0.31, ly = iy + 76;
+  const lx = 760, bx0 = 948, kb = 0.24, ly = iy + 76;
   T('How much of the locus one read covers', lx, ly, { bold: true });
-  [['Nanopore, J_H4', 1141, TEAL], ['Sanger, J_H4', 529, SANG], ['Illumina, Ramos VDJ', 421, ILL],
+  // A junction-bearing PacBio read runs to several kb, so its bar is clipped and the true median
+  // labelled; drawing it to scale would shrink every other platform to a sliver.
+  const CLIP = 1300;
+  [['PacBio, S\u03bc\u2013S\u03b31', 6126, PACB], ['Nanopore, J_H4', 1141, TEAL],
+    ['Sanger, J_H4', 529, SANG], ['Illumina, Ramos VDJ', 421, ILL],
     ['Illumina, CH12F3 VDJ', 229, ILL], ['Illumina, J_H4 (Ldha)', 70, ILL]].forEach(([name, bp, c], r) => {
-    const y = ly + 38 + r * 30;
+    const y = ly + 34 + r * 26;
+    const shown = Math.min(bp, CLIP);
     TJ(name, lx, y - 4, { color: c });
-    R(bx0, y, bp * kb, 14, { fill: c, radius: 2 });
-    T(`${bp.toLocaleString('en-US')} bp`, bx0 + bp * kb + 8, y - 4, { color: MID });
+    R(bx0, y, shown * kb, 14, { fill: c, radius: 2 });
+    if (bp > CLIP) {
+      const xe = bx0 + shown * kb;
+      [0, 5, 10].forEach(d => R(xe + d - 12, y, 2.4, 14, { fill: '#ffffff' }));
+      T('\u2026', xe + 4, y - 4, { color: c });
+    }
+    T(`${bp.toLocaleString('en-US')} bp`, bx0 + shown * kb + (bp > CLIP ? 24 : 8), y - 4,
+      { color: MID });
   });
   lines(['Illumina settings: minimap2 sr preset; error gate 0.02 per base;',
     'minimum alignment ≤ 100 bp; then the same control test and FDR.',
     'The Ldha and CH12F3 files carry a flat Q30 (SRA), so their error',
-    'model has a single quality level; the Ramos files keep binned ones.'], lx, ly + 200);
+    'model has a single quality level; the Ramos files keep binned ones.',
+    'PacBio: HiFi reads, median over 12 samples; that deposit has no',
+    'AID-null arm, so junctions not calls.'], lx, ly + 200);
 
   // ───────── bottom: what each gives ─────────
   const cy = 306 + BAND, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;

@@ -611,6 +611,13 @@ def compute():
     N["umi_null_jh4"] = f2(mean(pick(("JH4", "null"), "reads", "false_calls")))
     N["umi_null_n114"] = f2(mean(pick(("N114", "null"), "reads", "false_calls")))
     N["umi_molecules"] = f0(mean([x for c in cells for x in pick(c, "umi", "molecules_analysed")]))
+    # Figure S12: how far one PacBio read reaches, for the read-span comparison
+    sw_pb = CRM / "out/switch_pacbio/switch_pacbio.json"
+    if sw_pb.exists():
+        sm = _load(sw_pb)["samples"]
+        jl = sorted(v["read_len_median_junction"] for v in sm.values())
+        N["pacbio_len"] = f"{round(statistics.median(jl)):,}"
+        N["pacbio_n"] = f0(len(sm))
     fig2n = _load(OUT / "fig2_numbers.json")
     N.update(af_n=f"{fig2n['af_calls']:,}", af_lt1=pct(fig2n["af_share_below"]["1"] / 100),
              af_lt5=pct(fig2n["af_share_below"]["5"] / 100), af_lt20=f"{fig2n['af_share_below']['20']:.1f}")
