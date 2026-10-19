@@ -590,7 +590,10 @@ def compute():
              ana_e_pos=f0(er["pos"]), ana_e_ctx=er["context"], ana_e_reads=f"{k_e} of {d_e:,}",
              ana_e_q=f0(med(er["libraries"][case]["alt_quals"])), ana_e_ko=ko, ana_e_ko_reads=f"{k_k} of {d_k:,}",
              ana_e_ko_q=f0(med(er["libraries"][ko]["alt_quals"])),
-             ana_e_gen_ctl=word(er["geneious_calls"][0]), ana_e_gen_case=word(er["geneious_calls"][1]))
+             ana_e_gen_ctl=word(er["geneious_calls"][0]), ana_e_gen_case=word(er["geneious_calls"][1]),
+             # the recurrent candidate's p: the test gives exactly 1 here, which reads better as "1"
+             # than as pfmt's "1.00", and still moves if the data ever stop saturating the test
+             ana_e_p="1" if er["p"] >= 0.995 else pfmt(er["p"]))
     c = su["candidates"][case]
     N.update(ana_thr=f"{c['threshold']:.3f}", ana_kept=f0(bisect_right(sorted(c["p"]), c["threshold"])),
              ana_cand=f"{len(c['p']):,}")
