@@ -74,7 +74,7 @@ EXPERIMENTAL = [
                    "matched empty vector, both encoding GFP and puromycin resistance. GFP-high cells were selected and "
                    "subcloned by limiting dilution; three puromycin-resistant subclones per vector were maintained for "
                    "1 month before DNA collection. One library per subclone was analyzed. When repeat sequencing was "
-                   "available (C1 and D3 from stocks frozen on different dates; **two** C3 libraries), the library "
+                   "available (C1 and D3 from stocks frozen on different dates; two C3 libraries), the library "
                    "with the most usable reads was selected. The alternative C3 library was retained for sensitivity "
                    "analysis."),
 ]
@@ -192,7 +192,7 @@ METHODS = [
     ("h2", "Testing the calling procedure as a whole"),
     ("p", "End-to-end assessment used partitions and planted mutations from three existing *Aicda*^{−/−} J_{H}4 "
           "libraries (`crm/fdr_validation.py`). Cases used KO1 reads. Two-control analyses used one partition each "
-          "from KO2/KO3; three-control analyses used **two** KO2 partitions and one KO3 partition. Case/control sets "
+          "from KO2/KO3; three-control analyses used two KO2 partitions and one KO3 partition. Case/control sets "
           "shared no read records, but without UMIs this does not establish original-molecule independence. Partitions "
           "are technical resamples rather than independent biological controls. Each `run_project` analysis reselected "
           "its margin, threshold and exclusions. Conditions were unmodified background, one noisy control, case-only "
@@ -228,7 +228,7 @@ METHODS = [
           "FDP was {fdv_polyclonal_case_only_on_fdp}% versus {fdv_max_polyclonal_case_only_on_fdp}%. Five paired "
           "resamples per condition used identical inputs. This compares implemented estimators; it is neither "
           "independent validation nor proof that the maximum guarantees FDR control."),
-    ("p", "Reported runtimes are wall-clock seconds for one `run_project` `call` on an Apple M2 Pro (12 cores, 32 GB; "
+    ("p", "Reported runtimes are wall-clock seconds for one `run_project` call on an Apple M2 Pro (12 cores, 32 GB; "
           "macOS), from prepared input to written results. They include file reading, mappy alignment, calling and "
           "sample summaries, but exclude reference construction and external benchmark containers. Sanger projects "
           "contain a few hundred chromatograms; nanopore projects contain six libraries analyzed at 500–2,000 reads. "
@@ -278,7 +278,7 @@ METHODS = [
           "the cutoff; that it does not between Q30 and Q40 is the check reported for J_{H}4."),
     ("h2", "Single-read estimate, clones, mutation trees, and quality checks"),
     ("p", "Single-read mutations not called individually are estimated in aggregate. SHMtrace counts Q≥35 single-read "
-          "substitutions outside the accepted `call` set, subtracts the control expectation scaled to sample bases, "
+          "substitutions outside the accepted call set, subtracts the control expectation scaled to sample bases, "
           "and divides by the fraction of correctly read bases reaching that quality. The 95% interval incorporates "
           "Poisson variation, between-control overdispersion and control-rate uncertainty."),
     ("p", "Two different things are called a clone in this field, and this paper keeps them apart. A *Sanger "
@@ -297,7 +297,7 @@ METHODS = [
           "merge mutations supported by ≥2 lineage reads with Jaccard overlap ≥0.9; each node's parent is the smallest "
           "node containing ≥90% of its supporting reads. A read fits when its nodes occupy one ancestral path. The "
           "four-gamete test requires each of the four presence/absence combinations for a mutation pair in at least "
-          "**two** reads."),
+          "two reads."),
     ("p", "The targeting index is mean S5F mutability[@yaari2013] at mutated positions divided by the window mean. A "
           "one-sided permutation test uses 2,000 random position sets; the model was exported from SHazaM 1.2.0. "
           "Positional-clustering flags identify 10-base windows with more calls than expected under a Poisson "
@@ -314,8 +314,8 @@ METHODS = [
           "corresponding sample calls. This background estimate contextualizes Sanger counts but does not determine "
           "acceptance of individual substitutions."),
     ("p", "For the Maea Sanger study[@barbulescu2024], chromatograms from four 96-well plates and the pilot plate of "
-          "cohort **two** were downloaded from the sequencing facility portal. Mouse assignments were reconstructed "
-          "from the original project folders using screen recordings. Four traces filed under **two** mice were "
+          "cohort two were downloaded from the sequencing facility portal. Mouse assignments were reconstructed "
+          "from the original project folders using screen recordings. Four traces filed under two mice were "
           "retained under both assignments. Published per-mouse values came from Source Data: Figure 2h for mutation "
           "frequencies, including *Aicda*^{−/−} mice; Figure 2i for G:C transitions and transversions; and Figure 2g "
           "for clone distributions. Twelve-type counts were transcribed from Supplementary Figure 9b, using printed "
@@ -328,11 +328,11 @@ METHODS = [
           "earlier preprint by eight mutations, matching the number and types of SHMtrace calls in this batch. The "
           "files do not establish which later clones entered the published tables or how the three knockout folders "
           "map to published mice #1–#3; comparisons therefore use groups rather than matched mice. Each later clone "
-          "carries at most **two** mutations and cannot be placed using the matched nanopore libraries, because "
+          "carries at most two mutations and cannot be placed using the matched nanopore libraries, because "
           "assignment requires a read carrying at least three of its mutations."),
     ("p", "A sensitivity analysis used an evidence-based *Mkln1* clone set with rules fixed before analysis and "
           "independent of published values. Paralog amplicons and trace copies were set aside as in the primary "
-          "analysis. Lineages filed under **two** mice, identified by duplicate-clone and shared-mutation checks, were "
+          "analysis. Lineages filed under two mice, identified by duplicate-clone and shared-mutation checks, were "
           "sought in matched J_{H}4 nanopore libraries after excluding positions mismatched in >0.5% of *Aicda*^{−/−} "
           "reads. A read supported a lineage when it carried more than half its shared mutations and at least three. "
           "Lineages supported by at least three reads in exactly one mouse library were reassigned to that mouse; "
@@ -342,7 +342,7 @@ METHODS = [
     ("p", "For the SW_{HEL} study[@thientosapol2018], all 1,795 GenBank clones (MH198782–MH200576) were downloaded and "
           "treated as Sanger sequences; the sample sheet records each accession, host and well. GenBank provides no "
           "base qualities, so Q30 was assigned as a processing convention rather than measured quality. The "
-          "majority-consensus reference converged in **two** iterations. The analysis window covered the interval "
+          "majority-consensus reference converged in two iterations. The analysis window covered the interval "
           "represented in ≥99% of clones (558 bp of the 576-bp consensus). Host and genotype assignments followed "
           "deposited records, with the UGI group kept separate. No *Aicda*^{−/−} group was available for background "
           "estimation. Published per-group counts were transcribed from the source study's Table 1, which counts each "
@@ -350,7 +350,7 @@ METHODS = [
           "lower, as expected. The publication lists 1,796 sequences versus 1,795 deposited, owing to one fewer "
           "*Msh2*^{−/−} record (445 versus 446); no deposited record was excluded. The Wt deposit names twelve hosts "
           "versus thirteen reported, and AT40 contains 88 clones, approximately twice the other collections, "
-          "suggesting that **two** animals may share this label. Pooled counts are unaffected. Animal-level tests use "
+          "suggesting that two animals may share this label. Pooled counts are unaffected. Animal-level tests use "
           "deposited host names and were repeated without AT40; clones were not arbitrarily split between inferred "
           "animals. Excluding AT40 gave p = {sw_drop_p} for the four substitution "
           "classes and {sw_drop_tot_p} for total mutation, versus {sw_at_tv_p}, {sw_gc_tv_p}, {sw_gc_ts_p}, {sw_at_ts_p} and {sw_tot_p} with all hosts."),
@@ -422,7 +422,7 @@ METHODS = [
     ("p", "Lineage simulations partitioned one null library into approximately forty power-law-sized clones. Each "
           "received a random 20-bp junction, J trimming from −3 to +12 bp, and S5F-weighted trunk, branch, subbranch "
           "and private mutations with gamma-distributed loads. In the expanded-clone scenario, one unmutated clone "
-          "supplied 60% of reads. Each control was held out against the other **two**. Quantification was assessed at "
+          "supplied 60% of reads. Each control was held out against the other two. Quantification was assessed at "
           "125, 250, 500 and 1,000 reads on JH4/N114 (168 libraries). Group simulations used log-normal animal rates "
           "(coefficient of variation 1), negative-binomial counts and 262,913 base observations per animal, across 300 "
           "experiments per condition. This represents approximately 526 covered bases per read at 500 reads, rather "
@@ -560,7 +560,7 @@ LEGENDS = [
      "matched AID-null libraries. Check marks and crosses indicate correct and incorrect decisions in the schematic. "
      "(B) Read preparation. Sanger traces use Q≥20 trimming instead of step 1; they undergo competitive alignment and "
      "relevant paralog checks but are not downsampled. (C) Nanopore, Illumina and UMI-consensus libraries use a "
-     "control-fitted test and empirical false-discovery threshold; a `call` can have one supporting read. Sanger "
+     "control-fitted test and empirical false-discovery threshold; a call can have one supporting read. Sanger "
      "substitutions at Q≥20 are counted directly, with control-derived expected background reported without "
      "subtraction. The workflows share default high-frequency-allele handling, windows and quality checks. The ≥50% "
      "filter is a heuristic; known-reference experiments have an opt-in exception. (D) Shared outputs include "
@@ -570,7 +570,7 @@ LEGENDS = [
      "(A, B) Two C-to-T candidates in Sμ WT3 (PRJNA1481264; 2,000 reads per library). Bars show support on + and − "
      "strands in WT3 and *Aicda*^{−/−} controls. Counts include all qualities; parentheses show the descriptive Q≥20 "
      "subset. The test uses all qualities. (A) Position 165 in a WRC hotspot. (B) Position 97, a recurrent mismatch "
-     "called by the uncorrected Geneious rule in WT3 and **two** controls. p denotes SHMtrace's test. (C) "
+     "called by the uncorrected Geneious rule in WT3 and two controls. p denotes SHMtrace's test. (C) "
      "Supporting-base qualities; bars, medians; dotted line, Q20 for display. (D) Candidates retained at p≤t and false "
      "calls estimated from held-out controls, scaled to tested bases. The largest threshold satisfying the empirical "
      "5% criterion retained 88 calls. (E) Allele fractions among retained SHMtrace calls across JH4/N114 at 500 reads "
@@ -594,7 +594,7 @@ LEGENDS = [
      "line, nominal 5%; Monte Carlo 95% half-width ≤5.6 percentage points. At n=3 per group, twenty allocations give a "
      "minimum exact two-sided permutation p of 0.10. (H) Permissive somatic-caller recall on J_{H}4 at 1–20/500-read "
      "support (solid) and 5%, 10% or 20% support (dashed): thirty sites per fraction per held-out control, with the "
-     "other **two** controls pooled as normal. SHMtrace spike-in recall is shown for comparison. BAQ, base-alignment "
+     "other two controls pooled as normal. SHMtrace spike-in recall is shown for comparison. BAQ, base-alignment "
      "quality. See also Figure S3 and Tables S2 and S3."),
     ("Figure 4. Matched controls reduce apparent substitution background in real libraries",
      "(A–E) Unique variants per 10^{5} analyzed base observations for callers applied to identical reads; triangles "
