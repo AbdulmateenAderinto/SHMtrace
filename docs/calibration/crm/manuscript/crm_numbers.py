@@ -8,6 +8,7 @@ Inputs: docs/calibration/figures/* (the manuscript runs), docs/calibration/crm/o
 spike-ins, simulations, public data), the Sanger calls, and the simulation outputs of
 REPLICATES_AND_POWER and UMI (data-independent).
 """
+import csv
 import json
 import math
 import re
@@ -26,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import indel_spike  # noqa: E402
 
 CRM = Path(__file__).resolve().parents[1]
+SANGER_ARCHIVE_TRACES = 447    # .ab1 files in the eight 2024 orders; see SANGER_VS_NANOPORE.md
 OUT = CRM / "out"
 CAL = CRM.parent
 FIG = CAL / "figures"
@@ -287,6 +289,22 @@ def compute():
     N["loco_margins_x"] = N["loco_margins"]
     N["m_ko_calls"] = ", ".join(str(S[x]["unique_mutations"]) for x in ("KO1", "KO2", "KO3"))
     st = _load(FIG / "sanger_vs_nanopore/recommended_manuscript/stats.json")
+    # The Sanger accounting the Results quote, derived so the three figures cannot drift apart:
+    # the archive, what the sample sheet files to these six mice, and what the analysis returned.
+    # The 447 .ab1 files of the eight 2024 orders (SANGER_VS_NANOPORE.md) sit outside the
+    # repository, so that one is declared and checked only when the directory is to hand. None of
+    # this touches the earlier Feng orders, which hold the Fam72a material and are a different
+    # campaign: no trace from them is in this archive or this sample sheet.
+    N["sanger_clones"] = str(sum(st["density_sanger"]["sequences"].values()))
+    with open(CAL / "samplesheets/jh4_manuscript.csv") as fh:
+        N["sanger_sheet"] = str(sum(1 for _ in csv.DictReader(fh)))
+    archive = Path("~/Documents/WT JH4 SANGER AB1").expanduser()
+    if archive.is_dir():
+        seen = len(list(archive.rglob("*.ab1")))
+        assert seen == SANGER_ARCHIVE_TRACES, (
+            f"the Sanger archive holds {seen} chromatograms, not the {SANGER_ARCHIVE_TRACES} the "
+            "Results quote; update SANGER_ARCHIVE_TRACES and SANGER_VS_NANOPORE.md together")
+    N["sanger_archive"] = str(SANGER_ARCHIVE_TRACES)
     do, ds = st["density_ont"], st["density_sanger"]
     N.update(ont_fold=f0(do["fold"]), ont_p=pfmt(do["p_welch_log"]), sanger_fold=f0(ds["fold"]),
              sanger_p=pfmt(ds["p_welch_log"]), ont_wt_geo=f0(do["wt_geomean"]), ont_ko_geo=f2(do["ko_geomean"]),

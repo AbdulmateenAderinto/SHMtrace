@@ -241,7 +241,8 @@ RESULTS = [
           "longer target than to the shorter competing reference."),
 
     ("h", "Nanopore and Sanger profiles agree in matched mice"),
-    ("p", "Of 447 archived chromatograms34, 184 were assigned to the six nanopore-sequenced mice and 134 yielded "
+    ("p", "Of {sanger_archive} archived chromatograms[@barbulescu2025], {sanger_sheet} were assigned to the six "
+          "nanopore-sequenced mice and {sanger_clones} yielded "
           "analyzed clones (Figures 5 and S7). Across the shared 529-bp window, both platforms separated Wt from "
           "*Aicda*^{−/−} mice: Sanger, {sanger_fold}-fold (p = {sanger_p}); nanopore, {ont_fold}-fold with zero-call "
           "controls assigned one event (p = {ont_p}; log-density Welch tests, n = 3 per group). Pooled spectra "
@@ -273,7 +274,7 @@ RESULTS = [
           "knockout). Four traces assigned to {c2_ko_calls} mice and {c2_dup_flags} identical mutated-clone pairs were "
           "retained as filed and flagged."),
 
-    ("p", "Reanalysis of {mk_traces} Mkln1-study chromatograms34 found an {mk_fold}-fold frequency reduction versus "
+    ("p", "Reanalysis of {mk_traces} *Mkln1*-study chromatograms[@barbulescu2025] found an {mk_fold}-fold frequency reduction versus "
           "the published {mk_pub_fold}-fold (p = {mk_p} and {mk_pub_p}). G:C transversions increased from {mk_tv_wt}% "
           "to {mk_tv_ko}% versus {mk_tv_pub_wt}% to {mk_tv_pub_ko}% in the published tables (p = {mk_tv_p} and "
           "{mk_tv_pub_p}). Spectrum correlations were r = {mk_spec_r_wt} for Wt and {mk_spec_r_ko} for knockout; only "
