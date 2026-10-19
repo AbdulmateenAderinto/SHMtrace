@@ -6,7 +6,7 @@
   // same six mice (Figure 5) and the long-read results (Figure 6).
   // Every number is one the article reports. Built with manuscript_corrected/figure1_scicanvas/build.js into
   // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
-  const W = 1400, BAND = 392, PB = 232, H = 742 + BAND + PB, o = [];
+  const W = 1400, BAND = 648, H = 742 + BAND, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
   const TEAL = '#1f6f8b', PACB = '#9a3439', PACBF = '#e2c2c2', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
   const F = 'arial', TITLE = 22.5, HEAD = 20.5, SM = 17.5;
@@ -83,8 +83,8 @@
   // past the fragment (adapter) is dropped, and a pair that does not overlap by 20 bp is dropped whole.
   const iy = 300;
   T('ILLUMINA: PAIRED SHORT READS', 20, iy, { fontSize: TITLE, bold: true, color: ILL });
-  T('each pair is merged into one read, which then takes the same read route as nanopore', 20, iy + 30, { color: SOFT, italic: true });
-  R(20, iy + 60, 1360, 2.6, { fill: ILL });
+  T('each pair is merged into one read, then takes the same read route as nanopore', 20, iy + 30, { color: SOFT, italic: true });
+  R(20, iy + 60, 700, 2.6, { fill: ILL });
   I('s-flow-cell-clusters-illumina', 52, iy + 112, 66);
   const mx = 170, k = 1.2, X = (bp) => mx + bp * k, PALE = '#eef1f4';
   // one pair: R1 from 0, R2 ending at the fragment's end; reads longer than the fragment run into adapter
@@ -115,7 +115,7 @@
   R(204, ky + 4, 26, 10, { fill: ILLF, radius: 2 }); T('read once', 238, ky - 2, { color: MID });
   R(336, ky - 1, 3, 20, { fill: ERR }); T('disagreement: better call kept, N on a tie', 348, ky - 2, { color: MID });
   // how much of the locus one read covers, to scale
-  const lx = 760, bx0 = 948, kb = 0.24, ly = iy + 76;
+  const lx = 20, bx0 = 250, kb = 0.7, ly = iy + 460;
   T('How much of the locus one read covers', lx, ly, { bold: true });
   // A junction-bearing PacBio read runs to several kb, so its bar is clipped and the true median
   // labelled; drawing it to scale would shrink every other platform to a sliver.
@@ -135,45 +135,42 @@
     T(`${bp.toLocaleString('en-US')} bp`, bx0 + shown * kb + (bp > CLIP ? 24 : 8), y - 4,
       { color: MID });
   });
-  lines(['Illumina settings: minimap2 sr preset; error gate 0.02 per base;',
-    'minimum alignment ≤ 100 bp; then the same control test and FDR.',
-    'The Ldha and CH12F3 files carry a flat Q30 (SRA), so their error',
-    'model has a single quality level; the Ramos files keep binned ones.'], lx, ly + 192);
+  lines(['Illumina settings: minimap2 sr preset; error gate 0.02 per base; minimum alignment ≤ 100 bp; then the same control test and FDR.',
+    'The Ldha and CH12F3 files carry a flat Q30 (SRA), so their error model has one quality level; the Ramos files keep binned ones.'],
+    20, iy + 396);
 
-  // ───────── PacBio: one read carries a whole switch junction ─────────
+  // ───────── PacBio, beside Illumina: the two platforms read from public deposits ─────────
   // The only platform here whose read spans two loci at once: a HiFi read runs from the Sμ donor,
   // through the join, into the Sγ1 acceptor. Lengths from crm/out/switch_pacbio/switch_pacbio.json
   // (median junction-bearing read over the 12 samples); microhomology classes are that study's own
-  // unique junctions. The donor/acceptor split varies with where the break falls, so the bar is drawn
-  // at the median length but its split is schematic.
-  const py = 300 + BAND + 8;
-  T('PACBIO: ONE READ ACROSS A SWITCH JUNCTION', 20, py, { fontSize: TITLE, bold: true, color: PACB });
-  T('the donor, the join and the acceptor on a single HiFi read', 20, py + 30, { color: SOFT, italic: true });
-  R(20, py + 60, 1360, 2.6, { fill: PACB });
-  const jx = 170, jw = 600, jsplit = 0.44, jy = py + 108;
+  // unique junctions, averaged over its samples.
+  const qx = 760;
+  T('PACBIO: ONE READ ACROSS A SWITCH JUNCTION', qx, iy, { fontSize: TITLE, bold: true, color: PACB });
+  T('the donor, the join and the acceptor on a single read', qx, iy + 30, { color: SOFT, italic: true });
+  R(qx, iy + 60, 620, 2.6, { fill: PACB });
+  const jx = qx + 30, jw = 420, jsplit = 0.44, jy = iy + 124;
   R(jx, jy, jw * jsplit, 16, { fill: PACB, radius: 2 });
   R(jx + jw * jsplit, jy, jw * (1 - jsplit), 16, { fill: PACBF, radius: 2 });
   R(jx + jw * jsplit - 1.6, jy - 7, 3.2, 30, { fill: INK });
   TC('join', jx + jw * jsplit, jy - 32, { color: INK, bold: true });
   TC('S\u03bc donor', jx + jw * jsplit / 2, jy + 26, { color: PACB });
   TC('S\u03b31 acceptor', jx + jw * jsplit + jw * (1 - jsplit) / 2, jy + 26, { color: MID });
-  T('6,126 bp median', jx + jw + 16, jy - 4, { color: MID });
-  // the detail belongs in the legend; two lines here, as in the other bands
+  T('6,126 bp median', jx + jw + 14, jy - 4, { color: MID });
   lines(['the join, its microhomology and any inserted bases are read, not inferred;',
-    'reads per unique junction run 1.1\u201323.3, so counts track PCR recovery, not switching'], 20, jy + 60);
-  // what the junctions look like, from the study's own unique junctions
+    'reads per unique junction run 1.1\u201323.3, so counts track PCR recovery,',
+    'not switching efficiency'], qx, jy + 64);
   const mh = [['blunt', 14.4], ['1\u20133 nt', 38.1], ['\u2265 4 nt', 12.6], ['inserted bases', 34.9]];
-  const mhx = 1010, mhbar = 150;
-  T('Microhomology at the join', mhx, py + 86, { bold: true });
+  const mhbar = 150;
+  T('Microhomology at the join', qx, jy + 152, { bold: true });
   mh.forEach(([lab, pct], r) => {
-    const y = py + 114 + r * 22;
-    TJ(lab, mhx, y - 3, { color: MID });
-    R(mhx + 118, y, mhbar * pct / 100, 12, { fill: PACB, radius: 2 });
-    T(`${pct}%`, mhx + 118 + mhbar * pct / 100 + 6, y - 3, { color: MID });
+    const y = jy + 180 + r * 22;
+    TJ(lab, qx, y - 3, { color: MID });
+    R(qx + 132, y, mhbar * pct / 100, 12, { fill: PACB, radius: 2 });
+    T(`${pct}%`, qx + 132 + mhbar * pct / 100 + 6, y - 3, { color: MID });
   });
 
   // ───────── bottom: what each gives ─────────
-  const cy = 306 + BAND + PB, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
+  const cy = 306 + BAND, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
   const card = (x, title, colour, fill, stroke) => {
     R(x, cy, cw, ch, { fill, stroke, strokeWidth: 1.6, radius: 10 });
     T(title, x + 16, cy + 12, { fontSize: HEAD, bold: true, color: colour });
