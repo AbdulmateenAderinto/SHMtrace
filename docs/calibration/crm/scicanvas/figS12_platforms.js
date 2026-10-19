@@ -139,8 +139,7 @@
     'minimum alignment ≤ 100 bp; then the same control test and FDR.',
     'The Ldha and CH12F3 files carry a flat Q30 (SRA), so their error',
     'model has a single quality level; the Ramos files keep binned ones.',
-    'PacBio: HiFi reads, median over 12 samples; that deposit has no',
-    'AID-null arm, so junctions not calls.'], lx, ly + 200);
+    'PacBio: HiFi, median of 12 samples; no AID-null arm in that deposit.'], lx, ly + 192);
 
   // ───────── bottom: what each gives ─────────
   const cy = 306 + BAND, ch = H - cy - 8, cw = 440, gap = 20, c1 = 20, c2 = c1 + cw + gap, c3 = c2 + cw + gap;
