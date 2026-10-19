@@ -233,6 +233,10 @@ def compute():
     ctl_rec = [b[k]["recommended"]["ctl_calls"] for k in ("jh4", "n114", "su_lps", "su_ch12", "pim1")]
     ctl_gen = [b[k]["geneious"]["ctl_calls"] for k in ("jh4", "n114", "su_lps", "su_ch12", "pim1")]
     N["ctl_rec"], N["ctl_gen"] = f"{min(ctl_rec)}–{max(ctl_rec)}", f"{min(ctl_gen)}–{max(ctl_gen)}"
+    # the Summary quotes the drop in AID-null calls per assay against the uncorrected rule, so it is
+    # taken per assay from the same two counts and reported as a range, not pooled across assays
+    red = [100 * (1 - r / g) for r, g in zip(ctl_rec, ctl_gen) if g]
+    N["ctl_red_lo"], N["ctl_red_hi"] = f"{min(red):.0f}", f"{max(red):.0f}"
     j = b["jh4"]
     N["jh4_wt_rec"] = series(j["recommended"]["case_calls"][x] for x in ("WT2", "WT3", "WT4"))
     N["jh4_ko_rec"] = series(j["recommended"]["ctl_each"][x] for x in ("KO1", "KO2", "KO3"))

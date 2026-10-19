@@ -14,17 +14,18 @@ AFFIL = ["^{1}Department of Immunology, University of Toronto, Toronto, ON M5S 1
          "\\*Correspondence: alberto.martin@utoronto.ca"]
 
 SUMMARY = (
-    "Somatic hypermutation (SHM) at genomic reporter loci is often measured by cloning amplicons and sequencing "
-    "colonies, because single reads err at rates close to the mutation rate. We describe SHMtrace, which tests "
-    "candidate substitutions in read libraries against errors measured in matched activation-induced cytidine "
-    "deaminase (AID)-deficient controls from the same run and compares biological replicates. "
-    "Sanger mismatches are counted at a quality threshold, with background reported separately. We evaluated "
-    "SHMtrace using planted mutations, simulated lineages, and fourteen loci from thirteen laboratories "
-    "across four platforms. It retained {ctl_rec} AID-null calls per assay and separated AID-active from AID-null libraries "
-    "{sep_lo}–{sep_hi}-fold in four of five nanopore assays, compared with {lf_lo}–{lf_hi}-fold and "
-    "{gen_lo}–{gen_hi}-fold for quality-based and uncorrected tests. Nanopore and Sanger sequencing of the same "
-    "mice gave similar pooled spectra. Re-analysis of three published Sanger studies recovered principal "
-    "comparisons while identifying unresolved differences.")
+    "Cloned-amplicon Sanger sequencing provides accurate but low-throughput measurements of somatic hypermutation "
+    "(SHM). We developed SHMtrace to profile substitutions and indels using background measured in matched "
+    "activation-induced cytidine deaminase (AID)-deficient libraries and compare biological replicates. A "
+    "complementary Sanger workflow quantifies substitutions and reports control-derived background separately. "
+    "Evaluation included planted mutations, simulated lineages and experimental datasets across four sequencing "
+    "platforms. Across five nanopore assays, SHMtrace reduced substitution calls in AID-null controls by "
+    "{ctl_red_lo}–{ctl_red_hi}% relative to the uncorrected Geneious rule. In four assays, AID-active and AID-null "
+    "libraries showed {sep_lo}–{sep_hi}-fold separation in unique-variant density under the stated zero-call "
+    "convention. Nanopore and Sanger sequencing of the same mice yielded similar pooled substitution spectra, while "
+    "long reads retained mutation linkage across the amplicon. Reanalysis of three published Sanger studies "
+    "recovered key comparisons while identifying unresolved discrepancies. SHMtrace provides a reproducible "
+    "framework for control-informed analysis of AID-associated sequence diversification.")
 
 KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanopore sequencing, variant calling, "
             "negative controls, false-discovery rate, pseudoreplication, immunoglobulin, mutation trees, Sanger "
