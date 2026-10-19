@@ -597,6 +597,20 @@ def compute():
     c = su["candidates"][case]
     N.update(ana_thr=f"{c['threshold']:.3f}", ana_kept=f0(bisect_right(sorted(c["p"]), c["threshold"])),
              ana_cand=f"{len(c['p']):,}")
+    # Figure S3C and S3E: UMI consensus on the simulated libraries, four mutation-bearing
+    # conditions plus the two AID-null ones the panels leave out
+    umi = _load(CAL / "umi_sim/runs.json")
+    cells = [("JH4", "polyclonal"), ("JH4", "low"), ("N114", "subclonal"), ("N114", "low")]
+    pick = lambda c, kind, f: [r[kind][f] for r in umi if (r["amplicon"], r["scenario"]) == c]
+    mean = lambda v: sum(v) / len(v)
+    N["umi_fp_poly"] = f2(mean(pick(cells[0], "umi", "false_calls")))
+    rr = [100 * mean(pick(c, "reads", "recall")) for c in cells]
+    ru = [100 * mean(pick(c, "umi", "recall")) for c in cells]
+    N["umi_rec_reads_lo"], N["umi_rec_reads_hi"] = f0(min(rr)), f0(max(rr))
+    N["umi_rec_umi_lo"], N["umi_rec_umi_hi"] = f0(min(ru)), f0(max(ru))
+    N["umi_null_jh4"] = f2(mean(pick(("JH4", "null"), "reads", "false_calls")))
+    N["umi_null_n114"] = f2(mean(pick(("N114", "null"), "reads", "false_calls")))
+    N["umi_molecules"] = f0(mean([x for c in cells for x in pick(c, "umi", "molecules_analysed")]))
     fig2n = _load(OUT / "fig2_numbers.json")
     N.update(af_n=f"{fig2n['af_calls']:,}", af_lt1=pct(fig2n["af_share_below"]["1"] / 100),
              af_lt5=pct(fig2n["af_share_below"]["5"] / 100), af_lt20=f"{fig2n['af_share_below']['20']:.1f}")

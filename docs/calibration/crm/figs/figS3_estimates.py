@@ -3,8 +3,9 @@
 A  single-read estimate: change in the estimate against one-read mutations planted (J_H4, 3 held-out controls)
 B  power at alpha 0.05 to detect a 2-fold change, by animals per group (J_H4 Wt pilot; power_s3.py), with a band
    for the uncertainty of a CV estimated from three mice
-C  UMI consensus against every read: false calls and recall of single-molecule mutations (umi_sim)
+C  UMI consensus against every read: false calls per library (umi_sim)
 D  indels planted into held-out AID-null libraries (indel_spike.py): recall by planted read count, J_H4 and N114
+E  the recall that goes with C: consensus removes the false calls without losing planted mutations
 """
 import json
 from collections import defaultdict
@@ -40,8 +41,9 @@ def indel_recall(key):
 
 def main():
     setup()
-    fig = plt.figure(figsize=(FULL, 58 * MM))
-    gs = gridspec.GridSpec(1, 4, figure=fig, left=0.065, right=0.978, top=0.86, bottom=0.2, wspace=0.46)
+    fig = plt.figure(figsize=(FULL, 112 * MM))
+    gs = gridspec.GridSpec(2, 3, figure=fig, left=0.075, right=0.978, top=0.93, bottom=0.09,
+                           wspace=0.42, hspace=0.46)
     # A
     ax = fig.add_subplot(gs[0, 0])
     rows = json.load(open(DATA / "single_read_spike.json"))
@@ -91,14 +93,19 @@ def main():
     for j, (kind, col, lab) in enumerate((("reads", "#9aa5b1", "every read"), ("umi", "#1f6f8b", "UMI consensus"))):
         fp = [np.mean([r[kind]["false_calls"] for r in runs if (r["amplicon"], r["scenario"]) == c]) for c in cells]
         ax.bar(x + (j - 0.5) * 0.38, fp, 0.36, color=col, label=lab)
-    ax.set_xticks(x, ["J$_H$4\npolyclonal", "J$_H$4\nlow", "N114\nsubclonal", "N114\nlow"])
+        if kind == "umi":
+            # three of the four are exactly zero, and a zero-height bar reads as missing data
+            for xi, v in zip(x, fp):
+                ax.text(xi + 0.19, 0.12, "0" if v == 0 else f"{v:.1f}", ha="center", va="bottom",
+                        fontsize=5, color=col)
+    ax.set_xticks(x, ["J$_H$4\npoly", "J$_H$4\nlow", "N114\nsub", "N114\nlow"])
     ax.set_ylabel("False calls per library")
     ax.set_title("UMI consensus (simulated)", fontsize=7)
     ax.legend(fontsize=5.5, loc="upper right")
     letter(ax, "C", dx=-0.3)
 
     # D: planted indels, the indel counterpart of Figure 3A and 3B
-    ax = fig.add_subplot(gs[0, 3])
+    ax = fig.add_subplot(gs[1, 0])
     teal = CALLERS["recommended"][1]
     notes = []
     for j, (key, ls, mk) in enumerate((("jh4", "-", "o"), ("n114", "--", "s"))):
@@ -121,6 +128,27 @@ def main():
     ax.text(0.5, 1.005, "false calls/library: " + ", ".join(notes), transform=ax.transAxes, ha="center",
             va="bottom", fontsize=5.2, color=MID)
     letter(ax, "D", dx=-0.3)
+    # E: the recall behind C. Consensus removes the false calls of panel C without losing
+    # planted mutations, which a false-call panel on its own cannot show.
+    ax = fig.add_subplot(gs[1, 1])
+    for j, (kind, col, lab) in enumerate((("reads", "#9aa5b1", "every read"),
+                                          ("umi", "#1f6f8b", "UMI consensus"))):
+        rec = [100 * np.mean([r[kind]["recall"] for r in runs if (r["amplicon"], r["scenario"]) == c])
+               for c in cells]
+        ax.bar(x + (j - 0.5) * 0.38, rec, 0.36, color=col, label=lab)
+        if kind == "umi":
+            for xi, v in zip(x, rec):
+                ax.text(xi + 0.19, v + 1.2, f"{v:.0f}", ha="center", va="bottom", fontsize=5, color=col)
+    mol = np.mean([r["umi"]["molecules_analysed"] for r in runs
+                   if (r["amplicon"], r["scenario"]) in cells])
+    ax.set_xticks(x, ["J$_H$4\npoly", "J$_H$4\nlow", "N114\nsub", "N114\nlow"])
+    ax.set_ylim(0, 112)
+    ax.set_ylabel("Planted mutations recalled (%)")
+    ax.set_title("Recall under consensus", fontsize=7)
+    ax.text(0.5, 0.06, f"{mol:.0f} molecules per library from 500 reads", transform=ax.transAxes,
+            ha="center", fontsize=5.2, color=MID)
+    letter(ax, "E", dx=-0.3)
+
     save(fig, "FigureS3")
 
 
