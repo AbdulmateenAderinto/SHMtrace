@@ -18,14 +18,15 @@ SUMMARY = (
     "(SHM). We developed SHMtrace to profile substitutions and indels using background measured in matched "
     "activation-induced cytidine deaminase (AID)-deficient libraries and compare biological replicates. A "
     "complementary Sanger workflow quantifies substitutions and reports control-derived background separately. "
-    "Evaluation included planted mutations, simulated lineages and experimental datasets across four sequencing "
+    "Evaluation included planted mutations, recalled at measured false-discovery rates of {sp_jh4_fdr} and "
+    "{sp_n114_fdr}, simulated lineages, and fourteen loci from thirteen laboratories across four sequencing "
     "platforms. Across five nanopore assays, SHMtrace reduced substitution calls in AID-null controls by "
     "{ctl_red_lo}–{ctl_red_hi}% relative to the uncorrected Geneious rule. In four assays, AID-active and AID-null "
     "libraries showed {sep_lo}–{sep_hi}-fold separation in unique-variant density under the stated zero-call "
     "convention. Nanopore and Sanger sequencing of the same mice yielded similar pooled substitution spectra, while "
     "long reads retained mutation linkage across the amplicon. Reanalysis of three published Sanger studies "
-    "recovered key comparisons while identifying unresolved discrepancies. SHMtrace provides a reproducible "
-    "framework for control-informed analysis of AID-associated sequence diversification.")
+    "recovered key comparisons while identifying unresolved discrepancies. SHMtrace makes control-calibrated "
+    "SHM analysis reproducible.")
 
 KEYWORDS = ("somatic hypermutation, activation-induced cytidine deaminase, nanopore sequencing, variant calling, "
             "negative controls, false-discovery rate, pseudoreplication, immunoglobulin, mutation trees, Sanger "
