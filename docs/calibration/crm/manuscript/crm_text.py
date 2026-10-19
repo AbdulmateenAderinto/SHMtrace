@@ -181,7 +181,7 @@ RESULTS = [
     ("p", "We next simulated approximately 40 B-cell clones per J_{H}4 library, with clone sizes following a power-law "
           "distribution. Mutations were introduced at positions sampled according to S5F mutability, including "
           "mutations shared across an entire clone, restricted to individual branches, or unique to individual "
-          "sequences (Figure 3D).SHMtrace recalled {lin_1_rec}% of single-read mutations versus {lin_1_gen}% for "
+          "sequences (Figure 3D). SHMtrace recalled {lin_1_rec}% of single-read mutations versus {lin_1_gen}% for "
           "Geneious, with FDR {lin_fdr_rec} versus {lin_fdr_gen} and {lin_fp_rec} versus {lin_fp_gen} false calls per "
           "library. In null libraries, false calls averaged {lin_null_rec} versus {lin_null_gen}. Junction clustering "
           "recovered clone assignments with adjusted Rand indices[@hubert1985] of {lin_ari}. When an unmutated clone "
@@ -260,7 +260,7 @@ RESULTS = [
           "preferentially to the longer target reference when the competing paralog reference was shorter. Without an "
           "additional filter based on paralog-specific bases, these reads generated 35–54 false variant calls per "
           "simulated library."),
-    ("h", "SHMtrace generated Nanopore and Sanger profiles agree in matched mice"),
+    ("h", "SHMtrace-generated nanopore and Sanger profiles agree in matched mice"),
     ("p", "SHMtrace processed 182 Sanger chromatograms from the six nanopore-sequenced mice, retaining {sanger_clones} "
           "clones after alignment and sequence-quality filtering for comparison across the shared 529-bp window "
           "(Figures 5 and S7). SHMtrace-derived mutation profiles distinguished Wt from *Aicda*^{−/−} mice on both "
@@ -275,7 +275,7 @@ RESULTS = [
           "this does not establish equivalence with three mice per group. Absolute unique-variant densities are not "
           "directly comparable between workflows because the Sanger analysis counts mutations in individual cloned "
           "products, whereas the nanopore analysis counts distinct variants among 500 reads."),
-    ("h", "SHMtrace Sanger reanalysis recovers published comparisons and identifies discrepancies"),
+    ("h", "Sanger reanalysis recovers published comparisons and identifies discrepancies"),
     ("p", "A published J_{H}4 study compared four Wt and four *Maea*^{fl/fl}*Mb1*^{cre} mice with *Aicda*^{−/−} "
           "controls using SHMTool[@maccarthy2009,@barbulescu2024]. After reconstruction of clone assignments, SHMtrace "
           "processed {c2_traces} chromatograms in {c2_seconds} s; while curation took substantially longer (Figure S8; "
@@ -342,7 +342,7 @@ RESULTS = [
           "n = {ldha_nwt} and {ldha_nko}). *Ldha* deletion showed no detectable difference from Wt (Mann–Whitney p = "
           "{ldha_p_ko}), consistent with the original study[@sharma2023] (Figure 7A)."),
     ("p", "In Aicda−/−Ung−/−Msh2−/− CH12F3 cells, ectopic AID increased frequency {ch12_fold}-fold over empty vector "
-          "(p = {ch12_p}; n = 4 each), with one control call in 20,000 reads[@karst2021]. All AID calls were C→T/G→A, "
+          "(p = {ch12_p}; n = 4 each), with one control call in 20,000 reads[@wang2023]. All AID calls were C→T/G→A, "
           "consistent with loss of uracil excision and mismatch repair; R50E yielded none (Figure 7B). R174E/R178E "
           "appeared more active but gave only {ch12_mut_ctga}% transitions, a {ch12_cluster_pct}% cluster within "
           "positions {ch12_cluster} and targeting index {ch12_mut_s5f} versus {ch12_aid_s5f} for AID. These features "
