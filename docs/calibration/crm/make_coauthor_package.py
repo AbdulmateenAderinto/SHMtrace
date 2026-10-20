@@ -49,9 +49,14 @@ def sh(*cmd, cwd=REPO, check=True):
 
 def build_documents(evidence):
     """Rebuild, so the package cannot ship documents older than the source, and parse what the build reports."""
-    log = sh(PY, "-W", "ignore", "crm/manuscript/build_crm.py", "crm/build", cwd=CAL).stdout
-    (evidence / "manuscript_build.log").write_text(log)
-    m = re.search(r"summary (\d+) words; main text \(introduction to limitations\) (\d+) words", log)
+    r = sh(PY, "-W", "ignore", "crm/manuscript/build_crm.py", "crm/build", cwd=CAL, check=False)
+    log = r.stdout
+    # the build writes every document and only then asserts the journal's word limit: an over-length manuscript
+    # is reported (and recorded here), any other failure stops the package
+    if r.returncode and "AssertionError: manuscript is" not in r.stderr:
+        sys.exit("manuscript build failed:\n" + r.stderr[-2000:])
+    (evidence / "manuscript_build.log").write_text(log + r.stderr[-600:])
+    m = re.search(r"summary (\d+) words; (?:main text \()?introduction to limitations\)? (\d+) words", log)
     h = re.search(r"highlights: \[([\d, ]+)\] eTOC words: (\d+)", log)
     b = re.search(r"submission blockers: (\d+)", log)
     if not (m and h):
