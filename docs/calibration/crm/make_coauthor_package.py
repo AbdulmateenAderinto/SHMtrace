@@ -187,7 +187,10 @@ def main():
     shutil.copy(CRM / "HANDOVER.md", pkg / "06_HANDOVER.md")
     shutil.copy(CRM / "REFEREE_RESPONSE.md", pkg / "07_REFEREE_RESPONSE.md")
     # the article and Document S1 in one linked, versioned file (build_crm.write_complete)
-    for complete in sorted(BUILD.glob("SHMtrace_CellReportsMethods_complete_v*.docx")):
+    # only the newest version: older ones stay in build/ as the copies that went out
+    complete = max(BUILD.glob("SHMtrace_CellReportsMethods_complete_v*.docx"),
+                   key=lambda f: tuple(int(x) for x in f.stem.rsplit("_v", 1)[1].split(".")), default=None)
+    if complete:
         version = complete.stem.rsplit("_v", 1)[1]
         sh(SOFFICE, "--headless", "--convert-to", "pdf", complete.name, "--outdir", str(BUILD), cwd=BUILD)
         for ext in ("docx", "pdf"):
