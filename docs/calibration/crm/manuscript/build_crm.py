@@ -62,7 +62,12 @@ def public_numbers():
     from scipy import stats
     n["ldha_p_ko"] = f"{stats.mannwhitneyu(f['WT'], f['LDHA_KO']).pvalue:.2f}"
     # the effect and its interval: failing to reach significance is not evidence of no difference
-    lw, lk = np.log10([x for x in f["WT"] if x > 0]), np.log10([x for x in f["LDHA_KO"] if x > 0])
+    # zeros at one event on the mouse's own exposure, the paper's one zero-count rule (replicates.ZERO_EVENTS);
+    # dropping them, as this did, removed the Ldha-deleted mouse with no calls from the estimate
+    def logf(grp):
+        return np.log10([max(s_["mutation_frequency_x1e3"], 1e3 / s_["frequency_bases"])
+                         for s_ in p["samples"] if s_["group"] == grp])
+    lw, lk = logf("WT"), logf("LDHA_KO")
     se = (lw.var(ddof=1) / len(lw) + lk.var(ddof=1) / len(lk)) ** 0.5
     dof = ((lw.var(ddof=1) / len(lw) + lk.var(ddof=1) / len(lk)) ** 2
            / ((lw.var(ddof=1) / len(lw)) ** 2 / (len(lw) - 1)
@@ -92,7 +97,9 @@ def public_numbers():
     ins = {gname: [x["insertions"] for x in p["samples"] if x["group"] == gname] for gname in ("WT", "HMCES_KO")}
     n["hmces_del_fold"] = f"{np.mean(dels['HMCES_KO']) / np.mean(dels['WT']):.1f}"
     n["hmces_ins_fold"] = f"{np.mean(ins['HMCES_KO']) / np.mean(ins['WT']):.1f}"
-    n["hmces_del_p"] = crm_numbers.sci(stats.ttest_ind(np.log10(np.array(dels['HMCES_KO']) + 1), np.log10(np.array(dels['WT']) + 1), equal_var=False).pvalue)
+    # clones at the same depth: a clone with no deletions counts one (the one zero-count rule), not k + 1
+    n["hmces_del_p"] = crm_numbers.sci(stats.ttest_ind(np.log10(np.maximum(dels['HMCES_KO'], 1)),
+                                                       np.log10(np.maximum(dels['WT'], 1)), equal_var=False).pvalue)
     n["hmces_ko3_gc"] = f"{s['AIDKO_3']['pct_GC']:.0f}"
     return n
 
@@ -423,6 +430,35 @@ def main(outdir):
     s.page_break()
     s.table(M.TABLE_S6_HEADER, M.TABLE_S6, title=f"**{M.TABLE_S6_TITLE}**", footnote=M.TABLE_S6_NOTE,
             widths=[28, 20, 28, 32, 28, 20, 18], size=7.5)
+    # Table S7: the default threshold against two stricter settings (strict_sensitivity.py)
+    st_path = OUT / "strict_sensitivity.json"
+    if st_path.exists():
+        st = json.load(open(st_path))
+        prof = (("default", "Default"), ("strict", "α 0.01"), ("strict_max", "Noisiest decoy"))
+        rows = []
+        for ds, lab in (("jh4", "J_{H}4"), ("n114", "N114")):
+            for k, name in prof:
+                r = st["spikein"][ds][k]
+                rows.append((f"Spike-ins, {lab}", name, f"{r['false_per_lib']:.1f}", f"{r['fdr']:.3f}",
+                             f"{100 * r['recall']:.0f}%", f"{100 * r['recall_1read']:.0f}%"))
+        for sc, lab in (("polyclonal", "polyclonal"), ("expanded", "expanded clone"), ("low", "low load"),
+                        ("null", "null")):
+            for k, name in prof:
+                r = st["lineage"][sc][k]
+                one = "–" if r["recall_1read"] is None else f"{100 * r['recall_1read']:.0f}%"
+                fdr = "1 (all false)" if sc == "null" else f"{r['fdr']:.3f}"
+                rows.append((f"Lineages, {lab}", name, f"{r['false_per_lib']:.1f}", fdr, "–", one))
+        s.page_break()
+        s.table(["Benchmark", "Setting", "False calls per library", "FDR", "Recall", "Single-read recall"], rows,
+                widths=[34, 26, 24, 22, 18, 24], size=7.5, title=f"**{M.TABLE_S7_TITLE}**")
+        prow = []
+        for ds, lab in (("jh4", "J_{H}4"), ("n114", "N114")):
+            for k, name in prof:
+                r = st["projects"][ds][k]
+                prow.append((lab, name, ", ".join(map(str, r["case_calls"])), ", ".join(map(str, r["control_calls"])),
+                             crm_numbers.pfmt(r["p_log_welch"]), f"{r['fold']:.0f}"))
+        s.table(["Project", "Setting", "Calls, mutation-bearing", "Calls, controls", "p (log-Welch)", "Fold"], prow,
+                widths=[22, 26, 34, 26, 22, 18], size=7.5, footnote=M.TABLE_S7_NOTE)
     s.save(out / "Document_S1.docx")
     print("Document S1 written")
     # last, so that both documents are on disk to work from even while the manuscript is over length

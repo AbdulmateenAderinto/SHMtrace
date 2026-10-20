@@ -178,7 +178,17 @@ METHODS = [
           "control-based threshold applies the same candidate-selection rule to samples and held-out controls, "
           "so it measures the corresponding background empirically. This does not establish formal FDR control: "
           "the decoys are few, their fitted nulls differ from the sample null, and their exchangeability with "
-          "samples is an assumption. Figure S15 tests selected consequences of these limitations. Alternative "
+          "samples is an assumption. Figure S15 tests selected consequences of these limitations. Because the "
+          "threshold targets a proportion, a library with many true mutations admits more false calls in absolute "
+          "terms: in simulated polyclonal lineages, {st_lin_fp_def} per library, in exchange for recalling "
+          "{st_lin_1_def}% of single-read mutations. Table S7 compares the default with a target of 0.01 and with "
+          "the noisiest control's decoy count in place of the mean. At 0.01, false calls in those lineages fell to "
+          "{st_lin_fp} per library but single-read recall fell to {st_lin_1}%; on the planted J_{H}4 controls, "
+          "recall fell from {st_jh4_rec_def}% to {st_jh4_rec}% without a lower false-discovery proportion "
+          "({st_jh4_fdr}), whereas N114 kept {st_n114_rec}% recall at {st_n114_fdr}. With three controls, the "
+          "decoy counts are too coarse to resolve a 1% target reliably. In the J_{H}4 and N114 projects, both "
+          "stricter settings removed calls only from mutation-bearing libraries; the group differences remained "
+          "{st_fold_lo}–{st_fold_hi}-fold (p ≤ {st_p_hi}). The default was kept. Alternative "
           "alleles carried by at least 50% of covering reads are removed as germline or parental differences; "
           "other alleles at the same position remain eligible. Without controls, recommended mode uses a "
           "Poisson approximation to read-quality error probabilities; the separate pbinom mode implements "
@@ -644,6 +654,18 @@ LEGENDS = [
      "C:G substitutions per library give coarse shares. See also Table S2."),
 ]
 
+TABLE_S7_TITLE = ("Table S7. The default calling threshold against two stricter settings, related to STAR "
+                  "Methods and Figure 3")
+TABLE_S7_NOTE = ("Default: control-based threshold at a false-discovery target of 0.05, expected false calls "
+                 "from the mean of the decoys. α 0.01: the same at 0.01 (mode strict). Noisiest decoy: target "
+                 "0.05, expected false calls from the noisiest control's decoys (mode strict_max). Spike-ins: "
+                 "60 planted mutations in each held-out AID-null library, 9 libraries per dataset. Lineages: "
+                 "simulated J_{H}4 libraries, 3 per scenario. FDR is the observed false-discovery proportion; "
+                 "in null libraries every call is false. Projects: the J_{H}4 and N114 analyses of Figures 2 "
+                 "and 4 at 500 reads; calls per mutation-bearing and per control library, log-Welch p and "
+                 "geometric fold for unique density, Wt or pMX-*Aicda* against the AID-null controls. "
+                 "crm/strict_sensitivity.py.")
+
 TABLE_S6_TITLE = ("Table S6. Datasets used to develop and validate SHMtrace, related to STAR Methods")
 TABLE_S6_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls",
                  "Unit of analysis", "Used for"]
@@ -733,7 +755,7 @@ TABLE_S6_LOCI = {
 TABLE_S6_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers {ds_loci} AID-targeted loci from {ds_labs} laboratories, counting J_{H}4 once across the rows that share it: {ds_shm} somatic hypermutation targets, {ds_offtarget} AID-targeted loci that are not SHM (Sμ, *Pim1*, OT1 and OT2), and {ds_engineered} engineered substrates. The rRNA operons are excluded; the Sμ–Sγ1 junctions are class switching at Sμ and are not counted again. Lengths are analysis windows; the mOrange amplicon is 679 bp. Superscript numbers cite the main manuscript's reference list.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S18 and Tables S1 and S3–S6",
+    "Document S1. Figures S1–S18 and Tables S1 and S3–S7",
     "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

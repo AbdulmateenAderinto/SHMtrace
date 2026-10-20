@@ -971,6 +971,23 @@ def compute():
     import shmtrace
     N["shmtrace_version"] = shmtrace.__version__
     N.update(lab_details.placeholders())
+    # Table S7 and its STAR Methods paragraph: the default against two stricter profiles
+    # (crm/strict_sensitivity.py)
+    st_path = OUT / "strict_sensitivity.json"
+    if st_path.exists():
+        st = _load(st_path)
+        lin, sp, pj = st["lineage"]["polyclonal"], st["spikein"], st["projects"]
+        N.update(st_lin_fp_def=f1(lin["default"]["false_per_lib"]), st_lin_fp=f1(lin["strict"]["false_per_lib"]),
+                 st_lin_fp_max=f1(lin["strict_max"]["false_per_lib"]),
+                 st_lin_1_def=pct(lin["default"]["recall_1read"]), st_lin_1=pct(lin["strict"]["recall_1read"]),
+                 st_lin_fdr=f"{lin['strict']['fdr']:.3f}",
+                 st_jh4_rec_def=pct(sp["jh4"]["default"]["recall"]), st_jh4_rec=pct(sp["jh4"]["strict"]["recall"]),
+                 st_jh4_fdr=f"{sp['jh4']['strict']['fdr']:.3f}", st_n114_rec=pct(sp["n114"]["strict"]["recall"]),
+                 st_n114_fdr=f"{sp['n114']['strict']['fdr']:.3f}",
+                 st_jh4_rec_max=pct(sp["jh4"]["strict_max"]["recall"]))
+        strict = [v for ds in pj.values() for k, v in ds.items() if k != "default"]
+        N.update(st_p_hi=pfmt(max(v["p_log_welch"] for v in strict)),
+                 st_fold_lo=f0(min(v["fold"] for v in strict)), st_fold_hi=f0(max(v["fold"] for v in strict)))
     return N
 
 

@@ -33,6 +33,8 @@ PROFILES_RUN, WITH_LOFREQ, WITH_CLAIRS, WITH_CLAIR3, TAG = list(PROFILES), True,
 VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             "recommended_bh": ("recommended", {"multiple_testing": "bh"}),
             "recommended_max": ("recommended", {"control_decoy_estimate": "max"}),
+            # the stricter default the sensitivity analysis compares (Table S7)
+            "recommended_fdr01": ("recommended", {"fdr_alpha": 0.01}),
             # candidates for a sensitive mode: a looser control-based FDR, or the calibrated test uncorrected
             "recommended_fdr10": ("recommended", {"fdr_alpha": 0.10}),
             "recommended_fdr20": ("recommended", {"fdr_alpha": 0.20}),

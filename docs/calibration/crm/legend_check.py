@@ -106,9 +106,9 @@ def main(review=False):
     # every figure and table named in the manuscript sources must exist
     built = {re.match(r"(Figure S?\d+|Table S?\d+)", t).group(1).replace(" ", "")
              for t, *_ in figs if re.match(r"(Figure S?\d+|Table S?\d+)", t)}
-    # Tables S1-S6 are built straight onto Document S1 rather than carried in the legend list;
+    # Tables S1-S7 are built straight onto Document S1 rather than carried in the legend list;
     # there is no main table, since seven figures already reach the figures-and-tables limit.
-    built |= {f"TableS{i}" for i in range(1, 7)}
+    built |= {f"TableS{i}" for i in range(1, 8)}
     text = "".join(p.read_text() for p in (CRM / "manuscript").glob("crm_*.py"))
     # A reference to another work's display item is not a reference to ours. "Supplementary Figure 9"
     # is Ma et al.'s, and "the source study's Table 1" is the SWHEL paper's own dataset table, which

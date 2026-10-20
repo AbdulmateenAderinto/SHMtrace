@@ -434,3 +434,43 @@ has no Mkln1 libraries. Rerun on the correct raw-read folder, its sample sheet
 and values match the committed ones. The quality-floor reruns are summarised in
 `CALLER_REVIEW.md` Part 4: with sample/decoy parity the floor does not buy
 precision, so it stays off.
+
+## Fifth pass: false calls under the default, and two stricter settings
+
+*20 October 2026.* The default threshold targets a false-discovery proportion
+of 0.05. A heavily mutated library therefore admits more false calls in
+absolute terms: 13.7 per library in simulated polyclonal lineages, against
+Geneious's 4.0, in exchange for 83% versus 57% single-read recall.
+
+This pass added two opt-in modes. `strict` sets α to 0.01. `strict_max` keeps
+α at 0.05 but counts the noisiest control's decoys instead of their mean.
+`crm/strict_sensitivity.py` compares both with the default. Table S7 holds
+every value, and a STAR Methods paragraph explains the trade-off; STAR Methods
+do not count toward the word limit.
+
+- **`strict` (α 0.01):**
+  - Lineage false calls fell from 13.7 to 3.0 per library, and single-read
+    recall fell from 83% to 38%.
+  - On the planted J_H4 controls, recall collapsed from 81% to 17% at an FDR of
+    0.061, which is higher than the default's. N114 behaved as intended (76%
+    recall, FDR 0.005).
+  - With three controls, the decoy counts are too coarse to resolve a 1%
+    target.
+- **`strict_max`:** small effect on the lineages (12.0 false calls per
+  library); J_H4 spike-in recall fell to 55%.
+- **Real projects:** both settings removed calls only from mutation-bearing
+  libraries. J_H4 Wt vs *Aicda*⁻/⁻ and N114 pMX-*Aicda* vs empty vector stayed
+  71–141-fold apart, with p ≤ 0.008 throughout.
+
+**Decision:** the default is kept. The trade-off is stated in the STAR Methods,
+and the stricter modes remain available to users.
+
+Two more zero-count conventions were found in the manuscript builder and
+aligned with the one-event rule (F05):
+
+- The *Ldha* effect interval dropped mice with no calls. Its label already said
+  n = 7 vs 7, but it had used 6. The estimate moves from 1.23-fold (0.46–3.30)
+  to 0.55-fold (0.07–4.49). The interval still spans 1, so "no detectable
+  difference" stands.
+- The HMCES deletion test used log10(k + 1). Its p value moves from
+  8.4 × 10⁻⁵ to 1.0 × 10⁻⁴.

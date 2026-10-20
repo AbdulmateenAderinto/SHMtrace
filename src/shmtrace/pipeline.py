@@ -293,6 +293,11 @@ MODES = {
     # (docs/calibration/crm/spikein.py, profile recommended_fdr20) one-read recall rose from 30% to
     # 72% (JH4) and 58% to 87% (N114); the false-call share was 0.18 and 0.16
     "sensitive": {"error_model": "qcal", "multiple_testing": "control", "fdr_alpha": 0.20},
+    # the other direction, for when false calls cost more than missed mutations: recommended
+    # at a false-discovery target of 0.01, and recommended with the noisiest control's decoy
+    # count rather than the mean. Sensitivity analyses of the paper's default (Table S7)
+    "strict": {"error_model": "qcal", "multiple_testing": "control", "fdr_alpha": 0.01},
+    "strict_max": {"error_model": "qcal", "multiple_testing": "control", "control_decoy_estimate": "max"},
     # the v0.1 default: per-position empirical null (or read quality), BH
     "v0.1": {},
     # the manuscript's rule: Geneious approximate p-value, uncorrected, no phasing
@@ -387,6 +392,8 @@ def mode_overrides(mode: str | None, platform: str | None = None) -> dict:
 
     "recommended": read-quality or empirical null, BH correction, phasing
                    that only drops blocks seen in controls (the defaults)
+    "strict":      recommended at a false-discovery target of 0.01; "strict_max"
+                   uses the noisiest control's decoy count instead of the mean
     "sensitive":   recommended at a false-discovery rate of 0.20: more one-read
                    mutations, about one call in five from the background
     "geneious":    the manuscript's rule: Geneious's approximate p-value,
@@ -399,7 +406,7 @@ def mode_overrides(mode: str | None, platform: str | None = None) -> dict:
     if mode is None:
         return dict(MODES["sanger"]) if sanger else {}
     base, _, extra = mode.partition("+")
-    if sanger and base in ("recommended", "sensitive"):
+    if sanger and base in ("recommended", "sensitive", "strict", "strict_max"):
         base = "sanger"
     if base not in MODES or extra not in ("", "filter"):
         raise ValueError(f"unknown mode {mode!r}; choose from {', '.join(MODES)} "
