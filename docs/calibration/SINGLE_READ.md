@@ -135,8 +135,9 @@ what it gains. On the real J_H4 libraries at α 0.20 it changes wild-type calls
 from 249, 387 and 86 to 230, 346 and 82, with the *Aicda*^-/- controls at 0, 3
 and 0 either way.
 
-The idealised-quality caveat above applies here with more force: a planted
-mutation always sits on a base the basecaller read confidently, so these
+The idealised-quality caveat above applies here with more force: planted
+mutations inherit the original read qualities without modelling their effect
+on basecalling, so these
 benchmarks cannot show what the floor costs on a real mutation that falls in a
 low-quality stretch. That cost is real and unmeasured.
 

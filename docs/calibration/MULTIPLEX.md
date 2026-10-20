@@ -51,4 +51,4 @@ Conditions are ranked by q-value. It writes `screen.csv` and a volcano plot (`sc
 
 Plan replicates with `shmtrace-power`. With between-replicate variation like the J꜀4 mice, a 2-fold change needs many replicates per condition. Cell-line replicates usually vary much less than mice, so a pilot of the control condition is the way to find out.
 
-**In the app:** the *Screen* tab, after an analysis. It ranks every condition against the control group, flags folds against a control with no mutations as lower bounds, draws the volcano and downloads the table.
+**In the app:** the *Screen* tab, after an analysis. It ranks every condition against the control group, marks folds against a control with no mutations (†: one event per control animal, a zero-count convention, not a confidence bound), draws the volcano and downloads the table.

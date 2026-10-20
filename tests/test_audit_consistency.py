@@ -638,3 +638,59 @@ def test_umi_members_survive_pickling_and_worker_processes():
     serial = pmap(copy.copy, [(plain,), (odd,)], 1)
     parallel = pmap(copy.copy, [(plain,), (odd,)], 2)
     assert [r.members for r in serial] == [r.members for r in parallel] == [['a', 'b', 'c']] * 2
+
+
+def test_cases_are_judged_against_their_own_runs_controls_when_there_are_enough():
+    """F12, second half: per-case run-matched controls, pooled only as a fallback."""
+    samples = _run_samples([('K1', 'A'), ('K2', 'A'), ('K3', 'B'), ('K4', 'B'), ('K5', 'C'),
+                            ('W1', 'A'), ('W2', 'B'), ('W3', 'C'), ('W4', 'D'), ('W5', None)])
+    controls = {'K1', 'K2', 'K3', 'K4', 'K5'}
+    rc = project.run_compatibility(samples, controls)
+    peers, how = project.run_matched_peers(samples, controls, rc)
+    assert peers['W1'] == ('K1', 'K2') and how['W1'] == 'run-matched'
+    assert peers['W2'] == ('K3', 'K4') and how['W2'] == 'run-matched'
+    # run C has one control, run D none, W5's run is unknown: all fall back to the pool
+    for n in ('W3', 'W4', 'W5'):
+        assert peers[n] == ('K1', 'K2', 'K3', 'K4', 'K5') and how[n] == 'pooled'
+    # a control is judged against its own run's other control(s) and never itself
+    assert peers['K1'] == ('K2',) and peers['K3'] == ('K4',)
+    assert peers['K5'] == ('K1', 'K2', 'K3', 'K4') and how['K5'] == 'pooled'
+    # switching matching off restores the pooled model everywhere
+    off, how_off = project.run_matched_peers(samples, controls, rc, match=False)
+    assert off['W1'] == ('K1', 'K2', 'K3', 'K4', 'K5') and set(how_off.values()) == {'pooled'}
+    rc['null_matching'] = how
+    note = next(n for n in project.run_notes(rc, []) if 'span sequencing runs' in n)
+    assert 'own run: W1, W2' in note and 'W3, W4, W5' in note
+
+
+def test_one_run_projects_keep_the_same_controls():
+    samples = _run_samples([('K1', 'A'), ('K2', 'A'), ('K3', 'A'), ('W1', 'A'), ('W2', 'A')])
+    controls = {'K1', 'K2', 'K3'}
+    rc = project.run_compatibility(samples, controls)
+    matched, how = project.run_matched_peers(samples, controls, rc)
+    pooled, _ = project.run_matched_peers(samples, controls, rc, match=False)
+    assert matched == pooled
+    assert how['W1'] == 'same run'
+
+
+def test_control_background_skips_pairs_where_the_sample_cannot_show_a_single():
+    """A control error at a pair the sample called, or carries in 2+ reads, is invisible in
+    the sample, so it must not raise the sample's expected background (F16)."""
+    from shmtrace import singletons
+    ref = 'A' * 20
+
+    def lib(alts):
+        reads = []
+        for i in range(100):     # one read in 100 stays under the 2% polymorphic-site rule
+            pairs = [(j, alts.get((i, j), 'A'), 40) for j in range(20)]
+            reads.append(AlignedRead(str(i), 'target', 0, 20, pairs, ref))
+        return singletons.tally(reads, ref, 0, 19)
+    # the sample carries C at 5 in three reads (real); G at 9 was called by the per-site test
+    sample = lib({(0, 5): 'C', (1, 5): 'C', (2, 5): 'C'})
+    # each control has one single-read error at 5>C, one at 9>G and one at 14>T
+    controls = [lib({(0, 5): 'C', (1, 9): 'G', (2, 14): 'T'}) for _ in range(3)]
+    blocked = singletons.unavailable_pairs(sample, 30, {(9, 'G')})
+    assert blocked == {(5, 'C'), (9, 'G')}
+    est = singletons.estimate(sample, controls, 30, 0.5, ref, called={(9, 'G')})
+    assert est['control_events'] == 3              # only the 14>T errors count
+    assert est['expected'] == pytest.approx(1.0)   # one per library-worth of bases

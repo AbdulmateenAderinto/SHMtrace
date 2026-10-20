@@ -142,6 +142,17 @@ def count(t: Tally, q_min: int, skip: set[int], called: set | None = None) -> di
             "efficiency": ref_hi / ref_all if ref_all else 0.0}
 
 
+def unavailable_pairs(sample: Tally, q_min: int, called: set | None = None) -> set:
+    """(position, alt) pairs where `sample` cannot show a single-read event: the
+    per-site calls, and every alt the sample carries in two or more reads at q_min."""
+    out = set(called or ())
+    for pos, alts in sample.alts.items():
+        for alt, reads in alts.items():
+            if sum(1 for r in reads if r[0] >= q_min) >= 2:
+                out.add((pos, alt))
+    return out
+
+
 def _profile_ll(mu: float, n: int, m: int, tau: float) -> float:
     """log L(mu, b) maximised over the background b (constants dropped).
 
@@ -196,10 +207,16 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
              ref: str, called: set | None = None, z: float = 1.96) -> dict | None:
     """Background-subtracted count of single-read mutations, with a 95% interval.
 
-    Variance: the sample's own count is Poisson in the signal and overdispersed
-    in the background (phi, from the spread between control libraries when
-    there are three or more), and the background rate carries the uncertainty
-    of the control count it was measured from.
+    The interval is a profile likelihood (see the module docstring): the sample's
+    count is Poisson in signal plus background, overdispersed by phi (from the
+    spread between control libraries when there are three or more), and the
+    background rate carries the uncertainty of the control count.
+
+    The controls are counted only at (position, alt) pairs where this sample could
+    show a single-read event: not at the pairs the per-site test called, and not at
+    pairs where the sample already has the alt in two or more reads at q_min. An
+    error there is invisible in the sample, so counting it in the controls would
+    make the background too high in heavily mutated samples (unavailable_pairs).
     """
     if not controls:
         return None
@@ -209,8 +226,9 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
     # sliver of the reads
     asked = q_min
     while True:
-        s = count(sample, q_min, skip, called)
-        cs = [count(c, q_min, skip) for c in controls]
+        blocked = unavailable_pairs(sample, q_min, called)
+        s = count(sample, q_min, skip, blocked)
+        cs = [count(c, q_min, skip, blocked) for c in controls]
         if q_min <= MIN_Q or min([s["efficiency"]] + [c["efficiency"] for c in cs]) \
                 >= MIN_EFFICIENCY:
             break
