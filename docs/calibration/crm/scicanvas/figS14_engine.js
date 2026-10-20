@@ -206,6 +206,6 @@
 
   // data marks are data: locked, so no layout fix can move them
   o.slice(first).forEach((x) => { if (!(x.type === 'text' && /^[A-F]$/.test(x.text))) x.locked = true; });
-  return { id: 'crm-figS14', name: 'Figure S14', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S14. How SHMtrace turns reads into calls: six stages, each with its rule and equation, and the stage working on the JH4 libraries.' };
+  return { id: 'crm-figS14', name: 'Figure S22', width: W, height: H, background: '#ffffff', objects: o,
+    alt: 'Figure S22. How SHMtrace turns reads into calls: six stages, each with its rule and equation, and the stage working on the JH4 libraries.' };
 }

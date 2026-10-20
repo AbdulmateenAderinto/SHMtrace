@@ -1,5 +1,5 @@
 () => {
-  // Cell Reports Methods, Figure S12: what Sanger clones and nanopore reads can each measure, and how Illumina
+  // Cell Reports Methods, Figure S20: what Sanger clones and nanopore reads can each measure, and how Illumina
   // reads enter the same analysis. Top, one unit of data from each of the first two platforms on one base-pair
   // scale; middle, how an Illumina pair becomes one read and how much of the locus each platform's reads cover;
   // bottom, what only one of Sanger and nanopore gives and what both give, with the agreement measured in the
@@ -187,7 +187,7 @@
   y = item(c1, y, 'Each molecule\'s own mutations', ['the mutation load of every clone, the share of',
     'clones mutated, and frequency as published:', 'unique mutations over clones \u00d7 a fixed length'], SANG);
   y = item(c1, y, 'Bookkeeping checks', ['copied traces, clones filed under two mice,',
-    'mutated clones filed as controls, mislabeled', 'tubes (Figure S7)'], SANG);
+    'mutated clones filed as controls, mislabeled', 'tubes (Figure S12)'], SANG);
   y = item(c1, y, 'Error reported, not subtracted', ['the AID-null clones\' error rate (about 20 per',
     '10⁵ bases at Q ≥ 20 in both published studies),', 'and how many of each animal\'s calls it explains'], SANG);
 
@@ -206,10 +206,10 @@
   y = item(c3, y, 'The whole amplicon', ['positions 90–1,230: 229-fold over controls; 69%',
     'of mutations in the first 450 bp, falling 7-fold', 'to the last 250 bp (Figure 6A)'], TEAL);
   y = item(c3, y, 'Clones and mutation trees', ['clones of each mouse, and their mutations',
-    'ordered into trees (Figures 6 and S11)'], TEAL);
+    'ordered into trees (Figures 6 and S16)'], TEAL);
   y = item(c3, y, 'Calls at an estimated false-discovery rate', ['each candidate tested against the controls,',
     'the threshold set by them as decoys; single-read', 'mutations not called, as one background-', 'subtracted estimate'], TEAL);
 
-  return { id: 'crm-figS12-platforms', name: 'Figure S12', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S12. What Sanger clones and nanopore reads can each measure, how Illumina read pairs are merged and analyzed, and what Sanger and nanopore measure alike in the same mice.' };
+  return { id: 'crm-figS12-platforms', name: 'Figure S20', width: W, height: H, background: '#ffffff', objects: o,
+    alt: 'Figure S20. What Sanger clones and nanopore reads can each measure, how Illumina read pairs are merged and analyzed, and what Sanger and nanopore measure alike in the same mice.' };
 }

@@ -220,6 +220,6 @@ ax.set_xlabel("Reads in the clone"); ax.set_ylabel("Mutations\\nin the clone")
   const fy = gy0 + 2 * ch + rowGap + 14;
   T('Other routes: a single sample from the command line writes spectrum, spatial and mutation_load; the legacy compare writes three more.', 20, fy, { color: SOFT });
 
-  return { id: 'crm-figS21', name: 'Figure S21', width: W, height: H, background: '#ffffff', objects: o,
+  return { id: 'crm-figS21', name: 'Figure S3', width: W, height: H, background: '#ffffff', objects: o,
     alt: 'SHMtrace outputs: a project run takes reads and AID-null controls and writes a report, figures, tables and the full result; its 26 figures are grouped by six questions, each with an example from a J_H4 nanopore run and a note on how to read it.' };
 }

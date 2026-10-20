@@ -113,7 +113,7 @@ def compare_table_s2(z):
     import io
 
     import openpyxl
-    mine = openpyxl.load_workbook(OUT / "Table_S2_benchmark.xlsx", data_only=True)
+    mine = openpyxl.load_workbook(OUT / "Table_S1_benchmark.xlsx", data_only=True)
     theirs = openpyxl.load_workbook(io.BytesIO(z.read("deliverables/Table_S2_benchmark.xlsx")), data_only=True)
     out = {}
     for sheet in mine.sheetnames:
@@ -175,7 +175,7 @@ def main():
             shutil.copy(BUILD / f"{src}.{ext}", pkg / f"{name}.{ext}")
         if name != "03_Highlights_eTOC_Motivation":
             sh("pdftotext", "-layout", str(pkg / f"{name}.pdf"), str(pkg / f"{name}.txt"))
-    shutil.copy(OUT / "Table_S2_benchmark.xlsx", pkg / "04_Table_S2_benchmark.xlsx")
+    shutil.copy(OUT / "Table_S1_benchmark.xlsx", pkg / "04_Table_S1_benchmark.xlsx")
     shutil.copy(CRM / "REVIEW_RESPONSE.md", pkg / "05_REVIEW_RESPONSE.md")
     shutil.copy(CRM / "HANDOVER.md", pkg / "06_HANDOVER.md")
     shutil.copy(CRM / "REFEREE_RESPONSE.md", pkg / "07_REFEREE_RESPONSE.md")

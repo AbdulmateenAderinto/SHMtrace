@@ -19,7 +19,7 @@ script in `figs/` or `scicanvas/`.
 | `public_illumina.py ldha ch12 hmces` | the three public Illumina datasets with the current SHMtrace | `public/*/` |
 | `targeting_jh4.py`, `targeting_ch12.py` | 5-mer targeting index and dose-response | `targeting_*.json` |
 | `jh4_extras.py` | J_H4/N114 projects with the targeting model, clones, single-read estimate | `extras_*/` |
-| `make_tables.py` | Table S2 | `Table_S2_benchmark.xlsx` |
+| `make_tables.py` | Table S1 | `Table_S1_benchmark.xlsx` |
 
 Inputs outside the repository: the deposit's delivered FASTQs, `~/Nanoshm/public_data/` (public sets, not
 redistributed; Karst et al. data are GPL-3 and not committed), `~/Nanoshm/models/HH_S5F.csv` (exported from

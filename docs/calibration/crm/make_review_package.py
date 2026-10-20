@@ -45,7 +45,7 @@ def main():
         run("pdftotext", "-layout", str(PKG / f"{name}.pdf"), str(PKG / f"{name}.txt"))
     front = docx.Document(BUILD / "Highlights_eTOC_Motivation.docx")
     (PKG / "03_Highlights_eTOC_Motivation.txt").write_text("\n".join(p.text for p in front.paragraphs))
-    shutil.copy(CRM / "out/Table_S2_benchmark.xlsx", PKG / "04_Table_S2_benchmark.xlsx")
+    shutil.copy(CRM / "out/Table_S1_benchmark.xlsx", PKG / "04_Table_S1_benchmark.xlsx")
     for f in FIGURES:
         shutil.copy(FIGS / f"{f}.png", PKG / "figures" / f"{f.replace('_preview', '')}.png")
     # Table S4 exists only as a table in the supplement: render its page rather than keep a separate image

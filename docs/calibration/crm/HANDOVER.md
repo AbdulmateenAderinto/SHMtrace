@@ -283,8 +283,22 @@ copies are in `~/Nanoshm/audit_rerun_2026-10-20/out_snapshot`. `immcantation_com
 `internal_data/mouse` and `optional_file/mouse_gl.aux` in a folder whose path has no spaces (a copy came from the
 EPI2ME N114 run); MiXCR's licence had expired, so it was not run.
 
-**Numbering.** S19–S23 were appended, so they are cited before S4–S18 in the Results. Cell Press numbers
-supplementary figures in order of citation: a renumbering pass is needed before submission.
+**Numbering (done 20 October).** Supplementary figures and tables are numbered in the order the article first
+cites them (`manuscript/renumber_supp.py check` verifies it after every build; `apply` rewrites the citations).
+File and script names kept their original numbers; `build_crm.py` names each legend's image and
+`legend_check.py` finds the script from that image. Older notes in this file use the old numbers:
+
+| old | new | old | new | old | new | old | new |
+|---|---|---|---|---|---|---|---|
+| S1 | S1 | S7 | S12 | S13 | S21 | S19 | S4 |
+| S2 | S2 | S8 | S13 | S14 | S22 | S20 | S5 |
+| S3 | S7 | S9 | S14 | S15 | S23 | S21 | S3 |
+| S4 | S8 | S10 | S15 | S16 | S19 | S22 | S6 |
+| S5 | S9 | S11 | S16 | S17 | S18 | S23 | S11 |
+| S6 | S10 | S12 | S20 | S18 | S17 | | |
+
+Tables: old S2 (the Excel caller comparison, now `Table_S1_benchmark.xlsx`) is S1, old S6 (datasets) S2, old S1
+(read preparation) S3, old S3 (statistics) S6; S4, S5 and S7 are unchanged.
 
 ### Planned: S24, reproducibility of per-animal estimates (split halves)
 

@@ -41,7 +41,7 @@ DETAILS = {
     "n114_auth": ("how the N114 hybridoma was authenticated, or 'not authenticated'", None),
     "n114_myco": ("N114 mycoplasma testing result and date, or 'not tested'", None),
     # primers
-    # Barbulescu 2025 Table S1 (Jh4-F/Jh4-R, with EcoRI/SpeI tails); 85%/81% of Wt3 nanopore reads carry them
+    # Barbulescu 2025 Table S3 (Jh4-F/Jh4-R, with EcoRI/SpeI tails); 85%/81% of Wt3 nanopore reads carry them
     "jh4_primers": ("J_{H}4 primer sequences",
                     "forward 5′-GGAATTCGCCTGACATCTGAGGACTCTGC-3′, reverse 5′-GACTAGTCCTCTCCAGTTTCGGCTGAATCC-3′"),
     # EPI2ME folder vprimers.fasta; they bound the 655-nt N114 reference exactly

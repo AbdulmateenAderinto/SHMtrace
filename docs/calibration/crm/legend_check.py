@@ -85,7 +85,10 @@ def main(review=False):
         if not m:
             continue
         label = m.group(1)
-        stem = label.replace(" ", "")
+        # the script is found from the image the legend shows, not from its number: supplementary figures are
+        # numbered in citation order (manuscript/renumber_supp.py) and their files keep their original names
+        img0 = (imgs[0] if isinstance(imgs, list) else imgs) if imgs else None
+        stem = Path(img0).stem.removesuffix("_preview") if img0 else label.replace(" ", "")
         src_path = script_for(stem, scripts)
         if src_path is None:
             continue                                      # drawn elsewhere (manuscript_corrected, etc.)

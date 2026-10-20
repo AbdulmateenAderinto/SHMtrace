@@ -133,7 +133,8 @@ RESULTS = [
           "be distinguished confidently from background."),
     ("p", "SHMtrace compares groups using one summary value per biological replicate, with Welch tests on "
           "log-transformed rates, negative-binomial tests with parametric bootstrapping, and permutation tests (Figure "
-          "1D; Figure S21 shows each output with an example). It characterizes mutation patterns through substitution spectra, positional clustering, hotspot use "
+          "1D; Figure S3 shows each output with an example). It characterizes mutation patterns through "
+          "substitution spectra, positional clustering, hotspot use "
           "and an S5F-based targeting index[@yaari2013]. Additional analyses estimate single-read mutations that could "
           "not be called individually, group reads into clones by their junction sequences, reconstruct read-level "
           "mutation trees and estimate statistical power. Project analyses run identically from the command line "
@@ -159,7 +160,7 @@ RESULTS = [
           "SHMtrace-retained calls had much lower fractions: among {af_n} calls across four loci, {af_lt1}% occurred "
           "in <1% of reads, {af_lt5}% in <5% and {af_lt20}% in <20% (Figure 2E). Germline callers Clair3 and "
           "DeepVariant recovered none of the 2,160 planted substitutions, consistent with their intended operating "
-          "range (Table S2)."),
+          "range (Table S1)."),
     ("p", "On N114, SHMtrace recalled {sp_n114_recall}% of planted substitutions, including {sp_n114_1}% supported by "
           "one read, with {sp_n114_fp} false calls per library (FDR {sp_n114_fdr}; Figure 3B). Geneious recalled "
           "{sp_n114_gen_recall}% with {sp_n114_gen_fp} false calls (FDR {sp_n114_gen_fdr}); LoFreq without "
@@ -174,11 +175,11 @@ RESULTS = [
           "{sp_ext_lf_lo}–{sp_ext_lf_hi}%, with permissive FDR {sp_ext_lfp_fdr} (Figure 3C)."),
     ("p", "Calling the same libraries at targets from 1% to 30% tested whether the threshold delivers the rate it "
           "targets. At the default 5%, the pooled false-discovery proportion was {fc_def_lo}–{fc_def_hi}% across the "
-          "four loci, and looser targets stayed at or below their stated rate except {fc_loose_over} (Figure S19A). "
+          "four loci, and looser targets stayed at or below their stated rate except {fc_loose_over} (Figure S4A). "
           "Targets below 5% did not deliver their stated rate on J_{H}4, Sμ or *Pim1* ({fc_strict_lo}–{fc_strict_hi}% "
           "at a 1% target; N114, {fc_n114_1}%): false calls per library levelled off while recall fell, from "
-          "{fc_jh4_rec_def}% to {fc_jh4_rec_1}% on J_{H}4 (Figures S19B and S19C)."),
-    ("p", "Varying the controls through the whole procedure on J_{H}4 showed how many are needed (Figure S20). One "
+          "{fc_jh4_rec_def}% to {fc_jh4_rec_1}% on J_{H}4 (Figures S4B and S4C)."),
+    ("p", "Varying the controls through the whole procedure on J_{H}4 showed how many are needed (Figure S5). One "
           "control leaves no decoys, so the threshold falls back to Benjamini–Hochberg: it recalled {cd_rec_1}% of "
           "planted lineage mutations, against {cd_rec_2}% with two controls and {cd_rec_34}% with three or four, at "
           "false-discovery proportions of {cd_fdp}%. All-null libraries yielded no calls with any number of "
@@ -187,7 +188,7 @@ RESULTS = [
           "matched controls ({cd_su_rec_other}% versus {cd_su_rec_matched}% recall), and pooling all five lowered "
           "false calls from {cd_su_fp_matched} to {cd_su_fp_pooled} per library."),
     ("p", "Diluting real hypermutated reads into AID-null reads tested the estimates on mutations AID made, with "
-          "their clonality and clustering (Figure S22). On N114, mutation frequency was {ti_n114_ratio} of the "
+          "their clonality and clustering (Figure S6). On N114, mutation frequency was {ti_n114_ratio} of the "
           "expected value at 25–50% donor reads, and calls were made from {ti_n114_det}% donor reads. On J_{H}4, "
           "detection was all-or-nothing and depended on the donor: calls began at {ti_jh4_det_lo}% donor reads for "
           "{ti_jh4_most} and at {ti_jh4_det_hi}% for {ti_jh4_least}, and no call was made below that."),
@@ -196,7 +197,7 @@ RESULTS = [
           "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114, with {ind_jh4_fp} "
           "and zero false calls per library. Events supported by one or two reads were excluded by the three-read "
           "requirement. J_{H}4 single-base homopolymer deletions were least reliably recovered ({ind_jh4_hp}%); recall "
-          "was {ind_jh4_ins2}% for 2-bp insertions and {ind_jh4_long}% for deletions ≥10 bp (Figure S3D)."),
+          "was {ind_jh4_ins2}% for 2-bp insertions and {ind_jh4_long}% for deletions ≥10 bp (Figure S7D)."),
     ("p", "We next simulated approximately 40 B-cell clones per J_{H}4 library, with clone sizes following a power-law "
           "distribution. Mutations were introduced at positions sampled according to S5F mutability, including "
           "mutations shared across an entire clone, restricted to individual branches, or unique to individual "
@@ -219,7 +220,7 @@ RESULTS = [
           "denominator without adding new variants; depth also affects detection of rare mutations. Including the "
           "aggregate estimate of single-read mutations that were not called individually improved recovery to 96–100% "
           "of the true density across the simulated scenarios. In a separate test, planting 25, 50 or 100 single-read "
-          "mutations increased this estimate by an average of {sr_rec}% of the number introduced (Figure S3). "
+          "mutations increased this estimate by an average of {sr_rec}% of the number introduced (Figure S7). "
           "Comparisons of unique-variant density therefore require matched sequencing depth."),
     ("p", "Group-test calibration was assessed in 300 simulations per condition, with between-animal coefficient of "
           "variation 1 (Figure 3G). Under no true difference, pooled-read tests returned p < 0.05 in 91% of 3-versus-3 "
@@ -227,27 +228,27 @@ RESULTS = [
           "per group, that test detected two-fold and four-fold changes in 12% and 30% of simulations, illustrating "
           "the limited power at this sample size."),
     ("h", "Matched controls set the background in real libraries"),
-    ("p", "We next compared callers on real libraries with matched AID-null controls (Table S6; Figure 4). These "
+    ("p", "We next compared callers on real libraries with matched AID-null controls (Table S2; Figure 4). These "
           "included our J_{H}4 intron libraries from germinal-center B cells of three wild-type (Wt) and three "
           "*Aicda*^{−/−} mice, N114 hybridoma subclones transduced with AID or empty vector, and three loci from an "
           "independent laboratory's public nanopore dataset: the Sμ switch region in LPS-activated B cells and in CH12 "
-          "cells, and the AID off-target gene *Pim1*. Every caller analyzed exactly the same reads."),
+          "cells, and the AID off-target gene *Pim1*. Every caller analyzed exactly the same reads (Table S3)."),
     ("p", "SHMtrace retained {ctl_rec} calls across the three controls per assay, versus {ctl_gen} for Geneious "
           "(Figures 4A–4E and 4G). Geometric-mean unique-density separation, with zero-call controls assigned "
-          "one-event values, was {sep_jh4}-fold for J_{H}4, {sep_n114}-fold for N114, {sep_su_lps}-fold for "
+          "one-event values, was {sep_jh4}-fold for J_{H}4, {sep_n114}-fold for N114 (Figure S8), {sep_su_lps}-fold for "
           "primary-cell Sμ and {sep_su_ch12}-fold for CH12 Sμ, compared with {gen_lo}–{gen_hi}-fold for Geneious and "
           "{lf_lo}–{lf_hi}-fold for LoFreq configurations (Figure 4F). J_{H}4 Wt counts were {jh4_wt2_rec}, 344 and 73 "
           "versus 0, 2 and 0 in controls; Geneious yielded 203, 337 and 73 versus 2, 6 and 5. Default LoFreq called 0, "
           "11 and 0 Wt variants. Disabling base-alignment quality yielded {jh4_wt2_lfnb} in Wt2 versus {jh4_wt2_rec} "
           "for SHMtrace. At 500 reads, J_{H}4 and N114 had reached {depth_jh4_500}% and {depth_n114_500}% of calls "
-          "observed at the largest tested depth (Figure S5), without establishing saturation. External Sμ Wt counts "
+          "observed at the largest tested depth (Figure S9), without establishing saturation. External Sμ Wt counts "
           "were {su_wt_calls} for SHMtrace and {su_gen_wt_calls} for Geneious, with {su_ctl_calls} versus "
-          "{su_gen_ctl_calls} per control. Control mismatches were position-dependent (Figures S6A and S6B). After "
+          "{su_gen_ctl_calls} per control. Control mismatches were position-dependent (Figures S10A and S10B). After "
           "germline exclusion, representative Wt and null J_{H}4 libraries contained {rast_wt_other} and "
           "{rast_ko_other} other high-quality mismatches, while the Wt library added {rast_wt_called} at called sites, "
-          "often shared within clones (Figures S6C and S6D)."),
+          "often shared within clones (Figures S10C and S10D)."),
     ("p", "The same N114 reads were analyzed by IgBLAST[@ye2013] and SHazaM[@gupta2015], which count every "
-          "mismatch to the germline (Figure S23). With the IMGT germline the AID libraries were {im_fold_imgt}-fold "
+          "mismatch to the germline (Figure S11). With the IMGT germline the AID libraries were {im_fold_imgt}-fold "
           "above the empty-vector libraries, because the parental line differs from it ({im_vid}% identity) and "
           "sequencing errors count as mutations. Using the parental V as germline raised this to {im_fold_par}-fold, "
           "and masking bases below Q20 to {im_fold_q20}-fold, compared with {im_fold_sh}-fold for SHMtrace."),
@@ -256,7 +257,7 @@ RESULTS = [
           "the controls, compared with {pim1_gen_fold}-fold separation and eleven control calls for Geneious. "
           "Increasing depth to all available reads (3,238–3,447 per library) did not clearly resolve the signal: "
           "SHMtrace detected 3–10 variants per AID-competent library and 0–3 per AID-null library, while Geneious "
-          "detected 5–7 and 0–{pim1_rec_ctl}, respectively (Table S2)."),
+          "detected 5–7 and 0–{pim1_rec_ctl}, respectively (Table S1)."),
     ("p", "CH12 off-targets OT1 and OT2 tested a genetic perturbation expected to reduce AID targeting[@seija2026]. "
           "OT1 Wt libraries carried {ot1_wt} calls versus {ot1_ko} in *Aicda*^{−/−} controls, with densities of "
           "{ot1_wt_dens} versus {ot1_ko_dens} per 10^{5} bases (Welch p = {ot1_p_dens} on log density; {ot1_p} on "
@@ -286,7 +287,7 @@ RESULTS = [
     ("h", "SHMtrace-generated nanopore and Sanger profiles agree in matched mice"),
     ("p", "SHMtrace processed 182 Sanger chromatograms from the six nanopore-sequenced mice, retaining {sanger_clones} "
           "clones after alignment and sequence-quality filtering for comparison across the shared 529-bp window "
-          "(Figures 5 and S7). SHMtrace-derived mutation profiles distinguished Wt from *Aicda*^{−/−} mice on both "
+          "(Figures 5 and S12). SHMtrace-derived mutation profiles distinguished Wt from *Aicda*^{−/−} mice on both "
           "platforms: Sanger showed {sanger_fold}-fold separation (p = {sanger_p}), and nanopore showed "
           "{ont_fold}-fold separation when zero-call controls were assigned one event (p = {ont_p}; Welch tests on log "
           "densities, n = 3 mice per group). Pooled substitution spectra were similar across the twelve substitution "
@@ -301,7 +302,7 @@ RESULTS = [
     ("h", "Sanger reanalysis recovers published comparisons and identifies discrepancies"),
     ("p", "A published J_{H}4 study compared four Wt and four *Maea*^{fl/fl}*Mb1*^{cre} mice with *Aicda*^{−/−} "
           "controls using SHMTool[@maccarthy2009,@barbulescu2024]. After reconstruction of clone assignments, SHMtrace "
-          "processed {c2_traces} chromatograms in {c2_seconds} s; while curation took substantially longer (Figure S8; "
+          "processed {c2_traces} chromatograms in {c2_seconds} s; while curation took substantially longer (Figure S13; "
           "STAR Methods). Mutation frequency was {c2_fold}-fold lower in *Maea*-deficient mice versus "
           "{c2_pub_fold}-fold in the publication (one-tailed t tests, p = {c2_p} and {c2_pub_p}). G:C transitions fell "
           "from {c2_ts_wt}% to {c2_ts_mk}% (published, {c2_ts_wt}% to {c2_ts_mk}%; p = {c2_ts_p} and {c2_ts_pub_p}), "
@@ -315,7 +316,7 @@ RESULTS = [
           "reduction versus the published {mk_pub_fold}-fold (p = {mk_p} and {mk_pub_p}). G:C transversions increased "
           "from {mk_tv_wt}% to {mk_tv_ko}% versus {mk_tv_pub_wt}% to {mk_tv_pub_ko}% in the published tables (p = "
           "{mk_tv_p} and {mk_tv_pub_p}). Spectrum correlations were r = {mk_spec_r_wt} for Wt and {mk_spec_r_ko} for "
-          "knockout (Figure S9; Table S4)."),
+          "knockout (Figure S14; Table S4)."),
     ("p", "Both of those studies come from the laboratory that produced the libraries analysed here, so we also "
           "re-analysed a Sanger study from an unrelated laboratory, at a different locus: Thientosapol et al. "
           "hypermutated a SW_{HEL} V_{H}10 knock-in V region in germinal-center B cells and reported that inactivating "
@@ -324,7 +325,7 @@ RESULTS = [
           "with the germline taken as their majority consensus (STAR Methods); the {sw_bp}-bp window this yields "
           "matches the 560 bp the study analyzed. Across the five arms and the twelve substitution types, SHMtrace "
           "counted {sw_muts} of the {sw_pub_muts} mutations the study tabulates (Pearson r = {sw_r} over the 60 cells; "
-          "Figure S10), and mutations per sequence agreed to two decimal places in every arm. The four substitution "
+          "Figure S15), and mutations per sequence agreed to two decimal places in every arm. The four substitution "
           "classes the study tested moved as reported: transversions fell at A:T (p = {sw_at_tv_p}) and at C:G (p = "
           "{sw_gc_tv_p}), transitions at C:G rose (p = {sw_gc_ts_p}), and transitions at A:T did not move (p = "
           "{sw_at_ts_p}). For total mutation the study reported a decrease that did not reach significance (p = 0.07, "
@@ -342,7 +343,7 @@ RESULTS = [
           "density was {full_fold}-fold above controls. Approximately {full_450}% of mutations occurred within the "
           "first 450 bp, with a seven-fold decline between the first and last 250 bp, consistent with the reported "
           "decline downstream of V(D)J[@lebecque1990]. Substitution spectra across the full interval closely matched "
-          "those within the Sanger window (Pearson r = {s1_r}; Figure S11)."),
+          "those within the Sanger window (Pearson r = {s1_r}; Figure S16)."),
     ("p", "Wt mutations preferentially occurred at positions predicted to undergo SHM by the S5F model, which assigns "
           "mutability according to the surrounding five-base sequence. The targeting index, defined as mean predicted "
           "mutability at mutated positions divided by the mean across the analysis window, ranged from 1.22 to 1.36, "
@@ -402,7 +403,7 @@ RESULTS = [
           "percentage points (95% CI {mo_arm_ci}; p = {mo_ugi_dead}.0021), although the small number of calls per "
           "library limits precision."),
     ("p", "Two engineered-diversification datasets extended the evaluation to mutations measured relative to "
-          "experimental starting constructs (Figure S18). In a study using a common GFP substrate[@liu2018], no-editor "
+          "experimental starting constructs (Figure S17). In a study using a common GFP substrate[@liu2018], no-editor "
           "libraries yielded at most one call in 20,000 reads. AID substitutions were more frequently located at "
           "WRC/GYW hotspots than APOBEC3A substitutions, both in Wt cells ({eng_wt_wrc_aid}% versus {eng_wt_wrc_apo}%; "
           "p = {eng_wt_wrc_p}) and in UNG/MSH2-deficient cells ({eng_ko_wrc_aid}% versus {eng_ko_wrc_apo}%; p = "
@@ -412,15 +413,15 @@ RESULTS = [
     ("p", "A second dataset diversified an antibody V_{H} and published the mutations it found in each selected cluster[@devilder2019]. "
           "Comparing the two lists position by position, SHMtrace recovered {eng_dev_mut} of the {eng_dev_mut} "
           "published mutations and called none the authors did not, across all {eng_dev_n} cluster entries (Figure "
-          "S18B). Because the comparator is an independently curated list rather than another run of the same "
+          "S17B). Because the comparator is an independently curated list rather than another run of the same "
           "software, this is the sharpest available test of variant identity on this route. Two further datasets "
           "extended the range of designs while showing where a deposit limits what can be asked. In Sμ libraries under "
           "PI3Kδ inhibition[@compagno2017], six of nine wild-type libraries are single-end whereas every *Aicda*^{−/−} "
           "library is paired, confounding genotype with library layout, so each treatment was analysed against its own "
-          "controls over a window that all of them cover (Figure S17). In PacBio Sμ–Sγ1 junctions[@vincendeau2022] the "
+          "controls over a window that all of them cover (Figure S18). In PacBio Sμ–Sγ1 junctions[@vincendeau2022] the "
           "reads per unique junction vary several-fold between samples, so junction counts measure long-range PCR "
           "recovery rather than switching efficiency, and microhomology classes rather than calibrated calls are "
-          "reported (Figure S16)."),
+          "reported (Figure S19)."),
 ]
 
 DISCUSSION = [
@@ -452,19 +453,19 @@ DISCUSSION = [
     "amplicon, making the 3′ decline visible without tiling, identifying clones from the V(D)J junction and ordering "
     "their mutations into a tree, while Illumina gives depth without that linkage. PacBio combines length with "
     "per-base accuracy, used here on class-switch junctions; that deposit carries no AID-null arm, so it is "
-    "reported without control-calibrated calls. Figure S12 sets out what each measured; the "
+    "reported without control-calibrated calls. Figure S20 sets out what each measured; the "
     "Sanger re-analysis also exposed bookkeeping problems that SHMtrace now checks explicitly.",
     "Published sequence collections can support reproducible reanalysis when clones are linked to animals and "
     "genotypes. SHMtrace recovered the principal J_{H}4 frequency and G:C comparisons and closely matched SW_{HEL} "
     "counts across five arms and twelve substitution types. Agreement was incomplete: Wt frequencies differed after "
     "denominator harmonization, the published *Mkln1* A:T decrease was not significant in the reanalysis, and the "
-    "SW_{HEL} total-mutation inference differed under a different test (Tables S4 and S5; Figures S8–S10). Deposits "
+    "SW_{HEL} total-mutation inference differed under a different test (Tables S4 and S5; Figures S13–S15). Deposits "
     "should therefore include explicit clone-to-animal assignments and original counting conventions, alongside "
     "sequences and chromatograms.",
     "Read accounting, fixed-seed sampling and a shared desktop/command-line engine support routine use. The power "
     "analysis also illustrates the importance of biological replication: under variation estimated from three Wt "
     "J_{H}4 mice, detecting a two-fold difference requires approximately twenty animals per group, with considerable "
-    "uncertainty in that estimate (Figure S3B). Increasing sequencing depth cannot substitute for independent "
+    "uncertainty in that estimate (Figure S7B). Increasing sequencing depth cannot substitute for independent "
     "biological samples.",
 ]
 LIMITATIONS = [
@@ -505,7 +506,7 @@ RESOURCE = [
                                    "clone records, SHMtrace project files, per-library read accounting and all "
                                    "benchmark outputs will be deposited at {lab_data_doi} and will be publicly "
                                    "available as of the date of publication; accession numbers are listed in the key "
-                                   "resources table. The public datasets analyzed are listed in Table S6 and the key "
+                                   "resources table. The public datasets analyzed are listed in Table S2 and the key "
                                    "resources table. SHMtrace (v{shmtrace_version}), including the desktop "
                                    "application, and all analysis and figure code will be deposited at {lab_code_doi} "
                                    "and will be publicly available as of the date of publication. The deposit carries "

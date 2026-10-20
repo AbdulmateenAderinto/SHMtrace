@@ -1,6 +1,6 @@
-"""Table S2 (Excel): the caller comparison. Per-library calls and densities of every caller on the same prepared
+"""Table S1 (Excel): the caller comparison. Per-library calls and densities of every caller on the same prepared
 reads of the nanopore datasets of Figure 4 (benchmark_real.py), and planted-mutation summaries (Figure 3).
-    python docs/calibration/crm/make_tables.py  -> out/Table_S2_benchmark.xlsx
+    python docs/calibration/crm/make_tables.py  -> out/Table_S1_benchmark.xlsx
 
 The rows come from the caller-comparison run, which fits each library's null by leaving each control out in turn
 and calibrates the margin and control-based threshold within that peer set. It does not apply the noisy-control
@@ -43,7 +43,7 @@ for key, name in SETS.items():
                    r["calls"], round(r["density_x1e5"], 3) if r["density_x1e5"] is not None else None])
 ws0 = wb.create_sheet("About", 0)
 for line in (
-        "Table S2. The caller comparison behind Figures 3 and 4.",
+        "Table S1. The caller comparison behind Figures 3 and 4.",
         "Real libraries: every caller is run on the same prepared reads of each library (benchmark_real.py).",
         "SHMtrace: each library is fitted against its peer controls, with the margin and control-based threshold calibrated within that peer set.",
         "This harness does not use run_project's shared project margin/decoy collection or its noisy-decoy exclusion rule.",
@@ -89,5 +89,5 @@ for key in ("jh4", "n114", "su_lps", "pim1"):
 for w in (ws, ws2):
     for col in w.columns:
         w.column_dimensions[col[0].column_letter].width = max(12, min(48, max(len(str(c.value or "")) for c in col) + 2))
-wb.save(OUT / "Table_S2_benchmark.xlsx")
-print(OUT / "Table_S2_benchmark.xlsx", ws.max_row - 1, "library rows")
+wb.save(OUT / "Table_S1_benchmark.xlsx")
+print(OUT / "Table_S1_benchmark.xlsx", ws.max_row - 1, "library rows")

@@ -4,7 +4,7 @@
 Run build_crm.py, build_star.py and build_letters.py (into crm/build) first. Writes, in submission_v4:
   SHMtrace_CellReportsMethods_<date>/   manuscript (docx, PDF), highlights/eTOC/motivation, cover letter,
                                          figures 1-6 (PDF, 600/1,000-dpi TIFF), graphical abstract,
-                                         Document S1, Table S2, README
+                                         Document S1, Table S1, README
   SHMtrace_STARProtocols_<date>/        protocol (docx, PDF), cover letter, figures 1-4, graphical abstract
 """
 import shutil
@@ -81,7 +81,7 @@ README_A = f"""# Cell Reports Methods submission ({STAMP})
 | `1_Manuscript/` | Article (docx, PDF) in journal order, figures embedded for review; highlights, eTOC blurb and motivation as the separate file the journal asks for |
 | `2_Figures/` | Figures 1–6 as vector PDF and TIFF (Figure 1: SciCanvas, 1,000 dpi; Figures 2–6: 600 dpi) |
 | `3_Graphical_Abstract/` | Graphical abstract (PDF, 1,000-dpi TIFF, PNG preview) |
-| `4_Supplemental/` | Document S1 (Figures S1–S6, Tables S1 and S3), Table S2 (Excel) |
+| `4_Supplemental/` | Document S1 (Figures S1, S2, and S7–S10, Tables S3 and S6), Table S1 (Excel) |
 | `5_Cover_Letter/` | Cover letter draft |
 
 Before submission: fill the bracketed items in docs/calibration/crm/manuscript/lab_details.py

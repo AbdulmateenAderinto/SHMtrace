@@ -146,6 +146,6 @@ leg.get_texts()[1].set_fontstyle("italic")
     T('ᶜ only KO table #1 traces to its folder (K2)', x0, fy + 50, { color: MID });
   }
 
-  return { id: 'crm-figS9', name: 'Figure S9', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S9. A second published Sanger study re-analysed automatically: frequency per mouse, G:C transitions and transversions, the pooled substitution spectrum, and the published comparisons recovered.' };
+  return { id: 'crm-figS9', name: 'Figure S14', width: W, height: H, background: '#ffffff', objects: o,
+    alt: 'Figure S14. A second published Sanger study re-analysed automatically: frequency per mouse, G:C transitions and transversions, the pooled substitution spectrum, and the published comparisons recovered.' };
 }

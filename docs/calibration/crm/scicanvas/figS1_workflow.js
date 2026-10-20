@@ -239,6 +239,6 @@
     TC('delivered reads', bx0 + bw / 2, b + 36, { fontSize: SM, color: MID });
     bottom = Math.max(bottom, b + 64);
   });
-  return { id: 'fig-s11', name: 'Supplementary Figure S11', width: W, height: bottom, background: '#ffffff', objects: o,
-    alt: 'Supplementary Figure S11. Workflow as run by SHMtrace from the delivered reads: experimental design, read preparation, variant calling, the Sanger route and the fate of every delivered read.' };
+  return { id: 'fig-s11', name: 'Figure S1', width: W, height: bottom, background: '#ffffff', objects: o,
+    alt: 'Figure S1. Workflow as run by SHMtrace from the delivered reads: experimental design, read preparation, variant calling, the Sanger route and the fate of every delivered read.' };
 }

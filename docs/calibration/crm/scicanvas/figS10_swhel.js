@@ -154,6 +154,6 @@ leg.get_texts()[1].set_fontstyle("italic")
   // the totals, under the panels
   T(DATA.foot, 92, 478, { color: MID });
 
-  return { id: 'crm-figS10', name: 'Figure S10', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S10. A published Sanger study from another laboratory re-analysed automatically: mutations per sequence, the substitution spectrum, the four mutation classes the paper tests, and its claims against what SHMtrace finds.' };
+  return { id: 'crm-figS10', name: 'Figure S15', width: W, height: H, background: '#ffffff', objects: o,
+    alt: 'Figure S15. A published Sanger study from another laboratory re-analysed automatically: mutations per sequence, the substitution spectrum, the four mutation classes the paper tests, and its claims against what SHMtrace finds.' };
 }

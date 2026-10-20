@@ -77,7 +77,7 @@ ANALYSES = [
     ("Mutation trees (Figures 6D and S11)", "python mutation_tree_figure.py",
      "the J_H4 FASTQ files", "figures/mutation_trees/"),
     ("Table S2 workbook", "python crm/make_tables.py", "crm/out/benchmark_real_*.json, spikein_*.json",
-     "crm/out/Table_S2_benchmark.xlsx"),
+     "crm/out/Table_S1_benchmark.xlsx"),
     ("The manuscript and supplement", "python crm/manuscript/build_crm.py crm/build",
      "everything above; crm/manuscript/*.py", "crm/build/*.docx"),
     ("The reviewer package", "python crm/make_review_package.py", "crm/build/*.docx, crm/figures/",

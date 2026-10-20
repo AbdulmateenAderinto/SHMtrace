@@ -182,6 +182,6 @@
     });
   }
 
-  return { id: 'crm-figS8', name: 'Figure S8', width: W, height: H, background: '#ffffff', objects: o,
-    alt: 'Figure S8. A published Sanger study re-analysed automatically: frequency per mouse, agreement by mouse, mutations per clone, G:C transitions and transversions, the pooled substitution spectrum, and the published comparisons recovered.' };
+  return { id: 'crm-figS8', name: 'Figure S13', width: W, height: H, background: '#ffffff', objects: o,
+    alt: 'Figure S13. A published Sanger study re-analysed automatically: frequency per mouse, agreement by mouse, mutations per clone, G:C transitions and transversions, the pooled substitution spectrum, and the published comparisons recovered.' };
 }

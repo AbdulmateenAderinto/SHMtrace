@@ -305,7 +305,7 @@ def compute():
             f"the Sanger archive holds {seen} chromatograms, not the {SANGER_ARCHIVE_TRACES} the "
             "Results quote; update SANGER_ARCHIVE_TRACES and SANGER_VS_NANOPORE.md together")
     N["sanger_archive"] = str(SANGER_ARCHIVE_TRACES)
-    # the Figure S7 accounting: what the sheet submitted after its own exclusions, and the clones
+    # the Figure S12 accounting: what the sheet submitted after its own exclusions, and the clones
     # each mouse returned. "103 total" is a count of clones, not a power of ten, which is why it is
     # built here rather than written into the legend where a stray 10^{3} could pass unnoticed.
     with open(CAL / "samplesheets/jh4_manuscript.csv") as fh:
@@ -564,7 +564,7 @@ def compute():
         g = next(x for x in o["groups"] if x["group"] == "vehicle")
         N[f"{k}_p"] = pfmt(g["mutation_frequency_x1e3_p_welch_log_vs_AID_KO"])
         N[f"{k}_p_dens"] = pfmt(g["unique_density_x1e5_p_welch_log_vs_AID_KO"])
-    # Figure 2 and Figures S2 and S6: anatomy of a call, the control FDR, where real SHM sits, the background along
+    # Figure 2 and Figures S2 and S10: anatomy of a call, the control FDR, where real SHM sits, the background along
     # the amplicon and reported quality against measured error (intuition_data.py, fig2_call.py)
     from bisect import bisect_right
     su = _load(OUT / "intuition_su_lps.json")
@@ -597,7 +597,7 @@ def compute():
     c = su["candidates"][case]
     N.update(ana_thr=f"{c['threshold']:.3f}", ana_kept=f0(bisect_right(sorted(c["p"]), c["threshold"])),
              ana_cand=f"{len(c['p']):,}")
-    # Figure S3C and S3E: UMI consensus on the simulated libraries, four mutation-bearing
+    # Figures S7C and S7E: UMI consensus on the simulated libraries, four mutation-bearing
     # conditions plus the two AID-null ones the panels leave out
     umi = _load(CAL / "umi_sim/runs.json")
     cells = [("JH4", "polyclonal"), ("JH4", "low"), ("N114", "subclonal"), ("N114", "low")]
@@ -611,7 +611,7 @@ def compute():
     N["umi_null_jh4"] = f2(mean(pick(("JH4", "null"), "reads", "false_calls")))
     N["umi_null_n114"] = f2(mean(pick(("N114", "null"), "reads", "false_calls")))
     N["umi_molecules"] = f0(mean([x for c in cells for x in pick(c, "umi", "molecules_analysed")]))
-    # Figure S12: how far one PacBio read reaches, for the read-span comparison
+    # Figure S20: how far one PacBio read reaches, for the read-span comparison
     sw_pb = CRM / "out/switch_pacbio/switch_pacbio.json"
     if sw_pb.exists():
         sm = _load(sw_pb)["samples"]
@@ -654,7 +654,7 @@ def compute():
         # First, mutation_frequency_x1e3 is rounded to four decimals, so a dead-AID library with a few
         # mutations in 1.24e8 bases stores as exactly 0.0 and looks mutation-free; the frequency is therefore
         # recomputed from the counts. Second, a library that genuinely saw nothing sits at the frequency one
-        # event would give on its own denominator, the convention of Figure 4F and Table S3, not at a fixed
+        # event would give on its own denominator, the convention of Figure 4F and Table S6, not at a fixed
         # constant: a constant sets the fold by itself (1e-6 gave Ugi 8,102-fold, 1e-5 would give 810).
         def g(k, arm=arm):
             def one(e):
@@ -988,7 +988,7 @@ def compute():
         strict = [v for ds in pj.values() for k, v in ds.items() if k != "default"]
         N.update(st_p_hi=pfmt(max(v["p_log_welch"] for v in strict)),
                  st_fold_lo=f0(min(v["fold"] for v in strict)), st_fold_hi=f0(max(v["fold"] for v in strict)))
-    # Figure S19: the false-discovery target against planted truth at six targets (figs/figS19_fdr_calibration.py)
+    # Figure S4: the false-discovery target against planted truth at six targets (figs/figS19_fdr_calibration.py)
     fc_path = OUT / "fdr_calibration.json"
     if fc_path.exists():
         fc = _load(fc_path)
@@ -1013,7 +1013,7 @@ def compute():
                  fc_def_fp_hi=f1(max(v["false_per_library"] for v in d.values())),
                  fc_jh4_rec_def=pct(d["jh4"]["recall"]), fc_jh4_rec_1=pct(one["jh4"]["recall"]),
                  fc_su_rec_def=pct(d["su_lps"]["recall"]), fc_su_rec_1=pct(one["su_lps"]["recall"]))
-    # Figure S20: how many controls, and which (crm/controls_design.py, figs/figS20_controls.py)
+    # Figure S5: how many controls, and which (crm/controls_design.py, figs/figS20_controls.py)
     cd_path = OUT / "controls_design.json"
     if cd_path.exists():
         cd = _load(cd_path)
@@ -1050,7 +1050,7 @@ def compute():
                  cd_su_fp_pooled=f1(S["pooled (5)"]["false_per_library"]),
                  cd_su_rec_pooled=pct(S["pooled (5)"]["recall"]),
                  cd_su_fdp_pooled=pc1(S["pooled (5)"]["fdp_pooled"]))
-    # Figure S22: real hypermutation diluted into AID-null reads (crm/titration.py, figs/figS22_titration.py)
+    # Figure S6: real hypermutation diluted into AID-null reads (crm/titration.py, figs/figS22_titration.py)
     ti_path = OUT / "titration_summary.json"
     if ti_path.exists():
         ti = _load(ti_path)
@@ -1068,7 +1068,7 @@ def compute():
         dflt = ti.get("n114_default", {})
         if dflt:
             N.update(ti_d3_def_50=f2(dflt["D3|0.5"]), ti_d3_def_100=f2(dflt["D3|1.0"]))
-    # Figure S23: the Immcantation route on the same N114 reads (crm/immcantation_compare.py, figs/figS23_immcantation.py)
+    # Figure S11: the Immcantation route on the same N114 reads (crm/immcantation_compare.py, figs/figS23_immcantation.py)
     im_path = OUT / "immcantation_summary.json"
     if im_path.exists():
         im = _load(im_path)

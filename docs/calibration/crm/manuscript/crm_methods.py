@@ -1,4 +1,4 @@
-"""STAR Methods, key resources table, figure legends, the dataset table (Table S6) and the
+"""STAR Methods, key resources table, figure legends, the dataset table (Table S2) and the
 supplemental index for the
 Cell Reports Methods article. Markup: see docbuild.py. Bracketed items ([...]) are details only the
 authors can supply (catalog numbers, accessions) and are listed for completion in the cover note."""
@@ -138,7 +138,8 @@ METHODS = [
           "the sample's tested bases to the decoy's when that ratio exceeds 1. Decoys are never scaled down to a "
           "shallower library, whose coarser p values they would otherwise underestimate. SHMtrace keeps the "
           "largest t at which the expected number of false calls is at most 0.05 times the number of sample p "
-          "values ≤ t, an empirical false-discovery estimate inspired by target–decoy analysis[@elias2007]. A control is never used as its own decoy: "
+          "values ≤ t, an empirical false-discovery estimate inspired by target–decoy analysis[@elias2007]. A "
+          "control is never used as its own decoy: "
           "when a control is tested, only the other controls serve as decoys. Each sample is judged against the "
           "controls of its own sequencing run when that run has at least two (one, for a control), and against all "
           "controls otherwise, with the report naming any sample whose run has no control; every J_{H}4 and N114 "
@@ -179,9 +180,9 @@ METHODS = [
           "control-based threshold applies the same candidate-selection rule to samples and held-out controls, "
           "so it measures the corresponding background empirically. This does not establish formal FDR control: "
           "the decoys are few, their fitted nulls differ from the sample null, and their exchangeability with "
-          "samples is an assumption. Figure S15 tests selected consequences of these limitations, and Figure S19 "
+          "samples is an assumption. Figure S23 tests selected consequences of these limitations, and Figure S4 "
           "compares the target with the realised proportion on planted truth: the default was met when pooled, "
-          "and targets below it were not; Figure S20 varies the number and source of the controls. Because the "
+          "and targets below it were not; Figure S5 varies the number and source of the controls. Because the "
           "threshold targets a proportion, a library with many true mutations admits more false calls in absolute "
           "terms: in simulated polyclonal lineages, {st_lin_fp_def} per library, in exchange for recalling "
           "{st_lin_1_def}% of single-read mutations. Table S7 compares the default with a target of 0.01 and with "
@@ -212,7 +213,7 @@ METHODS = [
           "artifact and shared case/control artifact. Artifacts occupied six positions at nominal 6% support; shared "
           "artifacts used identical alternate alleles, and case artifacts avoided planted biological sites. Control "
           "number (two/three), depth (250/500/1,000) and mutation burden (none/approximately 400 true recovered calls) "
-          "were varied. Exclusion-on/off analyses used identical inputs (Figure S15). These stress tests assess "
+          "were varied. Exclusion-on/off analyses used identical inputs (Figure S23). These stress tests assess "
           "behavior conditional on existing libraries, not transfer to a new run."),
     ("p", "Under unmodified all-null background, discoveries occurred in {fdv_null_none_on_any}/{fdv_null_none_on_n} "
           "exclusion-on and {fdv_null_none_off_any}/{fdv_null_none_off_n} exclusion-off resamples; with one noisy "
@@ -228,8 +229,10 @@ METHODS = [
           "false/(true+false), and the all-null probability of any discovery are reported separately. These small "
           "conditional experiments do not establish general error control."),
     ("p", "The noisy control was excluded in {fdv_null_one_noisy_on_excluded}/{fdv_null_one_noisy_on_n} all-null "
-          "rule-on resamples. With biological mutations, exclusion-on/off analyses averaged {fdv_polyclonal_one_noisy_on_true}/{fdv_polyclonal_one_noisy_off_true} true calls and "
-          "{fdv_polyclonal_one_noisy_on_false}/{fdv_polyclonal_one_noisy_off_false} false calls across five paired resamples. At least three controls are required to assess an "
+          "rule-on resamples. With biological mutations, exclusion-on/off analyses averaged "
+          "{fdv_polyclonal_one_noisy_on_true}/{fdv_polyclonal_one_noisy_off_true} true calls and "
+          "{fdv_polyclonal_one_noisy_on_false}/{fdv_polyclonal_one_noisy_off_false} false calls across five paired "
+          "resamples. At least three controls are required to assess an "
           "outlier against peers. When the peer median is zero, ≥5 held-out candidates at p≤0.01 trigger exclusion; an "
           "unmodified control was consequently excluded in {fdv_null_none_on_excluded}/{fdv_null_none_on_n} all-null "
           "resamples. Every exclusion is recorded and warrants review, including sensitivity to retaining that "
@@ -257,14 +260,17 @@ METHODS = [
           "independent mutational origin, since one lineage's trunk mutation is one unique variant. "
           "**Unique-variant density** is D / B × 10^{5}, where D is the number of unique variants and B the base "
           "observations at callable positions (inside the analysis window and the end trims), counted exactly as the "
-          "read depth summed over those positions, not the number of reference positions. Because B grows with depth while D saturates, this density falls as "
+          "read depth summed over those positions, not the number of reference positions. Because B grows with "
+          "depth while D saturates, this density falls as "
           "depth rises even at a constant mutation rate, so it is compared only between libraries analyzed at the "
-          "same depth (Figure S5). **Read-weighted mutation frequency** is Σ m_{i} / (N × L) × 10^{3}, where "
-          "m_{i} is the number of called sites read i carries at or above the configured minimum base quality (0 for these read-library analyses), N the reads analyzed and L the "
+          "same depth (Figure S9). **Read-weighted mutation frequency** is Σ m_{i} / (N × L) × 10^{3}, where "
+          "m_{i} is the number of called sites read i carries at or above the configured minimum base quality (0 "
+          "for these read-library analyses), N the reads analyzed and L the "
           "window length; a mutation shared by many reads is counted once in each of them, so an expanded clone "
           "raises it. This fixed-window frequency credits every read with the whole window; an observed-base "
           "frequency, which counts only the bases each read covers, is reported beside it and agrees when reads "
-          "span the window, as they did in the J_{H}4 and N114 projects to within 2.4%. **Clone-weighted frequency** groups reads by their V(D)J junction, keeps a mutation when at "
+          "span the window, as they did in the J_{H}4 and N114 projects to within 2.4%. **Clone-weighted "
+          "frequency** groups reads by their V(D)J junction, keeps a mutation when at "
           "least half the reads of its clone carry it (any read of a single-read clone), and is Σ c_{k} / (K × L) "
           "× 10^{3} over the K clones, so each clone counts once whatever its size. For wild-type J_{H}4 library "
           "Wt2 at 500 reads over the 529-bp window these give 221 unique variants over 263,886 base observations "
@@ -324,8 +330,8 @@ METHODS = [
     ("p", "The targeting index is mean S5F mutability[@yaari2013] at mutated positions divided by the window mean. A "
           "one-sided permutation test uses 2,000 random position sets; the model was exported from SHazaM 1.2.0. "
           "Positional-clustering flags identify 10-base windows with more calls than expected under a Poisson "
-          "distribution, with Bonferroni correction across windows (p < 10^{−3}). Figure S13 summarizes the workflow; "
-          "Figure S14 illustrates the analytical rules using J_{H}4 libraries. Sanger traces are assigned through a "
+          "distribution, with Bonferroni correction across windows (p < 10^{−3}). Figure S21 summarizes the workflow; "
+          "Figure S22 illustrates the analytical rules using J_{H}4 libraries. Sanger traces are assigned through a "
           "sample sheet and trimmed to their longest reliably aligned Q≥20 segment. All Q≥20 substitutions are counted "
           "after germline filtering. Quality-control flags identify copied files, unexpectedly shared clones between "
           "animals (Poisson test weighted by mutation frequency across animals), excess mutations in controls, label "
@@ -376,7 +382,8 @@ METHODS = [
           "suggesting that two animals may share this label. Pooled counts are unaffected. Animal-level tests use "
           "deposited host names and were repeated without AT40; clones were not arbitrarily split between inferred "
           "animals. Excluding AT40 gave p = {sw_drop_p} for the four substitution "
-          "classes and {sw_drop_tot_p} for total mutation, versus {sw_at_tv_p}, {sw_gc_tv_p}, {sw_gc_ts_p}, {sw_at_ts_p} and {sw_tot_p} with all hosts."),
+          "classes and {sw_drop_tot_p} for total mutation, versus {sw_at_tv_p}, {sw_gc_tv_p}, {sw_gc_ts_p}, "
+          "{sw_at_ts_p} and {sw_tot_p} with all hosts."),
     ("p", "The high-allele-fraction rule removes any change carried by at least 50% of the reads covering it, as a "
           "germline or parental difference. Because a mutation shared by a dominant lineage reaches the same "
           "frequency, we measured what the rule costs by simulating lineages whose dominant clone is itself mutated. "
@@ -391,7 +398,7 @@ METHODS = [
           "threshold were unaffected. Each sample's report now lists every site the rule removed with its read count, "
           "depth and frequency, so a library with a large mutated clone can be recognized and its sites inspected."),
     ("h2", "Benchmark against other callers"),
-    ("p", "Figure 4 and Table S2 are built by `crm/benchmark_real.py`, which drives the calling stage directly so that "
+    ("p", "Figure 4 and Table S1 are built by `crm/benchmark_real.py`, which drives the calling stage directly so that "
           "every caller sees exactly the same reads; the product itself runs `run_project`. Because those are two code "
           "paths, they were compared library by library (`crm/route_check.py`). On the J_{H}4 and N114 libraries of "
           "this study the two agree exactly, all twelve giving identical calls. On the four public nanopore datasets "
@@ -402,7 +409,7 @@ METHODS = [
           "in order of magnitude under either route (J_{H}4 141 against 141, N114 85 against 84, Sμ LPS 66 against 84, "
           "Sμ CH12 94 against 171, OT1 53 against 46, OT2 28 against 24), and *Pim1* stays below separation either "
           "way, at 1.8 against 0.8. Figure 4 therefore reports the benchmark route throughout, for comparability "
-          "between callers, and Table S1 reports `run_project`, where the two coincide."),
+          "between callers, and Table S3 reports `run_project`, where the two coincide."),
     ("p", "For each library, the reads analyzed by SHMtrace were written out, aligned with minimap2 using the same "
           "preset with secondary alignments turned off, and sorted and indexed with SAMtools. They were then "
           "called with LoFreq 2.1.5 `call`, restricted to the analysis window, at three settings: default settings "
@@ -412,22 +419,22 @@ METHODS = [
           "density denominator for each library. In the spike-in tests, 60 sites per replicate were chosen with "
           "WRC/GYW motifs weighted 4-fold and WA/TW motifs 2-fold, and each substitution was written into 1, 2, 3, "
           "5, 10, or 20 reads covering that site while keeping each read's own base quality. Three replicates were "
-          "performed for each held-out control. For Figure S19 the same libraries were called at target "
+          "performed for each held-out control. For Figure S4 the same libraries were called at target "
           "false-discovery rates of 0.01, 0.02, 0.05, 0.10, 0.20 and 0.30 (`fdr_alpha`), every other setting at "
           "its default; the realised proportion is false calls over all calls, pooled over a locus's libraries. "
-          "For Figure S20 (`crm/controls_design.py`), the validation libraries of Figure S15 (KO1 carrying planted "
+          "For Figure S5 (`crm/controls_design.py`), the validation libraries of Figure S23 (KO1 carrying planted "
           "polyclonal lineages, or none, against halves of KO2 and KO3) were run through `run_project` with one to "
           "four controls, and with one control carrying recurrent artifacts, {cd_runs} repeats per setting; the "
           "third and fourth controls are halves of the same two animals. Each Sμ LPS AID-null library, with 60 "
           "planted substitutions and three draws, was called against its experiment's other two controls, two or "
           "three CH12 AID-null controls, or all five. The SRA reads carry no run identifiers, so this compares "
-          "experiments, not verified sequencing runs. For Figure S22 (`crm/titration.py`), 500 usable reads were "
+          "experiments, not verified sequencing runs. For Figure S6 (`crm/titration.py`), 500 usable reads were "
           "drawn with a fraction f from an AID-active library and the rest from one AID-null library (J_{H}4 KO1; "
           "N114 D1), {ti_reps} draws per fraction, and called by `run_project` against the other two AID-null "
           "libraries; expected mutation frequency is f times the donor at f = 1 plus (1 − f) times the diluent. "
           "N114 used `ancestral_reference`, because its reference is the parental construct: with the default 50% "
           "rule, mutations fixed within a subclone are removed at f = 1 but counted once diluted, and D3 then read "
-          "{ti_d3_def_50} per 10^{3} bp at f = 0.5 and {ti_d3_def_100} at f = 1. For Figure S23 "
+          "{ti_d3_def_50} per 10^{3} bp at f = 0.5 and {ti_d3_def_100} at f = 1. For Figure S11 "
           "(`crm/immcantation_compare.py`), the 500 reads SHMtrace analyzed from each N114 library were passed to "
           "IgBLAST 1.22.0 (AIRR output) against the IMGT mouse IGH germlines, or with the parental V segment "
           "({im_vlen} bp) as the only V germline, with and without bases below Q20 replaced by N first (the rule of "
@@ -487,7 +494,7 @@ METHODS = [
           "comparison with every-mismatch counting. The CH12F3 and Ramos references were the majority consensus of the "
           "control reads. Because these libraries are sequenced far beyond one read per molecule, mutation frequency "
           "rather than unique-variant density was compared. Read pairs were merged on an overlap of at least 20 bp "
-          "with at most 10% mismatches (Figure S12). The PRJNA973112 and PRJNA918596 files as distributed carry a flat "
+          "with at most 10% mismatches (Figure S20). The PRJNA973112 and PRJNA918596 files as distributed carry a flat "
           "Q30 on every base, so for them the error model has a single quality level; PRJNA820976 keeps binned "
           "qualities. UMI consensus was evaluated on 4,259 R10 reads of rRNA operons carrying 18-nt UMIs at both "
           "ends[@karst2021]. Reads were grouped by UMI (allowing up to three edits per end, with directional merging "
@@ -512,7 +519,7 @@ METHODS = [
           "both are reported. The fifteen comparisons there, five features against three genotypes, are reported "
           "unadjusted, with each group mean beside its p value so the size of the difference is visible and not only "
           "its significance. Adjusting them together by Benjamini–Hochberg changes nothing: nine reach 0.05 before and "
-          "nine after. The engineered-diversification contrast of Figure S18A is a single pre-specified comparison, "
+          "nine after. The engineered-diversification contrast of Figure S17A is a single pre-specified comparison, "
           "AID against APOBEC3A in each genotype, so no adjustment arises there. Acceptor-breakpoint ambiguity was "
           "measured directly, by re-aligning each junction's first 60 acceptor bases on their own with the short-read "
           "preset and counting placements within five matched bases of the best, because the module's own flag depends "
@@ -556,7 +563,7 @@ METHODS = [
 
 QUANT = [
     "Groups were compared with one value per library, each library being one animal, subclone, clone, culture or "
-    "experiment as Table S6 states; reads were never treated as replicates. The Welch test on log_{10} rates is the "
+    "experiment as Table S2 states; reads were never treated as replicates. The Welch test on log_{10} rates is the "
     "primary test throughout, chosen before the analyses reported here; the negative-binomial and permutation tests "
     "are reported alongside it as sensitivity analyses, and Figure 3G compares all three. The negative-binomial test "
     "models each library's mutation count k with mean n·r, where n is that library's bases and r its group's rate, and "
@@ -610,7 +617,7 @@ LEGENDS = [
     ("Figure 3. Planted mutations and simulated lineages quantify recall and false calls",
      "(A, B) Recall by supporting-read count for substitutions planted into held-out J_{H}4 and N114 controls. Per "
      "locus: 60 sites × 3 draws × 3 controls; each support-count point pools 90 mutations. Lines span held-out "
-     "controls. Labels give pooled false/(true+false) calls across nine libraries; complete results are in Table S2. "
+     "controls. Labels give pooled false/(true+false) calls across nine libraries; complete results are in Table S1. "
      "Comparators are SHMtrace, Geneious and LoFreq with default, BAQ-off or permissive settings. (C) Overall recall "
      "versus false calls per library on JH4/N114 (500 reads) and Sμ/Pim1 (2,000); zero false calls are displayed at "
      "0.05. (D) J_{H}4 lineage simulations: approximately 40 clones, with mean trunk/branch/private loads of 6/2/0.3 "
@@ -625,7 +632,7 @@ LEGENDS = [
      "minimum exact two-sided permutation p of 0.10. (H) Permissive somatic-caller recall on J_{H}4 at 1–20/500-read "
      "support (solid) and 5%, 10% or 20% support (dashed): thirty sites per fraction per held-out control, with the "
      "other two controls pooled as normal. SHMtrace spike-in recall is shown for comparison. BAQ, base-alignment "
-     "quality. See also Figure S3 and Tables S2 and S3."),
+     "quality. See also Figure S7 and Tables S1 and S6."),
     ("Figure 4. Matched controls reduce apparent substitution background in real libraries",
      "(A–E) Unique variants per 10^{5} analyzed base observations for callers applied to identical reads; triangles "
      "indicate zero calls. J_{H}4: three Wt/three *Aicda*^{−/−} mice; N114: three AID/three empty-vector subclones, "
@@ -636,7 +643,7 @@ LEGENDS = [
      "dotted line, 1%. (I) Delivered-read accounting. Panels use the caller-comparison route: each library's error "
      "model, margin and threshold are calibrated from peer controls. OT1/OT2 Results use the production project's "
      "shared margin/decoys, self-decoy exclusion and noisy-control rule; counts can consequently differ. Both use "
-     "empirical control-based thresholding. See also Figures S4–S6 and Tables S1 and S2."),
+     "empirical control-based thresholding. See also Figures S8–S10 and Tables S1 and S3."),
     ("Figure 5. Matched Sanger and nanopore libraries yield similar mutation profiles",
      "(A) Unique variants per 10^{5} bases per mouse, n=3 per genotype; Sanger, 26–40 clones per Wt mouse; nanopore, "
      "500 reads. Bars, geometric means; p, Welch tests on log densities. Zero-call nanopore controls use one-event "
@@ -646,8 +653,8 @@ LEGENDS = [
      "rather than between-mouse uncertainty. (C) Call shares in 25-bp bins across the shared 529-bp interval. (D) G:C "
      "calls at WRC/GYW and A:T calls at WA/TW; bars, three-mouse means; points, mice; dashed lines, window "
      "opportunities. (E) Four displayed substitution classes per mouse and platform; lines join matched mice. The "
-     "platform×type test uses all twelve types with mouse as subject. Pooled values generate panel B. See also Figures "
-     "S7–S10 and Tables S4 and S5."),
+     "platform×type test uses all twelve types with mouse as subject. Pooled values generate panel B. See also "
+     "Figures S12–S15 and Tables S4 and S5."),
     ("Figure 6. Long reads retain positional profiles and linked mutation patterns",
      "(A) Unique variants per 10^{5} base observations in 50-bp bins over J_{H}4 positions 90–1,230; thin lines, Wt "
      "mice; thick lines, genotype means, n=3 each. Shading marks the Sanger window. (B) Calls per position by "
@@ -658,7 +665,7 @@ LEGENDS = [
      "unmutated reference; ticks, substitution classes; nodes, linked mutation sets, sized/labeled by supporting "
      "reads; distance, accumulated mutations. Node counts are nested and do not sum. Forty-eight of 69 reads follow "
      "one path; twenty-one contain incompatible patterns consistent with residual error, PCR recombination or "
-     "recurrent mutation. These are not proven cellular lineages. See also Figure S11."),
+     "recurrent mutation. These are not proven cellular lineages. See also Figure S16."),
     ("Figure 7. Public datasets test analysis across platforms and biological contexts",
      "(A) Illumina J_{H}4 frequencies in Wt, *Ldha*-deleted and AID-null mice (PRJNA973112). Points, mice; triangles, "
      "zero-call samples; bars, geometric means with one-event floors. Tests: two-sided log-rate Welch against null and "
@@ -671,7 +678,7 @@ LEGENDS = [
      "family resamples, holding raw error fixed. (F) C:G transition shares in three mOrange experiments across empty, "
      "Ugi and UNG repair contexts (PRJNA170048): circles, SHMtrace; squares, raw Q>20 mismatches; crosses, dead-AID "
      "raw mismatches. Lines join repair arms within experiments. Calling uses empty-arm dead-AID controls; 4–40 called "
-     "C:G substitutions per library give coarse shares. See also Table S2."),
+     "C:G substitutions per library give coarse shares. See also Table S1."),
 ]
 
 TABLE_S7_TITLE = ("Table S7. The default calling threshold against two stricter settings, related to STAR "
@@ -686,7 +693,7 @@ TABLE_S7_NOTE = ("Default: control-based threshold at a false-discovery target o
                  "geometric fold for unique density, Wt or pMX-*Aicda* against the AID-null controls. "
                  "crm/strict_sensitivity.py.")
 
-TABLE_S6_TITLE = ("Table S6. Datasets used to develop and validate SHMtrace, related to STAR Methods")
+TABLE_S6_TITLE = ("Table S2. Datasets used to develop and validate SHMtrace, related to STAR Methods")
 TABLE_S6_HEADER = ["Dataset", "Platform", "Locus (window)", "Design", "AID-null controls",
                  "Unit of analysis", "Used for"]
 TABLE_S6 = [
@@ -697,9 +704,9 @@ TABLE_S6 = [
     ("J_{H}4 Sanger, same mice", "Sanger", "J_{H}4 intron (529 bp)", "26–40 clones per Wt mouse",
      "10–11 clones per *Aicda*^{−/−} mouse", "mouse\u1d47", "Figure 5"),
     ("J_{H}4 Sanger, published study[@barbulescu2024]", "Sanger", "J_{H}4 intron (529 bp)",
-     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "3 *Aicda*^{−/−} mice reported, 4 filed", "mouse", "Figure S8"),
+     "4 Wt, 4 *Maea*^{fl/fl}*Mb1*^{cre} mice; 20–57 clones each", "3 *Aicda*^{−/−} mice reported, 4 filed", "mouse", "Figure S13"),
     ("J_{H}4 Sanger, published study[@barbulescu2025]", "Sanger", "J_{H}4 intron (529 bp)",
-     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–93 clones each", "3 *Aicda*^{−/−} mice", "mouse", "Figure S9"),
+     "3 Wt, 3 *Mkln1*^{−/−} mice; 24–93 clones each", "3 *Aicda*^{−/−} mice", "mouse", "Figure S14"),
     ("PRJNA1481264, Sμ", "ONT", "Sμ (611 bp)", "3 LPS blasts; 4 CH12", "3 *Aicda*^{−/−} each", "culture", "Figures 2 and 4"),
     ("PRJNA1481264, *Pim1*", "ONT", "*Pim1* (862 bp)", "3 LPS blasts", "3 *Aicda*^{−/−}", "culture", "Figures 2 and 4"),
     ("PRJNA1481264, OT1 and OT2", "ONT", "AID off-targets (968 and 942 bp)",
@@ -713,22 +720,22 @@ TABLE_S6 = [
     ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
      "molecule", "Figure 7"),
     ("SW_{HEL} Sanger, published study[@thientosapol2018]", "Sanger (GenBank)", "SW_{HEL} V_{H}10 (558 bp)",
-     "*Samhd1*, *Msh2* and double mutants, UGI arm; 1,795 clones", "none", "host animal", "Figure S10"),
+     "*Samhd1*, *Msh2* and double mutants, UGI arm; 1,795 clones", "none", "host animal", "Figure S15"),
     ("PRJNA170048[@perezduran2012]", "Illumina (36 bp)", "mOrange reporter (619 bp)",
      "AID-ER in NIH-3T3 cells, 3 experiments x 3 repair contexts", "catalytically dead AID-E58Q-ER",
      "experiment", "Figure 7"),
     ("PRJNA831666[@vincendeau2022]", "PacBio", "Sμ–Sγ1 switch junctions", "3 Wt, 3 *Shld1*, 3 *Xlf*, 3 double",
-     "none (repair genotypes, no AID-null arm)", "mouse", "Figure S16"),
+     "none (repair genotypes, no AID-null arm)", "mouse", "Figure S19"),
     ("GSE77788[@compagno2017]", "Illumina", "Sμ (216 bp shared; 221 bp repeats)",
-     "9 Wt, 3 treatments", "9 *Aicda*^{−/−}, same treatments", "culture", "Figure S17"),
+     "9 Wt, 3 treatments", "9 *Aicda*^{−/−}, same treatments", "culture", "Figure S18"),
     ("SRP159221[@liu2018]", "Illumina", "EGFP reporter (238 bp)", "AID and APOBEC editors, 3 each",
-     "3 no-editor libraries", "culture", "Figure S18A"),
+     "3 no-editor libraries", "culture", "Figure S17A"),
     ("Devilder et al.[@devilder2019]", "Sanger (published sequences)", "antibody V_{H} (423 bp)",
-     "42 selected clusters, 2 rounds", "parental construct as reference", "cluster", "Figure S18B"),
+     "42 selected clusters, 2 rounds", "parental construct as reference", "cluster", "Figure S17B"),
     ("Simulations", "–", "J_{H}4, N114", "planted sites, lineages, group tests, Sanger projects", "held-out controls",
      "simulated library", "Figures 3 and 5"),
 ]
-# What each row of Table S6 contributes to the counts the footnote quotes: the laboratory that
+# What each row of Table S2 contributes to the counts the footnote quotes: the laboratory that
 # produced it, and the AID-targeted locus or loci it covers, under the class the footnote counts.
 # The counts are derived from this (build_crm.dataset_counts), so a row added to TABLE_S6 has to be
 # classified here or the build stops rather than leaving the prose stale. A locus is counted once
@@ -768,7 +775,8 @@ TABLE_S6_LOCI = {
 TABLE_S6_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers {ds_loci} AID-targeted loci from {ds_labs} laboratories, counting J_{H}4 once across the rows that share it: {ds_shm} somatic hypermutation targets, {ds_offtarget} AID-targeted loci that are not SHM (Sμ, *Pim1*, OT1 and OT2), and {ds_engineered} engineered substrates. The rRNA operons are excluded; the Sμ–Sγ1 junctions are class switching at Sμ and are not counted again. Lengths are analysis windows; the mOrange amplicon is 679 bp. Superscript numbers cite the main manuscript's reference list.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S23 and Tables S1 and S3–S7",
-    "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
+    "Document S1. Figures S1–S23 and Tables S2–S7",
+    "Table S1. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation "
+    "results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

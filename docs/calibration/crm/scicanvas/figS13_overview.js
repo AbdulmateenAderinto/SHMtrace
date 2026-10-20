@@ -1,6 +1,6 @@
 () => {
-  // Cell Reports Methods, Figure S13: an overview of SHMtrace, from libraries to group tests. Built with
-  // manuscript_corrected/figure1_scicanvas/build.js into crm/figures/FigureS13_overview; Figure S14 gives the
+  // Cell Reports Methods, Figure S21: an overview of SHMtrace, from libraries to group tests. Built with
+  // manuscript_corrected/figure1_scicanvas/build.js into crm/figures/FigureS13_overview; Figure S22 gives the
   // rule and equation behind each step. Cell Press rules as in crm_figure1.js (174 mm; Arial 6-8 pt;
   // strokes 0.5-1.5 pt). Mutations purple, sequencing errors orange-red, AID-null controls red,
   // AID-competent animals blue, SHMtrace teal.
@@ -202,6 +202,6 @@
   LINK(prof, 's', grp, 'n');
   LINK(acct, 'e', qc, 'w');
 
-  return { id: 'crm-figS13', name: 'Figure S13', width: W, height: 790, background: '#ffffff', objects: o,
-    alt: 'Figure S13. An overview of SHMtrace: libraries and a sample sheet, read preparation, the control-calibrated analysis and bookkeeping checks, per-animal profiles and group tests.' };
+  return { id: 'crm-figS13', name: 'Figure S21', width: W, height: 790, background: '#ffffff', objects: o,
+    alt: 'Figure S21. An overview of SHMtrace: libraries and a sample sheet, read preparation, the control-calibrated analysis and bookkeeping checks, per-animal profiles and group tests.' };
 }
