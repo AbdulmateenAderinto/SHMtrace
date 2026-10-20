@@ -173,11 +173,11 @@ def check_figure_numbers(n):
             raise RuntimeError(f"graphical abstract is stale: expected '{text}' in scicanvas/crm_ga.js")
     # Figure S20's read-span bars are drawn from lengths typed into the builder, so the PacBio one
     # is checked against the switch data the legend quotes
-    s12 = (CRM / "scicanvas/figS12_platforms.js").read_text()
+    s12 = (CRM / "scicanvas/figS20_platforms.js").read_text()
     pb = n["pacbio_len"].replace(",", "")
     if f", {pb}, PACB]" not in s12:
         raise RuntimeError(f"Figure S20 is stale: expected the PacBio bar at {pb} bp in "
-                           "scicanvas/figS12_platforms.js")
+                           "scicanvas/figS20_platforms.js")
 
 
 def check_paired_settings(n):
@@ -579,7 +579,7 @@ SUPP_FIGS = [
      "shared order 75K3B3. For Sμ and *Pim1* (PRJNA1481264), the deposited records do not establish which libraries "
      "shared a flow cell."),
     ("Figure S7. Single-read estimate, power, UMI consensus and planted indels, related to Figure 3",
-     FIG / "FigureS3.png",
+     FIG / "FigureS7.png",
      "(A) Change in the aggregate single-read estimate against one-read mutations planted into held-out J_{H}4 control "
      "libraries (three controls; three replicates per amount); dashed line, identity. (B) Power to detect a two-fold "
      "difference between two AID-proficient groups at α = 0.05, two-sided, with the Welch test on log rates, by "
@@ -605,19 +605,19 @@ SUPP_FIGS = [
      "carries 5-bp microhomology at its ends, so it is most likely a molecule the material already held rather than a "
      "calling error."),
     ("Figure S8. N114 V-region results, related to Figure 4 (page 1 of 2)",
-     [MC / "Figure4_hybridoma_combined.png"],
+     [FIG / "FigureS8_n114.png"],
      "(A) N114 unique-variant density per subclone, n = 3 per vector. Empty-vector subclones without calls are plotted "
      "at one event. (B, C) Pooled substitution matrices for pMX-*Aicda* and empty-vector subclones, respectively. "
      "Cells report unique-variant counts and their shares of group calls. Panel A measures unique-variant density. "
      "Individual-library spectra are shown on the following page."),
     ("Figure S8. Per-library spectra, related to Figure 4 (page 2 of 2)",
-     [MC / "FigureS6_individual_JH4_ONT_matrices.png", MC / "FigureS7_individual_N114_matrices.png"],
+     [FIG / "FigureS8_spectra_jh4.png", FIG / "FigureS8_spectra_n114.png"],
      "Substitution matrices for individual J_{H}4 Wt and *Aicda*^{−/−} libraries (top) and N114 pMX-*Aicda* and "
      "empty-vector subclones (bottom). For each component, A denotes AID-active libraries and B denotes AID-null "
      "libraries; panel letters restart in the lower component. Cells report unique-variant counts and their shares of "
      "the corresponding library's calls."),
     ("Figure S9. Sequencing depth and unique-variant discovery, related to Figure 4",
-     FIG / "FigureS5.png",
+     FIG / "FigureS9.png",
      "Every library was analyzed at 30–1,000 reads, and the whole analysis was repeated five times at each depth with "
      "a different random draw of usable reads, the AID-null controls redrawn and recalibrated at that depth each time, "
      "so the spread shown is the spread a single run would have had. (A and B) J_{H}4 unique variants and "
@@ -632,7 +632,7 @@ SUPP_FIGS = [
      "the largest depth tested here, not evidence that discovery has reached an asymptote. At 30 reads one draw is not "
      "informative: J_{H}4 Wt2 gave between 7 and 60 calls across its five draws, against 212 to 244 at 500 reads."),
     ("Figure S10. The background along the amplicon and in each read, related to Figure 4",
-     FIG / "FigureS6.png",
+     FIG / "FigureS10.png",
      "(A and B) Mismatches at base quality ≥ 20 at every position of the analysis window, germline sites excluded, in "
      "each AID-null library (red) and averaged over the AID-active libraries (blue); J_{H}4, 500 reads per library; Sμ "
      "(PRJNA1481264), 2,000. Insets, the controls alone on their own scale, on which the small recurrent artifacts are "
@@ -649,7 +649,7 @@ SUPP_FIGS = [
     # gating reasons cannot be recomputed from its output. The total and the paralog count are the
     # two the archive manifest confirms independently.
     ("Figure S12. Sanger re-analysis, related to Figure 5 (page 1 of 2)",
-     [MC / "FigureS5_individual_Sanger_matrices.png", CAL / "figures/sanger_vs_nanopore/figS_sanger_window_original.png"],
+     [FIG / "FigureS12_sanger_matrices.png", FIG / "FigureS12_sanger_window.png"],
      "Top, per-mouse Sanger substitution matrices at Q≥20. Bottom, fraction of Wt clones with a high-quality base at "
      "each J_{H}4 position and calls per 10^{3} observed bases; shading, the shared 529-bp window. Of "
      "{sanger_archive} chromatograms in the eight archived sequencing orders, which cover that study’s wild-type, "
@@ -662,13 +662,13 @@ SUPP_FIGS = [
      "({sanger_ko_total} total). Bookkeeping checks flag "
      "potential problems without automatically removing clones."),
     ("Figure S12. Sanger bookkeeping checks, related to Figure 5 (page 2 of 2)",
-     [FIG / "FigureS7_bookkeeping.png"],
+     [FIG / "FigureS12_bookkeeping.png"],
      "Forty simulated projects each contained one instance of each bookkeeping error. Detection is shown against the "
      "planted errors; the shared-lineage test used a lineage represented by 125 clones. Label changes were detectable "
      "only when affected clones shared mutations with another animal's clones. No false flags occurred among 6,018 "
      "correctly assigned clones."),
     ("Figure S13. Reanalysis of published Maea Sanger data, related to Figure 5",
-     [FIG / "FigureS8_sanger_cohort2.png"],
+     [FIG / "FigureS13_sanger_cohort2.png"],
      "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (purple) and "
      "*Aicda*^{−/−} (red) mice[@barbulescu2024], each clone assigned to the mouse it was filed under in the original "
      "analysis. Filled circles and teal mean lines, SHMtrace from the chromatograms; open squares and brown mean "
@@ -684,7 +684,7 @@ SUPP_FIGS = [
      "*Aicda*^{\u2212/\u2212} clones' own error rate accounts for (STAR Methods), and the analysis time is for "
      "the whole project from one sample sheet, once that sheet had been built."),
     ("Figure S14. Reanalysis of published *Mkln1* Sanger data, related to Figure 5",
-     [FIG / "FigureS9_sanger_mkln.png"],
+     [FIG / "FigureS14_sanger_mkln.png"],
      "J_{H}4 clones of germinal-center B cells from three wild-type (blue), three *Mkln1*^{\u2212/\u2212} "
      "(purple) and three *Aicda*^{\u2212/\u2212} (red) mice[@barbulescu2025], each clone assigned to the mouse "
      "folder it was filed under in the original analysis. Filled symbols, SHMtrace from the chromatograms; open "
@@ -699,7 +699,7 @@ SUPP_FIGS = [
      "Figure S2C) are listed separately. Paralog clones are J_{H}4-paralog amplicons, which SHMtrace analyzes "
      "apart from J_{H}4; \"background explains\" is as in Figure S13."),
     ("Figure S15. Reanalysis of published SW_{HEL} Sanger sequences, related to Figure 5",
-     [FIG / "FigureS10_swhel.png"],
+     [FIG / "FigureS15_swhel.png"],
      "The 1,795 Sanger clones of Thientosapol et al. (2018), who hypermutated a SW_{HEL} V_{H}10 knock-in V region "
      "in germinal-center B cells and reported that inactivating *Samhd1* raises transitions at C:G and lowers "
      "transversions at A:T and at C:G. SHMtrace was given only the deposited GenBank records: the germline is the "
@@ -716,15 +716,15 @@ SUPP_FIGS = [
      "(about 20 in 10^{5} bases at Q \u2265 20 in each), roughly 10-fold below the mutation frequency "
      "measured here."),
     ("Figure S16. Full-length spectra, related to Figure 6 (page 1 of 2)",
-     [MC / "FigureS_spectrum_529_vs_fulllength.png"],
+     [FIG / "FigureS16_spectra_full_length.png"],
      "Pooled Wt substitution spectra across the 529-bp shared window and the full 1,141-bp interval (Pearson r = "
      "{s1_r}). Mutation trees are shown on the following page."),
     ("Figure S16. Mutation trees in each mouse, related to Figure 6 (page 2 of 2)",
-     [CAL / "figures/mutation_trees/mutation_trees_by_mouse.png"],
+     [FIG / "FigureS16_mutation_trees.png"],
      "Mutation-tree reconstructions for the most branched clone in each Wt mouse. Trees summarize relationships among "
      "sequenced reads (Figure 6); the corresponding cellular lineages were not independently established."),
     ("Figure S20. What a read means on each of the four platforms, related to Figures 5–7",
-     [FIG / "FigureS12_platforms.png"],
+     [FIG / "FigureS20_platforms.png"],
      "Top row, the two platforms applied to the same six mice, drawn on a common base-pair scale. A Sanger clone represents one "
      "PCR-derived molecule sequenced over the shared 529-bp window. The eight nanopore reads are experimental Wt3 "
      "reads from four clones spanning the 1,230-bp amplicon, with called mutations shown over positions 90–1,230. "
@@ -756,7 +756,7 @@ SUPP_FIGS = [
      "one molecule per family, and long-read coverage depends on amplicon design. Nanopore fold separation assigns "
      "zero-call controls one event. Sanger background is the Q≥20 mismatch rate in AID-null clones from Figures S13 and S14."),
     ("Figure S21. SHMtrace analysis workflow, related to STAR Methods",
-     [FIG / "FigureS13_overview.png"],
+     [FIG / "FigureS21_overview.png"],
      "Sequence files are assigned to biological replicates through a sample sheet, filtered and aligned competitively "
      "against target, paralog and contaminant references. Matched AID-null libraries provide the background model for "
      "read-library substitution tests; held-out controls serve as decoys for threshold selection. Sanger substitutions "
@@ -771,7 +771,7 @@ SUPP_FIGS = [
      "review. Only rows explicitly marked as excluded in the sample sheet are omitted, with reasons recorded. "
      "Sample-sheet rows are illustrative. Figure S22 details the analytical rules and equations."),
     ("Figure S22. Rules underlying read preparation and variant calling, related to STAR Methods",
-     [FIG / "FigureS14_engine.png"],
+     [FIG / "FigureS22_engine.png"],
      "Six analytical stages are illustrated with J_{H}4 libraries. (A) Per-library read accounting: length and "
      "expected-error filtering, competitive alignment and usable reads (individual filters in Figure S1). (B) Target "
      "versus paralog alignment identity; assignment follows the better match. (C) Reported base quality versus "
@@ -781,7 +781,7 @@ SUPP_FIGS = [
      "Per-animal unique-variant density used for group comparisons. Panels use `intuition_jh4.json`, per-library "
      "read-accounting records and the bundled example library; equations describe the implemented calculations."),
     ("Figure S23. End-to-end stress tests using resampled control reads, related to STAR Methods",
-     FIG / "FigureS15.png",
+     FIG / "FigureS23.png",
      "AID-null J_{H}4 reads were resampled and analyzed with `run_project`, including margin selection, decoy "
      "thresholding and noisy-control exclusion. Cases used KO1. Two-control analyses used one partition each from KO2 "
      "and KO3; three-control analyses used two KO2 partitions and one KO3 partition. Case and control read records "
@@ -801,7 +801,7 @@ SUPP_FIGS = [
      "{fdv_null_case_only_on_any}/{fdv_null_case_only_on_n} in both case-only settings. Small resample counts limit "
      "conclusions about error control (STAR Methods)."),
     ("Figure S19. Class-switch junctions in a public PacBio dataset, related to Figure 7",
-     FIG / "FigureS16_switch_pacbio.png",
+     FIG / "FigureS19_switch_pacbio.png",
      "Sμ–Sγ1 products from Wt, *Shld1*^{−/−}, *Xlf*^{−/−} and *Shld1*^{−/−}*Xlf*^{−/−} primary B cells, three mice per "
      "genotype and one PacBio run per mouse (PRJNA831666). (A) Delivered reads, junction-bearing reads and unique "
      "junctions per library. Unique junctions group breakpoints within 3 bp on both sides. Reads per unique junction "
@@ -818,7 +818,7 @@ SUPP_FIGS = [
      "comparisons appear in panel C. The dataset lacks AID-null controls and does not evaluate substitution-test "
      "calibration."),
     ("Figure S18. Public S\u03bc mutation libraries under PI3K\u03b4 blockade, related to Figure 7",
-     FIG / "FigureS17_public_smu.png",
+     FIG / "FigureS18_public_smu.png",
      "Sμ amplicons from Wt and *Aicda*^{−/−} primary B cells treated with DMSO, idelalisib or duvelisib, three "
      "replicates per genotype and treatment (GSE77788). (A) Library coverage of the 651-bp reference, whose first half "
      "contains switch repeats. Six of nine Wt libraries are 300-bp single-end, whereas all *Aicda*^{−/−} libraries are "
@@ -831,7 +831,7 @@ SUPP_FIGS = [
      "treatment groups do not provide a balanced treatment comparison. Targeting index and C→T/G→A share refer to Wt "
      "calls."),
     ("Figure S17. Engineered AID diversification, related to Figure 7",
-     FIG / "FigureS18_engineered.png",
+     FIG / "FigureS17_engineered.png",
      "(A) One GFP substrate edited by a panel of deaminases delivered alike (SRP159221), three replicates per "
      "arm: the share of calls at WRC/GYW (circles) and the share that are C\u2192T or G\u2192A (squares), in "
      "wild-type and in UNG/MSH2-null 293T. Bars, group means. The motif share separates AID from APOBEC3A in "
@@ -847,7 +847,7 @@ SUPP_FIGS = [
      "is an independently curated list rather than another run of this software. Analyses in "
      "`crm/liu_mutators.py` and `crm/devilder_clones.py`."),
     ("Figure S4. The control-based false-discovery threshold against planted truth, related to Figure 3",
-     FIG / "FigureS19_fdr_calibration.png",
+     FIG / "FigureS4_fdr_calibration.png",
      "The spike-in libraries of Figure 3 (60 substitutions planted into 1–20 reads of each held-out AID-null "
      "control, three draws per control; {fc_libs} libraries per locus) were called at six target false-discovery "
      "rates, every other setting at its default and only the other controls serving as null and decoys. (A) "
@@ -859,9 +859,9 @@ SUPP_FIGS = [
      "{fc_floor_lo}–{fc_floor_hi} per library while recall fell, consistent with library-specific errors that the "
      "other controls do not share and with decoy counts too coarse to resolve small targets (STAR Methods). The "
      "realised proportion depends on the number of true mutations per library (here 60) and is not a per-library "
-     "guarantee. Analysis in `crm/spikein.py` (`--tag _fdrcal`) and `crm/figs/figS19_fdr_calibration.py`."),
+     "guarantee. Analysis in `crm/spikein.py` (`--tag _fdrcal`) and `crm/figs/figS4_fdr_calibration.py`."),
     ("Figure S5. How many AID-null controls, and which, related to Figure 3",
-     FIG / "FigureS20_controls.png",
+     FIG / "FigureS5_controls.png",
      "(A–C) J_{H}4, the whole `run_project` procedure: the case is KO1 carrying planted polyclonal lineages, or "
      "none; the controls are halves of KO2 and KO3, so the third and fourth are technical partitions of the same "
      "two animals; {cd_runs} repeats per setting; points, repeats; bars, means. (A) Recall of planted mutations by "
@@ -878,9 +878,9 @@ SUPP_FIGS = [
      "libraries; lines, their range. False-discovery proportions were {cd_su_fdp_matched}% matched, "
      "{cd_su_fdp_other}% with CH12 controls and {cd_su_fdp_pooled}% pooled. The SRA reads carry no run "
      "identifiers, so D compares experiments rather than verified sequencing runs. Analysis in "
-     "`crm/controls_design.py` and `crm/figs/figS20_controls.py`."),
+     "`crm/controls_design.py` and `crm/figs/figS5_controls.py`."),
     ("Figure S3. What a project run writes, and how to read it, related to Figure 1",
-     FIG / "FigureS21_outputs_preview.png",
+     FIG / "FigureS3_outputs_preview.png",
      "Top, a project run: reads per animal and two or more AID-null controls in; a report, figures in PNG, SVG or "
      "PDF, Excel and CSV tables and the full result (with an AIRR rearrangement file) out. Below, SHMtrace's figures "
      "grouped by the question each answers, one per group redrawn from the J_{H}4 nanopore run (three Wt and three "
@@ -891,9 +891,9 @@ SUPP_FIGS = [
      "substitution types; bars, Wt pooled; points, mice. (E) Share of reads mutated at each position, Wt above the "
      "line and *Aicda*^{−/−} below; ticks, WRC/GYW hotspots. (F) Clones defined by the V(D)J junction, by size and "
      "number of mutations. Seven figures are drawn for every project and up to nineteen more when the run has the "
-     "data. Built with `crm/scicanvas/figS21_outputs.js`."),
+     "data. Built with `crm/scicanvas/figS3_outputs.js`."),
     ("Figure S6. Real hypermutation diluted into AID-null reads, related to Figure 3",
-     FIG / "FigureS22_titration.png",
+     FIG / "FigureS6_titration.png",
      "Each AID-active library (donor) was mixed with one AID-null library (diluent) at 1–100% donor reads in 500 "
      "usable reads, {ti_reps} draws per fraction, and called against the other two AID-null libraries (J_{H}4: "
      "donors Wt2–Wt4, diluent KO1, controls KO2 and KO3; N114: donors C1, D3 and D5, diluent D1, controls C3 and C4). "
@@ -903,9 +903,9 @@ SUPP_FIGS = [
      "reads. On N114, frequency was {ti_n114_ratio} of the expected value at 25–50% donor reads and calls began at "
      "{ti_n114_det}%. On J_{H}4, calling was all-or-nothing and began at {ti_jh4_det_lo}–{ti_jh4_det_hi}% donor "
      "reads depending on the donor, consistent with a control-based threshold that admits no call until enough "
-     "candidates exceed the controls' background. Analysis in `crm/titration.py` and `crm/figs/figS22_titration.py`."),
+     "candidates exceed the controls' background. Analysis in `crm/titration.py` and `crm/figs/figS6_titration.py`."),
     ("Figure S11. SHMtrace and the IgBLAST–SHazaM route on the same N114 reads, related to Figure 4",
-     FIG / "FigureS23_immcantation.png",
+     FIG / "FigureS11_immcantation.png",
      "The 500 reads SHMtrace analyzed from each N114 library were assigned by IgBLAST ({im_vcall}; the parental "
      "line is {im_vid}% identical to it over {im_vlen} bp) and their substitutions over the V segment counted by "
      "SHazaM, with the IMGT germline, with the parental V segment as germline, and with the parental germline after "
@@ -916,7 +916,7 @@ SUPP_FIGS = [
      "that SHMtrace does not call, so their AID-library values are higher ({im_aid_q20} against {im_aid_sh} per "
      "10^{3} bp with masking); their empty-vector values ({im_ctl_imgt} and {im_ctl_q20} per 10^{3} bp without and "
      "with the parental germline and masking) are the background they cannot remove. MiXCR was not run. Analysis in "
-     "`crm/immcantation_compare.py` and `crm/figs/figS23_immcantation.py`."),
+     "`crm/immcantation_compare.py` and `crm/figs/figS11_immcantation.py`."),
 ]
 
 if __name__ == "__main__":

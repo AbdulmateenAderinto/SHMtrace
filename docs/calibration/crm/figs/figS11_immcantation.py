@@ -1,4 +1,4 @@
-"""Figure S23: SHMtrace against the Immcantation route on the same N114 reads (immcantation_compare.py).
+"""Figure S11: SHMtrace against the Immcantation route on the same N114 reads (immcantation_compare.py).
 
 A  mutation frequency over the V segment per library: IgBLAST + SHazaM with the IMGT germline, with the parental
    V as germline, and with bases below Q20 masked first; SHMtrace's calls over the same segment
@@ -82,7 +82,7 @@ def main():
     letter(ax, "B", dx=-0.42)
     for a in fig.axes:
         a.tick_params(labelcolor=INK)
-    save(fig, "FigureS23_immcantation")
+    save(fig, "FigureS11_immcantation")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Figure S16: class-switch junctions in a public PacBio dataset (PRJNA831666).
+"""Figure S19: class-switch junctions in a public PacBio dataset (PRJNA831666).
 
 A    what each library yields: reads, junction reads and unique junctions per sample
 B    microhomology classes of the unique junctions, per genotype
@@ -106,7 +106,7 @@ def main():
     ax.set_ylim(-3, 55)
     ax.set_title("Acceptor breakpoint ambiguity", fontsize=7)
     letter(ax, "D", dx=-0.22)
-    save(fig, "FigureS16_switch_pacbio")
+    save(fig, "FigureS19_switch_pacbio")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Figure S6: where the background sits along the amplicon, and what the reads behind a call look like.
+"""Figure S10: where the background sits along the amplicon, and what the reads behind a call look like.
 
 The controls agree only weakly position by position (Spearman r = 0.12-0.45, so one control explains a few
 per cent of another's variation), which is why the error model pools over substitution type, strand and base
@@ -114,7 +114,7 @@ def main():
         ax = fig.add_subplot(gs[2, j])
         raster_panel(ax, d, n, label)
         letter(ax, "CD"[j], dx=-0.14)
-    save(fig, "FigureS6")
+    save(fig, "FigureS10")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Figure S17: public Sμ mutation libraries under PI3Kδ blockade (GSE77788).
+"""Figure S18: public Sμ mutation libraries under PI3Kδ blockade (GSE77788).
 
 A    what each library reads: the amplicon, the two read layouts, and the two analysis windows
 B    unique mutations per library in the window every library reads
@@ -94,7 +94,7 @@ def main():
                         "library per treatment against three AID-null, pooled as a descriptive contrast",
             transform=ax.transAxes, ha="center", fontsize=6, color=SOFT)
     letter(ax, "C", dx=-0.17)
-    save(fig, "FigureS17_public_smu")
+    save(fig, "FigureS18_public_smu")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Figure S18: engineered AID diversification.
+"""Figure S17: engineered AID diversification.
 
 A    AID against an APOBEC on one GFP substrate: what separates them and what does not (SRP159221)
 B    an AID-diversified antibody V_H against the authors' own list of its mutations (Devilder et al.)
@@ -84,7 +84,7 @@ def main():
                         "marker area, entries", transform=ax.transAxes, ha="right", fontsize=6, color=MID)
     letter(ax, "B", dx=-0.22)
 
-    save(fig, "FigureS18_engineered")
+    save(fig, "FigureS17_engineered")
 
 
 if __name__ == "__main__":

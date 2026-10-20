@@ -1,4 +1,4 @@
-"""Figure S3: single-read estimate, power, and UMI consensus on simulated libraries.
+"""Figure S7: single-read estimate, power, and UMI consensus on simulated libraries.
 
 A  single-read estimate: change in the estimate against one-read mutations planted (J_H4, 3 held-out controls)
 B  power at alpha 0.05 to detect a 2-fold change, by animals per group (J_H4 Wt pilot; power_s3.py), with a band
@@ -150,7 +150,7 @@ def main():
             ha="center", va="top", fontsize=6, color=MID)
     letter(ax, "E", dx=-0.3)
 
-    save(fig, "FigureS3")
+    save(fig, "FigureS7")
 
 
 if __name__ == "__main__":

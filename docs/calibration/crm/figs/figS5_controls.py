@@ -1,4 +1,4 @@
-"""Figure S20: how many AID-null controls, and which (controls_design.py).
+"""Figure S5: how many AID-null controls, and which (controls_design.py).
 
 A  recall of planted lineage mutations by number of controls (J_H4, the whole run_project procedure)
 B  false calls per library by number of controls, in lineage-bearing and all-null libraries
@@ -139,7 +139,7 @@ def main():
     letter(ax, "D", dx=-0.36)
     for a in fig.axes:
         a.tick_params(labelcolor=INK)
-    save(fig, "FigureS20_controls")
+    save(fig, "FigureS5_controls")
 
 
 if __name__ == "__main__":

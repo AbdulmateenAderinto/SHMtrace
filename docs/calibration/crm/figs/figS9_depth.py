@@ -1,4 +1,4 @@
-"""Figure S5: what depth buys, with the draw-to-draw spread shown.
+"""Figure S9: what depth buys, with the draw-to-draw spread shown.
 
 A-B  J_H4: unique variants and density against depth, every draw drawn
 C-D  N114: the same
@@ -89,7 +89,7 @@ def main():
     ax.text(0.5, 0.06, "AID-active libraries only\nJ$_H$4 (dark), N114 (light)\npoints, the five draws",
             transform=ax.transAxes, ha="center", va="bottom", fontsize=6, color=MID, linespacing=1.4)
     letter(ax, "E", dx=-0.26)
-    save(fig, "FigureS5")
+    save(fig, "FigureS9")
     out = {s: {"mean_pct_at_500": round(float(np.mean(v)), 1), "draws": [round(x, 1) for x in v]}
            for s, (v, _k) in reached.items()}
     json.dump(out, open(DATA / "figS5_reached.json", "w"), indent=1)

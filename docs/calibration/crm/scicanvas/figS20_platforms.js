@@ -5,7 +5,7 @@
   // bottom, what only one of Sanger and nanopore gives and what both give, with the agreement measured in the
   // same six mice (Figure 5) and the long-read results (Figure 6).
   // Every number is one the article reports. Built with manuscript_corrected/figure1_scicanvas/build.js into
-  // crm/figures/FigureS12_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
+  // crm/figures/FigureS20_platforms. Mutations purple, sequencing errors orange-red, Sanger amber, nanopore teal.
   const W = 1400, BAND = 648, H = 742 + BAND, o = [];
   const INK = '#1d2733', MID = '#4a5562', SOFT = '#6f7b88', FAINT = '#cfd8df', OUTL = '#b4bec8';
   const TEAL = '#1f6f8b', PACB = '#9a3439', PACBF = '#e2c2c2', ILL = '#3d5a80', ILLF = '#c9d6e3', SANG = '#a3621b', MUT = '#6a4c93', ERR = '#d0632a', ERRF = '#f0bf9e';
@@ -17,7 +17,7 @@
   const E = (cx, cy, d, e = {}) => { const r = Make.ellipse(cx - d / 2, cy - d / 2, d, d, { stroke: 'none', strokeWidth: 0, ...e }); o.push(r); return r; };
   const I = (id, cx, cy, size) => { const ic = Make.icon(id, 0, 0, size); ic.x = cx - ic.w / 2; ic.y = cy - ic.h / 2; o.push(ic); return ic; };
   const PAD = (fs) => { const w = (s) => Make.text(s, 0, 0, { fontSize: fs, family: F }).w; return 2 * w('x') - w('xx'); };
-  // text with J_H4 written with a subscript H (figS14_engine.js does the same)
+  // text with J_H4 written with a subscript H (figS22_engine.js does the same)
   const TJ = (text, x, y, e = {}) => {
     let cx = x;
     const put = (str, dy) => { const t = T(str, cx, y + dy, e); cx += t.w - PAD(t.fontSize); };

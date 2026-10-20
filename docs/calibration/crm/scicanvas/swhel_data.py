@@ -1,10 +1,10 @@
-"""Data for the SciCanvas Figure S10 (figS10_swhel.js).
+"""Data for the SciCanvas Figure S10 (figS15_swhel.js).
 
     python docs/calibration/crm/scicanvas/swhel_data.py
 
 Reads external/out/swhel_samhd1.json (SHMtrace on the deposited clones) and
 published/thientosapol2018_swhel.json (the paper's Table 1), reduces each panel to the numbers it
-plots, and writes them into figS10_swhel.js between the DATA markers.
+plots, and writes them into figS15_swhel.js between the DATA markers.
 """
 import collections
 import json
@@ -21,7 +21,7 @@ from inject import inject  # noqa: E402
 CRM = HERE.parent
 RES = json.load(open(CRM.parent / "external/out/swhel_samhd1.json"))
 PUB = json.load(open(CRM / "published/thientosapol2018_swhel.json"))
-BUILDER = HERE / "figS10_swhel.js"
+BUILDER = HERE / "figS15_swhel.js"
 TYPES = ["A>T", "A>C", "A>G", "T>A", "T>C", "T>G", "C>A", "C>T", "C>G", "G>A", "G>T", "G>C"]
 TS_GC, TV_GC = ("C>T", "G>A"), ("C>A", "C>G", "G>C", "G>T")
 TS_AT, TV_AT = ("A>G", "T>C"), ("A>T", "A>C", "T>A", "T>G")

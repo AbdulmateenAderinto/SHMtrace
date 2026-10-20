@@ -1,4 +1,4 @@
-"""Figure S22: real hypermutation diluted into AID-null reads (titration.py).
+"""Figure S6: real hypermutation diluted into AID-null reads (titration.py).
 
 A  J_H4: mutation frequency against the frequency expected from the donor and diluent alone, every fraction
 B  N114, the same (parental reference: ancestral_reference on)
@@ -102,7 +102,7 @@ def main():
     letter(ax, "C", dx=-0.32)
     for a in fig.axes:
         a.tick_params(labelcolor=INK)
-    save(fig, "FigureS22_titration")
+    save(fig, "FigureS6_titration")
 
 
 if __name__ == "__main__":

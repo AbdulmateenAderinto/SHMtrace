@@ -1,9 +1,9 @@
-"""Data for the SciCanvas Figure S9 (figS9_mkln.js).
+"""Data for the SciCanvas Figure S9 (figS14_mkln.js).
 
     python docs/calibration/crm/scicanvas/mkln_data.py
 
-Reads what figs/figS9_sanger_mkln.py reads (out/sanger_mkln.json and the transcribed published tables),
-reduces each panel to the numbers it plots, and writes them into figS9_mkln.js between the DATA markers,
+Reads what figs/figS14_sanger_mkln.py reads (out/sanger_mkln.json and the transcribed published tables),
+reduces each panel to the numbers it plots, and writes them into figS14_mkln.js between the DATA markers,
 so the builder stays one file that can also be pasted into SciCanvas.
 """
 import sys
@@ -15,10 +15,10 @@ from scipy import stats
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "figs"))
 sys.path.insert(0, str(HERE))
-from figS9_sanger_mkln import PUB, RES, TYPES, _bg_share, gc, pub_spec  # noqa: E402
+from figS14_sanger_mkln import PUB, RES, TYPES, _bg_share, gc, pub_spec  # noqa: E402
 from inject import inject  # noqa: E402
 
-BUILDER = HERE / "figS9_mkln.js"
+BUILDER = HERE / "figS14_mkln.js"
 GROUPS = ("WT", "Mkln1_KO", "Aicda_KO")
 
 

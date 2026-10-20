@@ -1,4 +1,4 @@
-"""Figure S7, page 2: the Sanger pipeline's bookkeeping checks on simulated projects with planted filing errors.
+"""Figure S12, page 2: the Sanger pipeline's bookkeeping checks on simulated projects with planted filing errors.
 
 This was Figure 5E; it moved here when panel E became the per-mouse platform comparison.
 """
@@ -33,7 +33,7 @@ def main():
     ax.set_title("Sanger bookkeeping checks, 40 simulated projects", fontsize=7, loc="right")
     ax.text(1.0, -0.42, "no flags on 6,018 correctly filed clones", transform=ax.transAxes, ha="right",
             fontsize=6, color=MID)
-    save(fig, "FigureS7_bookkeeping")
+    save(fig, "FigureS12_bookkeeping")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 """The eight nanopore reads drawn in Figure S12, over the whole J_H4 amplicon.
 
-    python docs/calibration/crm/scicanvas/s12_reads.py   -> prints the READS array for figS12_platforms.js
+    python docs/calibration/crm/scicanvas/s12_reads.py   -> prints the READS array for figS20_platforms.js
 
 The per-read raster in out/intuition_jh4.json is clipped to the 529-bp window shared with Sanger, so a read drawn
 from it carries no mutation past position 629 and the panel would imply SHM stops there. It does not: in the

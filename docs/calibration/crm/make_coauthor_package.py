@@ -35,7 +35,9 @@ THEIR_ZIP = Path.home() / ("Documents/Projects/2026/PhD - Fundamental Immunology
 THEIR_SNAPSHOT, THEIR_PATCH = "83a908c", "3317fd9"
 THEIR_OUT = "revised_data/docs/calibration/crm/out/"
 DATA = ["fdr_validation", "fdr_null_reps", "fdr_estimator", "benchmark_real_jh4", "benchmark_real_n114",
-        "figS15_numbers", "figS15_estimator", "fig2_numbers"]
+        "figS15_numbers", "figS15_estimator", "fig2_numbers",
+        # the figures added on 20 October (Figures S4, S5, S6 and S11)
+        "fdr_calibration", "controls_design", "titration_summary", "immcantation_summary"]
 MAIN_FIGS = ["GraphicalAbstract_preview", "Figure1_preview", "Figure2", "Figure3", "Figure4", "Figure5",
              "Figure6", "Figure7"]
 NOT_SOURCE = [f":(exclude)*.{x}" for x in ("png", "pdf", "tif", "svg", "scifig", "docx", "xlsx", "zip")]
@@ -179,6 +181,12 @@ def main():
     shutil.copy(CRM / "REVIEW_RESPONSE.md", pkg / "05_REVIEW_RESPONSE.md")
     shutil.copy(CRM / "HANDOVER.md", pkg / "06_HANDOVER.md")
     shutil.copy(CRM / "REFEREE_RESPONSE.md", pkg / "07_REFEREE_RESPONSE.md")
+    # the article and Document S1 in one linked, versioned file (build_crm.write_complete)
+    for complete in sorted(BUILD.glob("SHMtrace_CellReportsMethods_complete_v*.docx")):
+        version = complete.stem.rsplit("_v", 1)[1]
+        sh(SOFFICE, "--headless", "--convert-to", "pdf", complete.name, "--outdir", str(BUILD), cwd=BUILD)
+        for ext in ("docx", "pdf"):
+            shutil.copy(complete.with_suffix(f".{ext}"), pkg / f"08_Complete_manuscript_v{version}.{ext}")
 
     # figures: the main figures, then every image Document S1 embeds, taken from the build's own list so the set
     # cannot drift from the document

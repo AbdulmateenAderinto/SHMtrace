@@ -1,9 +1,9 @@
-"""Data for the SciCanvas Figure S8 (figS8_cohort2.js).
+"""Data for the SciCanvas Figure S8 (figS13_cohort2.js).
 
     python docs/calibration/crm/scicanvas/cohort2_data.py
 
-Reads what figs/figS8_sanger_cohort2.py reads (out/sanger_cohort2.json and the transcribed published
-tables), reduces each panel to the numbers it plots, and writes them into figS8_cohort2.js between the
+Reads what figs/figS13_sanger_cohort2.py reads (out/sanger_cohort2.json and the transcribed published
+tables), reduces each panel to the numbers it plots, and writes them into figS13_cohort2.js between the
 DATA markers, so the builder stays one file that can also be pasted into SciCanvas.
 """
 import json
@@ -16,7 +16,7 @@ from scipy import stats
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "figs"))
-from figS8_sanger_cohort2 import (  # noqa: E402
+from figS13_sanger_cohort2 import (  # noqa: E402
     MICE,
     PUB,
     RES,
@@ -29,7 +29,7 @@ from figS8_sanger_cohort2 import (  # noqa: E402
     pub_spec,
 )
 
-BUILDER = HERE / "figS8_cohort2.js"
+BUILDER = HERE / "figS13_cohort2.js"
 GROUPS = ("WT", "Maea_KO", "Aicda_KO")
 
 

@@ -20,8 +20,8 @@ HERE = Path(__file__).resolve().parent
 CRM = HERE.parent
 ARTICLE = CRM / "build" / "SHMtrace_CellReportsMethods.docx"
 SOURCES = [HERE / f for f in ("crm_text.py", "crm_methods.py", "build_crm.py", "crm_numbers.py", "lab_details.py",
-                              "assemble.py")] + [CRM / "make_tables.py", CRM / "scicanvas/figS12_platforms.js",
-                                                 CRM / "scicanvas/figS13_overview.js"]
+                              "assemble.py")] + [CRM / "make_tables.py", CRM / "scicanvas/figS20_platforms.js",
+                                                 CRM / "scicanvas/figS21_overview.js"]
 DASH = r"(?:–|\\u2013|-)"
 JOIN = r'(?:"\s*\n\s*f?")?'                         # a citation running on into the next string literal
 ITEM = rf"S?\d+[A-Z]*(?:{JOIN}{DASH}{JOIN}S?\d+[A-Z]*)?"

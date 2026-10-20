@@ -64,7 +64,7 @@ def drawn_panels(src):
 
 
 def script_for(stem, scripts):
-    """The drawing script for a figure stem such as 'Figure5' or 'FigureS18_engineered'."""
+    """The drawing script for a figure stem such as 'Figure5' or 'FigureS17_engineered'."""
     want = stem.lower().replace("figure", "fig")
     for p in scripts:
         n = p.stem.lower()

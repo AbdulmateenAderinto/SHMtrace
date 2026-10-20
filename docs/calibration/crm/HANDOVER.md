@@ -102,13 +102,13 @@ Each build writes four files from one stem: `<stem>.scifig` (reopen in the app t
 | `crm_figure1.js` | `Figure1` | — |
 | `crm_ga.js` | `GraphicalAbstract` (needs `GA=1`) | — |
 | `figS1_workflow.js` | `FigureS1_workflow` | read accounting, by `build.js` |
-| `figS8_cohort2.js` | `FigureS8_sanger_cohort2` | `cohort2_data.py` |
-| `figS9_mkln.js` | `FigureS9_sanger_mkln` | `mkln_data.py` |
-| `figS10_swhel.js` | `FigureS10_swhel` | `swhel_data.py` |
-| `figS16_switch_pacbio.py`, `figS17_public_smu.py` | Figures S16 and S17 | matplotlib, not SciCanvas; see `PUBLIC_VALIDATION.md` |
-| `figS12_platforms.js` | `FigureS12_platforms` | `s12_reads.py` (prints a READS array to paste); the Illumina band's numbers are from `s12_illumina.py` (→ `out/s12_illumina.json`), typed into the builder |
-| `figS13_overview.js` | `FigureS13_overview` | — |
-| `figS14_engine.js` | `FigureS14_engine` | `engine_data.py` |
+| `figS13_cohort2.js` | `FigureS13_sanger_cohort2` | `cohort2_data.py` |
+| `figS14_mkln.js` | `FigureS14_sanger_mkln` | `mkln_data.py` |
+| `figS15_swhel.js` | `FigureS15_swhel` | `swhel_data.py` |
+| `figS19_switch_pacbio.py`, `figS18_public_smu.py` | Figures S16 and S17 | matplotlib, not SciCanvas; see `PUBLIC_VALIDATION.md` |
+| `figS20_platforms.js` | `FigureS20_platforms` | `s12_reads.py` (prints a READS array to paste); the Illumina band's numbers are from `s12_illumina.py` (→ `out/s12_illumina.json`), typed into the builder |
+| `figS21_overview.js` | `FigureS21_overview` | — |
+| `figS22_engine.js` | `FigureS22_engine` | `engine_data.py` |
 | `star_figure1.js` | the STAR protocol's figure | — |
 
 
@@ -141,7 +141,7 @@ figure and the manuscript quote the same values. To refresh a figure's numbers, 
 SciCanvas's own plot worker at printed size, after the shared prelude `plots_common.py` (palette, rcParams),
 which `build.js` saves as the document's plot prelude. The result is placed as an SVG asset *plus its code*,
 so reopening the `.scifig` in SciCanvas keeps every plot re-runnable and every label editable. Only
-`figS9_mkln.js` and `figS10_swhel.js` use this.
+`figS14_mkln.js` and `figS15_swhel.js` use this.
 
 **Cell Press checks run on every build and a breach stops it**: 174 mm wide, ≤ 200 mm tall, Arial, text
 6–8 pt, strokes 0.5–1.5 pt, grey fills 10–80%. This is a feature — if the build fails on "text 5.40 pt",
@@ -150,9 +150,9 @@ the figure would have been rejected in production. Fix the figure, do not raise 
 ### Two gotchas
 
 1. **`build.js` writes `<stem>_preview.png`, but the manuscript references different names for the older
-   figures** — e.g. `build_crm.py` points at `FigureS10_swhel.png`, not `FigureS10_swhel_preview.png`.
+   figures** — e.g. `build_crm.py` points at `FigureS15_swhel.png`, not `FigureS15_swhel_preview.png`.
    After rebuilding, make sure the file the manuscript references is the one you just made. For
-   `FigureS12_platforms` and `FigureS13_overview` that means copying `<stem>_preview.png` to `<stem>.png` and
+   `FigureS20_platforms` and `FigureS21_overview` that means copying `<stem>_preview.png` to `<stem>.png` and
    saving `<stem>.tif` from it (1,000 dpi label, LZW); on 17 Oct both had been rebuilt but the documents still
    embedded the old images until this was done. The existence check below does not catch a stale file:
 
@@ -182,7 +182,7 @@ cd ~/Nanoshm/nanoshm_v0.2/docs/calibration
 # a matplotlib figure
 cd crm/figs && $PY -W ignore fig3_calibration.py       # writes crm/figures/Figure3.{png,pdf,svg,tif}
 # Figure 5E reads out/fig5_per_mouse.json: $PY crm/fig5_per_mouse.py first (it refuses to write unless the
-# per-mouse calls pool back to Figure 5B exactly). Figure S7 page 2 is figs/figS7_bookkeeping.py.
+# per-mouse calls pool back to Figure 5B exactly). Figure S7 page 2 is figs/figS12_bookkeeping.py.
 
 # the documents (always rerun after touching text, numbers or legends). Writes the article, Document S1,
 # the highlights, and SHMtrace_CellReportsMethods_complete_v<VERSION>.docx: the article, every supplementary
@@ -282,10 +282,10 @@ unless the method changed. `ARCHIVE.md` lists the command behind every one.
 
 ## 6b. Figures added on 20 October, and two planned
 
-Added and in Document S1: S19 (`figs/figS19_fdr_calibration.py`; `spikein.py --tag _fdrcal`), S20
-(`controls_design.py`, `figs/figS20_controls.py`), S21 (`scicanvas/figS21_outputs.js`, numbers from
-`scicanvas/outputs_data.py`), S22 (`titration.py`, `figs/figS22_titration.py`) and S23
-(`immcantation_compare.py IGDATA`, `figs/figS23_immcantation.py`). Their inputs in `crm/out/` are not in git;
+Added and in Document S1: S19 (`figs/figS4_fdr_calibration.py`; `spikein.py --tag _fdrcal`), S20
+(`controls_design.py`, `figs/figS5_controls.py`), S21 (`scicanvas/figS3_outputs.js`, numbers from
+`scicanvas/outputs_data.py`), S22 (`titration.py`, `figs/figS6_titration.py`) and S23
+(`immcantation_compare.py IGDATA`, `figs/figS11_immcantation.py`). Their inputs in `crm/out/` are not in git;
 copies are in `~/Nanoshm/audit_rerun_2026-10-20/out_snapshot`. `immcantation_compare.py` needs IgBLAST's
 `internal_data/mouse` and `optional_file/mouse_gl.aux` in a folder whose path has no spaces (a copy came from the
 EPI2ME N114 run); MiXCR's licence had expired, so it was not run.

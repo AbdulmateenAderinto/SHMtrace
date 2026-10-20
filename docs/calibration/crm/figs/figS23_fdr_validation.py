@@ -1,4 +1,4 @@
-"""Figure S15: the whole calling procedure tested on fresh simulations, with the noisy-control rule on and off.
+"""Figure S23: the whole calling procedure tested on fresh simulations, with the noisy-control rule on and off.
 
 A  all-null libraries: the chance of any discovery at all, by noise condition, rule on and off
 B  all-null libraries: mean false calls per library, the measure that hides A
@@ -147,7 +147,7 @@ def main():
         print("estimator (mean vs max):")
         for n, a, b, c, d in rows:
             print(f"  {n:10s} true {a:6.1f} -> {b:6.1f}   FDP {c:4.1f}% -> {d:4.1f}%")
-    save(fig, "FigureS15")
+    save(fig, "FigureS23")
 
     # the numbers the legend and the response quote
     out = {}

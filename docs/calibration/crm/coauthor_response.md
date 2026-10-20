@@ -6,10 +6,12 @@ on trust. Every number below is recomputed by the packaging script and recorded 
 
 Repository state: `{head}` (working tree clean). Your patch was made against `83a908c`.
 
+**Rebuilt again on 20 October.** Supplementary figures and tables are now numbered in the order the article first cites them (old-to-new table in `06_HANDOVER.md`), and every number in this note follows the current documents. Five supplementary figures were added (S3, S4, S5, S6 and S11), and `08_Complete_manuscript_v1.0` puts the article and Document S1 in one file with linked citations.
+
 **This package was rebuilt on 18 October and carries more than the answer to your review.** Since the
-17 October response the manuscript gained six public datasets (Figures S16–S18 and six new Table 1 rows),
-and an external referee report was acted on: confirmed errors in Figures S6, S8D, S9B, Table S3, the
-Figure 1C and S13 legends and several Methods statements, with a number of overclaims bounded. Those
+17 October response the manuscript gained six public datasets (Figures S17–S19 and six new rows in the dataset table, now Table S2),
+and an external referee report was acted on: confirmed errors in Figures S10, S13D, S14B, Table S6, the
+Figure 1C and S21 legends and several Methods statements, with a number of overclaims bounded. Those
 changes are listed item by item, with what was verified against what, in `07_REFEREE_RESPONSE.md`.
 Figures 1, 2, 5 and S6 in this package therefore differ from the ones in the 17 October package.
 
@@ -37,7 +39,7 @@ regenerating them. They were regenerated with the patched code:
 |---|---|
 | FDR validation, `fdr_validation` + `fdr_null_reps` + `fdr_estimator` | {fdr_same}/{fdr_total} runs identical in every result field |
 | J_H4 and N114 benchmark, `benchmark_real.py` | {bench_same}/{bench_total} rows identical in calls and base counts |
-| Table S2 workbook | {s2_summary} |
+| Table S1 workbook (formerly S2) | {s2_summary} |
 
 {fdr_order_note}
 
@@ -117,8 +119,9 @@ included as `05_REVIEW_RESPONSE.md` and `06_HANDOVER.md`.
 | `01_Manuscript.pdf`, `.docx`, `.txt` | the article |
 | `02_Supplement_Document_S1.pdf`, `.docx`, `.txt` | Document S1 |
 | `03_Highlights_eTOC_Motivation.pdf`, `.docx` | front matter |
-| `04_Table_S2_benchmark.xlsx` | Table S2 |
+| `04_Table_S1_benchmark.xlsx` | Table S1 (formerly S2) |
 | `05_REVIEW_RESPONSE.md`, `06_HANDOVER.md` | the corrected tracker and handover |
+| `08_Complete_manuscript_v1.0.pdf`, `.docx` | the article and Document S1 in one file, citations linked |
 | `figures/` | every standalone figure image; `.scifig` sources for Figure 1 and the graphical abstract |
 | `patches/` | source diffs since your snapshot, and beyond your patch |
 | `data/` | the regenerated validation and benchmark outputs |

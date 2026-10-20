@@ -988,7 +988,7 @@ def compute():
         strict = [v for ds in pj.values() for k, v in ds.items() if k != "default"]
         N.update(st_p_hi=pfmt(max(v["p_log_welch"] for v in strict)),
                  st_fold_lo=f0(min(v["fold"] for v in strict)), st_fold_hi=f0(max(v["fold"] for v in strict)))
-    # Figure S4: the false-discovery target against planted truth at six targets (figs/figS19_fdr_calibration.py)
+    # Figure S4: the false-discovery target against planted truth at six targets (figs/figS4_fdr_calibration.py)
     fc_path = OUT / "fdr_calibration.json"
     if fc_path.exists():
         fc = _load(fc_path)
@@ -1013,7 +1013,7 @@ def compute():
                  fc_def_fp_hi=f1(max(v["false_per_library"] for v in d.values())),
                  fc_jh4_rec_def=pct(d["jh4"]["recall"]), fc_jh4_rec_1=pct(one["jh4"]["recall"]),
                  fc_su_rec_def=pct(d["su_lps"]["recall"]), fc_su_rec_1=pct(one["su_lps"]["recall"]))
-    # Figure S5: how many controls, and which (crm/controls_design.py, figs/figS20_controls.py)
+    # Figure S5: how many controls, and which (crm/controls_design.py, figs/figS5_controls.py)
     cd_path = OUT / "controls_design.json"
     if cd_path.exists():
         cd = _load(cd_path)
@@ -1050,7 +1050,7 @@ def compute():
                  cd_su_fp_pooled=f1(S["pooled (5)"]["false_per_library"]),
                  cd_su_rec_pooled=pct(S["pooled (5)"]["recall"]),
                  cd_su_fdp_pooled=pc1(S["pooled (5)"]["fdp_pooled"]))
-    # Figure S6: real hypermutation diluted into AID-null reads (crm/titration.py, figs/figS22_titration.py)
+    # Figure S6: real hypermutation diluted into AID-null reads (crm/titration.py, figs/figS6_titration.py)
     ti_path = OUT / "titration_summary.json"
     if ti_path.exists():
         ti = _load(ti_path)
@@ -1068,7 +1068,7 @@ def compute():
         dflt = ti.get("n114_default", {})
         if dflt:
             N.update(ti_d3_def_50=f2(dflt["D3|0.5"]), ti_d3_def_100=f2(dflt["D3|1.0"]))
-    # Figure S11: the Immcantation route on the same N114 reads (crm/immcantation_compare.py, figs/figS23_immcantation.py)
+    # Figure S11: the Immcantation route on the same N114 reads (crm/immcantation_compare.py, figs/figS11_immcantation.py)
     im_path = OUT / "immcantation_summary.json"
     if im_path.exists():
         im = _load(im_path)

@@ -1,4 +1,4 @@
-"""Figure S19: the control-based false-discovery threshold against planted truth, at six targets.
+"""Figure S4: the control-based false-discovery threshold against planted truth, at six targets.
 
 A  realised false-discovery proportion (false / all calls, pooled over a dataset's libraries) against the target
 B  false calls per library: below the default they stop falling, while recall (C) does not
@@ -105,7 +105,7 @@ def main():
     ax.text(X[0.05] + 0.08, 3, "default", color=MID, fontsize=6, rotation=90, va="bottom")
     ax.set_ylabel("Planted mutations recalled (%)")
     letter(ax, "C", dx=-0.3)
-    save(fig, "FigureS19_fdr_calibration")
+    save(fig, "FigureS4_fdr_calibration")
 
 
 if __name__ == "__main__":

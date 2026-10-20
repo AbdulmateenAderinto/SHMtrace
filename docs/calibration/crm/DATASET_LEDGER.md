@@ -11,8 +11,8 @@ No `AGENTS.md` exists in either the workspace or the repository; none was applie
 
 | Dataset | Accession | What it tested | Outputs |
 |---|---|---|---|
-| Vincendeau 2022, PacBio CSR | PRJNA831666, 12 runs / 58 MB | the junction module; XLF-dependent microhomology recovered | `crm/out/switch_pacbio/`, Figure S16 |
-| Compagno 2017, Illumina Sμ | GSE77788 / PRJNA311552, 18 runs / 540 MB | control calibration on an independent lab and platform | `crm/out/public_smu/`, Figure S17 |
+| Vincendeau 2022, PacBio CSR | PRJNA831666, 12 runs / 58 MB | the junction module; XLF-dependent microhomology recovered | `crm/out/switch_pacbio/`, Figure S19 |
+| Compagno 2017, Illumina Sμ | GSE77788 / PRJNA311552, 18 runs / 540 MB | control calibration on an independent lab and platform | `crm/out/public_smu/`, Figure S18 |
 | Germline-policy demonstration | synthetic, no download | what the 50% rule does to selected variants | `crm/out/germline_policy/`, below |
 | E1 Bassan 2021, AID-diversified TCR | figshare 12803501, 12 SAM / 228 MB | variant recovery against a known ancestral construct | `crm/out/tcr/`, below |
 | E5 Devilder 2019, anti-HLA-A2 clones | supplement DOCX, 53 KB | calls against an independent published annotation | `crm/out/devilder/`, below |

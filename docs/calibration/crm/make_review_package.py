@@ -20,10 +20,13 @@ BUILD, FIGS = CRM / "build", CRM / "figures"
 PKG = BUILD / "SHMtrace_review_package"
 SOFFICE = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
 FIGURES = ["GraphicalAbstract_preview", "Figure1_preview", "Figure2", "Figure3", "Figure4", "Figure5", "Figure6",
-           "Figure7", "FigureS1_workflow_preview", "FigureS2", "FigureS3", "FigureS5", "FigureS6",
-           "FigureS7_bookkeeping", "FigureS8_sanger_cohort2", "FigureS9_sanger_mkln", "FigureS10_swhel",
-           "FigureS12_platforms", "FigureS13_overview", "FigureS14_engine", "FigureS15",
-           "FigureS16_switch_pacbio", "FigureS17_public_smu", "FigureS18_engineered"]
+           "Figure7", "FigureS1_workflow_preview", "FigureS2", "FigureS3_outputs_preview", "FigureS4_fdr_calibration",
+           "FigureS5_controls", "FigureS6_titration", "FigureS7", "FigureS8_n114", "FigureS8_spectra_jh4",
+           "FigureS8_spectra_n114", "FigureS9", "FigureS10", "FigureS11_immcantation", "FigureS12_sanger_matrices",
+           "FigureS12_sanger_window", "FigureS12_bookkeeping", "FigureS13_sanger_cohort2", "FigureS14_sanger_mkln",
+           "FigureS15_swhel", "FigureS16_spectra_full_length", "FigureS16_mutation_trees", "FigureS17_engineered",
+           "FigureS18_public_smu", "FigureS19_switch_pacbio", "FigureS20_platforms", "FigureS21_overview",
+           "FigureS22_engine", "FigureS23"]
 
 
 def run(*cmd, cwd=None):
@@ -43,6 +46,10 @@ def main():
     for src, name in (("SHMtrace_CellReportsMethods", "01_Manuscript"), ("Document_S1", "02_Supplement_Document_S1")):
         shutil.copy(BUILD / f"{src}.pdf", PKG / f"{name}.pdf")
         run("pdftotext", "-layout", str(PKG / f"{name}.pdf"), str(PKG / f"{name}.txt"))
+    # the article and Document S1 in one linked, versioned file (build_crm.write_complete), when built
+    for complete in sorted(BUILD.glob("SHMtrace_CellReportsMethods_complete_v*.docx")):
+        run(SOFFICE, "--headless", "--convert-to", "pdf", complete.name, "--outdir", str(BUILD), cwd=BUILD)
+        shutil.copy(complete.with_suffix(".pdf"), PKG / f"05_Complete_manuscript_v{complete.stem.rsplit('_v', 1)[1]}.pdf")
     front = docx.Document(BUILD / "Highlights_eTOC_Motivation.docx")
     (PKG / "03_Highlights_eTOC_Motivation.txt").write_text("\n".join(p.text for p in front.paragraphs))
     shutil.copy(CRM / "out/Table_S1_benchmark.xlsx", PKG / "04_Table_S1_benchmark.xlsx")

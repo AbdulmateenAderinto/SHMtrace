@@ -1,6 +1,6 @@
 """Cell Press print minimums for the matplotlib figures: text >= 6 pt (super- and subscripts too), lines 0.5-1.5 pt.
 
-    python docs/calibration/crm/figs/print_check.py [Figure2 FigureS3 ...]
+    python docs/calibration/crm/figs/print_check.py [Figure2 FigureS7 ...]
 
 Reads each figure's SVG, which matplotlib writes at its printed size (1 SVG unit = 1 pt), and lists every text run
 and stroke below the minimum with the text it belongs to. The SciCanvas figures are checked by
@@ -14,9 +14,9 @@ from style import OUT
 
 MIN_PT, MIN_LW, MAX_LW = 5.95, 0.495, 1.505
 STAR = str(Path(__file__).resolve().parents[1] / "star" / "figures")
-FIGURES = ["Figure2", "Figure3", "Figure4", "Figure5", "Figure6", "Figure7", "FigureS2", "FigureS3", "FigureS5",
-           "FigureS6", "FigureS7_bookkeeping", "FigureS15", "FigureS16_switch_pacbio", "FigureS17_public_smu",
-           "FigureS18_engineered", "FigureS19_fdr_calibration", "FigureS20_controls", "FigureS22_titration", "FigureS23_immcantation", f"{STAR}/STAR_Figure3", f"{STAR}/STAR_Figure4"]
+FIGURES = ["Figure2", "Figure3", "Figure4", "Figure5", "Figure6", "Figure7", "FigureS2", "FigureS7", "FigureS9",
+           "FigureS10", "FigureS12_bookkeeping", "FigureS23", "FigureS19_switch_pacbio", "FigureS18_public_smu",
+           "FigureS17_engineered", "FigureS4_fdr_calibration", "FigureS5_controls", "FigureS6_titration", "FigureS11_immcantation", f"{STAR}/STAR_Figure3", f"{STAR}/STAR_Figure4"]
 
 
 def check(name):

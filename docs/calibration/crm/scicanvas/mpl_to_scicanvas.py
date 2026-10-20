@@ -450,7 +450,7 @@ def convert(stem, figure_name, out_js):
 
 
 FIGURES = {"fig3_calibration": "Figure 3", "fig4_controls": "Figure 4", "fig7_platforms": "Figure 7",
-           "figS3_estimates": "Figure S3", "figS5_depth": "Figure S5"}
+           "figS7_estimates": "Figure S3", "figS9_depth": "Figure S5"}
 
 if __name__ == "__main__":
     install()

@@ -42,8 +42,8 @@ Still open:
 ```bash
 PY=~/Nanoshm/nanoshm_v0.2/.venv/bin/python
 cd ~/Nanoshm/nanoshm_v0.2/docs/calibration
-$PY crm/build_switch_reference.py && $PY -W ignore crm/switch_pacbio.py   # PRJNA831666 -> Figure S16
-$PY -W ignore crm/public_smu_pi3k.py                                      # GSE77788    -> Figure S17
+$PY crm/build_switch_reference.py && $PY -W ignore crm/switch_pacbio.py   # PRJNA831666 -> Figure S19
+$PY -W ignore crm/public_smu_pi3k.py                                      # GSE77788    -> Figure S18
 $PY -W ignore crm/germline_policy_demo.py                                 # synthetic, no download
 ```
 

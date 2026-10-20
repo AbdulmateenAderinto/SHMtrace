@@ -2,7 +2,7 @@
   // SHMtrace's outputs at a glance: what a project run writes, and how to read the figures. The top band is the
   // run (inputs, SHMtrace, four kinds of output); below, the 26 figures grouped by the question each answers,
   // each group with one of its figures redrawn from the J_H4 example run and a short note on how to read it.
-  // Numbers are written into DATA by outputs_data.py. Built with build.js into crm/figures/FigureS21_outputs;
+  // Numbers are written into DATA by outputs_data.py. Built with build.js into crm/figures/FigureS3_outputs;
   // the six question cards are panels A-F.
   // Cell Press rules as in crm_figure1.js (174 mm; Arial 6-8 pt; strokes 0.5-1.5 pt). Wild type blue,
   // AID-null red (also the controls' colour, as in every SHMtrace figure).

@@ -1,7 +1,7 @@
-"""Figure S8, the matplotlib draft: a published Sanger study re-analysed automatically
+"""Figure S13, the matplotlib draft: a published Sanger study re-analysed automatically
 (Barbulescu et al., 2024, J_H4, cohort 2).
 
-The published Figure S8 is built in SciCanvas (scicanvas/figS8_cohort2.js), from the numbers that
+The published Figure S13 is built in SciCanvas (scicanvas/figS13_cohort2.js), from the numbers that
 scicanvas/cohort2_data.py takes from this module; running this file draws the draft into out/.
 
 A    mutation frequency per mouse: SHMtrace from the chromatograms against the published values
@@ -232,7 +232,7 @@ def main():
     ax.plot([0, 1.0], [0.875, 0.875], color=SOFT, lw=0.5, transform=ax.transAxes)
     ax.set_title("Published tests, recovered", fontsize=7)
     letter(ax, "F", dx=-0.05)
-    fig.savefig(DATA / "FigureS8_sanger_cohort2_matplotlib.png", dpi=300)
+    fig.savefig(DATA / "FigureS13_sanger_cohort2_matplotlib.png", dpi=300)
     return {"spearman": float(stats.spearmanr(xs, ys)[0]), "ratio": float(ratio), "spec_r": float(r),
             "sh_fold": float(sh_f[0]), "sh_p": float(sh_f[1]), "pub_fold": float(pb_f[0]), "ts_p": float(ts_sh),
             "tv_p": float(tv_sh)}

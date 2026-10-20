@@ -1,6 +1,6 @@
 () => {
   // Cell Reports Methods, Figure S21: an overview of SHMtrace, from libraries to group tests. Built with
-  // manuscript_corrected/figure1_scicanvas/build.js into crm/figures/FigureS13_overview; Figure S22 gives the
+  // manuscript_corrected/figure1_scicanvas/build.js into crm/figures/FigureS21_overview; Figure S22 gives the
   // rule and equation behind each step. Cell Press rules as in crm_figure1.js (174 mm; Arial 6-8 pt;
   // strokes 0.5-1.5 pt). Mutations purple, sequencing errors orange-red, AID-null controls red,
   // AID-competent animals blue, SHMtrace teal.

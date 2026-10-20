@@ -26,13 +26,14 @@ same run, and groups are compared with the animal, not the read, as the unit. Th
 |---|---|
 | `01_Manuscript.pdf` | Main text, figures 1-7 with legends, STAR Methods, references |
 | `01_Manuscript.txt` | The same as plain text (layout preserved), for easier quoting |
-| `02_Supplement_Document_S1.pdf` | Document S1: supplementary figures S1-S18 and tables S1, S3, S4, S5 |
+| `02_Supplement_Document_S1.pdf` | Document S1: supplementary figures S1-S23 and tables S2-S7 |
 | `02_Supplement_Document_S1.txt` | The same as plain text |
 | `03_Highlights_eTOC_Motivation.txt` | Highlights, eTOC blurb, Motivation statement |
-| `04_Table_S2_benchmark.xlsx` | Table S2, the benchmark spreadsheet |
-| `figures/` | Full-resolution images of the main figures, the graphical abstract, most supplementary figures and Table S4, for close inspection |
+| `04_Table_S1_benchmark.xlsx` | Table S1, the benchmark spreadsheet |
+| `05_Complete_manuscript_v<version>.pdf` | The article and Document S1 in one file; every figure, table and reference citation is a link |
+| `figures/` | Full-resolution images of the main figures, the graphical abstract, every supplementary figure (named by its number) and Table S4, for close inspection |
 
-Figures S4, S7 and S11 appear only inside Document S1.
+Supplementary figures are numbered in the order the article first cites them.
 
 ## What to check
 
@@ -50,7 +51,7 @@ Figures S4, S7 and S11 appear only inside Document S1.
    thresholds, data and code availability)?
 5. **Controls and confounders.** Batch effects, sequencing-run effects, PCR duplicates and lineage expansion,
    germline differences, paralogous amplicons, and the choice of AID-null libraries as the error model.
-6. **The re-analyses of published studies** (Figures S8, S9 and S10; Table S4). Are the comparisons fair? Are the
+6. **The re-analyses of published studies** (Figures S13, S14 and S15; Table S4). Are the comparisons fair? Are the
    remaining differences explained adequately? Is the language about published analyses neutral and factual?
 7. **Figures.** Readability at print size, axis labels and units, colour use (colour-blind safety), legends that
    fully define symbols and error bars, and panel ordering that matches the text.
@@ -64,7 +65,7 @@ Figures S4, S7 and S11 appear only inside Document S1.
 
 These are disclosed in the manuscript. Comment on whether the disclosure is adequate, but do not treat them as
 discoveries:
-- In the *Mkln1* re-analysis (Figure S9), only one of the three published knockout per-mouse tables could be matched to
+- In the *Mkln1* re-analysis (Figure S14), only one of the three published knockout per-mouse tables could be matched to
   the clones of a mouse folder in the original project, which limits knockout agreement (r = 0.62 against 0.97 for
   wild type).
 - The *Mkln1* and *Maea* studies counted paralogous amplicons as sequences, and the published frequencies divide by

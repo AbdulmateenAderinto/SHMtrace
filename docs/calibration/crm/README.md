@@ -20,6 +20,10 @@ script in `figs/` or `scicanvas/`.
 | `targeting_jh4.py`, `targeting_ch12.py` | 5-mer targeting index and dose-response | `targeting_*.json` |
 | `jh4_extras.py` | J_H4/N114 projects with the targeting model, clones, single-read estimate | `extras_*/` |
 | `make_tables.py` | Table S1 | `Table_S1_benchmark.xlsx` |
+| `spikein.py jh4 n114 su_lps pim1 --tag _fdrcal` | the false-discovery target against planted truth, six targets (Figure S4) | `spikein_*_fdrcal.json` |
+| `controls_design.py jh4`, `controls_design.py su` | how many AID-null controls, and which (Figure S5) | `controls_design_*.json` |
+| `titration.py` | real hypermutation diluted into AID-null reads (Figure S6) | `titration.json` |
+| `immcantation_compare.py IGDATA` | IgBLAST and SHazaM on the N114 reads (Figure S11) | `immcantation_compare.json` |
 
 Inputs outside the repository: the deposit's delivered FASTQs, `~/Nanoshm/public_data/` (public sets, not
 redistributed; Karst et al. data are GPL-3 and not committed), `~/Nanoshm/models/HH_S5F.csv` (exported from
@@ -30,14 +34,20 @@ SHazaM with `scripts/export_shazam_model.R`; AGPL-3, not committed).
 - `scicanvas/crm_figure1.js`, `crm_ga.js`, `star_figure1.js`: built with
   `manuscript_corrected/figure1_scicanvas/build.js` (graphical abstract with `GA=1`); Cell Press checks and
   SciCanvas's figure check run on every build.
-- `figs/fig2_call.py` … `fig7_platforms.py`, `figS3_estimates.py`, `star_figs.py`: matplotlib, Arial,
+- `figs/fig2_call.py` … `fig7_platforms.py`, `figS7_estimates.py`, `star_figs.py`: matplotlib, Arial,
   174 mm, 600-dpi PNG/TIFF and vector PDF.
+- Supplementary figure files and scripts carry their final numbers (`figures/FigureS4_fdr_calibration.*`,
+  `figs/figS4_fdr_calibration.py`, `scicanvas/figS3_outputs.js`). S8, page 1 of S12 and S16 are drawn by
+  older pipelines (`../manuscript_corrected/scripts/`, `../mutation_tree_figure.py`): `figures/` holds
+  numbered links to them. `manuscript/renumber_supp.py check` confirms the numbers follow citation order.
 
 ## Documents
 
 ```bash
 python manuscript/resolve_refs.py                      # references from PubMed -> manuscript/refs.json
-python manuscript/build_crm.py build                    # article, highlights/eTOC/motivation, Document S1
+python manuscript/build_crm.py build                    # article, highlights/eTOC/motivation, Document S1, and
+                                                        # SHMtrace_CellReportsMethods_complete_v<VERSION>.docx (all
+                                                        # of it in one linked document)
 python manuscript/build_star.py build                   # protocol
 python manuscript/build_letters.py build                # cover letters
 ```

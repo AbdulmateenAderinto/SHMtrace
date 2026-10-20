@@ -16,7 +16,7 @@ were our result.
 | Does **not** test | the substitution caller or its FDR calibration (no AID-null arm) | the drug effect (see below) |
 | Scripts | `crm/build_switch_reference.py`, `crm/switch_pacbio.py` | `crm/public_smu_pi3k.py` |
 | Outputs | `crm/out/switch_pacbio/` | `crm/out/public_smu/` |
-| Figure | S16 (`crm/figs/figS16_switch_pacbio.py`) | S17 (`crm/figs/figS17_public_smu.py`) |
+| Figure | S16 (`crm/figs/figS19_switch_pacbio.py`) | S17 (`crm/figs/figS18_public_smu.py`) |
 
 Raw reads live outside the repository, in `~/Nanoshm/public_data/PRJNA831666/` and
 `~/Nanoshm/public_data/GSE77788/`, as the other public datasets do. They are not redistributed.
@@ -81,7 +81,7 @@ rather than `False` when no secondary alignment was available, in both cases wit
 `map-hifi` through the existing `preset` argument, which needed no code change.
 
 **New files only**, all of them under `crm/`: `build_switch_reference.py`, `switch_pacbio.py`,
-`public_smu_pi3k.py`, `figs/figS16_switch_pacbio.py`, `figs/figS17_public_smu.py`, this file. Edits to existing
+`public_smu_pi3k.py`, `figs/figS19_switch_pacbio.py`, `figs/figS18_public_smu.py`, this file. Edits to existing
 files are confined to `manuscript/` (one Results sentence, two STAR Methods sections, two figure legends, two
 key-resources rows, the numbers block) and `manuscript/resolve_refs.py` (two PubMed queries).
 
@@ -143,7 +143,7 @@ $PY crm/build_switch_reference.py      # fetches the IgH locus once, verifies it
 $PY -W ignore crm/switch_pacbio.py     # -> crm/out/switch_pacbio/
 $PY -W ignore crm/public_smu_pi3k.py   # -> crm/out/public_smu/  (slow; run it with jobs=1 if memory is tight)
 
-cd crm/figs && $PY figS16_switch_pacbio.py && $PY figS17_public_smu.py
+cd crm/figs && $PY figS19_switch_pacbio.py && $PY figS18_public_smu.py
 cd ~/Nanoshm/nanoshm_v0.2/docs/calibration && $PY -W ignore crm/manuscript/build_crm.py crm/build
 ```
 
