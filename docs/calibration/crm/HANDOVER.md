@@ -184,8 +184,15 @@ cd crm/figs && $PY -W ignore fig3_calibration.py       # writes crm/figures/Figu
 # Figure 5E reads out/fig5_per_mouse.json: $PY crm/fig5_per_mouse.py first (it refuses to write unless the
 # per-mouse calls pool back to Figure 5B exactly). Figure S7 page 2 is figs/figS7_bookkeeping.py.
 
-# the documents (always rerun after touching text, numbers or legends)
+# the documents (always rerun after touching text, numbers or legends). Writes the article, Document S1,
+# the highlights, and SHMtrace_CellReportsMethods_complete_v<VERSION>.docx: the article, every supplementary
+# figure and table and one reference list, with figure, table and reference citations as internal links
+# (docbuild.Manuscript(links=True)). Its title page and footers carry VERSION (build_crm.py; raise it when a
+# version goes out to readers), the date and the commit; build from a committed tree for a clean stamp.
 $PY -W ignore crm/manuscript/build_crm.py crm/build
+# PDFs (links survive the conversion)
+(cd crm/build && /Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf \
+    SHMtrace_CellReportsMethods.docx Document_S1.docx Highlights_eTOC_Motivation.docx SHMtrace_CellReportsMethods_complete_v*.docx)
 
 # the archive record and the reviewer package
 $PY -W ignore crm/make_archive_manifest.py             # ARCHIVE.md + ARCHIVE_ENVIRONMENT.txt, 21 analyses

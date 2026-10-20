@@ -56,10 +56,23 @@ MANUAL = {
 PAGE_FIX = {"sanderson2024": "001246"}
 LITERAL_STAR = "\uE000"     # stands in for an escaped asterisk while the markup is read
 TOKEN = re.compile(r"(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\^\{[^}]*\}|_\{[^}]*\}|\[@[^\]]+\])")
+# figure and table citations in running text, for the linked build: "Figure 3", "Figures 4A–4E and 4G",
+# "Figures S8–S10", "Tables S4 and S5". Each item links to its figure or table; a noun links with its first item.
+_ITEM = r"S?\d+[A-Z]*(?:–S?\d+[A-Z]*)?"
+CITATION = re.compile(rf"\b(Figures?|Tables?)\s({_ITEM}(?:(?:,\s+and\s+|,\s+|\s+and\s+)(?:{_ITEM}))*)")
+TITLE_ANCHOR = re.compile(r"^\**(Figure|Table) (S?\d+)\.")
+LINK_RGB = RGBColor(0x1F, 0x5F, 0xA8)
+
+
+def anchor(kind, number):
+    """Bookmark name for a figure, table or reference: fig_3, fig_S4, tab_S2, ref_12."""
+    return f"{'fig' if kind.startswith('Fig') else 'tab' if kind.startswith('Tab') else 'ref'}_{number}"
 
 
 class Manuscript:
-    def __init__(self, font="Arial", size=11, line_numbers=True):
+    def __init__(self, font="Arial", size=11, line_numbers=True, links=False, footer_note=None):
+        # links: figure, table and reference citations become internal hyperlinks to bookmarks on the
+        # figure and table titles and the reference entries (the combined review document)
         self.doc = Document()
         st = self.doc.styles["Normal"]
         st.font.name, st.font.size = font, Pt(size)
@@ -75,14 +88,17 @@ class Manuscript:
             ln.set(qn("w:countBy"), "1")
             ln.set(qn("w:restart"), "continuous")
             sec._sectPr.append(ln)
-        self._page_numbers(sec)
+        self.links, self._bookmarks, self._next_id = links, set(), 1
+        self._page_numbers(sec, footer_note)
         self._page_break_next = False
         self.order = []          # citation keys in order of first appearance
         self.font = font
 
-    def _page_numbers(self, sec):
+    def _page_numbers(self, sec, note=None):
         p = sec.footer.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        if note:
+            p.add_run(f"{note} · page ").font.size = Pt(9)
         r = p.add_run()
         for t, txt in (("begin", None), (None, "PAGE"), ("end", None)):
             if t:
@@ -94,6 +110,40 @@ class Manuscript:
                 it.set(qn("xml:space"), "preserve")
                 it.text = txt
                 r._r.append(it)
+
+    # ---- bookmarks and internal links
+    def bookmark(self, par, name):
+        """Mark a paragraph as the target `name`; the first paragraph to claim a name keeps it."""
+        if not self.links or name in self._bookmarks:
+            return
+        self._bookmarks.add(name)
+        start, end = OxmlElement("w:bookmarkStart"), OxmlElement("w:bookmarkEnd")
+        start.set(qn("w:id"), str(self._next_id))
+        start.set(qn("w:name"), name)
+        end.set(qn("w:id"), str(self._next_id))
+        self._next_id += 1
+        par._p.insert(1 if par._p.pPr is not None else 0, start)
+        par._p.append(end)
+
+    def _link(self, par, target):
+        h = OxmlElement("w:hyperlink")
+        h.set(qn("w:anchor"), target)
+        h.set(qn("w:history"), "1")
+        par._p.append(h)
+        return h
+
+    def _unlink_missing(self):
+        """A link whose target is not in this document (the Excel table, Data S1) becomes plain text again."""
+        for h in list(self.doc.element.body.iter(qn("w:hyperlink"))):
+            if h.get(qn("w:anchor")) not in self._bookmarks:
+                parent = h.getparent()
+                for r in list(h):
+                    r_pr = r.find(qn("w:rPr"))
+                    color = r_pr.find(qn("w:color")) if r_pr is not None else None
+                    if color is not None:
+                        r_pr.remove(color)
+                    parent.insert(parent.index(h), r)
+                parent.remove(h)
 
     # ---- inline markup
     def cite(self, keys):
@@ -120,7 +170,7 @@ class Manuscript:
         for piece in TOKEN.split(text):
             if not piece:
                 continue
-            kw = {}
+            kw, cite_keys = {}, None
             if piece.startswith("`"):
                 r = par.add_run(piece[1:-1].replace(LITERAL_STAR, "*"))
                 r.font.name = "Courier New"
@@ -135,25 +185,58 @@ class Manuscript:
             elif piece.startswith("_{"):
                 piece, kw = piece[2:-1], {"sub": True}
             elif piece.startswith("[@"):
-                piece, kw = self.cite([k.strip().lstrip("@") for k in piece[2:-1].split(",")]), {"sup": True}
+                cite_keys = [k.strip().lstrip("@") for k in piece[2:-1].split(",")]
+                piece, kw = self.cite(cite_keys), {"sup": True}
             # italics inside sup/sub etc. are not nested; keep markup flat
             sub_parts = TOKEN.split(piece) if kw and ("sup" in kw or "sub" in kw) and "*" in piece else [piece]
             for sp in sub_parts:
                 if not sp:
                     continue
-                r = par.add_run((sp.strip("*") if sp.startswith("*") else sp).replace(LITERAL_STAR, "*"))
-                r.bold = bold or kw.get("bold")
-                r.italic = kw.get("italic") or sp.startswith("*")
-                # superscript and subscript share w:vertAlign: set only the one that applies
-                if kw.get("sup"):
-                    r.font.superscript = True
-                elif kw.get("sub"):
-                    r.font.subscript = True
-                if size:
-                    r.font.size = Pt(size)
-                if color:
-                    r.font.color.rgb = RGBColor.from_string(color)
+                txt = (sp.strip("*") if sp.startswith("*") else sp).replace(LITERAL_STAR, "*")
+                italic = kw.get("italic") or sp.startswith("*")
+                if self.links and cite_keys is not None:
+                    # each reference number links to its entry: "3–5,8" -> 3, 5 and 8
+                    for tok in re.split(r"(\d+)", txt):
+                        if tok:
+                            self._emit(par, tok, bold or kw.get("bold"), italic, kw, size, color,
+                                       anchor("ref", tok) if tok.isdigit() else None)
+                elif self.links and not kw:
+                    pos = 0
+                    for m in CITATION.finditer(txt):
+                        self._emit(par, txt[pos:m.start()], bold, italic, kw, size, color)
+                        noun, items = m.group(1), m.group(2)
+                        parts = re.split(r"(,\s+and\s+|,\s+|\s+and\s+|–)", items)
+                        for k, tok in enumerate(parts):
+                            num = re.match(r"S?\d+", tok)
+                            target = anchor(noun, num.group(0)) if num else None
+                            self._emit(par, (f"{noun} " if k == 0 else "") + tok, bold, italic, kw, size, color,
+                                       target)
+                        pos = m.end()
+                    self._emit(par, txt[pos:], bold, italic, kw, size, color)
+                else:
+                    self._emit(par, txt, bold or kw.get("bold"), italic, kw, size, color)
         return par
+
+    def _emit(self, par, txt, bold, italic, kw, size, color, target=None):
+        if not txt:
+            return None
+        r = par.add_run(txt)
+        r.bold = bold
+        r.italic = italic
+        # superscript and subscript share w:vertAlign: set only the one that applies
+        if kw.get("sup"):
+            r.font.superscript = True
+        elif kw.get("sub"):
+            r.font.subscript = True
+        if size:
+            r.font.size = Pt(size)
+        if color:
+            r.font.color.rgb = RGBColor.from_string(color)
+        if target:
+            r.font.color.rgb = LINK_RGB
+            r._r.getparent().remove(r._r)
+            self._link(par, target).append(r._r)
+        return r
 
     # ---- blocks
     def _paragraph(self, *args, **kwargs):
@@ -179,6 +262,9 @@ class Manuscript:
             p.paragraph_format.left_indent = Mm(indent)
         if space_after is not None:
             p.paragraph_format.space_after = Pt(space_after)
+        title = TITLE_ANCHOR.match(text)
+        if title:
+            self.bookmark(p, anchor(title.group(1), title.group(2)))
         return self.runs(p, text, size=size, bold=bold, color=color)
 
     def bullets(self, items, numbered=False, size=None):
@@ -266,9 +352,12 @@ class Manuscript:
             p.paragraph_format.left_indent = Mm(7)
             p.paragraph_format.first_line_indent = Mm(-7)
             p.paragraph_format.line_spacing = 1.15
+            self.bookmark(p, anchor("ref", i))
             self.runs(p, f"{i}.\t{txt}", size=10)
 
     def save(self, path):
+        if self.links:
+            self._unlink_missing()
         self.doc.save(path)
 
 

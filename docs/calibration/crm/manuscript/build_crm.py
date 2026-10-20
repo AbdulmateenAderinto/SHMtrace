@@ -29,6 +29,8 @@ FIG = CRM / "figures"
 OUT = CRM / "out"
 CAL = CRM.parent
 MC = CAL / "manuscript_corrected/figures"
+# the combined review document's version (write_complete): raise it whenever a version goes out to readers
+VERSION = "1.0"
 
 
 def geo(x):
@@ -237,15 +239,11 @@ def check_limits():
     return sw
 
 
-def main(outdir):
-    out = Path(outdir)
-    out.mkdir(parents=True, exist_ok=True)
-    n = {**crm_numbers.compute(), **public_numbers(), **dataset_counts()}
-    fill_modules(n)
-    check_figure_numbers(n)
-    check_paired_settings(n)
-    sw = check_limits()
-    m = Manuscript()
+def write_article(m, n):
+    """The article from its title page to the end of the STAR Methods, without the reference list.
+
+    Returns the main-text blocks the word count reads. The submitted article and the combined review
+    document both call this, so they cannot drift apart."""
     # ---- title page
     m.para(T.TITLE, size=16, bold=True)
     m.para(T.AUTHORS)
@@ -317,50 +315,11 @@ def main(outdir):
     m.heading("Quantification and statistical analysis", 2)
     for p in M.QUANT:
         m.para(p)
-    m.references()
-    path = out / "SHMtrace_CellReportsMethods.docx"
-    m.save(path)
-    mw = word_count(main_blocks)
-    jw, parts = journal_word_count()
-    print(f"{path}\nsummary {sw} words; introduction to limitations {mw} words; references {len(m.order)}")
-    print(f"journal count (all but references and STAR Methods) {jw} words of 7,000")
-    if jw >= 7000:
-        for k, v in sorted(parts, key=lambda kv: -kv[1]):
-            print(f"    {k:34s} {v:>5}")
+    return main_blocks
 
-    # legends and figures live in different files and have drifted apart before, so check them against
-    # each other here rather than trusting a later read-through (legend_check.py)
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    import legend_check
-    assert legend_check.main() == 0, "legends disagree with the figures they describe"
-    # details only the authors can supply are left as "[description]": name them rather than let a placeholder
-    # reach a reviewer unnoticed (lab_details.py holds them)
-    import lab_details
-    still = lab_details.missing()
-    if still:
-        print(f"submission blockers: {len(still)} laboratory detail(s) still to supply")
-        for d in still:
-            print("  -", d)
 
-    # ---- highlights, eTOC, motivation (separate file)
-    h = Manuscript(line_numbers=False)
-    h.heading("Highlights", 1)
-    h.bullets(T.HIGHLIGHTS)
-    h.heading("eTOC blurb", 1)
-    h.para(T.ETOC)
-    h.heading("Motivation", 1)
-    h.para(T.MOTIVATION)
-    h.save(out / "Highlights_eTOC_Motivation.docx")
-    print("highlights:", [len(x) for x in T.HIGHLIGHTS], "eTOC words:", len(T.ETOC.split()))
-
-    # ---- Document S1
-    s = Manuscript(line_numbers=False)
-    # Document S1 carries no reference list of its own and its footnotes say the superscripts cite
-    # the manuscript's. Seed its citation order from the manuscript so they actually do: numbered
-    # independently, every supplemental superscript pointed at the wrong paper.
-    s.order = list(m.order)
-    s.para("Supplemental information", size=14, bold=True)
-    s.para(T.TITLE, size=11)
+def write_supplement(s):
+    """Every supplementary figure and table, in number order (Document S1, and the combined document)."""
     # in number order, which renumber_supp.py keeps equal to the order the article first cites them
     for title, img, legend in sorted(SUPP_FIGS, key=lambda f: int(re.match(r"Figure S(\d+)", f[0])[1])):
         s.page_break()
@@ -460,8 +419,100 @@ def main(outdir):
                              crm_numbers.pfmt(r["p_log_welch"]), f"{r['fold']:.0f}"))
         s.table(["Project", "Setting", "Calls, mutation-bearing", "Calls, controls", "p (log-Welch)", "Fold"], prow,
                 widths=[22, 26, 34, 26, 22, 18], size=7.5, footnote=M.TABLE_S7_NOTE)
+
+
+def version_label():
+    """The combined document's version, with the date and the commit it was built from."""
+    import datetime
+    import subprocess
+    git = ["git", "-C", str(Path(__file__).resolve().parent)]
+    short = subprocess.run([*git, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+    dirty = subprocess.run([*git, "status", "--porcelain", "--untracked-files=no"], capture_output=True,
+                           text=True).stdout.strip()
+    when = datetime.date.today()
+    return (f"{VERSION}, {when.day} {when:%B %Y}, commit {short or 'unknown'}"
+            + (" with uncommitted changes" if dirty else ""))
+
+
+def write_complete(out, n):
+    """One review document: the article, its figures and STAR Methods, every supplementary figure and
+    table, and one reference list for both. Figure, table and reference citations are internal links."""
+    label = version_label()
+    c = Manuscript(line_numbers=False, links=True, footer_note=f"SHMtrace, complete manuscript, version {VERSION}")
+    c.para("SHMtrace: complete manuscript with supplemental information", size=14, bold=True)
+    c.para(f"Version {label}", size=11)
+    c.para("Every figure, table and reference citation in this document is a link to its target. The "
+           "article is followed by Document S1 (Figures S1–S23 and Tables S2–S7) and one reference list "
+           "for both. Table S1 and Data S1 are separate files.", size=10)
+    c.page_break()
+    write_article(c, n)
+    c.page_break()
+    c.heading("Document S1. Supplemental figures and tables", 1)
+    write_supplement(c)
+    c.references()
+    path = out / f"SHMtrace_CellReportsMethods_complete_v{VERSION}.docx"
+    c.save(path)
+    print(f"{path.name} written (version {label})")
+
+
+def main(outdir):
+    out = Path(outdir)
+    out.mkdir(parents=True, exist_ok=True)
+    n = {**crm_numbers.compute(), **public_numbers(), **dataset_counts()}
+    fill_modules(n)
+    check_figure_numbers(n)
+    check_paired_settings(n)
+    sw = check_limits()
+    m = Manuscript()
+    main_blocks = write_article(m, n)
+    m.references()
+    path = out / "SHMtrace_CellReportsMethods.docx"
+    m.save(path)
+    mw = word_count(main_blocks)
+    jw, parts = journal_word_count()
+    print(f"{path}\nsummary {sw} words; introduction to limitations {mw} words; references {len(m.order)}")
+    print(f"journal count (all but references and STAR Methods) {jw} words of 7,000")
+    if jw >= 7000:
+        for k, v in sorted(parts, key=lambda kv: -kv[1]):
+            print(f"    {k:34s} {v:>5}")
+
+    # legends and figures live in different files and have drifted apart before, so check them against
+    # each other here rather than trusting a later read-through (legend_check.py)
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import legend_check
+    assert legend_check.main() == 0, "legends disagree with the figures they describe"
+    # details only the authors can supply are left as "[description]": name them rather than let a placeholder
+    # reach a reviewer unnoticed (lab_details.py holds them)
+    import lab_details
+    still = lab_details.missing()
+    if still:
+        print(f"submission blockers: {len(still)} laboratory detail(s) still to supply")
+        for d in still:
+            print("  -", d)
+
+    # ---- highlights, eTOC, motivation (separate file)
+    h = Manuscript(line_numbers=False)
+    h.heading("Highlights", 1)
+    h.bullets(T.HIGHLIGHTS)
+    h.heading("eTOC blurb", 1)
+    h.para(T.ETOC)
+    h.heading("Motivation", 1)
+    h.para(T.MOTIVATION)
+    h.save(out / "Highlights_eTOC_Motivation.docx")
+    print("highlights:", [len(x) for x in T.HIGHLIGHTS], "eTOC words:", len(T.ETOC.split()))
+
+    # ---- Document S1
+    s = Manuscript(line_numbers=False)
+    # Document S1 carries no reference list of its own and its footnotes say the superscripts cite
+    # the manuscript's. Seed its citation order from the manuscript so they actually do: numbered
+    # independently, every supplemental superscript pointed at the wrong paper.
+    s.order = list(m.order)
+    s.para("Supplemental information", size=14, bold=True)
+    s.para(T.TITLE, size=11)
+    write_supplement(s)
     s.save(out / "Document_S1.docx")
     print("Document S1 written")
+    write_complete(out, n)
     # last, so that both documents are on disk to work from even while the manuscript is over length
     assert jw < 7000, (f"manuscript is {jw} words by the journal's count, {jw - 6999} over; the limit "
                        "excludes only the reference list and the STAR Methods")
