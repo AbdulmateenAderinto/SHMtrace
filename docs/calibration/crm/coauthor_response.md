@@ -6,7 +6,7 @@ on trust. Every number below is recomputed by the packaging script and recorded 
 
 Repository state: `{head}` (working tree clean). Your patch was made against `83a908c`.
 
-**Rebuilt again on 20 October.** Supplementary figures and tables are now numbered in the order the article first cites them (old-to-new table in `06_HANDOVER.md`), and every number in this note follows the current documents. Five supplementary figures were added (S3, S4, S5, S6 and S11), and `08_Complete_manuscript_v1.0` puts the article and Document S1 in one file with linked citations.
+**Rebuilt again on 20 October.** Supplementary figures and tables are now numbered in the order the article first cites them (old-to-new table in `06_HANDOVER.md`), and every number in this note follows the current documents. Five supplementary figures were added (S3, S4, S5, S6 and S11), and `08_Complete_manuscript_v1.1` puts the article and Document S1 in one file with linked citations.
 
 **This package was rebuilt on 18 October and carries more than the answer to your review.** Since the
 17 October response the manuscript gained six public datasets (Figures S17–S19 and six new rows in the dataset table, now Table S2),
@@ -121,7 +121,7 @@ included as `05_REVIEW_RESPONSE.md` and `06_HANDOVER.md`.
 | `03_Highlights_eTOC_Motivation.pdf`, `.docx` | front matter |
 | `04_Table_S1_benchmark.xlsx` | Table S1 (formerly S2) |
 | `05_REVIEW_RESPONSE.md`, `06_HANDOVER.md` | the corrected tracker and handover |
-| `08_Complete_manuscript_v1.0.pdf`, `.docx` | the article and Document S1 in one file, citations linked |
+| `08_Complete_manuscript_v1.1.pdf`, `.docx` | the article and Document S1 in one file, citations linked |
 | `figures/` | every standalone figure image; `.scifig` sources for Figure 1 and the graphical abstract |
 | `patches/` | source diffs since your snapshot, and beyond your patch |
 | `data/` | the regenerated validation and benchmark outputs |
