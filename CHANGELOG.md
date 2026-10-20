@@ -66,6 +66,12 @@ this project uses [semantic versioning](https://semver.org/).
   carries in two or more reads), which overstated the background in heavily
   mutated samples.
 
+### Added
+- Modes `strict` (control-based threshold at a false-discovery target of 0.01) and
+  `strict_max` (the noisiest control's decoy count instead of the mean), for analyses
+  where false calls cost more than missed mutations. The default is unchanged;
+  `docs/calibration/crm/strict_sensitivity.py` and Table S7 compare them with it.
+
 See `docs/calibration/crm/CODE_AUDIT_CHANGES_2026-10-19.md` for scope,
 validation, limitations and reversal instructions.
 
