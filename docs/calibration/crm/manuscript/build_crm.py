@@ -295,8 +295,7 @@ def write_article(m, n):
     m.heading("Figure titles and legends", 1)
     for i, (title, legend) in enumerate(M.LEGENDS, 1):
         m.figure(FIG / f"Figure{i}{'_preview' if i == 1 else ''}.png", width_mm=165)
-        m.para(f"**{title}**")
-        m.para(fill(legend, n), size=10)
+        m.caption(title, fill(legend, n))
     # ---- STAR Methods
     m.page_break()
     m.heading("STAR★Methods", 1)
@@ -562,22 +561,28 @@ STATS = [
 SUPP_FIGS = [
     ("Figure S1. Detailed workflow and read accounting, related to Figure 1",
      FIG / "FigureS1_workflow_preview.png",
-     "(A) Experimental design for J_{H}4 and N114. (B, C) Read preparation and variant calling from delivered sequence "
-     "files, corresponding to the read-library route in Figure 1C. By default, alleles carried by ≥50% of reads are "
-     "excluded as likely germline differences; this heuristic can also exclude acquired mutations (STAR Methods). (D) "
-     "Sanger analysis counts substitutions at base quality ≥20 across analyzed clones and the 529-bp window. The "
-     "mismatch rate measured in AID-null clones is reported separately without subtraction. Each sequencing clone "
-     "represents one PCR-derived molecule sequenced once. (E) Accounting for every delivered read in each library; "
-     "line, the 500 reads selected for analysis."),
+     "The workflow of Figure 1 in full, from the design of the two experiments to the fate of every delivered read. "
+     "(A) Experimental design for the J_{H}4 and N114 libraries. (B, C) Read preparation and variant calling from "
+     "the delivered sequence files, which is the read-library route of Figure 1C. By default, an allele carried by "
+     "50% or more of the reads is excluded as a likely germline difference; because a mutation driven to that "
+     "frequency within a dominant clone is removed with it, this is a heuristic and not a test (STAR Methods). (D) "
+     "The Sanger route counts every substitution at base quality ≥20 across the analysed clones and the 529-bp "
+     "window. The mismatch rate measured in the AID-null clones is reported beside those counts rather than "
+     "subtracted from them, because it estimates the background of the whole set and not of any one call. A "
+     "sequencing clone is one PCR-derived molecule sequenced once, so it says nothing about which B cell the "
+     "molecule came from. (E) What happened to every delivered read in each library; the line marks the 500 reads "
+     "drawn for analysis. Experimental details: as in Figure 5 for J_{H}4 and Figure 4 for N114."),
     ("Figure S2. Reported base qualities and observed control mismatch rates, related to Figure 2",
      FIG / "FigureS2.png",
-     "Top, mismatch rates in AID-null controls for the four nanopore loci, grouped into two-quality-score bins "
-     "containing ≥2,000 bases after germline exclusion. Shading, 95% Clopper–Pearson intervals; downward triangles, "
-     "zero-mismatch bins plotted at the upper confidence bound; dashed line, the nominal error probability, "
-     "10^{−Q/10}. Bottom, number of control bases per bin. Sparse observations above Q40 increase uncertainty. Each "
-     "locus is calibrated using its own controls. J_{H}4 libraries shared sequencing order DHJGKB, and N114 libraries "
-     "shared order 75K3B3. For Sμ and *Pim1* (PRJNA1481264), the deposited records do not establish which libraries "
-     "shared a flow cell."),
+     "A reported base quality is a prediction, and this is how far it holds at each of the four nanopore loci. Top, "
+     "the mismatch rate measured in the AID-null controls, grouped into two-quality-score bins holding at least 2,000 "
+     "bases after germline positions are excluded. Shading, 95% Clopper–Pearson intervals; downward triangles, bins "
+     "with no mismatch, drawn at the upper confidence bound because a rate of zero cannot be placed on a logarithmic "
+     "axis; dashed line, the error probability the quality score nominally implies, 10^{−Q/10}. Bottom, the number of "
+     "control bases in each bin. Observations thin out above Q40, so the uncertainty grows there. This is why each "
+     "locus is calibrated against its own controls rather than against the reported qualities. Experimental details: "
+     "the J_{H}4 libraries were sequenced under order DHJGKB and the N114 libraries under order 75K3B3; for Sμ and "
+     "*Pim1* (PRJNA1481264) the deposited records do not establish which libraries shared a flow cell."),
     ("Figure S7. Single-read estimate, power, UMI consensus and planted indels, related to Figure 3",
      FIG / "FigureS7.png",
      "(A) Change in the aggregate single-read estimate against one-read mutations planted into held-out J_{H}4 control "
@@ -606,16 +611,29 @@ SUPP_FIGS = [
      "calling error."),
     ("Figure S8. N114 V-region results, related to Figure 4 (page 1 of 2)",
      [FIG / "FigureS8_n114.png"],
-     "(A) N114 unique-variant density per subclone, n = 3 per vector. Empty-vector subclones without calls are plotted "
-     "at one event. (B, C) Pooled substitution matrices for pMX-*Aicda* and empty-vector subclones, respectively. "
-     "Cells report unique-variant counts and their shares of group calls. Panel A measures unique-variant density. "
-     "Individual-library spectra are shown on the following page."),
+     "AID expression drives mutation of the fixed immunoglobulin V-region substrate carried by N114 hybridoma cells. "
+     "(A) Unique-variant density in each subclone (n = 3 per vector). An empty-vector subclone with no call is drawn "
+     "at one event on its own exposure, because a density of exactly zero cannot be placed on a logarithmic axis. "
+     "(B, C) Pooled From (rows) → To (columns) substitution matrices for the pMX-*Aicda* subclones (B) and the "
+     "empty-vector subclones (C). Each cell gives the unique-variant count and its share of that group's calls. "
+     "Because N114 cells carry a fixed V-region substrate, do not undergo ongoing V(D)J recombination and are not "
+     "selected here for antigen binding, the excess in pMX-*Aicda* subclones reflects AID-dependent mutation rather "
+     "than rearrangement or selection. Experimental details: N114 cells were transduced with pMX-*Aicda* or matched "
+     "empty vector, both encoding GFP and puromycin resistance; GFP-high cells were subcloned by limiting dilution "
+     "and three puromycin-resistant subclones per vector were maintained for 1 month before DNA collection. The "
+     "~0.65 kb V region was amplified with Platinum SuperFi II high-fidelity polymerase and sequenced as "
+     "individually barcoded R10.4.1/Kit 14 libraries, analysed at 500 reads per subclone. A unique variant is one "
+     "substitution at one reference position, counted once per subclone however many reads carry it. Spectra of the "
+     "individual libraries are shown on the following page."),
     ("Figure S8. Per-library spectra, related to Figure 4 (page 2 of 2)",
      [FIG / "FigureS8_spectra_jh4.png", FIG / "FigureS8_spectra_n114.png"],
-     "Substitution matrices for individual J_{H}4 Wt and *Aicda*^{−/−} libraries (top) and N114 pMX-*Aicda* and "
-     "empty-vector subclones (bottom). For each component, A denotes AID-active libraries and B denotes AID-null "
-     "libraries; panel letters restart in the lower component. Cells report unique-variant counts and their shares of "
-     "the corresponding library's calls."),
+     "The same spectra resolved to one matrix per library, so that the pooled patterns of Figure 4 and the preceding "
+     "page can be seen to hold in each animal and subclone rather than in the pool alone. Top, J_{H}4 wild-type "
+     "(*Wt*) and *Aicda*^{−/−} libraries; bottom, N114 pMX-*Aicda* and empty-vector subclones. Within each component "
+     "(A) denotes the AID-active libraries and (B) the AID-null libraries, and the panel letters restart in the lower "
+     "component. Matrices are oriented From (rows) → To (columns), and each cell gives the unique-variant count and "
+     "its share of that library's calls. Experimental details: the libraries are those of Figures 4 and 5, analysed "
+     "at 500 reads each."),
     ("Figure S9. Sequencing depth and unique-variant discovery, related to Figure 4",
      FIG / "FigureS9.png",
      "Every library was analyzed at 30–1,000 reads, and the whole analysis was repeated five times at each depth with "
@@ -663,10 +681,13 @@ SUPP_FIGS = [
      "potential problems without automatically removing clones."),
     ("Figure S12. Sanger bookkeeping checks, related to Figure 5 (page 2 of 2)",
      [FIG / "FigureS12_bookkeeping.png"],
-     "Forty simulated projects each contained one instance of each bookkeeping error. Detection is shown against the "
-     "planted errors; the shared-lineage test used a lineage represented by 125 clones. Label changes were detectable "
-     "only when affected clones shared mutations with another animal's clones. No false flags occurred among 6,018 "
-     "correctly assigned clones."),
+     "Archived Sanger projects accumulate clerical errors, so SHMtrace flags them; this measures how often it "
+     "succeeds. Forty simulated projects were built, each carrying one instance of every bookkeeping error, and "
+     "detection is shown against the errors planted. The shared-lineage test used a lineage represented by 125 "
+     "clones. A changed label was detectable only when the affected clones shared mutations with another animal's "
+     "clones, because a label on its own leaves no trace in the sequence. No correctly assigned clone was flagged in "
+     "error among the 6,018 tested, so the flags are specific as well as sensitive. The flags report a clone for "
+     "review and never remove it automatically (STAR Methods)."),
     ("Figure S13. Reanalysis of published Maea Sanger data, related to Figure 5",
      [FIG / "FigureS13_sanger_cohort2.png"],
      "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (purple) and "
@@ -717,12 +738,19 @@ SUPP_FIGS = [
      "measured here."),
     ("Figure S16. Full-length spectra, related to Figure 6 (page 1 of 2)",
      [FIG / "FigureS16_spectra_full_length.png"],
-     "Pooled Wt substitution spectra across the 529-bp shared window and the full 1,141-bp interval (Pearson r = "
-     "{s1_r}). Mutation trees are shown on the following page."),
+     "Extending the analysis from the Sanger window to the full amplicon increases the number of mutations sampled "
+     "without altering the signature they carry. Pooled wild-type (*Wt*) substitution spectra across the shared "
+     "529-bp window and across the reliably covered 1,141-bp interval, with each cell giving the mutation count and "
+     "its share of all mutations; the two sets of proportions are highly correlated (Pearson r = {s1_r}). "
+     "Experimental details: the three *Wt* mice of Figure 5, analysed at 500 reads per mouse. Mutation trees from "
+     "the same libraries are shown on the following page."),
     ("Figure S16. Mutation trees in each mouse, related to Figure 6 (page 2 of 2)",
      [FIG / "FigureS16_mutation_trees.png"],
-     "Mutation-tree reconstructions for the most branched clone in each Wt mouse. Trees summarize relationships among "
-     "sequenced reads (Figure 6); the corresponding cellular lineages were not independently established."),
+     "The read-level reconstruction of Figure 6D, repeated in every mouse. Each tree is the most branched clone of "
+     "one wild-type (*Wt*) mouse, built from the mutations its reads share. A tree summarises relationships among "
+     "sequenced reads and not among cells: the reads of one clone may derive from the same molecule amplified more "
+     "than once, so the corresponding cellular lineages were not independently established. Experimental details: "
+     "the three *Wt* mice of Figure 5, analysed at 500 reads per mouse."),
     ("Figure S20. What a read means on each of the four platforms, related to Figures 5–7",
      [FIG / "FigureS20_platforms.png"],
      "Top row, the two platforms applied to the same six mice, drawn on a common base-pair scale. A Sanger clone represents one "
@@ -772,14 +800,18 @@ SUPP_FIGS = [
      "Sample-sheet rows are illustrative. Figure S22 details the analytical rules and equations."),
     ("Figure S22. Rules underlying read preparation and variant calling, related to STAR Methods",
      [FIG / "FigureS22_engine.png"],
-     "Six analytical stages are illustrated with J_{H}4 libraries. (A) Per-library read accounting: length and "
-     "expected-error filtering, competitive alignment and usable reads (individual filters in Figure S1). (B) Target "
-     "versus paralog alignment identity; assignment follows the better match. (C) Reported base quality versus "
-     "*Aicda*^{−/−} mismatch rate; dashed line, nominal quality-derived error probability. (D) Two candidates at equal "
-     "depth in the same library, showing supporting reads in Wt and control libraries and their different calling "
-     "outcomes. (E) Candidate and held-out-decoy counts across p-value cutoffs, with the selected threshold. (F) "
-     "Per-animal unique-variant density used for group comparisons. Panels use `intuition_jh4.json`, per-library "
-     "read-accounting records and the bundled example library; equations describe the implemented calculations."),
+     "The rule and the equation behind each stage of the analysis, each shown working on the J_{H}4 libraries rather "
+     "than stated in the abstract. (A) Read accounting in one library: the length and expected-error filters, "
+     "competitive alignment and the reads left usable (the individual filters are in Figure S1). (B) Alignment "
+     "identity to the target against identity to its paralog; each read is assigned to whichever it matches better. "
+     "(C) Reported base quality against the mismatch rate measured in *Aicda*^{−/−} libraries; the dashed line is the "
+     "error probability the quality score nominally implies, and the gap between them is what the margin corrects. "
+     "(D) Two candidates at equal depth in the same library, with their supporting reads in the wild-type and control "
+     "libraries, and why one is called and the other is not. (E) Candidate counts and held-out-decoy counts across "
+     "p-value cutoffs, with the threshold that selection returns. (F) The per-animal unique-variant density that "
+     "group comparisons are made on. Experimental details: panels are drawn from `intuition_jh4.json`, the "
+     "per-library read-accounting records and the bundled example library; the equations shown are those the software "
+     "implements."),
     ("Figure S23. End-to-end stress tests using resampled control reads, related to STAR Methods",
      FIG / "FigureS23.png",
      "AID-null J_{H}4 reads were resampled and analyzed with `run_project`, including margin selection, decoy "

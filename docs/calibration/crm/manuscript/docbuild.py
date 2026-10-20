@@ -61,6 +61,8 @@ TOKEN = re.compile(r"(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\^\{[^}]*\}|_\{[^}]*\}|\[@
 _ITEM = r"S?\d+[A-Z]*(?:–S?\d+[A-Z]*)?"
 CITATION = re.compile(rf"\b(Figures?|Tables?)\s({_ITEM}(?:(?:,\s+and\s+|,\s+|\s+and\s+)(?:{_ITEM}))*)")
 TITLE_ANCHOR = re.compile(r"^\**(Figure|Table) (S?\d+)\.")
+# panel labels in a legend, set bold inside plain parentheses as the preprint does: (A), (B, C), (A–E), (D and E)
+PANELS = re.compile(r"\(([A-H](?:–[A-H])?(?:(?:,\s*|\s+and\s+)[A-H](?:–[A-H])?)*)\)")
 LINK_RGB = RGBColor(0x1F, 0x5F, 0xA8)
 
 
@@ -164,7 +166,7 @@ class Manuscript:
             i = j + 1
         return ",".join(out)
 
-    def runs(self, par, text, size=None, bold=False, color=None):
+    def runs(self, par, text, size=None, bold=False, color=None, legend=False):
         # an escaped asterisk is hidden from the markup and printed as itself
         text = text.replace("\\*", LITERAL_STAR)
         for piece in TOKEN.split(text):
@@ -200,18 +202,29 @@ class Manuscript:
                         if tok:
                             self._emit(par, tok, bold or kw.get("bold"), italic, kw, size, color,
                                        anchor("ref", tok) if tok.isdigit() else None)
-                elif self.links and not kw:
+                elif (self.links or legend) and not kw:
+                    # figure and table citations (links in the linked build, bold in a legend); panel labels
+                    # bold in a legend
+                    spans = [(m.start(), m.end(), "cite", m) for m in CITATION.finditer(txt)]
+                    if legend:
+                        spans += [(m.start(), m.end(), "panel", m) for m in PANELS.finditer(txt)
+                                  if not any(a <= m.start() < b for a, b, *_ in spans)]
                     pos = 0
-                    for m in CITATION.finditer(txt):
-                        self._emit(par, txt[pos:m.start()], bold, italic, kw, size, color)
-                        noun, items = m.group(1), m.group(2)
-                        parts = re.split(r"(,\s+and\s+|,\s+|\s+and\s+|–)", items)
-                        for k, tok in enumerate(parts):
-                            num = re.match(r"S?\d+", tok)
-                            target = anchor(noun, num.group(0)) if num else None
-                            self._emit(par, (f"{noun} " if k == 0 else "") + tok, bold, italic, kw, size, color,
-                                       target)
-                        pos = m.end()
+                    for start, end, what, m in sorted(spans, key=lambda x: x[0]):
+                        self._emit(par, txt[pos:start], bold, italic, kw, size, color)
+                        if what == "panel":
+                            self._emit(par, "(", bold, italic, kw, size, color)
+                            self._emit(par, m.group(1), True, italic, kw, size, color)
+                            self._emit(par, ")", bold, italic, kw, size, color)
+                        else:
+                            noun, items = m.group(1), m.group(2)
+                            parts = re.split(r"(,\s+and\s+|,\s+|\s+and\s+|–)", items)
+                            for k, tok in enumerate(parts):
+                                num = re.match(r"S?\d+", tok)
+                                target = anchor(noun, num.group(0)) if num and self.links else None
+                                self._emit(par, (f"{noun} " if k == 0 else "") + tok, bold or legend, italic, kw,
+                                           size, color, target)
+                        pos = end
                     self._emit(par, txt[pos:], bold, italic, kw, size, color)
                 else:
                     self._emit(par, txt, bold or kw.get("bold"), italic, kw, size, color)
@@ -278,6 +291,21 @@ class Manuscript:
         p.add_run().add_picture(str(path), width=Mm(width_mm))
         return p
 
+    def caption(self, title, legend, size=10):
+        """A figure caption as the authors' preprint sets it: the bold title, ending in a full stop, runs into the
+        legend in one justified paragraph; panel labels and figure or table references are bold."""
+        title = title.rstrip()
+        title = title if title.endswith((".", "?", "!")) else title + "."
+        p = self._paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p.paragraph_format.line_spacing = 1.0
+        p.paragraph_format.space_after = Pt(4)
+        found = TITLE_ANCHOR.match(title)
+        if found:
+            self.bookmark(p, anchor(found.group(1), found.group(2)))
+        self.runs(p, title + " ", size=size, bold=True)
+        return self.runs(p, legend, size=size, legend=True)
+
     def figure_block(self, paths, title, legend, max_width_mm=165, min_width_mm=125):
         """One figure and its complete legend on one page.
 
@@ -299,11 +327,7 @@ class Manuscript:
             width = min(max_width_mm, max(min_width_mm, (usable - legend_mm) / ratio))
         for p in paths:
             self.figure(p, width_mm=width)
-        title_p = self.para(f"**{title}**", space_after=4)
-        title_p.paragraph_format.keep_with_next = True
-        title_p.paragraph_format.line_spacing = 1.0
-        legend_p = self.para(legend, size=10, space_after=4)
-        legend_p.paragraph_format.line_spacing = 1.0
+        self.caption(title, legend)
         return width
 
     def table(self, header, rows, widths=None, size=8.5, title=None, footnote=None):
