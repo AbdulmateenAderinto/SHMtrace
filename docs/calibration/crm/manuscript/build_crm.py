@@ -805,6 +805,25 @@ SUPP_FIGS = [
      "other controls do not share and with decoy counts too coarse to resolve small targets (STAR Methods). The "
      "realised proportion depends on the number of true mutations per library (here 60) and is not a per-library "
      "guarantee. Analysis in `crm/spikein.py` (`--tag _fdrcal`) and `crm/figs/figS19_fdr_calibration.py`."),
+    ("Figure S20. How many AID-null controls, and which, related to Figure 3",
+     FIG / "FigureS20_controls.png",
+     "(A–C) J_{H}4, the whole `run_project` procedure: the case is KO1 carrying planted polyclonal lineages, or "
+     "none; the controls are halves of KO2 and KO3, so the third and fourth are technical partitions of the same "
+     "two animals; {cd_runs} repeats per setting; points, repeats; bars, means. (A) Recall of planted mutations by "
+     "number of controls. With one control there are no decoys and the threshold falls back to "
+     "Benjamini–Hochberg (BH). (B) False calls per library in lineage-bearing (filled) and all-null (open) "
+     "libraries; above, the pooled false-discovery proportion of the lineage-bearing libraries. All-null libraries "
+     "made no call with any number of controls. (C) One control carrying recurrent artifacts at six positions in "
+     "6% of its reads, with the noisy-control rule off and on, beside the clean set. The rule set the noisy "
+     "control aside in {cd_noisy_flagged} of {cd_runs} runs, and a clean control in {cd_clean_flag_lo}–"
+     "{cd_clean_flag_hi}; with four controls and the rule on, {cd_noisy_null_any} of {cd_runs} all-null libraries "
+     "made a call. (D) Sμ: each LPS AID-null library, with 60 planted substitutions in three draws, called "
+     "against its own experiment's other two AID-null controls (matched), two or three AID-null controls from "
+     "the CH12 experiment of the same BioProject, or all five (pooled). Points, pooled over the three held-out "
+     "libraries; lines, their range. False-discovery proportions were {cd_su_fdp_matched}% matched, "
+     "{cd_su_fdp_other}% with CH12 controls and {cd_su_fdp_pooled}% pooled. The SRA reads carry no run "
+     "identifiers, so D compares experiments rather than verified sequencing runs. Analysis in "
+     "`crm/controls_design.py` and `crm/figs/figS20_controls.py`."),
 ]
 
 if __name__ == "__main__":

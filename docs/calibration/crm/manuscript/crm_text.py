@@ -178,6 +178,14 @@ RESULTS = [
           "Targets below 5% did not deliver their stated rate on J_{H}4, Sμ or *Pim1* ({fc_strict_lo}–{fc_strict_hi}% "
           "at a 1% target; N114, {fc_n114_1}%): false calls per library levelled off while recall fell, from "
           "{fc_jh4_rec_def}% to {fc_jh4_rec_1}% on J_{H}4 (Figures S19B and S19C)."),
+    ("p", "Varying the controls through the whole procedure on J_{H}4 showed how many are needed (Figure S20). One "
+          "control leaves no decoys, so the threshold falls back to Benjamini–Hochberg: it recalled {cd_rec_1}% of "
+          "planted lineage mutations, against {cd_rec_2}% with two controls and {cd_rec_34}% with three or four, at "
+          "false-discovery proportions of {cd_fdp}%. All-null libraries yielded no calls with any number of "
+          "controls ({cd_null_n} runs). One control carrying recurrent artifacts changed false calls little, with "
+          "or without the noisy-control rule. On Sμ, AID-null controls from a second experiment performed like the "
+          "matched controls ({cd_su_rec_other}% versus {cd_su_rec_matched}% recall), and pooling all five lowered "
+          "false calls from {cd_su_fp_matched} to {cd_su_fp_pooled} per library."),
     ("p", "Indel validation used ten planted insertions or deletions of 1–40 bp per library, supported by 1–20 reads, "
           "with {ind_draws} draws per control and error models fitted to the other controls. Among events supported by "
           "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114, with {ind_jh4_fp} "

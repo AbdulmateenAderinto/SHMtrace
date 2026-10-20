@@ -180,7 +180,7 @@ METHODS = [
           "the decoys are few, their fitted nulls differ from the sample null, and their exchangeability with "
           "samples is an assumption. Figure S15 tests selected consequences of these limitations, and Figure S19 "
           "compares the target with the realised proportion on planted truth: the default was met when pooled, "
-          "and targets below it were not. Because the "
+          "and targets below it were not; Figure S20 varies the number and source of the controls. Because the "
           "threshold targets a proportion, a library with many true mutations admits more false calls in absolute "
           "terms: in simulated polyclonal lineages, {st_lin_fp_def} per library, in exchange for recalling "
           "{st_lin_1_def}% of single-read mutations. Table S7 compares the default with a target of 0.01 and with "
@@ -413,7 +413,14 @@ METHODS = [
           "5, 10, or 20 reads covering that site while keeping each read's own base quality. Three replicates were "
           "performed for each held-out control. For Figure S19 the same libraries were called at target "
           "false-discovery rates of 0.01, 0.02, 0.05, 0.10, 0.20 and 0.30 (`fdr_alpha`), every other setting at "
-          "its default; the realised proportion is false calls over all calls, pooled over a locus's libraries. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, "
+          "its default; the realised proportion is false calls over all calls, pooled over a locus's libraries. "
+          "For Figure S20 (`crm/controls_design.py`), the validation libraries of Figure S15 (KO1 carrying planted "
+          "polyclonal lineages, or none, against halves of KO2 and KO3) were run through `run_project` with one to "
+          "four controls, and with one control carrying recurrent artifacts, {cd_runs} repeats per setting; the "
+          "third and fourth controls are halves of the same two animals. Each Sμ LPS AID-null library, with 60 "
+          "planted substitutions and three draws, was called against its experiment's other two controls, two or "
+          "three CH12 AID-null controls, or all five. The SRA reads carry no run identifiers, so this compares "
+          "experiments, not verified sequencing runs. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, "
           "validated with vdb-validate, and subsampled to 6,000 reads (seed 0). The reference for each locus was "
           "the majority consensus of its first *Aicda*^{−/−} library, built with minimap2 and SAMtools consensus "
           "and iterated to convergence. The OT1 and OT2 off-targets of the same BioProject were added later and "
@@ -747,7 +754,7 @@ TABLE_S6_LOCI = {
 TABLE_S6_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers {ds_loci} AID-targeted loci from {ds_labs} laboratories, counting J_{H}4 once across the rows that share it: {ds_shm} somatic hypermutation targets, {ds_offtarget} AID-targeted loci that are not SHM (Sμ, *Pim1*, OT1 and OT2), and {ds_engineered} engineered substrates. The rRNA operons are excluded; the Sμ–Sγ1 junctions are class switching at Sμ and are not counted again. Lengths are analysis windows; the mOrange amplicon is 679 bp. Superscript numbers cite the main manuscript's reference list.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S19 and Tables S1 and S3–S7",
+    "Document S1. Figures S1–S20 and Tables S1 and S3–S7",
     "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

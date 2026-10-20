@@ -1013,6 +1013,47 @@ def compute():
                  fc_def_fp_hi=f1(max(v["false_per_library"] for v in d.values())),
                  fc_jh4_rec_def=pct(d["jh4"]["recall"]), fc_jh4_rec_1=pct(one["jh4"]["recall"]),
                  fc_su_rec_def=pct(d["su_lps"]["recall"]), fc_su_rec_1=pct(one["su_lps"]["recall"]))
+    # Figure S20: how many controls, and which (crm/controls_design.py, figs/figS20_controls.py)
+    cd_path = OUT / "controls_design.json"
+    if cd_path.exists():
+        cd = _load(cd_path)
+        J, S = cd["jh4"], cd["su"]
+        mean = lambda xs: sum(xs) / len(xs)  # noqa: E731
+        lin = {n: J[f"polyclonal|{n}|none|on"] for n in (1, 2, 3, 4)}
+        nulls = [J[f"null|{n}|none|on"] for n in (1, 2, 3, 4)]
+        noisy = [J[f"polyclonal|{n}|one_noisy|{r}"] for n in (3, 4) for r in ("on", "off")]
+        other = [S["other experiment (2)"], S["other experiment (3)"]]
+        pc1 = lambda x: f"{100 * x:.1f}"  # noqa: E731
+        N.update(cd_runs=f0(lin[1]["runs"]),
+                 cd_rec_1=pct(mean(lin[1]["recall"])), cd_rec_2=pct(mean(lin[2]["recall"])),
+                 cd_rec_34_lo=pct(min(mean(lin[n]["recall"]) for n in (3, 4))),
+                 cd_rec_34_hi=pct(max(mean(lin[n]["recall"]) for n in (3, 4))),
+                 cd_fp_1=f1(mean(lin[1]["false"])),
+                 cd_fp_lo=f1(min(mean(lin[n]["false"]) for n in (2, 3, 4))),
+                 cd_fp_hi=f1(max(mean(lin[n]["false"]) for n in (2, 3, 4))),
+                 cd_fdp_lo=pc1(min(lin[n]["fdp_pooled"] for n in (2, 3, 4))),
+                 cd_fdp_hi=pc1(max(lin[n]["fdp_pooled"] for n in (2, 3, 4))),
+                 cd_null_any=word(sum(c["any_call"] for c in nulls)), cd_null_n=f0(sum(c["runs"] for c in nulls)),
+                 cd_noisy_fp_lo=f1(min(mean(c["false"]) for c in noisy)),
+                 cd_noisy_fp_hi=f1(max(mean(c["false"]) for c in noisy)),
+                 cd_noisy_flagged=f0(min(J[f"polyclonal|{n}|one_noisy|on"]["set_aside"] for n in (3, 4))),
+                 cd_clean_flag_lo=f0(min(J[f"polyclonal|{n}|none|on"]["set_aside"] for n in (3, 4))),
+                 cd_clean_flag_hi=f0(max(J[f"polyclonal|{n}|none|on"]["set_aside"] for n in (3, 4))),
+                 cd_noisy_null_any=word(J["null|4|one_noisy|on"]["any_call"]),
+                 cd_su_rec_matched=pct(S["matched (2)"]["recall"]),
+                 cd_su_rec_other_lo=pct(min(a["recall"] for a in other)),
+                 cd_su_rec_other_hi=pct(max(a["recall"] for a in other)),
+                 cd_su_fdp_matched=pc1(S["matched (2)"]["fdp_pooled"]),
+                 cd_su_fdp_other_lo=pc1(min(a["fdp_pooled"] for a in other)),
+                 cd_su_fdp_other_hi=pc1(max(a["fdp_pooled"] for a in other)),
+                 cd_su_fp_matched=f1(S["matched (2)"]["false_per_library"]),
+                 cd_su_fp_pooled=f1(S["pooled (5)"]["false_per_library"]),
+                 cd_su_rec_pooled=pct(S["pooled (5)"]["recall"]),
+                 cd_su_fdp_pooled=pc1(S["pooled (5)"]["fdp_pooled"]))
+        # a range whose ends round alike is printed once
+        for k in ("cd_rec_34", "cd_su_rec_other", "cd_fdp", "cd_su_fdp_other"):
+            lo, hi = N[f"{k}_lo"], N[f"{k}_hi"]
+            N[k] = lo if lo == hi else f"{lo}–{hi}"
     return N
 
 

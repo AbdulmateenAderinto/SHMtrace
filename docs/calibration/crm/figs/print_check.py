@@ -16,7 +16,7 @@ MIN_PT, MIN_LW, MAX_LW = 5.95, 0.495, 1.505
 STAR = str(Path(__file__).resolve().parents[1] / "star" / "figures")
 FIGURES = ["Figure2", "Figure3", "Figure4", "Figure5", "Figure6", "Figure7", "FigureS2", "FigureS3", "FigureS5",
            "FigureS6", "FigureS7_bookkeeping", "FigureS15", "FigureS16_switch_pacbio", "FigureS17_public_smu",
-           "FigureS18_engineered", "FigureS19_fdr_calibration", f"{STAR}/STAR_Figure3", f"{STAR}/STAR_Figure4"]
+           "FigureS18_engineered", "FigureS19_fdr_calibration", "FigureS20_controls", f"{STAR}/STAR_Figure3", f"{STAR}/STAR_Figure4"]
 
 
 def check(name):
