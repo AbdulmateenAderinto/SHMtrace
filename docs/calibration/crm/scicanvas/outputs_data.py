@@ -1,4 +1,4 @@
-"""Numbers for the SHMtrace outputs overview (outputs_overview.js), from the J_H4 project run.
+"""Numbers for the SHMtrace outputs overview (figS21_outputs.js), from the J_H4 project run.
 
     python crm/scicanvas/outputs_data.py
 
@@ -59,7 +59,7 @@ def main():
 
     data = {"qc": qc, "bg": background, "dens": dens, "spec": spec, "pos": pos,
             "clones": clones, "largest": largest, "drawn": len(res["available_figures"])}
-    print(f"{inject(HERE / 'outputs_overview.js', data):+d} characters")
+    print(f"{inject(HERE / 'figS21_outputs.js', data):+d} characters")
 
 
 if __name__ == "__main__":

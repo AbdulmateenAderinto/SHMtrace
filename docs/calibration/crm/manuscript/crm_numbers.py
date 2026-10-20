@@ -1050,8 +1050,36 @@ def compute():
                  cd_su_fp_pooled=f1(S["pooled (5)"]["false_per_library"]),
                  cd_su_rec_pooled=pct(S["pooled (5)"]["recall"]),
                  cd_su_fdp_pooled=pc1(S["pooled (5)"]["fdp_pooled"]))
+    # Figure S22: real hypermutation diluted into AID-null reads (crm/titration.py, figs/figS22_titration.py)
+    ti_path = OUT / "titration_summary.json"
+    if ti_path.exists():
+        ti = _load(ti_path)
+        don = {k: v for k, v in ti.items() if isinstance(v, dict) and "points" in v}
+        det = lambda loc: [100 * v["detected_from"] for v in don.values() if v["locus"] == loc]  # noqa: E731
+        rat = [x for v in don.values() if v["locus"] == "n114" for x in v["ratio_25_50"]]
+        jh4 = {v["donor"]: v for v in don.values() if v["locus"] == "jh4"}
+        most = max(jh4.values(), key=lambda v: v["unique_at_full"])
+        least = min(jh4.values(), key=lambda v: v["detected_from"] is None or -v["detected_from"])
+        N.update(ti_reps=f0(len(next(iter(don.values()))["points"][0]["observed"])),
+                 ti_n114_det_lo=f"{min(det('n114')):g}", ti_n114_det_hi=f"{max(det('n114')):g}",
+                 ti_n114_ratio_lo=f2(min(rat)), ti_n114_ratio_hi=f2(max(rat)),
+                 ti_jh4_det_lo=f"{min(det('jh4')):g}", ti_jh4_det_hi=f"{max(det('jh4')):g}",
+                 ti_jh4_most=most["donor"].replace("WT", "Wt"), ti_jh4_least=least["donor"].replace("WT", "Wt"))
+        dflt = ti.get("n114_default", {})
+        if dflt:
+            N.update(ti_d3_def_50=f2(dflt["D3|0.5"]), ti_d3_def_100=f2(dflt["D3|1.0"]))
+    # Figure S23: the Immcantation route on the same N114 reads (crm/immcantation_compare.py, figs/figS23_immcantation.py)
+    im_path = OUT / "immcantation_summary.json"
+    if im_path.exists():
+        im = _load(im_path)
+        R = im["routes"]
+        N.update(im_vcall=im["v_call"], im_vid=f1(im["v_identity"]), im_vlen=f0(im["v_length"]),
+                 im_fold_imgt=f0(R["imgt"]["fold"]), im_fold_par=f0(R["parental"]["fold"]),
+                 im_fold_q20=f0(R["parental_q20"]["fold"]), im_fold_sh=f0(R["shmtrace"]["fold"]),
+                 im_ctl_imgt=f2(1e3 * R["imgt"]["empty_geo"]), im_ctl_q20=f2(1e3 * R["parental_q20"]["empty_geo"]),
+                 im_aid_q20=f1(1e3 * R["parental_q20"]["aid_geo"]), im_aid_sh=f1(1e3 * R["shmtrace"]["aid_geo"]))
         # a range whose ends round alike is printed once
-        for k in ("cd_rec_34", "cd_su_rec_other", "cd_fdp", "cd_su_fdp_other"):
+        for k in ("cd_rec_34", "cd_su_rec_other", "cd_fdp", "cd_su_fdp_other", "ti_n114_det", "ti_n114_ratio"):
             lo, hi = N[f"{k}_lo"], N[f"{k}_hi"]
             N[k] = lo if lo == hi else f"{lo}–{hi}"
     return N

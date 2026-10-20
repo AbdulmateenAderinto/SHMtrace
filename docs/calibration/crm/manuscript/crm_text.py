@@ -133,7 +133,7 @@ RESULTS = [
           "be distinguished confidently from background."),
     ("p", "SHMtrace compares groups using one summary value per biological replicate, with Welch tests on "
           "log-transformed rates, negative-binomial tests with parametric bootstrapping, and permutation tests (Figure "
-          "1D). It characterizes mutation patterns through substitution spectra, positional clustering, hotspot use "
+          "1D; Figure S21 shows each output with an example). It characterizes mutation patterns through substitution spectra, positional clustering, hotspot use "
           "and an S5F-based targeting index[@yaari2013]. Additional analyses estimate single-read mutations that could "
           "not be called individually, group reads into clones by their junction sequences, reconstruct read-level "
           "mutation trees and estimate statistical power. Project analyses run identically from the command line "
@@ -186,6 +186,11 @@ RESULTS = [
           "or without the noisy-control rule. On Sμ, AID-null controls from a second experiment performed like the "
           "matched controls ({cd_su_rec_other}% versus {cd_su_rec_matched}% recall), and pooling all five lowered "
           "false calls from {cd_su_fp_matched} to {cd_su_fp_pooled} per library."),
+    ("p", "Diluting real hypermutated reads into AID-null reads tested the estimates on mutations AID made, with "
+          "their clonality and clustering (Figure S22). On N114, mutation frequency was {ti_n114_ratio} of the "
+          "expected value at 25–50% donor reads, and calls were made from {ti_n114_det}% donor reads. On J_{H}4, "
+          "detection was all-or-nothing and depended on the donor: calls began at {ti_jh4_det_lo}% donor reads for "
+          "{ti_jh4_most} and at {ti_jh4_det_hi}% for {ti_jh4_least}, and no call was made below that."),
     ("p", "Indel validation used ten planted insertions or deletions of 1–40 bp per library, supported by 1–20 reads, "
           "with {ind_draws} draws per control and error models fitted to the other controls. Among events supported by "
           "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114, with {ind_jh4_fp} "
@@ -241,6 +246,11 @@ RESULTS = [
           "germline exclusion, representative Wt and null J_{H}4 libraries contained {rast_wt_other} and "
           "{rast_ko_other} other high-quality mismatches, while the Wt library added {rast_wt_called} at called sites, "
           "often shared within clones (Figures S6C and S6D)."),
+    ("p", "The same N114 reads were analyzed by IgBLAST[@ye2013] and SHazaM[@gupta2015], which count every "
+          "mismatch to the germline (Figure S23). With the IMGT germline the AID libraries were {im_fold_imgt}-fold "
+          "above the empty-vector libraries, because the parental line differs from it ({im_vid}% identity) and "
+          "sequencing errors count as mutations. Using the parental V as germline raised this to {im_fold_par}-fold, "
+          "and masking bases below Q20 to {im_fold_q20}-fold, compared with {im_fold_sh}-fold for SHMtrace."),
     ("p", "At *Pim1*, mutation calls in AID-competent libraries remained close to the AID-null background. At 2,000 "
           "reads per library, SHMtrace yielded {pim1_rec_fold}-fold separation between groups, with four calls across "
           "the controls, compared with {pim1_gen_fold}-fold separation and eleven control calls for Geneious. "

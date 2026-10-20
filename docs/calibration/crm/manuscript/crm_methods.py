@@ -53,6 +53,7 @@ KRT = [
      "Poplin et al.[@poplin2018]; Park et al.[@park2026]", "https://github.com/google/deepvariant"),
     ("SAMtools 1.24", "Danecek et al.[@danecek2021]", "https://github.com/samtools/samtools"),
     ("SHazaM 1.2.0 (HH_S5F model)", "Gupta et al.[@gupta2015]; Yaari et al.[@yaari2013]", "https://immcantation.readthedocs.io"),
+    ("IgBLAST 1.22.0", "Ye et al.[@ye2013]", "https://ncbi.github.io/igblast"),
     ("Python 3.13, NumPy 2.5, SciPy 1.18", "Virtanen et al.[@virtanen2020]", "https://scipy.org"),
     ("SRA Toolkit 3.4.1", "NCBI", "https://github.com/ncbi/sra-tools"),
     ("Geneious Prime 2026.1.2 (comparison only)", "Kearse et al.[@kearse2012]", "https://www.geneious.com"),
@@ -420,7 +421,20 @@ METHODS = [
           "third and fourth controls are halves of the same two animals. Each Sμ LPS AID-null library, with 60 "
           "planted substitutions and three draws, was called against its experiment's other two controls, two or "
           "three CH12 AID-null controls, or all five. The SRA reads carry no run identifiers, so this compares "
-          "experiments, not verified sequencing runs. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, "
+          "experiments, not verified sequencing runs. For Figure S22 (`crm/titration.py`), 500 usable reads were "
+          "drawn with a fraction f from an AID-active library and the rest from one AID-null library (J_{H}4 KO1; "
+          "N114 D1), {ti_reps} draws per fraction, and called by `run_project` against the other two AID-null "
+          "libraries; expected mutation frequency is f times the donor at f = 1 plus (1 − f) times the diluent. "
+          "N114 used `ancestral_reference`, because its reference is the parental construct: with the default 50% "
+          "rule, mutations fixed within a subclone are removed at f = 1 but counted once diluted, and D3 then read "
+          "{ti_d3_def_50} per 10^{3} bp at f = 0.5 and {ti_d3_def_100} at f = 1. For Figure S23 "
+          "(`crm/immcantation_compare.py`), the 500 reads SHMtrace analyzed from each N114 library were passed to "
+          "IgBLAST 1.22.0 (AIRR output) against the IMGT mouse IGH germlines, or with the parental V segment "
+          "({im_vlen} bp) as the only V germline, with and without bases below Q20 replaced by N first (the rule of "
+          "pRESTO's quality masking). SHazaM `observedMutations` counted substitutions between "
+          "`v_sequence_alignment` and `v_germline_alignment`; a library's value is the mean over reads. SHMtrace's "
+          "value is the supporting reads of its calls in the same segment over analyzed reads times its length. "
+          "MiXCR was not run. The IRCM runs (PRJNA1481264) were downloaded with the SRA Toolkit, "
           "validated with vdb-validate, and subsampled to 6,000 reads (seed 0). The reference for each locus was "
           "the majority consensus of its first *Aicda*^{−/−} library, built with minimap2 and SAMtools consensus "
           "and iterated to convergence. The OT1 and OT2 off-targets of the same BioProject were added later and "
@@ -754,7 +768,7 @@ TABLE_S6_LOCI = {
 TABLE_S6_NOTE = ("GC, germinal-center; Wt, wild type; KO, knockout; ONT, Oxford Nanopore Technologies; UMI, unique molecular identifier. a, independent subclones from one transduction; b, the same mice as the nanopore comparison; c, deposit replicates whose experimental origin is unspecified. The table covers {ds_loci} AID-targeted loci from {ds_labs} laboratories, counting J_{H}4 once across the rows that share it: {ds_shm} somatic hypermutation targets, {ds_offtarget} AID-targeted loci that are not SHM (Sμ, *Pim1*, OT1 and OT2), and {ds_engineered} engineered substrates. The rRNA operons are excluded; the Sμ–Sγ1 junctions are class switching at Sμ and are not counted again. Lengths are analysis windows; the mOrange amplicon is 679 bp. Superscript numbers cite the main manuscript's reference list.")
 
 SUPPLEMENT = [
-    "Document S1. Figures S1–S20 and Tables S1 and S3–S7",
+    "Document S1. Figures S1–S23 and Tables S1 and S3–S7",
     "Table S2. Caller comparison: the five calling settings on real libraries in Figure 4, and planted-mutation results for all tested callers in Figure 3 (Excel)",
     "Data S1. Benchmark outputs (JSON) and SHMtrace project files for every analysis",
 ]

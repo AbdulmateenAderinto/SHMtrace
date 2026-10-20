@@ -824,6 +824,44 @@ SUPP_FIGS = [
      "{cd_su_fdp_other}% with CH12 controls and {cd_su_fdp_pooled}% pooled. The SRA reads carry no run "
      "identifiers, so D compares experiments rather than verified sequencing runs. Analysis in "
      "`crm/controls_design.py` and `crm/figs/figS20_controls.py`."),
+    ("Figure S21. What a project run writes, and how to read it, related to Figure 1",
+     FIG / "FigureS21_outputs_preview.png",
+     "Top, a project run: reads per animal and two or more AID-null controls in; a report, figures in PNG, SVG or "
+     "PDF, Excel and CSV tables and the full result (with an AIRR rearrangement file) out. Below, SHMtrace's figures "
+     "grouped by the question each answers, one per group redrawn from the J_{H}4 nanopore run (three Wt and three "
+     "*Aicda*^{−/−} mice, 500 reads each), with a note on how to read it and what to watch for; the other figures of "
+     "each group are listed by file name. (A) Read accounting through each filter. (B) The error rate the AID-null "
+     "controls showed at each position; dashed line, median. (C) Unique-variant density per animal; open circles, "
+     "animals with no call, drawn at one event; bars, geometric means; p, Welch test on log density. (D) The twelve "
+     "substitution types; bars, Wt pooled; points, mice. (E) Share of reads mutated at each position, Wt above the "
+     "line and *Aicda*^{−/−} below; ticks, WRC/GYW hotspots. (F) Clones defined by the V(D)J junction, by size and "
+     "number of mutations. Seven figures are drawn for every project and up to nineteen more when the run has the "
+     "data. Built with `crm/scicanvas/figS21_outputs.js`."),
+    ("Figure S22. Real hypermutation diluted into AID-null reads, related to Figure 3",
+     FIG / "FigureS22_titration.png",
+     "Each AID-active library (donor) was mixed with one AID-null library (diluent) at 1–100% donor reads in 500 "
+     "usable reads, {ti_reps} draws per fraction, and called against the other two AID-null libraries (J_{H}4: "
+     "donors Wt2–Wt4, diluent KO1, controls KO2 and KO3; N114: donors C1, D3 and D5, diluent D1, controls C3 and C4). "
+     "(A, B) Mean observed mutation frequency against the frequency expected from donor and diluent alone; lines, "
+     "the range of draws; dashed line, equality; a frequency of zero is drawn on the 0 row. N114 used "
+     "`ancestral_reference` (STAR Methods). (C) Unique mutations called, mean of draws, against the share of donor "
+     "reads. On N114, frequency was {ti_n114_ratio} of the expected value at 25–50% donor reads and calls began at "
+     "{ti_n114_det}%. On J_{H}4, calling was all-or-nothing and began at {ti_jh4_det_lo}–{ti_jh4_det_hi}% donor "
+     "reads depending on the donor, consistent with a control-based threshold that admits no call until enough "
+     "candidates exceed the controls' background. Analysis in `crm/titration.py` and `crm/figs/figS22_titration.py`."),
+    ("Figure S23. SHMtrace and the IgBLAST–SHazaM route on the same N114 reads, related to Figure 4",
+     FIG / "FigureS23_immcantation.png",
+     "The 500 reads SHMtrace analyzed from each N114 library were assigned by IgBLAST ({im_vcall}; the parental "
+     "line is {im_vid}% identical to it over {im_vlen} bp) and their substitutions over the V segment counted by "
+     "SHazaM, with the IMGT germline, with the parental V segment as germline, and with the parental germline after "
+     "masking bases below Q20; SHMtrace's calls over the same segment are shown for comparison. (A) Mutation "
+     "frequency per library; filled, pMX-*Aicda*; open, empty vector; triangles, libraries with no SHMtrace call, "
+     "drawn at one event; bars, geometric means. (B) Geometric-mean separation of pMX-*Aicda* from empty-vector "
+     "libraries. The SHazaM routes count every substitution in every read, including real single-read mutations "
+     "that SHMtrace does not call, so their AID-library values are higher ({im_aid_q20} against {im_aid_sh} per "
+     "10^{3} bp with masking); their empty-vector values ({im_ctl_imgt} and {im_ctl_q20} per 10^{3} bp without and "
+     "with the parental germline and masking) are the background they cannot remove. MiXCR was not run. Analysis in "
+     "`crm/immcantation_compare.py` and `crm/figs/figS23_immcantation.py`."),
 ]
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ QUERIES = {   # key: PubMed query (a title, optionally with an author)
     "edgar2015": "Error filtering, pair assembly and error correction for next-generation sequencing reads[Title]",
     "yaari2013": "Models of somatic hypermutation targeting and substitution based on synonymous mutations[Title]",
     "gupta2015": "Change-O: a toolkit for analyzing large-scale B cell immunoglobulin repertoire sequencing data[Title]",
+    "ye2013": "IgBLAST: an immunoglobulin variable domain sequence analysis tool[Title]",
     "maccarthy2009": "SHMTool: a webserver for comparative analysis of somatic hypermutation datasets[Title]",
     "thientosapol2018": "SAMHD1 enhances immunoglobulin hypermutation by promoting transversion mutation[Title]",
     "kearse2012": "Geneious Basic: an integrated and extendable desktop software platform[Title]",

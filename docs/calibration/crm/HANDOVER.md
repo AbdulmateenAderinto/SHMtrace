@@ -273,6 +273,51 @@ unless the method changed. `ARCHIVE.md` lists the command behind every one.
 
 ---
 
+## 6b. Figures added on 20 October, and two planned
+
+Added and in Document S1: S19 (`figs/figS19_fdr_calibration.py`; `spikein.py --tag _fdrcal`), S20
+(`controls_design.py`, `figs/figS20_controls.py`), S21 (`scicanvas/figS21_outputs.js`, numbers from
+`scicanvas/outputs_data.py`), S22 (`titration.py`, `figs/figS22_titration.py`) and S23
+(`immcantation_compare.py IGDATA`, `figs/figS23_immcantation.py`). Their inputs in `crm/out/` are not in git;
+copies are in `~/Nanoshm/audit_rerun_2026-10-20/out_snapshot`. `immcantation_compare.py` needs IgBLAST's
+`internal_data/mouse` and `optional_file/mouse_gl.aux` in a folder whose path has no spaces (a copy came from the
+EPI2ME N114 run); MiXCR's licence had expired, so it was not run.
+
+**Numbering.** S19–S23 were appended, so they are cited before S4–S18 in the Results. Cell Press numbers
+supplementary figures in order of citation: a renumbering pass is needed before submission.
+
+### Planned: S24, reproducibility of per-animal estimates (split halves)
+
+- `crm/split_half.py`: for every library of J_H4, N114, Sμ (LPS) and *Pim1*, AID-active and AID-null, split its
+  usable reads into two disjoint random halves (500 reads each where the library has 1,000 usable; otherwise half
+  of what it has), five splits per library, and call each half with `run_project` against the same controls
+  (a control half is called against its peers, as in `spikein.py`). Record unique density, mutation frequency,
+  the 12-class spectrum and the positional profile per half.
+- Measures: half against half for log density (Lin's concordance), spectrum cosine similarity within a library
+  against between animals of one genotype, and the share of variance between animals (ICC) for each metric. The
+  question is whether two halves of one animal agree better than two animals do, which is what one value per
+  animal assumes.
+- Figure: (A) log density, half A against half B, every library and split; (B) spectrum similarity within
+  against between animals; (C) ICC per metric and locus.
+- Caveat to state: halves are at lower depth, and density depends on depth (Figure S5), so compare halves with
+  each other, never with the full library. WT4 has 962 usable reads.
+- About 280 `run_project` calls, roughly 5 min on six workers. One Results sentence beside Figure 3G.
+
+### Planned: S25, runtime and scaling
+
+- `crm/runtime_scaling.py`: wall-clock time and peak memory of one `run_project` call (via
+  `resource.getrusage`), three repeats each, on the machine in the Key resources table (Apple M2 Pro, 12 cores,
+  32 GB), nothing else running:
+  - reads per library 250, 500, 1,000, 2,000 and 5,000 (J_H4 for the low end; the 60,000-read Sμ and *Pim1*
+    subsamples for 2,000 and above), six libraries;
+  - libraries per project 2, 4, 8, 16 and 32 at 500 reads (extra libraries resampled from the J_H4 libraries);
+  - a stage breakdown (read preparation and alignment, null fitting and margin, calling and threshold, figures
+    and report), timed by wrapping those functions with `time.perf_counter`.
+- Figure: (A) time against reads per library, log axes, per locus; (B) time against libraries; (C) peak memory;
+  (D) the stage breakdown at the default 500 reads. State that the STAR Methods runtimes come from the same
+  machine.
+- About 30 min of machine time. One sentence in the Discussion or STAR Methods; no Results paragraph needed.
+
 ## 7. Conventions worth keeping
 
 - Figure legends live in `crm_methods.py` (main figures) and `build_crm.py` (supplementary). They are not
