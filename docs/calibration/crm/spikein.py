@@ -91,7 +91,9 @@ def run(key, reps, n_sites, seed=1):
                     pp = replace(base, **{**pipeline.mode_overrides(mode), **extra})
                     nr = None
                     if pp.error_model != "geneious":
-                        k = (pp.error_model, pp.phase_mode, pp.recalibrate)
+                        # Calibration depends on candidate eligibility as well
+                        # as preparation. Reuse only for an identical Params set.
+                        k = json.dumps(pipeline.to_dict(pp), sort_keys=True)
                         if k not in nulls:
                             nulls[k] = null_model.fit(peers, ds["reference"], contam, pp)[0]
                         nr = nulls[k]

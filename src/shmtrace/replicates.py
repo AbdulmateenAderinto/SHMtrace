@@ -17,9 +17,12 @@ For a count-based rate (mutations per base sequenced), each animal contributes
                   is a likelihood-ratio test with the p-value by parametric bootstrap
                   (small groups make the chi-square approximation unsafe).
   permutation     exact (or 20,000-draw) permutation of animals between the groups on
-                  log10 rates (an animal with no mutations counts half an event): no distributional assumption at all; with 3 vs 3 the
+                  log10 rates (an animal with no mutations counts one event; see
+                  ZERO_EVENTS): no distributional assumption at all; with 3 vs 3 the
                   smallest two-sided p is 0.1, which is the honest limit of 6 animals.
-  Welch on log10  the manuscript's test.
+  Welch on log10  the manuscript's test, with the same zero-count rule. The half-event
+                  and third-of-smallest conventions are reported beside it as labelled
+                  sensitivity analyses, never as the primary p value.
   fold            the ratio of the groups' fitted rates, and the ratio of geometric
                   means with a 95% interval on the log scale (Welch-Satterthwaite).
   pooled reads    the two-proportion test on summed counts, reported only to show how
@@ -34,6 +37,49 @@ import random
 import numpy as np
 from scipy import optimize, stats
 from scipy.special import gammaln
+
+# One zero-count rule for every log-scale test, fold and plot (audit F05). A library
+# with no events is placed at the rate one event would give on its own exposure:
+# independent of the other animals and of the unit the rate is expressed in. The
+# project table (project.group_table) and animal_tests both read it from here.
+ZERO_EVENTS = 1.0
+HALF_EVENT = 0.5            # sensitivity analysis only
+
+
+def censored_log10(values, one_event, zero_events: float = ZERO_EVENTS) -> list[float]:
+    """log10 of each rate, any rate below `zero_events` events raised to that.
+
+    `one_event[i]` is the rate a single event gives library i on its own exposure
+    (for counts k over n bases at scale s: s / n). A value with no positive rate
+    and no exposure carries no information and is left out.
+    """
+    out = []
+    for v, one in zip(values, one_event, strict=True):
+        if v is None:
+            continue
+        if one:
+            v = max(v, zero_events * one)
+        if v > 0:
+            out.append(math.log10(v))
+    return out
+
+
+def third_of_smallest_log10(a: list[float], b: list[float]) -> tuple[list[float], list[float]]:
+    """The earlier project-table convention, kept as a sensitivity analysis: a zero
+    is set to a third of the smallest positive value in either group."""
+    vals = [v for v in a + b if v is not None and v > 0]
+    if not vals:
+        return [], []
+    floor = min(vals) / 3
+    return ([math.log10(max(v, floor)) for v in a if v is not None],
+            [math.log10(max(v, floor)) for v in b if v is not None])
+
+
+def welch_p(a: list[float], b: list[float]) -> float | None:
+    """Two-sided Welch t test; None with fewer than two values in a group."""
+    if len(a) < 2 or len(b) < 2:
+        return None
+    return float(stats.ttest_ind(a, b, equal_var=False).pvalue)
 
 
 def _nb_ll(k, mu, phi):
@@ -78,10 +124,10 @@ def fit_nb(groups: list[tuple[list, list]], common: bool = False,
     return rates, phi, ll
 
 
-def _log_rates(k, n):
-    """log10 rates; an animal with no mutations counts half an event (continuity
-    correction), so its log is finite and set by its own depth, not by other animals."""
-    return [math.log10(max(ki, 0.5) / ni) for ki, ni in zip(k, n, strict=True) if ni]
+def _log_rates(k, n, zero_events: float = ZERO_EVENTS):
+    """log10 rates; an animal with no mutations counts `zero_events` (ZERO_EVENTS, one
+    event, by default), so its log is finite and set by its own depth, not by other animals."""
+    return [math.log10(max(ki, zero_events) / ni) for ki, ni in zip(k, n, strict=True) if ni]
 
 
 def permutation_p(a: list[float], b: list[float], max_exact: int = 20000,
@@ -129,13 +175,20 @@ def compare(ctrl: list[tuple[int, int]], case: list[tuple[int, int]], boot: int 
     out.update(rate_case=mx, rate_control=mc, dispersion=phi,
                fold=(mx / mc) if mc > 0 else (mx / (len(nc) / sum(nc)) if mx > 0 else 1.0),
                # a control group with no mutations at all: the fold is against one event per
-               # control animal (the one-event density the plots censor a zero to), so it is a
-               # conservative lower bound
-               fold_is_lower_bound=bool(mc <= 0 < mx))
+               # control animal (the one-event density the plots censor a zero to). That is a
+               # zero-count convention, not a statistical confidence bound.
+               fold_control_zero_one_event=bool(mc <= 0 < mx))
     lc, lx = _log_rates(kc, nc), _log_rates(kx, nx)
     if len(lc) >= 2 and len(lx) >= 2:
         t = stats.ttest_ind(lx, lc, equal_var=False)
         out["p_welch_log"] = float(t.pvalue)
+        out["zero_count_convention"] = "one event on the animal's own exposure"
+        # sensitivity analyses: the same test under the two other conventions in use
+        out["p_welch_log_half_event"] = welch_p(_log_rates(kx, nx, HALF_EVENT),
+                                                _log_rates(kc, nc, HALF_EVENT))
+        tx, tc = third_of_smallest_log10([k / n for k, n in zip(kx, nx, strict=True) if n],
+                                         [k / n for k, n in zip(kc, nc, strict=True) if n])
+        out["p_welch_log_third_of_smallest"] = welch_p(tx, tc)
         # fold interval on the log scale (Welch-Satterthwaite df)
         va, vb = np.var(lx, ddof=1) / len(lx), np.var(lc, ddof=1) / len(lc)
         se = math.sqrt(va + vb)

@@ -13,9 +13,20 @@ Reported for CONTROL vs CASE (unique mutations, base-composition corrected):
   * optional subregion S vs its complement S'
 Each comparison gets a two-proportion test (R prop.test equivalent) with stars.
 Non-unique ("total") counts are also reported, with the no-UMI caveat.
+
+LEGACY, DESCRIPTIVE ROUTE. This command pools every file's mutations and tests
+sites or reads as if independent, and it calls each file without a
+control-fitted error model (no empirical null, no decoy thresholding). Its p
+values and stars describe pooled counts; they are not evidence at the level of
+biological replicates, and the calling is not the calibrated analysis the paper
+describes. For that, name the background controls in a sample sheet and use
+`shmtrace-sheet run` (or a project in `shmtrace-app`): leave-one-out control
+fitting, control-based thresholding, and animal_tests with one value per animal.
+Every report from this command says so, and lists the error model each file used.
 """
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 
 from scipy.stats import chi2_contingency
@@ -98,6 +109,7 @@ def _run_groups(control_files, case_files, reference, contaminants, p):
            for name in samples}
     ctrl = [out[n] for n in samples if n.startswith("control_")]
     case = [out[n] for n in samples if n.startswith("case_")]
+    b["calling"] = _calling_provenance(out)
     return ctrl, case, b
 
 
@@ -115,6 +127,28 @@ def _base_site_counts(ref: str, positions: list[int]) -> dict[str, int]:
         if b in c:
             c[b] += 1
     return c
+
+
+ROUTE = "legacy pooled descriptive comparison (SHMTool-style)"
+LEGACY_NOTE = ("Legacy pooled comparison: mutations are pooled across files and every p value "
+               "is a two-proportion test that treats sites or reads as independent. These p "
+               "values and stars are descriptive; they are not evidence at the level of "
+               "biological replicates. Files were called without a control-fitted error model. "
+               "For the calibrated analysis with one value per animal, name the controls in a "
+               "sample sheet and run `shmtrace-sheet run` (or use a project in shmtrace-app).")
+
+
+def _calling_provenance(named: dict) -> dict:
+    """Which error model and multiple-testing rule each file was actually called with,
+    and every calling note (a requested model that fell back, for example)."""
+    per_file = {}
+    for name, res in named.items():
+        c = res["summary"]["calling"]
+        per_file[name] = {"error_model": c.get("error_model"),
+                          "multiple_testing": c.get("multiple_testing"),
+                          "notes": list(c.get("notes") or [])}
+    models = Counter(v["error_model"] for v in per_file.values())
+    return {"route": ROUTE, "error_models_used": dict(models), "per_file": per_file}
 
 
 def _freq_row(label, ctrl_x, ctrl_L, case_x, case_L):
@@ -219,7 +253,19 @@ def compare(control_files: list[str], case_files: list[str],
                           "sig": row["sig"], "control_freq": row["control_freq"],
                           "case_freq": row["case_freq"]}
 
+    calling = b["calling"]
+    warnings = [LEGACY_NOTE]
+    fallbacks = sorted({n for v in calling["per_file"].values() for n in v["notes"]
+                        if "used the read-quality model instead" in n})
+    if fallbacks:
+        warnings.append("Requested error model unavailable without control reads; files were "
+                        "called with: " + ", ".join(f"{k} ({v} file(s))" for k, v in
+                                                     sorted(calling["error_models_used"].items()))
+                        + ". " + " ".join(fallbacks))
     return {
+        "analysis_route": ROUTE,
+        "warnings": warnings,
+        "calling": calling,
         "params": {"preset": p.name, "analysis_window": p.analysis_window,
                    "subregion_sites": len(restrict) if restrict else None,
                    "common_depth": b["depth"],
@@ -240,27 +286,34 @@ def compare(control_files: list[str], case_files: list[str],
 
 def report_markdown(res: dict) -> str:
     g = res["groups"]
-    out = ["# SHM comparative analysis — CONTROL vs CASE", "",
+    out = ["# SHM comparative analysis — CONTROL vs CASE (legacy, pooled, descriptive)", ""]
+    out += [f"> **Warning:** {w}" + "\n" for w in res.get("warnings", [])]
+    models = (res.get("calling") or {}).get("error_models_used")
+    if models:
+        out += ["Error model used per file: "
+                + ", ".join(f"{k} × {v}" for k, v in sorted(models.items())) + ".", ""]
+    out += [
            f"Preset **{res['params']['preset']}**, window "
            f"{res['params']['analysis_window']}. "
            f"Control = {g['control_files']} file(s), {g['control_reads']} reads; "
            f"Case = {g['case_files']} file(s), {g['case_reads']} reads. "
            f"Every file analysed at {res['params'].get('common_depth')} reads.", "",
            "Frequencies are base-composition corrected (unique mutations). "
-           "Stars: * p<0.05, ** p<0.01, *** p<0.001.", "",
+           "Pooled two-proportion tests (sites or reads treated as independent; "
+           "not replicate-level): * p<0.05, ** p<0.01, *** p<0.001.", "",
            "## Mutation profile", "",
-           "| Metric | Control | Case | Δ | p |",
+           "| Metric | Control | Case | Δ | pooled p |",
            "|---|---:|---:|:--:|---|"]
     for r in res["frequency_rows"]:
         out.append(f"| {r['metric']} | {r['control_freq']:.2e} | "
                    f"{r['case_freq']:.2e} | {r['change']} | {r['sig']} |")
     out += ["", "## Non-unique mutations (every read counted; no-UMI upper bound)", "",
-            "| Metric | Control | Case | Δ | p |", "|---|---:|---:|:--:|---|"]
+            "| Metric | Control | Case | Δ | pooled p |", "|---|---:|---:|:--:|---|"]
     for r in res.get("nonunique_rows", []):
         out.append(f"| {r['metric']} | {r['control_freq']:.2e} | "
                    f"{r['case_freq']:.2e} | {r['change']} | {r['sig']} |")
     out += ["", "## Substitution classes (unique, per from-base site)", "",
-            "| Class | Control | Case | Δ | p |", "|---|---:|---:|:--:|---|"]
+            "| Class | Control | Case | Δ | pooled p |", "|---|---:|---:|:--:|---|"]
     for r, row in res.get("spectrum", {}).items():
         for a, c in row.items():
             if "p_value" not in c:
@@ -270,7 +323,7 @@ def report_markdown(res: dict) -> str:
             out.append(f"| {r}→{a} | {c['control_freq']:.2e} | {c['case_freq']:.2e} | "
                        f"{ch} | {c['sig']} |")
     out += ["", "## Motif targeting (hot/cold-spots)", "",
-            "| Motif class | Control | Case | Δ | p |",
+            "| Motif class | Control | Case | Δ | pooled p |",
             "|---|---:|---:|:--:|---|"]
     for r in res["motif_rows"]:
         out.append(f"| {r['metric']} ({'/'.join(r['members'])}) | "
@@ -287,7 +340,10 @@ def main():
     import argparse
     import json
     import os
-    ap = argparse.ArgumentParser(description="CASE vs CONTROL SHM comparison")
+    ap = argparse.ArgumentParser(
+        description="Legacy CASE vs CONTROL comparison: pooled, SHMTool-style, descriptive. "
+                    "Files are called without a control-fitted error model and p values pool "
+                    "files. For calibrated, replicate-level inference use `shmtrace-sheet run`.")
     ap.add_argument("--control", nargs="+", required=True, help="control FASTQ(s)")
     ap.add_argument("--case", nargs="+", required=True, help="case FASTQ(s)")
     ap.add_argument("--reference", required=True)
@@ -305,6 +361,8 @@ def main():
     if args.subregion:
         a, b = args.subregion.split("-")
         sub = list(range(int(a), int(b) + 1))
+    import sys
+    print("shmtrace-compare: " + LEGACY_NOTE, file=sys.stderr)
     res = compare(args.control, args.case, args.reference, args.contaminant, p, sub)
 
     os.makedirs(args.out, exist_ok=True)

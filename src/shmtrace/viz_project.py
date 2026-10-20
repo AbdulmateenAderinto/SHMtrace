@@ -88,6 +88,7 @@ def group_dotplot(res: dict, metric: str, label: str, fmt: str = "png") -> bytes
     col = _group_colour(res)
     # a zero density is censored to the one-event scale, as the paper does, so
     # an empty sample still appears and still counts towards the group
+    from .project import _one_event
     vals, censored = {}, set()
     for g in order:
         vals[g] = []
@@ -95,8 +96,11 @@ def group_dotplot(res: dict, metric: str, label: str, fmt: str = "png") -> bytes
             if s["group"] != g or s[metric] is None:
                 continue
             v, cen = s[metric], False
-            if v == 0 and metric == "unique_density_x1e5" and s.get("one_event_density_x1e5"):
-                v, cen = s["one_event_density_x1e5"], True
+            # the test's zero-count rule (project._one_event): drawn where it is tested
+            # (the stored values are rounded for display, hence the 1% tolerance)
+            one = _one_event(s, metric)
+            if one and v < 0.99 * one:
+                v, cen = one, True
             vals[g].append(v)
             if cen:
                 censored.add((g, len(vals[g]) - 1))

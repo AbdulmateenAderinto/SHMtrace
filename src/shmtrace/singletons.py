@@ -25,12 +25,26 @@ JH4, is the check that the efficiency correction is right
 
 Samples and controls must be at the same depth: whether a mutation is seen in
 exactly one read depends on how many reads there are.
+
+The 95% interval inverts a profile likelihood (Rolke, Lopez and Conrad 2005,
+Nucl. Instrum. Meth. A 551:493) for the count model
+
+  observed ~ Poisson(signal + background)
+  control  ~ Poisson(tau x background)    tau = control bases / sample bases
+
+with the likelihood ratio divided by the between-control overdispersion phi
+(quasi-likelihood). Zero observed events do not make a zero-width interval: with
+none in the sample and none in the controls the upper limit is still about two
+events. The efficiency is treated as known (it is a ratio of large base counts).
+docs/calibration/SINGLE_READ_INTERVAL.md has the coverage simulation.
 """
 from __future__ import annotations
 
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
+
+from scipy.optimize import brentq
 
 BASES = "ACGT"
 # a site where a control shows an alt in at least this share of reads is a
@@ -128,6 +142,56 @@ def count(t: Tally, q_min: int, skip: set[int], called: set | None = None) -> di
             "efficiency": ref_hi / ref_all if ref_all else 0.0}
 
 
+def _profile_ll(mu: float, n: int, m: int, tau: float) -> float:
+    """log L(mu, b) maximised over the background b (constants dropped).
+
+    n ~ Poisson(mu + b), m ~ Poisson(tau b), with b >= 0 and mu + b >= 0: the signal
+    may be negative, as the background-subtracted estimate can be.
+    """
+    lo = max(0.0, -mu)
+    a = 1.0 + tau
+    lin = a * mu - n - m
+    disc = lin * lin + 4.0 * a * m * mu
+    b = lo
+    if disc >= 0:
+        root = (-lin + math.sqrt(disc)) / (2.0 * a)
+        if root > lo:
+            b = root
+    lam = mu + b
+
+    def term(k, x):
+        if k == 0:
+            return -x
+        return k * math.log(x) - x if x > 0 else -math.inf
+    return term(n, lam) + term(m, tau * b)
+
+
+def profile_interval(n: int, m: int, tau: float, phi: float = 1.0,
+                     z: float = 1.96) -> tuple[float, float, float]:
+    """(estimate, low, high) of the signal mu in events, from the profile likelihood.
+
+    The limits are where 2 (l_max - l_p(mu)) / phi reaches z^2. Both limits exist
+    for every n, m >= 0 and tau > 0, so a zero count never gives a zero-width interval.
+    """
+    mu_hat = n - m / tau
+    lmax = _profile_ll(mu_hat, n, m, tau)
+    crit = z * z * max(phi, 1.0)
+
+    def g(mu):
+        return 2.0 * (lmax - _profile_ll(mu, n, m, tau)) - crit
+    # g(mu_hat) = -crit < 0; widen each bracket until g changes sign
+    step = max(1.0, math.sqrt(n + m / (tau * tau) + 1.0))
+    hi, lo = mu_hat + step, mu_hat - step
+    while g(hi) < 0:
+        hi += step
+        step *= 2
+    step = max(1.0, math.sqrt(n + m / (tau * tau) + 1.0))
+    while g(lo) < 0:
+        lo -= step
+        step *= 2
+    return mu_hat, brentq(g, lo, mu_hat, xtol=1e-6), brentq(g, mu_hat, hi, xtol=1e-6)
+
+
 def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: float,
              ref: str, called: set | None = None, z: float = 1.96) -> dict | None:
     """Background-subtracted count of single-read mutations, with a 95% interval.
@@ -165,8 +229,7 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         phi = max(1.0, x2 / (len(cs) - 1))
     eff = s["efficiency"]
     est = (obs - exp) / eff
-    var = obs + (phi - 1.0) * exp + phi * exp * exp / max(kc, 1)
-    se = math.sqrt(max(var, 0.0)) / eff
+    _mu, mu_lo, mu_hi = profile_interval(obs, kc, nc / s["bases"], phi, z)
     # the spectrum of the excess: observed single-read events by class, and the
     # background expected for each class from the controls' own events
     obs_cls = defaultdict(int)
@@ -184,8 +247,10 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         "expected": round(exp, 3),
         "efficiency": round(eff, 4),
         "estimate": round(est, 2),
-        "ci_low": round(est - z * se, 2),
-        "ci_high": round(est + z * se, 2),
+        "ci_low": round(mu_lo / eff, 2),
+        "ci_high": round(mu_hi / eff, 2),
+        "ci_method": "profile likelihood: Poisson sample and control counts, "
+                     "scaled by the control overdispersion",
         "overdispersion": round(phi, 3),
         "bases": s["bases"],
         "control_events": kc,

@@ -6,6 +6,62 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Use the same substitution-candidate eligibility rules for samples and held-out
+  controls, including the optional singleton quality floor and ancestral-reference
+  policy. Spike-in calibration caches now distinguish the complete parameter set.
+- Preserve control decoys in saved null panels (format version 3). Older panels
+  remain readable; a fallback to Benjamini-Hochberg is now explicitly reported.
+  Panel round trips do not establish calibration across sequencing runs.
+- Stop batch analysis when a library has no usable reads, rather than reducing all
+  libraries to zero depth; reject nonpositive analysis depths.
+- Reject indel analysis after UMI consensus, which does not yet reconstruct
+  insertion alleles and contiguous deletion events correctly. UMI substitution
+  analysis and non-UMI indel analysis remain available.
+- One zero-count convention for every log-scale test, fold, plot and power
+  simulation: a library with no events counts one event on its own exposure.
+  The half-event and third-of-smallest conventions are reported only as labelled
+  sensitivity columns. `fold_is_lower_bound` is renamed
+  `fold_control_zero_one_event`. **Changes `animal_tests` and project frequency
+  p values and folds.**
+- Single-read 95% intervals now invert a profile likelihood (Poisson sample and
+  control counts, overdispersion-scaled), so zero counts no longer give 0 [0, 0];
+  coverage in `docs/calibration/SINGLE_READ_INTERVAL.md`.
+- `shmtrace-compare` is labelled a legacy, pooled, descriptive comparison and
+  reports the error model each file was called with, including fallbacks.
+- Densities use the exact bases at callable positions; end-trimmed positions no
+  longer enter the denominator. Project rows add the observed-base mutation
+  frequency beside the fixed-window one.
+- Indel calls under control-based thresholding report their Benjamini-Hochberg
+  fallback.
+- The standalone null fitter (`null_model.fit`, `--null` on the single-sample CLI)
+  prepares controls with `pipeline.prepare_reads`, so the paralogue-allele filter,
+  UMI consensus, `ignore_qualities` and Sanger trimming apply to controls as they do
+  to samples. Only the control phasing policy (drop every block) differs.
+- A positive `min_base_quality` now gates the null's counts, depths and quality tails
+  and the decoys' base total, as it gates the sample pileup. Error probabilities are
+  conditional on a base passing the gate. **Changes calls when `min_base_quality > 0`**;
+  the Q0 read-library presets are unaffected.
+- Indel class rates count opportunities inside the analysis window, using reads
+  that span each event, instead of the whole reference times every read. Padding
+  the reference outside the window no longer changes indel inference. **Changes
+  indel p values.** `ancestral_reference` now applies to indels: a fixed event is
+  tested against the controls' rate there instead of being removed.
+- Run-mismatch checks are made per case: a case from a run with no control is named
+  in a "calibration not supported" note and in its own warnings, even when other
+  cases share the controls' run. Controls spanning several runs and unidentified
+  runs are reported; project output adds `run_check`.
+- Clone summaries count only bases at or above the caller's quality gate for
+  coverage, carriage and sharing.
+- Clone sharing samples pair indices directly when there are more than `max_pairs`
+  pairs, so memory no longer grows with the square of the read count. Small pair
+  sets give identical results; capped samples differ from the previous draw.
+- `AlignedRead` pickling keeps attributes added after construction, including UMI
+  `members`, so worker processes return the same reads as a serial run.
+
+See `docs/calibration/crm/CODE_AUDIT_CHANGES_2026-10-19.md` for scope,
+validation, limitations and reversal instructions.
+
 ## [0.2.2] - 2026-10-15
 
 ### Added

@@ -50,7 +50,7 @@ import random
 import tempfile
 from collections import Counter, defaultdict
 
-from . import clones, pipeline, project, simulate, targeting
+from . import clones, metrics, pipeline, project, simulate, targeting
 from .align import build_index
 from .io_utils import read_fasta, read_fastq
 
@@ -408,7 +408,7 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
     # densities: distinct mutations per base sequenced, the manuscript's measure, on
     # the estimator's own denominator (analysed positions x mean depth)
     s_call = res["summary"]["calling"]
-    denom = (s_call.get("analysed_positions") or 0) * max(1.0, s_call.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s_call)
     if denom:
         out.update({
             "true_unique_density_x1e5": _r(1e5 * len(truth_set) / denom),
@@ -757,7 +757,7 @@ def score_umi(res: dict, row: dict, carried: dict, lo: int, hi: int) -> dict:
     tp, fp = len(called & truth_set), len(called - truth_set)
     n = len(per_mol)
     s_call = res["summary"]["calling"]
-    denom = (s_call.get("analysed_positions") or 0) * max(1.0, s_call.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s_call)
     return {"molecules_analysed": n, "planted_mutations": len(truth_set),
             "true_calls": tp, "false_calls": fp,
             "recall": round(tp / len(truth_set), 4) if truth_set else None,
@@ -804,7 +804,7 @@ def score_umi_reads(res: dict, row: dict, carried: dict, lo: int, hi: int) -> di
     tp, fp = len(called & truth_set), len(called - truth_set)
     n = len(per)
     s_call = res["summary"]["calling"]
-    denom = (s_call.get("analysed_positions") or 0) * max(1.0, s_call.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s_call)
     return {"reads_analysed": n, "planted_mutations": len(truth_set),
             "true_calls": tp, "false_calls": fp,
             "recall": round(tp / len(truth_set), 4) if truth_set else None,

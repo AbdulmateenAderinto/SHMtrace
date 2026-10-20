@@ -27,7 +27,10 @@ junction and is left out of the clone count.
 """
 from __future__ import annotations
 
+import math
 from collections import Counter, defaultdict
+
+from .variants import gate_quality
 
 SLACK = 18      # bp either side of the J segment start that an alignment may begin
 
@@ -86,6 +89,11 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
 
     A clone's mutations are the called mutations carried by at least half of
     its reads that cover the position. A one-read clone keeps all of its own.
+    Coverage and carriage count only bases the caller could use: a base below
+    its quality gate (variants.gate_quality) neither covers a position nor
+    carries a mutation, as it does not in the read-level endpoint (audit F13).
+    The clone-weighted frequency weights each clone's majority profile equally;
+    it is not the mean mutation burden per cell.
     """
     if not p.junction_ref_start:
         return None
@@ -99,6 +107,7 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
         return None
     clone_of = cluster(keys, p.junction_max_edits)
     called = {(v.pos - 1, v.alt) for v in variants}
+    minq = gate_quality(p)
     reads = {r.qname: r for r in aligned if r.qname in clone_of}
     members = defaultdict(list)
     for name, c in clone_of.items():
@@ -109,8 +118,8 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
         cover = Counter()
         carry = Counter()
         for n in names:
-            for pos, base, _q in reads[n].pairs:
-                if lo <= pos <= hi:
+            for pos, base, q in reads[n].pairs:
+                if lo <= pos <= hi and base in "ACGT" and q >= minq:
                     cover[pos] += 1
                     if (pos, base) in called:
                         carry[(pos, base)] += 1
@@ -133,28 +142,52 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
         "clone_weighted_frequency_x1e3": round(1e3 * weighted, 4),
         # distinct mutations over clones, a mutation counting once per clone
         "clonal_mutation_events": sum(r["mutations"] for r in rows),
-        "sharing": sharing(reads, clone_of, called),
+        "sharing": sharing(reads, clone_of, called, minq=minq),
         "rows": rows,
         # read name -> clone; the caller keeps it with the reads (airr.py), not in the summary
         "clone_of": clone_of,
     }
 
 
-def sharing(reads: dict, clone_of: dict, called: set, max_pairs: int = 40000) -> dict:
+def _pair(t: int, n: int) -> tuple[int, int]:
+    """The t-th pair (i < j) of n items, in itertools.combinations order."""
+    # row i holds the n - 1 - i pairs (i, i+1..n-1) and starts at i*n - i*(i+1)/2
+    i = max(0, (2 * n - 1 - math.isqrt((2 * n - 1) ** 2 - 8 * t)) // 2)
+    while i > 0 and i * n - i * (i + 1) // 2 > t:
+        i -= 1
+    while (i + 1) * n - (i + 1) * (i + 2) // 2 <= t:
+        i += 1
+    return i, i + 1 + t - (i * n - i * (i + 1) // 2)
+
+
+def sharing(reads: dict, clone_of: dict, called: set, max_pairs: int = 40000,
+            minq: int = 0) -> dict:
     """Mutation sharing (Jaccard) between reads of one clone and of different clones.
 
     The check that the junction is a barcode at all. Within a real clone, reads
     inherit the clone's mutations and share them; across clones they should
     share almost none. Pairs where neither read carries a mutation are skipped.
+
+    Every pair is used when there are at most `max_pairs`. Otherwise `max_pairs`
+    pairs are drawn uniformly without replacement from all pairs (not separately
+    within and between clones), with a fixed seed. Pair indices are drawn and
+    decoded directly, so memory is bounded by `max_pairs` however many reads
+    there are (audit F14).
     """
     import itertools
     import random
-    muts = {n: {(p, b) for p, b, _q in r.pairs if (p, b) in called} for n, r in reads.items()}
+    muts = {n: {(p, b) for p, b, q in r.pairs if (p, b) in called and q >= minq}
+            for n, r in reads.items()}
     names = list(reads)
-    pairs = list(itertools.combinations(names, 2))
-    random.Random(0).shuffle(pairs)
+    n = len(names)
+    total = n * (n - 1) // 2
+    if total <= max_pairs:
+        pairs = itertools.combinations(names, 2)
+    else:
+        picks = random.Random(0).sample(range(total), max_pairs)
+        pairs = ((names[i], names[j]) for i, j in (_pair(t, n) for t in picks))
     within, between = [], []
-    for a, b in pairs[:max_pairs]:
+    for a, b in pairs:
         A, B = muts[a], muts[b]
         if not A and not B:
             continue

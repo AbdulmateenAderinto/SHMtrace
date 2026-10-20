@@ -93,6 +93,16 @@ def prepare_batch(samples: dict[str, str], reference: str, contaminants: list[st
             stats[name] = {**{k: v for k, v in stats[name].items()
                               if k not in st}, **st}
 
+    empty = sorted(name for name, reads in raw.items() if not reads)
+    if empty:
+        raise ValueError("No usable reads after preparation for sample(s): "
+                         + ", ".join(empty)
+                         + ". Correct the inputs or explicitly exclude these libraries "
+                         "before choosing a common depth.")
+    if depth is not None and depth <= 0:
+        raise ValueError("Analysis depth must be positive.")
+    if depth is None and p.downsample_to is not None and p.downsample_to <= 0:
+        raise ValueError("downsample_to must be positive or None.")
     usable = min((len(a) for a in raw.values()), default=0)
     if depth is None:
         depth = usable if p.downsample_to is None else min(p.downsample_to, usable)

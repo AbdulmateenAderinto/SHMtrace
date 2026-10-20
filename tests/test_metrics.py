@@ -12,20 +12,27 @@ def v(ref, alt, reads=1, pos=1):
 
 
 def test_density_formula():
-    """variants / (bp x depth) x scale"""
+    """variants / bases at callable positions x scale"""
     p = Params(density_scale=1e5)
-    got = unique_variant_density([v("G", "A")] * 10, analysed_bp=529, mean_depth=500, p=p)
+    got = unique_variant_density([v("G", "A")] * 10, {"analysed_bases": 529 * 500}, p)
+    assert got == pytest.approx(10 / (529 * 500) * 1e5)
+
+
+def test_density_falls_back_to_positions_times_depth_for_older_results():
+    p = Params(density_scale=1e5)
+    got = unique_variant_density([v("G", "A")] * 10,
+                                 {"analysed_positions": 529, "mean_depth": 500}, p)
     assert got == pytest.approx(10 / (529 * 500) * 1e5)
 
 
 def test_density_is_zero_without_analysed_bases():
-    assert unique_variant_density([v("G", "A")], 0, 500, Params()) == 0.0
+    assert unique_variant_density([v("G", "A")], {"analysed_bases": 0}, Params()) == 0.0
 
 
 def test_density_scales_linearly_with_variant_count():
     p = Params()
-    one = unique_variant_density([v("G", "A")], 529, 500, p)
-    ten = unique_variant_density([v("G", "A")] * 10, 529, 500, p)
+    one = unique_variant_density([v("G", "A")], {"analysed_bases": 529 * 500}, p)
+    ten = unique_variant_density([v("G", "A")] * 10, {"analysed_bases": 529 * 500}, p)
     assert ten == pytest.approx(10 * one)
 
 

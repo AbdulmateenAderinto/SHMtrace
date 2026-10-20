@@ -1,0 +1,326 @@
+{
+ "reps": 4000,
+ "controls": 3,
+ "rows": [
+  {
+   "signal": 0,
+   "background": 0.2,
+   "cv": 0.0,
+   "coverage_profile": 0.98775,
+   "coverage_wald": 0.998,
+   "wald_zero_width": 0.45425
+  },
+  {
+   "signal": 1,
+   "background": 0.2,
+   "cv": 0.0,
+   "coverage_profile": 0.97775,
+   "coverage_wald": 0.7165,
+   "wald_zero_width": 0.1565
+  },
+  {
+   "signal": 3,
+   "background": 0.2,
+   "cv": 0.0,
+   "coverage_profile": 0.92475,
+   "coverage_wald": 0.829,
+   "wald_zero_width": 0.02525
+  },
+  {
+   "signal": 10,
+   "background": 0.2,
+   "cv": 0.0,
+   "coverage_profile": 0.9495,
+   "coverage_wald": 0.92825,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 0.2,
+   "cv": 0.0,
+   "coverage_profile": 0.95075,
+   "coverage_wald": 0.9305,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 1.0,
+   "cv": 0.0,
+   "coverage_profile": 0.9665,
+   "coverage_wald": 0.91625,
+   "wald_zero_width": 0.01375
+  },
+  {
+   "signal": 1,
+   "background": 1.0,
+   "cv": 0.0,
+   "coverage_profile": 0.94725,
+   "coverage_wald": 0.88075,
+   "wald_zero_width": 0.00625
+  },
+  {
+   "signal": 3,
+   "background": 1.0,
+   "cv": 0.0,
+   "coverage_profile": 0.956,
+   "coverage_wald": 0.906,
+   "wald_zero_width": 0.001
+  },
+  {
+   "signal": 10,
+   "background": 1.0,
+   "cv": 0.0,
+   "coverage_profile": 0.9565,
+   "coverage_wald": 0.93325,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 1.0,
+   "cv": 0.0,
+   "coverage_profile": 0.96225,
+   "coverage_wald": 0.94275,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 3.0,
+   "cv": 0.0,
+   "coverage_profile": 0.94275,
+   "coverage_wald": 0.93475,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 1,
+   "background": 3.0,
+   "cv": 0.0,
+   "coverage_profile": 0.958,
+   "coverage_wald": 0.94575,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 3,
+   "background": 3.0,
+   "cv": 0.0,
+   "coverage_profile": 0.96075,
+   "coverage_wald": 0.93775,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 10,
+   "background": 3.0,
+   "cv": 0.0,
+   "coverage_profile": 0.96,
+   "coverage_wald": 0.9445,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 3.0,
+   "cv": 0.0,
+   "coverage_profile": 0.96225,
+   "coverage_wald": 0.94975,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 10.0,
+   "cv": 0.0,
+   "coverage_profile": 0.96125,
+   "coverage_wald": 0.9595,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 1,
+   "background": 10.0,
+   "cv": 0.0,
+   "coverage_profile": 0.96125,
+   "coverage_wald": 0.95375,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 3,
+   "background": 10.0,
+   "cv": 0.0,
+   "coverage_profile": 0.95875,
+   "coverage_wald": 0.953,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 10,
+   "background": 10.0,
+   "cv": 0.0,
+   "coverage_profile": 0.9625,
+   "coverage_wald": 0.948,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 10.0,
+   "cv": 0.0,
+   "coverage_profile": 0.9655,
+   "coverage_wald": 0.957,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 0.2,
+   "cv": 0.5,
+   "coverage_profile": 0.988,
+   "coverage_wald": 0.99775,
+   "wald_zero_width": 0.458
+  },
+  {
+   "signal": 1,
+   "background": 0.2,
+   "cv": 0.5,
+   "coverage_profile": 0.9765,
+   "coverage_wald": 0.70325,
+   "wald_zero_width": 0.17075
+  },
+  {
+   "signal": 3,
+   "background": 0.2,
+   "cv": 0.5,
+   "coverage_profile": 0.9285,
+   "coverage_wald": 0.8305,
+   "wald_zero_width": 0.02175
+  },
+  {
+   "signal": 10,
+   "background": 0.2,
+   "cv": 0.5,
+   "coverage_profile": 0.954,
+   "coverage_wald": 0.9305,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 0.2,
+   "cv": 0.5,
+   "coverage_profile": 0.95325,
+   "coverage_wald": 0.93625,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 1.0,
+   "cv": 0.5,
+   "coverage_profile": 0.94175,
+   "coverage_wald": 0.90725,
+   "wald_zero_width": 0.0285
+  },
+  {
+   "signal": 1,
+   "background": 1.0,
+   "cv": 0.5,
+   "coverage_profile": 0.94375,
+   "coverage_wald": 0.8835,
+   "wald_zero_width": 0.01325
+  },
+  {
+   "signal": 3,
+   "background": 1.0,
+   "cv": 0.5,
+   "coverage_profile": 0.95225,
+   "coverage_wald": 0.911,
+   "wald_zero_width": 0.00225
+  },
+  {
+   "signal": 10,
+   "background": 1.0,
+   "cv": 0.5,
+   "coverage_profile": 0.95,
+   "coverage_wald": 0.93025,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 1.0,
+   "cv": 0.5,
+   "coverage_profile": 0.95975,
+   "coverage_wald": 0.94325,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 3.0,
+   "cv": 0.5,
+   "coverage_profile": 0.90275,
+   "coverage_wald": 0.90575,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 1,
+   "background": 3.0,
+   "cv": 0.5,
+   "coverage_profile": 0.92,
+   "coverage_wald": 0.92775,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 3,
+   "background": 3.0,
+   "cv": 0.5,
+   "coverage_profile": 0.93625,
+   "coverage_wald": 0.9235,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 10,
+   "background": 3.0,
+   "cv": 0.5,
+   "coverage_profile": 0.955,
+   "coverage_wald": 0.93475,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 3.0,
+   "cv": 0.5,
+   "coverage_profile": 0.96475,
+   "coverage_wald": 0.9425,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 0,
+   "background": 10.0,
+   "cv": 0.5,
+   "coverage_profile": 0.8665,
+   "coverage_wald": 0.86725,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 1,
+   "background": 10.0,
+   "cv": 0.5,
+   "coverage_profile": 0.87425,
+   "coverage_wald": 0.874,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 3,
+   "background": 10.0,
+   "cv": 0.5,
+   "coverage_profile": 0.897,
+   "coverage_wald": 0.88775,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 10,
+   "background": 10.0,
+   "cv": 0.5,
+   "coverage_profile": 0.91175,
+   "coverage_wald": 0.895,
+   "wald_zero_width": 0.0
+  },
+  {
+   "signal": 30,
+   "background": 10.0,
+   "cv": 0.5,
+   "coverage_profile": 0.94675,
+   "coverage_wald": 0.92025,
+   "wald_zero_width": 0.0
+  }
+ ]
+}

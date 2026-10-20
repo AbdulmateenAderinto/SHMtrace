@@ -1335,13 +1335,13 @@ async function scRun() {
   const qcut = +$("sc-q").value || 0.1;
   $("sc-results").hidden = false;
   swTable($("sc-table"), d.rows.map(x => ({ condition: x.condition, control: x.control, animals: x.animals,
-    fold: x.fold == null ? "" : (x.fold_is_lower_bound ? "≥ " : "") + fmtNum("", x.fold),
+    fold: x.fold == null ? "" : fmtNum("", x.fold) + (x.fold_control_zero_one_event ? " †" : ""),
     "fold 95% CI": x.fold_ci ? `${fmtNum("", x.fold_ci[0])}–${fmtNum("", x.fold_ci[1])}` : "",
     p: x.p, q: x.q, [`q < ${qcut}`]: x.q != null && x.q < qcut ? "yes" : "" })));
   const pts = d.rows.filter(x => x.fold);
-  const lb = d.rows.some(x => x.fold_is_lower_bound);
+  const lb = d.rows.some(x => x.fold_control_zero_one_event);
   $("sc-error").innerHTML = lb ? `<div class="msg" style="margin-top:8px">The control group has no mutations,
-    so folds marked ≥ are against one event per control animal (as the plots show a zero): conservative lower bounds, not estimates.</div>` : "";
+    so folds marked † are against one event per control animal (as the plots show a zero). This is a zero-count convention, not a confidence bound.</div>` : "";
   const hit = (x) => x.q != null && x.q < qcut;
   const L = layoutBase(); L.xaxis.title = "log2 fold vs control"; L.yaxis.title = "−log10 q";
   L.shapes = [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: -Math.log10(qcut), y1: -Math.log10(qcut),

@@ -160,7 +160,7 @@ def frequency_bars(res: dict, path: str | None = None) -> bytes:
     ax.set_yticks(list(y))
     ax.set_yticklabels(labels, fontsize=9)
     ax.set_xlabel("Mutation frequency (base-composition corrected)")
-    ax.set_title("Mutation frequencies: control vs case", fontweight="bold", fontsize=12)
+    ax.set_title("Mutation frequencies: control vs case (pooled, legacy)", fontweight="bold", fontsize=12)
     ax.invert_yaxis()
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
@@ -185,7 +185,7 @@ def motif_enrichment(res: dict, path: str | None = None) -> bytes:
     ax.set_xticks(list(x))
     ax.set_xticklabels(labels, fontsize=9)
     ax.set_ylabel("Motif mutation frequency")
-    ax.set_title("Hot/cold-spot targeting", fontweight="bold", fontsize=12)
+    ax.set_title("Hot/cold-spot targeting (pooled, legacy)", fontweight="bold", fontsize=12)
     ax.yaxis.grid(True, linestyle=(0, (4, 3)), color=GREY, zorder=0)
     ax.set_axisbelow(True)
     for s in ("top", "right"):

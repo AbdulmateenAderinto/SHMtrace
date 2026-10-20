@@ -78,20 +78,18 @@ def _welch(a: list[float], b: list[float]) -> float | None:
     return float(stats.ttest_ind(a, b, equal_var=False).pvalue)
 
 
-def _welch_log(a: list[float], b: list[float]) -> float | None:
-    """Welch on log10 densities, which is what SHM densities are distributed on.
+def _welch_log(a: list[dict], b: list[dict], k: str,
+               zero_events: float = replicates.ZERO_EVENTS) -> float | None:
+    """Welch on log10 rates, which is what SHM densities are distributed on.
 
     Mutation densities span orders of magnitude and are roughly log-normal, so a
     test on the raw numbers is dominated by the one most-mutated animal. A sample
-    with no mutations has no logarithm; it is left-censored to a third of the
-    smallest observed value, which pulls the difference *towards* no difference.
+    with no events has no logarithm; it is placed at one event on its own exposure
+    (replicates.ZERO_EVENTS), the rule animal_tests and the plots use too.
     """
-    vals = [v for v in a + b if v > 0]
-    if not vals or len(a) < 2 or len(b) < 2:
-        return None
-    floor = min(vals) / 3
-    return _welch([math.log10(max(v, floor)) for v in a],
-                  [math.log10(max(v, floor)) for v in b])
+    return replicates.welch_p(
+        replicates.censored_log10([r.get(k) for r in a], [_one_event(r, k) for r in a], zero_events),
+        replicates.censored_log10([r.get(k) for r in b], [_one_event(r, k) for r in b], zero_events))
 
 
 def _mwu(a: list[float], b: list[float]) -> float | None:
@@ -110,14 +108,14 @@ def _clean(x):
 def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
                    control: bool, scale: float = 1e5) -> dict:
     s = res["summary"]
-    denom = (s["calling"].get("analysed_positions") or 0) * max(
-        1.0, s["calling"].get("mean_depth") or 0.0)
-    one_event = round(scale / denom, 4) if denom else None
+    denom = metrics.density_exposure(s["calling"])
+    one_event = round(scale / denom, 6) if denom else None
     vs = res["variants"]
     per_read = res.get("per_read_mutations") or []
     nreads = len(per_read)
     bp = hi - lo + 1
     total_mut = sum(per_read)
+    observed = sum(r["bases"] for r in res.get("per_read") or [])
     gc = sum(1 for v in vs if v.ref in "GC")
     ts = sum(1 for v in vs if (v.ref, v.alt) in TRANSITIONS)
     hot = sum(1 for v in vs if v.ref in "GC" and (
@@ -140,7 +138,14 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         # the density one single mutation would give in this sample: the scale a
         # sample with no calls is censored to on a log plot, as the paper does
         "one_event_density_x1e5": one_event,
+        # fixed-window frequency (the historical endpoint): every read is credited with
+        # the whole callable window, covered or not. The observed-base frequency beside
+        # it counts only the bases each read actually showed at quality (audit F08);
+        # the two agree when reads span the window.
         "mutation_frequency_x1e3": round(1e3 * total_mut / (nreads * bp), 4) if nreads else None,
+        "mutation_frequency_observed_x1e3": (round(1e3 * total_mut / observed, 4)
+                                             if observed else None),
+        "observed_bases": observed,
         "mutated_reads_pct": round(100 * sum(1 for m in per_read if m) / nreads, 2) if nreads else None,
         "mean_mutations_per_read": round(total_mut / nreads, 4) if nreads else None,
         "pct_GC": round(100 * gc / len(vs), 1) if vs else None,
@@ -149,6 +154,7 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         # is left unrepaired, and a quick check that calls look like AID's
         "pct_CT_GA": round(100 * sum(1 for v in vs if (v.ref, v.alt) in (("C", "T"), ("G", "A"))) / len(vs), 1) if vs else None,
         "pct_GC_in_WRC_GYW": round(100 * hot / gc, 1) if gc else None,
+        "gc_mutations": gc,
         "pct_AT_in_WA_TW": round(100 * wa / at, 1) if at else None,
         "analysed_bp": bp,
         # UMI consensus (umi.py): reads in, molecules out
@@ -168,9 +174,9 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "high_fraction_sites": [{"pos": pos, "alt": alt, "reads": c, "depth": d,
                                  "frequency": round(c / d, 4) if d else None}
                                 for pos, alt, c, d in (s["calling"].get("germline_sites") or ())],
-        "warnings": "; ".join(list(s.get("warnings") or [])
-                              + list(s["calling"].get("notes") or [])
-                              + cluster_notes),
+        "warnings": "; ".join(dict.fromkeys(list(s.get("warnings") or [])
+                                           + list(s["calling"].get("notes") or [])
+                                           + cluster_notes)),
     }
 
 
@@ -316,7 +322,7 @@ def coverage_dips(depth: list, start: int, frac: float = 0.5, min_run: int = 10)
 def add_indels(m: dict, called: list, res: dict, scale: float) -> None:
     """Indel counts for a sample row, kept apart from the substitution density."""
     s = res["summary"]["calling"]
-    denom = (s.get("analysed_positions") or 0) * max(1.0, s.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s)
     m.update({
         "indels_called": len(called),
         "insertions": sum(1 for v in called if v.kind == "ins"),
@@ -333,11 +339,15 @@ def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
     the test did not call) per base sequenced. The test is reliable for
     mutations in several reads and cannot see most of those in one; the
     estimate leaves out what the test called, so nothing is counted twice.
+
+    The combined interval is the single-read interval shifted by the called count:
+    it holds the called mutations fixed and carries no uncertainty for them
+    (combined_density_ci_scope says so in every row).
     """
     if not est:
         return
     s = res["summary"]["calling"]
-    denom = (s.get("analysed_positions") or 0) * max(1.0, s.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s)
     called = len(res["variants"])
     multi = sum(1 for v in res["variants"] if v.supporting_reads >= 2)
     f = scale / denom if denom else 0.0
@@ -353,6 +363,7 @@ def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
         "combined_density_x1e5": round((called + max(0.0, est["estimate"])) * f, 3),
         "combined_density_ci_low": round((called + max(0.0, est["ci_low"])) * f, 3),
         "combined_density_ci_high": round((called + max(0.0, est["ci_high"])) * f, 3),
+        "combined_density_ci_scope": "single-read component only; called mutations held fixed",
     })
 
 
@@ -361,28 +372,36 @@ def _slug(s: str) -> str:
     return "".join(c if (c.isalnum() or c in "-") else "_" for c in str(s)).strip("_") or "group"
 
 
-CENSORED = ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5")
-
-
-def _censored(rows: list[dict], k: str) -> list[float]:
-    """Metric values with a zero density raised to that sample's one-event scale.
+def _one_event(r: dict, k: str) -> float | None:
+    """The value of metric `k` that one event gives sample row `r`, on its own exposure.
 
     A sample that found nothing has no logarithm. The paper's convention is to
-    give it the density one single mutation would have produced in that sample,
-    which is the smallest difference the assay could have seen.
+    give it what one single event would have produced in that sample, the
+    smallest difference the assay could have seen. The single-read estimate is a
+    difference and can fall below zero; anything under one event is treated as none.
     """
-    out = []
-    for r in rows:
-        v = r.get(k)
-        if v is None:
-            continue
-        # the single-read estimate is a difference: it can fall below zero, or
-        # just above it, and anything under one event is indistinguishable from none
-        one = r.get("one_event_density_x1e5")
-        if k in CENSORED and one and v < one:
-            v = one
-        out.append(v)
-    return out
+    def per(scale, n):
+        return scale / n if n else None
+    if k in ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5"):
+        return r.get("one_event_density_x1e5")
+    if k == "mutation_frequency_x1e3":
+        return per(1e3, r.get("frequency_bases"))
+    if k == "mutated_reads_pct":
+        return per(100.0, r.get("reads"))
+    if k == "mean_mutations_per_read":
+        return per(1.0, r.get("reads"))
+    if k == "clone_weighted_frequency_x1e3":
+        return per(1e3, (r.get("clones") or 0) * (r.get("analysed_bp") or 0))
+    if k in ("pct_GC", "pct_transitions"):
+        return per(100.0, r.get("unique_mutations"))
+    if k == "pct_GC_in_WRC_GYW":
+        return per(100.0, r.get("gc_mutations"))
+    return None
+
+
+# rates whose zeros are common enough to report the zero-count sensitivity analyses
+ZERO_SENSITIVITY = ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5",
+                    "clone_weighted_frequency_x1e3", "mutation_frequency_x1e3")
 
 
 def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
@@ -401,8 +420,13 @@ def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
             if ctrl and g != ctrl:
                 cv = [r[k] for r in groups[ctrl] if r.get(k) is not None]
                 row[f"{k}_p_welch_vs_{_slug(ctrl)}"] = _clean(_welch(vals, cv))
-                row[f"{k}_p_welch_log_vs_{_slug(ctrl)}"] = _clean(
-                    _welch_log(_censored(rs, k), _censored(groups[ctrl], k)))
+                # primary: one event on each sample's own exposure (replicates.ZERO_EVENTS)
+                row[f"{k}_p_welch_log_vs_{_slug(ctrl)}"] = _clean(_welch_log(rs, groups[ctrl], k))
+                if k in ZERO_SENSITIVITY:
+                    row[f"{k}_sensitivity_p_welch_log_half_event_vs_{_slug(ctrl)}"] = _clean(
+                        _welch_log(rs, groups[ctrl], k, replicates.HALF_EVENT))
+                    row[f"{k}_sensitivity_p_welch_log_third_of_smallest_vs_{_slug(ctrl)}"] = _clean(
+                        replicates.welch_p(*replicates.third_of_smallest_log10(vals, cv)))
                 row[f"{k}_p_mwu_vs_{_slug(ctrl)}"] = _clean(_mwu(vals, cv))
         row["compared_with"] = "" if (not ctrl or g == ctrl) else ctrl
         out.append(row)
@@ -514,8 +538,11 @@ def _call_sample(t: dict) -> dict:
     rows = []
     if t["indels"]:
         pile = indels.Pileup(res["_aligned"], ref, lo, hi, t["indel_minq"])
-        called_i, _st = indels.call(pile, t["indel_null"], p, sanger=sanger)
+        called_i, st_i = indels.call(pile, t["indel_null"], p, sanger=sanger)
         add_indels(m, called_i, res, p.density_scale)
+        if st_i.get("notes"):
+            m["warnings"] = "; ".join(dict.fromkeys(
+                x for x in [m["warnings"], *st_i["notes"]] if x))
         for v in called_i:
             rows.append({"sample": name, "group": s.get("group") or name,
                          "pos": v.pos, "kind": v.kind, "length": v.length,
@@ -527,6 +554,91 @@ def _call_sample(t: dict) -> dict:
     m["null_from"] = "+".join(peers) if null is not None else "none"
     return {"metrics": m, "res": res, "clones": cl, "coverage": cov, "single_read": sr,
             "indel_rows": rows, "alignment": alignment}
+
+
+def _sample_files(path) -> list[str]:
+    """Every file a sample's path names: a filename, a list of them, or
+    [[file, clone_id], ...] from a sample sheet."""
+    if isinstance(path, str):
+        return [path]
+    if isinstance(path, (list, tuple)):
+        return [f for x in path
+                for f in _sample_files(x[0] if isinstance(x, (list, tuple)) and x else x)]
+    return []
+
+
+def run_compatibility(samples: list[dict], controls: set) -> dict:
+    """Which sequencing run each case came from, against the controls' runs (audit F12).
+
+    A case is judged on its own runs, not the project's: controls from run A
+    and cases from A and B leave the B case uncalibrated by its own run. An
+    explicit `run` (a string, or a list for several files) wins over run IDs
+    parsed from read headers. Status per case:
+
+    * "different run": at least one of its runs has no control.
+    * "same run": every run it has is a control run, and the runs of all its
+      files and of every control are known.
+    * "unverified": some run is unknown, so same-run provenance is not shown.
+
+    The pooled null fitted from every control is still applied to every case;
+    this only reports which cases it does not describe.
+    """
+    def runs_of(s_):
+        given = s_.get("run")
+        if given:
+            return set([given] if isinstance(given, str) else given), False
+        toks = [null_model.run_token(f) for f in _sample_files(s_.get("path"))]
+        return {t for t in toks if t}, (not toks or None in toks)
+
+    ctl_runs, ctl_unknown = set(), False
+    for s_ in samples:
+        if s_["name"] in controls:
+            r, unk = runs_of(s_)
+            ctl_runs |= r
+            ctl_unknown |= unk
+    out = {}
+    for s_ in samples:
+        if s_["name"] in controls:
+            continue
+        r, unk = runs_of(s_)
+        missing = sorted(r - ctl_runs) if ctl_runs else []
+        status = ("different run" if missing else
+                  "same run" if r and not unk and ctl_runs and not ctl_unknown else "unverified")
+        out[s_["name"]] = {"runs": sorted(r), "status": status, "runs_without_control": missing}
+    return {"control_runs": sorted(ctl_runs), "control_runs_unknown": ctl_unknown, "samples": out}
+
+
+def run_notes(run_check: dict, per_sample: list[dict]) -> list[str]:
+    """Project notes from run_compatibility; marks each mismatched case's own warnings."""
+    notes: list[str] = []
+    ctl_runs = run_check["control_runs"]
+    mismatched = {n: c for n, c in run_check["samples"].items() if c["status"] == "different run"}
+    if mismatched:
+        notes.append(
+            "CALIBRATION NOT SUPPORTED for " + ", ".join(
+                f"{n} (run {', '.join(c['runs_without_control'])})" for n, c in sorted(mismatched.items()))
+            + f": the controls come from sequencing run(s) {', '.join(ctl_runs)}. Nanopore error is "
+            "run-specific, so a control from another flow cell does not measure this run's background: if "
+            "the control run was cleaner, its error model makes this run's errors look like real mutations "
+            "and calls MORE of them. Treat these samples as exploratory, or sequence a mutation-free "
+            "control alongside them.")
+        for m in per_sample:
+            c = mismatched.get(m.get("sample"))
+            if c:
+                w = ("no control from run " + ", ".join(c["runs_without_control"])
+                     + "; its background model comes from another run")
+                m["warnings"] = "; ".join(x for x in [m.get("warnings"), w] if x)
+    if len(ctl_runs) > 1:
+        notes.append(f"The controls span sequencing runs {', '.join(ctl_runs)}, and one error model "
+                     "pooled across them is applied to every sample; it is not matched to each "
+                     "sample's own run.")
+    unverified = sorted(n for n, c in run_check["samples"].items() if c["status"] == "unverified")
+    if unverified and (ctl_runs or any(c["runs"] for c in run_check["samples"].values())):
+        notes.append("The sequencing run could not be identified for "
+                     + ("some controls and " if run_check["control_runs_unknown"] else "")
+                     + "sample(s) " + ", ".join(unverified) + ", so same-run calibration is not "
+                     "verified for them. Give the run in the sample sheet's run column.")
+    return notes
 
 
 def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
@@ -700,7 +812,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                        p.jobs), strict=True))
     if want_indels and not sanger:
         for pr in {pr for pr in peers_of.values() if pr}:
-            indel_nulls[pr] = indels.IndelNull([indel_piles[c] for c in pr], ref)
+            indel_nulls[pr] = indels.IndelNull([indel_piles[c] for c in pr], ref,
+                                               p.ancestral_reference)
             indel_nulls[pr].qscale = indel_qscale
     # germline variants from a VCF (germline_vcf.py): project-wide and per animal
     vcf_cache: dict = {}
@@ -816,29 +929,15 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      "measured. Every mutation was judged from base qualities alone, "
                      "which calls more background. Mark your mutation-free samples as "
                      "controls, or sequence one on the same run.")
+    run_check = None
     if controls and not sanger:
         # Nanopore error is run-specific, so a control from another flow cell does not describe
         # this run's background. The single-sample CLI checks this (pipeline.fit_null); project
         # mode has to check it here, because controls arrive as samples marked control=yes.
-        def _first_file(path):
-            # a sample's path is a filename, or [[file, clone_id], ...] from a sample sheet
-            while isinstance(path, (list, tuple)) and path:
-                path = path[0]
-            return path if isinstance(path, str) else None
-        runs = {}
-        for s_ in samples:
-            f = _first_file(s_.get("path"))
-            tok = s_.get("run") or (null_model.run_token(f) if f else None)
-            if tok:
-                runs.setdefault(s_["name"] in controls, set()).add(tok)
-        ctl_runs, smp_runs = runs.get(True, set()), runs.get(False, set())
-        if ctl_runs and smp_runs and not (ctl_runs & smp_runs):
-            notes.append(
-                f"The controls come from sequencing run(s) {', '.join(sorted(ctl_runs))} and the samples from "
-                f"{', '.join(sorted(smp_runs))}. Nanopore error is run-specific, so a control from another flow "
-                "cell does not measure this run's background: if the control run was cleaner, its error model "
-                "makes this run's errors look like real mutations and calls MORE of them. Sequence a "
-                "mutation-free control alongside these samples.")
+        # Each case is checked on its own runs (run_compatibility): a project-wide overlap
+        # of run sets let a case from an uncontrolled run through (audit F12).
+        run_check = run_compatibility(samples, controls)
+        notes += run_notes(run_check, per_sample)
     if len(controls) < 2 and p.error_model == "qcal" and controls:
         notes.append(f"Only one control, so the background model could not be calibrated "
                      f"by leaving a control out; the default factor "
@@ -1000,6 +1099,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "groups": groups,
         "animal_tests": animal_tests,
         "notes": notes,
+        # each case's sequencing run against the controls' (run_compatibility)
+        "run_check": run_check,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
         # unique mutations per site of the from-base, per animal: the SHMTool
         # convention, so a base the window is short of is not under-counted

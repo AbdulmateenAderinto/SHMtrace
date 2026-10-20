@@ -14,6 +14,8 @@ But the errors are systematic. The same deletion in the same homopolymer recurs 
 4. The rates are inflated by a factor fitted by testing each control against the others, as for the quality-calibrated substitution model. The calls are then corrected by Benjamini-Hochberg.
 5. An indel needs at least 3 supporting reads.
 
+*19 October 2026 (audit F11):* the class rate's denominator now counts, for each position in the analysis window, the control reads that span an event of that kind and length there. Previously it was every reference position times every read. Class rates rise wherever the window is shorter than the reference or coverage is incomplete. The spike-in results below were measured before this change and have not been rerun. With `ancestral_reference` on, a fixed indel is tested against the controls' rate for it instead of being removed.
+
 Indels are reported in their own table (`indels.csv`) and in their own columns: `indels_called`, `insertions`, `deletions`, `frameshift_indels` and `indel_density_x1e5`. They are not added to the substitution density, so densities stay comparable with the paper's.
 
 Under the Sanger platform (one read per clone, low indel error), every indel with quality ≥ Q20 is called, as substitutions are.
