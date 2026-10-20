@@ -552,6 +552,7 @@ def _call_sample(t: dict) -> dict:
                          "minus_reads": v.minus_reads, "homopolymer": v.homopolymer,
                          "frameshift": v.frameshift})
     m["null_from"] = "+".join(peers) if null is not None else "none"
+    m["null_matching"] = t.get("null_matching", "pooled") if null is not None else "none"
     return {"metrics": m, "res": res, "clones": cl, "coverage": cov, "single_read": sr,
             "indel_rows": rows, "alignment": alignment}
 
@@ -580,8 +581,8 @@ def run_compatibility(samples: list[dict], controls: set) -> dict:
       files and of every control are known.
     * "unverified": some run is unknown, so same-run provenance is not shown.
 
-    The pooled null fitted from every control is still applied to every case;
-    this only reports which cases it does not describe.
+    `runs_by_sample` gives every sample's runs (controls included) for
+    run_matched_peers, which picks each case's controls from its own run.
     """
     def runs_of(s_):
         given = s_.get("run")
@@ -591,11 +592,13 @@ def run_compatibility(samples: list[dict], controls: set) -> dict:
         return {t for t in toks if t}, (not toks or None in toks)
 
     ctl_runs, ctl_unknown = set(), False
+    by_sample = {}
     for s_ in samples:
+        r, unk = runs_of(s_)
+        by_sample[s_["name"]] = {"runs": sorted(r), "unknown": bool(unk)}
         if s_["name"] in controls:
-            r, unk = runs_of(s_)
             ctl_runs |= r
-            ctl_unknown |= unk
+            ctl_unknown |= bool(unk)
     out = {}
     for s_ in samples:
         if s_["name"] in controls:
@@ -605,7 +608,45 @@ def run_compatibility(samples: list[dict], controls: set) -> dict:
         status = ("different run" if missing else
                   "same run" if r and not unk and ctl_runs and not ctl_unknown else "unverified")
         out[s_["name"]] = {"runs": sorted(r), "status": status, "runs_without_control": missing}
-    return {"control_runs": sorted(ctl_runs), "control_runs_unknown": ctl_unknown, "samples": out}
+    return {"control_runs": sorted(ctl_runs), "control_runs_unknown": ctl_unknown, "samples": out,
+            "runs_by_sample": by_sample}
+
+
+# a case is judged against its own run's controls only when the run has at least this many
+# (two give it decoys from more than one library); a control needs one same-run peer
+MIN_RUN_CONTROLS = 2
+
+
+def run_matched_peers(samples: list[dict], controls: set, run_check: dict | None,
+                      match: bool = True) -> tuple[dict, dict]:
+    """The controls each sample is judged against, and how they were chosen (audit F12).
+
+    With every run known, a sample whose runs all have controls is judged against the
+    controls from those runs (never itself), if there are at least MIN_RUN_CONTROLS of
+    them (one for a control). Otherwise, or with match=False, it is judged against every
+    other control, as before: the pooled model. When all controls and samples share one
+    run, both rules give the same controls.
+    """
+    pooled = {s_["name"]: tuple(sorted(c for c in controls if c != s_["name"])) for s_ in samples}
+    how = {n: "pooled" for n in pooled}
+    if not match or not run_check:
+        return pooled, how
+    runs = run_check.get("runs_by_sample") or {}
+    peers = dict(pooled)
+    for s_ in samples:
+        n = s_["name"]
+        mine = runs.get(n) or {}
+        if not mine.get("runs") or mine.get("unknown"):
+            continue
+        want = set(mine["runs"])
+        same = tuple(sorted(c for c in controls if c != n and runs.get(c, {}).get("runs")
+                            and not runs[c]["unknown"] and set(runs[c]["runs"]) <= want))
+        covered = set().union(*(set(runs[c]["runs"]) for c in same)) if same else set()
+        need = 1 if n in controls else MIN_RUN_CONTROLS
+        if len(same) >= need and covered == want:
+            peers[n] = same
+            how[n] = "same run" if same == pooled[n] else "run-matched"
+    return peers, how
 
 
 def run_notes(run_check: dict, per_sample: list[dict]) -> list[str]:
@@ -629,9 +670,14 @@ def run_notes(run_check: dict, per_sample: list[dict]) -> list[str]:
                      + "; its background model comes from another run")
                 m["warnings"] = "; ".join(x for x in [m.get("warnings"), w] if x)
     if len(ctl_runs) > 1:
-        notes.append(f"The controls span sequencing runs {', '.join(ctl_runs)}, and one error model "
-                     "pooled across them is applied to every sample; it is not matched to each "
-                     "sample's own run.")
+        how = run_check.get("null_matching") or {}
+        matched = sorted(n for n in run_check["samples"] if how.get(n) == "run-matched")
+        pooled = sorted(n for n, c in run_check["samples"].items() if how.get(n, "pooled") == "pooled")
+        notes.append(f"The controls span sequencing runs {', '.join(ctl_runs)}. "
+                     + (f"Judged against controls from their own run: {', '.join(matched)}. " if matched else "")
+                     + (f"Judged against controls pooled across runs (no run with {MIN_RUN_CONTROLS} "
+                        f"or more of their own controls, or run unknown): {', '.join(pooled)}."
+                        if pooled else ""))
     unverified = sorted(n for n, c in run_check["samples"].items() if c["status"] == "unverified")
     if unverified and (ctl_runs or any(c["runs"] for c in run_check["samples"].values())):
         notes.append("The sequencing run could not be identified for "
@@ -722,7 +768,11 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # the null fitted from each set of peers, once: each sample is judged against its
     # peers' null, and a control's peers are also its calibration fold
     nulls: dict = {}
-    peers_of = {s["name"]: tuple(sorted(c for c in controls if c != s["name"])) for s in samples}
+    # Nanopore error is run-specific: each sample is judged against the controls from its
+    # own sequencing run when the run has enough of them (run_matched_peers, audit F12)
+    run_check = run_compatibility(samples, controls) if controls and not sanger else None
+    peers_of, null_matching = run_matched_peers(
+        samples, controls, run_check, match=project.get("match_controls_by_run", True))
     if p.error_model != "geneious" and not sanger:
         sets = sorted({pr for pr in peers_of.values() if pr})
         fits = pmap(_fit_null, [([b["reads"][c] for c in pr], ref, p, lo, hi, ref_name) for pr in sets], p.jobs)
@@ -857,6 +907,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             "depth": depth, "germline": germ or None, "germline_source": germ_src, "browse": want_browse,
             "saturation_depths": saturation_depths, "saturation_draws": project.get("saturation_draws", 3),
             "ref": ref, "lo": lo, "hi": hi, "control": name in controls, "sanger": sanger, "peers": peers,
+            "null_matching": null_matching.get(name, "pooled"),
             "tallies": ({n: tallies[n] for n in (name, *peers)} if single_q and peers else None),
             "single_q": single_q, "indels": want_indels and (sanger or bool(peers)),
             "indel_null": indel_nulls.get(peers) if not sanger else None, "indel_minq": indel_minq},))
@@ -929,14 +980,13 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      "measured. Every mutation was judged from base qualities alone, "
                      "which calls more background. Mark your mutation-free samples as "
                      "controls, or sequence one on the same run.")
-    run_check = None
-    if controls and not sanger:
+    if run_check is not None:
         # Nanopore error is run-specific, so a control from another flow cell does not describe
         # this run's background. The single-sample CLI checks this (pipeline.fit_null); project
         # mode has to check it here, because controls arrive as samples marked control=yes.
         # Each case is checked on its own runs (run_compatibility): a project-wide overlap
         # of run sets let a case from an uncontrolled run through (audit F12).
-        run_check = run_compatibility(samples, controls)
+        run_check["null_matching"] = null_matching
         notes += run_notes(run_check, per_sample)
     if len(controls) < 2 and p.error_model == "qcal" and controls:
         notes.append(f"Only one control, so the background model could not be calibrated "

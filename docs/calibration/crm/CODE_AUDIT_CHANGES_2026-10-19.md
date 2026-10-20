@@ -338,3 +338,99 @@ standalone `--null` controls contain paralogue reads, UMIs or use
 `ignore_qualities`. Clone `sharing` values above the pair cap will also change.
 Before replacing any number, rerun the outputs that depend on a non-default
 quality gate, indels, standalone `--null` fits or clone sharing.
+
+## Fourth pass: run-matched controls, single-read background, full reruns
+
+*20 October 2026.*
+
+### 17. Run-matched controls per case (F12, second half)
+
+`project.run_matched_peers` selects each sample's controls before any null is
+fitted. A case whose runs are all known is judged only against controls from
+those runs, provided that set has at least `MIN_RUN_CONTROLS` (2) controls. A
+control needs one same-run peer. Otherwise the pooled controls are used, as
+before, and the existing "CALIBRATION NOT SUPPORTED" note still applies.
+
+The selection controls everything keyed by `peers_of`: the substitution null,
+the decoys, the single-read controls and the indel null. One-run projects get
+identical controls, so JH4 and N114 do not change. Each sample row records
+`null_matching` (`same run`, `run-matched` or `pooled`). Setting
+`"match_controls_by_run": false` in the project restores pooling.
+
+### 18. Single-read background at unavailable pairs (new finding F16)
+
+This came from investigating WT3's single-read interval, which lay below zero.
+The sample count left out pairs the per-site test had called, and pairs that the
+sample carries in two or more high-quality reads, because no single-read event
+can be seen there. The control background still counted errors at those pairs.
+In heavily mutated samples this overstated the expected background. In WT3,
+8 of the 23 control events fell on such pairs.
+
+`singletons.unavailable_pairs` now excludes those pairs from both counts. On
+JH4, WT3's expected background fell from 7.5 to 4.9 events, and WT2's from 7.7
+to 7.0. The controls barely changed.
+
+**Still unexplained:** WT3 observes 0 events against 4.9 expected, so its
+interval stays below zero. WT4 is also low, at 3 against 7.6. Efficiency is the
+same in every library (0.83–0.84). The likeliest cause is library-to-library
+variation in the high-quality error rate, which three controls cannot measure.
+This is the limit documented in `SINGLE_READ_INTERVAL.md`. Treat single-read
+estimates for heavily mutated samples as approximate.
+
+### Full reruns
+
+All 23 analyses in `ARCHIVE.md` that use SHMtrace were rerun with this code.
+The rerun scripts and logs are in `~/Nanoshm/audit_rerun_2026-10-20/`. Not
+rerun:
+
+- the FDR stress tests behind Figure S15, which are not in the archive list and
+  whose default call sets are unchanged;
+- runs of the external callers (ClairS, DeepSomatic, DeepVariant, Clair3);
+- the PacBio switch analysis (`switch.py` is unchanged).
+
+Four regeneration problems turned up during the reruns:
+
+- **Old outputs:** `crm/out/` is not tracked by git, so the 25 outputs
+  rewritten before a snapshot was taken have no saved previous version. The
+  manuscript-level comparison below is unaffected, because every number was
+  saved first.
+- **Changed figures:** Figures 3, 4, 7, S3 and S5 changed visibly. The other
+  matplotlib figures changed only in file metadata and were restored. No
+  SciCanvas figure's data changed.
+- **iCloud:** several Sanger chromatogram folders had been offloaded from the
+  Mac and stalled the reruns until they were downloaded.
+- **Word limit:** the article build reports 7,647 words against the 7,000
+  limit. That overage predates this work: the committed text counts 7,605 words
+  by the build's own rule. It appeared when the count started to include figure
+  legends (18 October). The wording changes in this pass keep the word count
+  unchanged. Cutting the remaining words is an editorial task for the authors.
+
+### Manuscript numbers
+
+All 704 values the documents draw from were recomputed. Sixteen changed; twelve
+of those appear in the text:
+
+| Value | Before | After | Cause |
+|---|---|---|---|
+| J_H4 spike-in false calls per library / FDR | 2.4 / 0.048 | 2.6 / 0.050 | F07: standalone controls now prepared like samples |
+| J_H4 one-read recall | 30% | 31% | F07 |
+| Maea cohort, Wt vs KO frequency p | 0.0011 | 3.0 × 10⁻⁴ | F05 one-event rule |
+| Maea cohort, Maea-KO vs KO frequency p | 0.0046 | 0.0039 | F05 |
+| J_H4 indel recall, ≥3 reads | 78% | 72% | F11 indel exposure |
+| J_H4 homopolymer 1-bp deletion recall | 31% | 19% | F11 |
+| UMI simulation, read-mode null false calls J_H4 / N114 | 1.00 / 0.00 | 0.67 / 2.67 | F07/F15 on the UMI route |
+| UMI molecules analysed | 141 | 165 | same |
+| UMI simulation, read-mode recall range | 91–97% | 90–96% | same |
+
+Every sentence that uses these values still holds:
+
+- UMI-consensus null false calls stay at zero.
+- J_H4 homopolymer deletions remain the least-recovered indel class.
+- Every p value keeps its side of 0.05.
+
+The four changed values that are not printed are the TAM guide folds and counts.
+The Mkln1 evidence analysis was first rerun on the wrong FASTQ folder, which
+has no Mkln1 libraries. Rerun on the correct raw-read folder, its sample sheet
+and values match the committed ones. The quality-floor reruns are summarised in
+`CALLER_REVIEW.md` Part 4: with sample/decoy parity the floor does not buy
+precision, so it stays off.

@@ -55,7 +55,7 @@ The text and the numbers cannot drift: every result in the prose is a `{placehol
    paper reuse images from it. When one of those needed changing, the fix was to **copy the builder into
    `crm/` and edit the copy** — see `crm/scicanvas/figS1_workflow.js`, which is this article's own copy of
    the detailed workflow figure. Do the same rather than editing the original.
-2. **The main text is capped at 7,000 words** and currently sits at **6,999**. `build_crm.py` asserts this
+2. **The main text is capped at 7,000 words.** Since the 18 October change to `journal_word_count` (legends and front matter now count) the build reports **7,647**, about 650 over (20 October); it writes both documents and then fails the assertion. `build_crm.py` asserts this
    and fails the build if exceeded. The count covers Introduction → Limitations only. **Figure legends,
    STAR Methods, tables and the Motivation are not counted**, so detail belongs there.
    Summary ≤ 150 (now 139), eTOC ≤ 50 (now 43), four highlights ≤ 85 characters each. The documents are

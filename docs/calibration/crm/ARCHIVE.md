@@ -23,7 +23,7 @@ edlib (not installed)
 minimap2 2.30-r1287
 samtools samtools 1.21
 lofreq (not on PATH)
-git 471a28b85f792a8c2d08871e109f577431ce2375 (uncommitted changes present)
+git a73a369b2cfa824d1961931e36eed68ad9454c72 (uncommitted changes present)
 ```
 
 | Produces | Command | Inputs | Outputs | Output present |

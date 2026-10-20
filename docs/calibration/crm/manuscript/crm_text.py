@@ -18,7 +18,7 @@ SUMMARY = (
     "(SHM). We developed SHMtrace to profile substitutions and indels using background measured in matched "
     "activation-induced cytidine deaminase (AID)-deficient libraries and compare biological replicates. A "
     "complementary Sanger workflow quantifies substitutions and reports control-derived background separately. "
-    "Evaluation included planted mutations, recalled at measured false-discovery rates of {sp_jh4_fdr} and "
+    "Evaluation included planted mutations, recalled at observed false-discovery proportions of {sp_jh4_fdr} and "
     "{sp_n114_fdr}, simulated lineages, and {ds_loci} loci from {ds_labs} laboratories across four sequencing "
     "platforms. Across five nanopore assays, SHMtrace reduced substitution calls in AID-null controls by "
     "{ctl_red_lo}–{ctl_red_hi}% relative to the uncorrected Geneious rule. In four assays, AID-active and AID-null "
@@ -136,8 +136,8 @@ RESULTS = [
           "1D). It characterizes mutation patterns through substitution spectra, positional clustering, hotspot use "
           "and an S5F-based targeting index[@yaari2013]. Additional analyses estimate single-read mutations that could "
           "not be called individually, group reads into clones by their junction sequences, reconstruct read-level "
-          "mutation trees and estimate statistical power. The command-line and desktop interfaces run the same "
-          "analysis engine."),
+          "mutation trees and estimate statistical power. Project analyses run identically from the command line "
+          "and desktop."),
     ("h", "Planted mutations and simulated lineages quantify recall and false calls"),
     ("p", "We planted 60 AID-weighted substitutions into each held-out control library, preserving base qualities and "
           "assigning 1–20 supporting reads per site, with three repetitions per control (Figure 3). On J_{H}4, "

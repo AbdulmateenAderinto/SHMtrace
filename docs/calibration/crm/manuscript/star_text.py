@@ -263,7 +263,7 @@ TROUBLE = [
      "read-weighted frequency, and use unique-variant density for group comparisons."),
     ("Problem 4", "Calls cluster within a few bases (warning in step 22).",
      "A cluster of calls that recurs across replicates within about 10 bases, does not co-occur within reads, "
-     "has a spectrum unlike that of AID, and has a targeting index below 1 is an error cluster (Figure 4B). "
+     "has a spectrum unlike that of AID, and has a targeting index below 1 is flagged as a likely error cluster (Figure 4B). "
      "Exclude the affected window or libraries and report the exclusion; do not count these calls as mutations."),
     ("Problem 5", "Libraries have too few reads, or controls show calls at low depth (step 16).",
      "Below approximately 250 reads, mutations carried by a single read rarely pass the test and densities are "

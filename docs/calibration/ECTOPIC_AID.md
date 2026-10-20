@@ -47,7 +47,7 @@ So this is a library-specific artefact, not biology and not a general property o
 **The lesson for shmtrace.** A control-fitted null measures the background the control libraries share with the sample. It cannot see an artefact present in one library and absent from the controls, and no amount of calibration will make it. Two things catch this one, and both are already reported:
 
 1. **The substitution spectrum.** A real AID signal in this background is C→T and G→A. Anything else is suspect. In a wild-type background the test is weaker but still useful: G:C bias and WRC/GYW enrichment.
-2. **Positional clustering.** Calls packed into a few bases, recurring across replicates but not co-occurring within reads, are an error cluster rather than SHM.
+2. **Positional clustering.** Calls packed into a few bases, recurring across replicates but not co-occurring within reads, are flagged for review as a likely error cluster rather than SHM; biological mutants can also change targeting.
 
 **Both are now automatic.** This dataset is what prompted them:
 

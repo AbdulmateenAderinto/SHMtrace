@@ -58,6 +58,13 @@ this project uses [semantic versioning](https://semver.org/).
   sets give identical results; capped samples differ from the previous draw.
 - `AlignedRead` pickling keeps attributes added after construction, including UMI
   `members`, so worker processes return the same reads as a serial run.
+- Projects judge each case against controls from its own sequencing run when
+  that run has two or more; otherwise against the pooled controls, as before
+  (`match_controls_by_run`, default on; `null_matching` in each sample row).
+- The single-read background no longer counts control errors at pairs the
+  sample cannot show as single-read events (its per-site calls and alleles it
+  carries in two or more reads), which overstated the background in heavily
+  mutated samples.
 
 See `docs/calibration/crm/CODE_AUDIT_CHANGES_2026-10-19.md` for scope,
 validation, limitations and reversal instructions.

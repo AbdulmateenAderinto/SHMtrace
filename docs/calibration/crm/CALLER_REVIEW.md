@@ -25,8 +25,9 @@ draw that line and how to justify where it was drawn.
 Two things make the problem tractable:
 
 1. **Matched AID-null controls sequenced on the same flow cell.** An
-   *Aicda*<sup>−/−</sup> library carries no somatic mutations, so every mismatch in
-   it is an error. That gives a measured null rather than an assumed one.
+   *Aicda*<sup>−/−</sup> library lacks AID-dependent SHM, so after the stated reference
+   and preparation filters its mismatches measure technical and AID-independent
+   background. That gives a measured null rather than an assumed one.
 2. **The unit of interest is the distinct substitution, not the read.** A
    mutation is counted once however many reads carry it.
 
@@ -58,9 +59,10 @@ population that still maps best to the target — a second haplotype or a
 paralogous locus. Those reads carry a coherent block of differences, and pooling
 them makes every position in the block look like a low-frequency variant.
 
-The discriminator is **co-occurrence, not frequency**. SHM does not co-occur:
-each read comes from a different B cell. A haplotype block is the opposite — the
-same reads carry every site. On the J<sub>H</sub>4 data, 14% of *Aicda*<sup>−/−</sup>
+The discriminator is **co-occurrence, not frequency**, with a caveat: shared
+mutations can mark either an expanded lineage or a non-target sequence population,
+and other evidence is needed to tell them apart. A haplotype block carries every
+site on the same reads. On the J<sub>H</sub>4 data, 14% of *Aicda*<sup>−/−</sup>
 reads carried all sixteen worst-offending positions while 83% carried none.
 Removing that population accounts for roughly a sevenfold drop in apparent
 background.
@@ -153,8 +155,9 @@ target–decoy procedure:
 So the threshold is per-library and adapts to how much real signal is present:
 a library with many true calls has a large `n_called(t)`, which permits a
 proportionally larger expected false count, which permits a looser `t`. **This is
-textbook FDR control and it is the single most consequential design decision in
-the software.** Its consequence is discussed in Part 3.
+empirical control-based threshold selection targeting a nominal false-discovery
+proportion, not a proven FDR guarantee (a counterexample is in the October 2026
+audit), and it is the single most consequential design decision in the software.** Its consequence is discussed in Part 3.
 
 Without decoys, `control` falls back to Benjamini–Hochberg over
 `analysed_positions × 3` hypotheses.
@@ -256,7 +259,7 @@ published settings, against 13.67 in the archived
 comparisons below are internally consistent (same harness, same seeds); the
 archived number is the one the manuscript quotes.
 
-### 3.2 Finding 1 — the FDR rule is correctly calibrated
+### 3.2 Finding 1 — observed false-discovery proportions were below the target in these simulations
 
 The estimated-FDR curve was traced against the true false calls at every
 threshold, per library:
@@ -268,8 +271,9 @@ threshold, per library:
 | KO3 | 0.332 | 375 | 18 | 0.048 | 0.048 |
 
 The curve is monotone in all three, the rule stops where its own estimate says to
-stop, and the estimate tracks the truth. **The realized FDR of 0.037 is the
-declared target of 0.05, slightly conservative.** It is not an error.
+stop, and the estimate tracks the truth. **The realized false-discovery proportion
+of 0.037 was below the nominal 0.05 in these evaluated simulations.** That is
+evidence for this setting, not general FDR control.
 
 Geneious has no target. Its fixed p-threshold happens to land at ~0.012 on this
 benchmark with lower recall.
@@ -345,7 +349,7 @@ libraries:
 
 Mean quality of true one-read candidates: 40–42. Of false ones: 10–11.
 
-The caller had this number and did not use it. A true Q45 one-read candidate gets
+Quality enters the candidate statistic; the optional floor adds a separate eligibility rule on top of it. A true Q45 one-read candidate gets
 a median p-value of 0.027, so it only passes at a threshold loose enough to also
 admit the Q<15 tail.
 
@@ -358,10 +362,10 @@ a clone with trunk mutations, so load is uninformative. Removing the one-sided
 ### 3.6 The caveat that limits Finding 4
 
 `lineage_sim.build_library` and `simulate` plant a mutation by substituting the
-base and **leaving the quality string alone**. A planted mutation therefore
-always sits on a base the basecaller read confidently; the sequencing errors it
-competes against sit on bases the basecaller got wrong, which is why they are
-low-quality.
+base and **leaving the quality string alone**. Planted mutations therefore inherit
+the original read qualities, without modelling the altered sequence's effect on
+basecalling; the sequencing errors they compete against tend to sit on bases the
+basecaller got wrong, which is why those are low-quality.
 
 The direction is physically right — that is what basecaller quality means — but
 the magnitude is optimistic. A real mutation falling in a low-quality stretch
@@ -374,6 +378,54 @@ This is the single biggest reason to want a second opinion.
 ---
 
 ## Part 4. The change
+
+> **Superseded, 20 October 2026.** Every quality-floor result in Parts 4 and 5 was
+> measured while the decoy controls skipped the floor that the samples applied
+> (audit finding F01). The decoys therefore kept low-quality singletons that the
+> samples had dropped. That inflated the estimated false-discovery proportion
+> and tightened the threshold, which made the floor look like it cut false
+> calls. With sample/decoy parity restored, the 20 October rerun
+> (`out/spikein_<ds>_qfloor.json`, same command as Part 6) gives:
+>
+> - **At α 0.05**, the floor does not improve precision. On J<sub>H</sub>4 it
+>   raises false calls from 2.56 to 4.11 per library (FDR 0.050 → 0.080). It
+>   trades two- and three-read recall for one-read recall. On N114 it is
+>   neutral.
+> - **At α 0.20**, the floor no longer halves the cost of the sensitive mode:
+>   J<sub>H</sub>4 13.44 → 13.33, N114 11.00 → 12.56 false calls per library.
+>   It raises one-read recall (J<sub>H</sub>4 0.744 → 0.933, N114 0.867 →
+>   0.956).
+> - The lineage-simulation rows below were not rerun with the floor.
+>
+> Options (b) and (c) in Part 5 are therefore **not supported**. Keep the floor
+> off by default (option a). The tables immediately below are kept only as a
+> record of the earlier, asymmetric measurement.
+>
+> Corrected spike-in tables (9 libraries per dataset, 60 planted sites each):
+>
+> J<sub>H</sub>4:
+>
+> | caller | FP/lib | FDR | recall | 1 rd | 2 rd | 3 rd | 5 rd | 10 rd | 20 rd |
+> |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+> | recommended (α 0.05) | 2.56 | 0.050 | 0.806 | 0.311 | 0.722 | 0.878 | 0.944 | 0.978 | 1.000 |
+> | geneious | 4.89 | 0.083 | 0.896 | 0.600 | 0.867 | 0.933 | 0.989 | 0.989 | 1.000 |
+> | recommended + Q30 | 4.11 | 0.080 | 0.787 | 0.433 | 0.678 | 0.733 | 0.922 | 0.978 | 0.978 |
+> | α 0.20 | 13.44 | 0.195 | 0.922 | 0.744 | 0.900 | 0.944 | 0.967 | 0.978 | 1.000 |
+> | α 0.10 + Q30 | 6.89 | 0.117 | 0.863 | 0.667 | 0.822 | 0.811 | 0.922 | 0.978 | 0.978 |
+> | α 0.20 + Q30 | 13.33 | 0.189 | 0.956 | 0.933 | 0.956 | 0.933 | 0.956 | 0.978 | 0.978 |
+> | α 0.20 + Q25 | 15.44 | 0.216 | 0.935 | 0.911 | 0.889 | 0.922 | 0.933 | 0.978 | 0.978 |
+>
+> N114:
+>
+> | caller | FP/lib | FDR | recall | 1 rd | 2 rd | 3 rd | 5 rd |
+> |---|---:|---:|---:|---:|---:|---:|---:|
+> | recommended (α 0.05) | 2.56 | 0.045 | 0.900 | 0.578 | 0.911 | 0.933 | 0.978 |
+> | geneious | 2.78 | 0.050 | 0.883 | 0.489 | 0.889 | 0.922 | 1.000 |
+> | recommended + Q30 | 2.44 | 0.044 | 0.891 | 0.600 | 0.856 | 0.922 | 0.978 |
+> | α 0.20 | 11.00 | 0.160 | 0.963 | 0.867 | 0.956 | 0.967 | 0.989 |
+> | α 0.10 + Q30 | 5.56 | 0.089 | 0.948 | 0.833 | 0.933 | 0.956 | 0.978 |
+> | α 0.20 + Q30 | 12.56 | 0.176 | 0.981 | 0.956 | 0.978 | 0.989 | 0.978 |
+> | α 0.20 + Q25 | 13.56 | 0.187 | 0.981 | 0.967 | 0.978 | 0.978 | 0.978 |
 
 `single_read_call_min_quality` (`src/shmtrace/config.py:245`,
 `src/shmtrace/variants.py:351`). A candidate supported by exactly one read whose
