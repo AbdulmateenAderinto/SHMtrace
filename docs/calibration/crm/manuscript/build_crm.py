@@ -30,7 +30,7 @@ OUT = CRM / "out"
 CAL = CRM.parent
 MC = CAL / "manuscript_corrected/figures"
 # the combined review document's version (write_complete): raise it whenever a version goes out to readers
-VERSION = "1.0"
+VERSION = "1.1"
 
 
 def geo(x):
