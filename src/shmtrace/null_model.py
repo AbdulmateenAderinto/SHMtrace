@@ -26,11 +26,9 @@ from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import replace
 
-from .align import align_reads, build_index
 from .config import Params
 from .io_utils import read_fasta, read_fastq
-from .phasing import partition
-from .reads_filter import prefilter
+from .variants import gate_quality
 
 BASES = ("A", "C", "G", "T")
 QMAX = 60
@@ -104,25 +102,31 @@ def fit(control_fastqs: list[str], reference: str, contaminants: list[str],
     Returns (rates, stats). `rates` maps (0-based position, alt base) to a
     shrunk error probability, suitable as the null for a binomial test.
     """
-    refs = dict(read_fasta(reference))
-    target_name = target_name or read_fasta(reference)[0][0]
-    ref = refs[target_name]
+    from .pipeline import prepare_reads
+    records = read_fasta(reference)
+    target_name = target_name or records[0][0]
+    if target_name != records[0][0]:
+        # prepare_reads, like the sample route, analyses the first reference record
+        raise ValueError(f"the null is fitted on the first reference record ({records[0][0]}), "
+                         f"not {target_name}")
+    ref = records[0][1]
     lo = (p.analysis_window[0] - 1) if p.analysis_window else 0
     hi = (p.analysis_window[1] - 1) if p.analysis_window else len(ref) - 1
 
     # Controls carry no SHM, so any co-occurring block in them is a haplotype,
     # paralogue or contaminant: always drop it here, and hand the blocks back so
     # the same blocks can be dropped from the samples (phase_mode="auto").
+    # Controls are prepared exactly as samples are (pipeline.prepare_reads: the
+    # paralog-allele filter, UMI consensus, ignore_qualities, Sanger trimming),
+    # so the null describes the same observational unit (audit F07). Only the
+    # phasing policy differs, by design.
     pc = control_params(p)
     blocks: list = []
     per_file = []
-    aligner, tnames, cnames = build_index([reference], contaminants, p.minimap2_preset)
     for fq in control_fastqs:
-        reads = list(read_fastq(fq))
-        kept, _ = prefilter(reads, p)
-        aligned = [a for a in align_reads(kept, aligner, tnames, cnames, p) if a.ctg == target_name]
-        aligned, s_ph = partition(aligned, ref, pc, lo, hi)
-        blocks += [[(pos - 1, alt) for pos, alt in b["sites"]] for b in s_ph.get("blocks", [])]
+        aligned, s_prep = prepare_reads(fq, reference, contaminants, pc)
+        aligned = [a for a in aligned if a.ctg == target_name]
+        blocks += [[(pos - 1, alt) for pos, alt in b["sites"]] for b in s_prep.get("blocks", [])]
         per_file.append(aligned)
     rates, stats = fit_aligned(per_file, ref, p, lo, hi, ref_name=target_name)
     stats["control_files"] = len(control_fastqs)
@@ -204,8 +208,10 @@ class NullModel(dict):
         return bool(self.strand_rates)
 
     def to_json(self) -> dict:
-        return {"format": "shmtrace-null-panel", "version": 2, "rho": self.rho,
+        return {"format": "shmtrace-null-panel", "version": 3, "rho": self.rho,
                 "qscale": self.qscale,
+                "decoys": [[name, list(pvalues), bases]
+                           for name, (pvalues, bases) in sorted(self.decoys.items())],
                 "meta": self.meta,
                 "qtail": [[k[0], k[1], k[2], v] for k, v in sorted(self.qtail.items())],
                 "site_quals": [[k[0], k[1], k[2], v]
@@ -220,13 +226,18 @@ class NullModel(dict):
     def from_json(cls, data: dict) -> NullModel:
         if data.get("format") != "shmtrace-null-panel":
             raise ValueError("not a shmtrace null panel")
-        return cls({(int(a), b): float(v) for a, b, v in data["rates"]},
+        null = cls({(int(a), b): float(v) for a, b, v in data["rates"]},
                    {(int(a), b, int(s)): float(v) for a, b, s, v in data.get("strand_rates", [])},
                    data.get("rho", 0.0), data.get("meta"),
                    {(a, b, int(s)): v for a, b, s, v in data.get("qtail", [])},
                    {(int(a), b, int(s)): v for a, b, s, v in data.get("site_quals", [])},
                    {(int(a), int(s)): v for a, s, v in data.get("site_depth", [])},
                    data.get("qscale", 1.0))._with_recal(data.get("recal"))
+        # Version 1/2 panels remain readable as rate-only panels. The caller
+        # reports the BH fallback if control thresholding has no saved decoys.
+        null.decoys = {name: (sorted(float(x) for x in pvalues), int(bases))
+                       for name, pvalues, bases in data.get("decoys", [])}
+        return null
 
     def _with_recal(self, data):
         from .recal import Recal
@@ -235,10 +246,12 @@ class NullModel(dict):
 
 
 def save_panel(null: NullModel, path: str, **meta) -> None:
-    """Write a fitted null to JSON so it can be reused on later runs.
+    """Write rates, calibration and decoys for reproducible reuse.
 
-    A panel describes one chemistry, basecaller model and amplicon. Reuse it only
-    for the same combination, and prefer a same-run control when there is one.
+    Restoring the state does not establish calibration across sequencing runs.
+    Use matched same-run controls; chemistry, basecaller, reference, window and
+    preparation settings must also be compatible. Compatibility is not enforced
+    by this serializer.
     """
     import json
     null.meta.update({k: v for k, v in meta.items() if v is not None})
@@ -283,9 +296,13 @@ QSCALE_GRID = (1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 50.0)
 DEFAULT_QSCALE = 10.0   # used with a single control file; see calibrate_qscale
 
 
-def window_bases(aligned, lo: int, hi: int) -> int:
-    """Bases read inside the window (the denominator the decoy counts are scaled by)."""
-    return sum(1 for r in aligned for rpos, base, _q in r.pairs if base in BASES and lo <= rpos <= hi)
+def window_bases(aligned, lo: int, hi: int, minq: int = 0) -> int:
+    """Bases read inside the window (the denominator the decoy counts are scaled by).
+
+    `minq` is the caller's base-quality gate, so the decoys' total counts the same
+    bases as the sample's (variants.call_variants, win_bases)."""
+    return sum(1 for r in aligned for rpos, base, q in r.pairs
+               if base in BASES and q >= minq and lo <= rpos <= hi)
 
 
 def _fold(i, aligned_per_file, ref, p, lo, hi, depth, null=None):
@@ -333,7 +350,7 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     tmp.close()
     try:
         decoys = {}
-        bases = [window_bases(test, lo, hi) for test, _null in folds]
+        bases = [window_bases(test, lo, hi, gate_quality(p)) for test, _null in folds]
         # each held-out control is tallied once and tested at every margin (on its own
         # process, parallel.py); the margins are then read in order, as before
         grids = pmap(_held_out_pvalues, [(test, tmp.name, ref_name, pp, null) for test, null in folds],
@@ -381,6 +398,10 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
         from .recal import fit as fit_recal
         recal = fit_recal(aligned_per_file, ref, lo, hi, p.germline_freq_threshold)
         stats["recalibration"] = recal.meta
+    # Bases below the caller's quality gate never reach a sample's pileup, so they
+    # are left out of the null's counts and depths too: every rate, and every
+    # quality tail, is conditional on a base passing the gate (audit F10).
+    minq = gate_quality(p)
     for aligned in aligned_per_file:
         stats["control_reads_used"] += len(aligned)
         counts: dict = defaultdict(lambda: defaultdict(int))
@@ -394,7 +415,7 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
             eq = recal.quals(r.pairs) if recal is not None else None
             for i, (rpos, base, q) in enumerate(r.pairs):
                 # only the window is read below, so bases outside it are skipped
-                if base in BASES and lo <= rpos <= hi:
+                if base in BASES and q >= minq and lo <= rpos <= hi:
                     counts[rpos][base] += 1
                     depth[rpos] += 1
                     sc[(rpos, base, s)] += 1

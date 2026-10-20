@@ -60,7 +60,8 @@ class Params:
     # ---- UMI consensus (umi.py) --------------------------------------------
     # "off", "flank" (UMI next to an anchor at a read end) or "header" (in the
     # read name). With UMIs on, each molecule becomes one consensus read and
-    # every count downstream is of molecules.
+    # every count downstream is of molecules. Indel analysis after UMI consensus
+    # is unsupported; keep exclude_indels=True when enabling UMIs.
     umi: str = "off"
     umi_ends: str = "both"           # flank: "left", "right" or "both" (dual UMIs)
     umi_length: int = 18
@@ -82,7 +83,8 @@ class Params:
     # variant the experiment is about. With this on, the frequency rule is off for calling and phasing.
     # It does not change the error model, which still keeps fixed differences out of the background, and
     # it does not change what a baseline difference shared with the controls does: the control-calibrated
-    # test already declines to call that. Leave it off for physiological SHM.
+    # test already declines to call that. It applies to indels in the same way (indels.py). Leave it
+    # off for physiological SHM.
     ancestral_reference: bool = False
     max_pvalue: float = 0.05               # keep variants with p <= this
     per_base_error: float = 0.001          # null error rate for the binomial variant test

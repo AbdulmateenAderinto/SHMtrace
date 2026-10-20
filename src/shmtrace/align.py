@@ -50,6 +50,11 @@ class AlignedRead:
         # Reads cross process boundaries in bulk (parallel.py), and a list of one tuple per
         # aligned base is slow to pickle: pack the columns as two arrays and a string instead.
         # The rebuilt read is equal to this one; anything unusual is pickled as it is.
+        # Attributes set on a read after it was built (umi.py's `members`, the reads a
+        # consensus molecule came from) travel as pickle state, so a worker process returns
+        # the same reads as a serial run (audit F15).
+        declared = AlignedRead.__dataclass_fields__
+        extra = {k: v for k, v in self.__dict__.items() if k not in declared} or None
         try:
             rpos = array("i", [c[0] for c in self.pairs])
             bases = "".join(c[1] for c in self.pairs)
@@ -59,9 +64,9 @@ class AlignedRead:
                 raise ValueError
         except (ValueError, TypeError, OverflowError):
             return (AlignedRead, (self.qname, self.ctg, self.r_st, self.r_en, self.pairs, self.seq,
-                                  self.strand, self.indels, self.q_st, self.q_en))
+                                  self.strand, self.indels, self.q_st, self.q_en), extra)
         return (_unpack_read, (self.qname, self.ctg, self.r_st, self.r_en, rpos.tobytes(), bases, quals,
-                               self.seq, self.strand, self.indels, self.q_st, self.q_en))
+                               self.seq, self.strand, self.indels, self.q_st, self.q_en), extra)
 
 
 def _unpack_read(qname, ctg, r_st, r_en, rpos, bases, quals, seq, strand, indels, q_st, q_en):

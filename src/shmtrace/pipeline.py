@@ -132,6 +132,8 @@ def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = 
     s_align = {"aligned_to_target": len(aligned)}
 
     variants, s_var = call_variants(aligned, reference, target_name, p, null_rates)
+    warnings.extend(n for n in s_var.get("notes", [])
+                    if n.startswith("control-based thresholding requested"))
     if germline:
         kept = [v for v in variants if (v.pos - 1, v.alt) not in germline]
         if len(kept) < len(variants):
@@ -149,8 +151,7 @@ def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = 
     per_read = per_read_table(aligned, variants, p, len(read_fasta(reference)[0][1]))
     per_read_mutations = [r["mutations"] for r in per_read]
 
-    density = metrics.unique_variant_density(
-        variants, s_var["analysed_positions"], s_var["mean_depth"], p)
+    density = metrics.unique_variant_density(variants, s_var, p)
     summary = {
         "shmtrace_version": __version__,
         "params": to_dict(p),
@@ -247,8 +248,7 @@ def rarefaction(aligned: list, reference: str, p: Params, depths: list[int],
             sub = random.Random(seed).sample(aligned, d)
             variants, s_var = call_variants(sub, reference, target_name, p, null_rates)
             counts.append(len(variants))
-            dens.append(metrics.unique_variant_density(
-                variants, s_var["analysed_positions"], s_var["mean_depth"], p))
+            dens.append(metrics.unique_variant_density(variants, s_var, p))
         rows.append({"depth": d, "draws": draws,
                      "unique_variants_mean": round(statistics.mean(counts), 2),
                      "unique_variants_sd": round(statistics.pstdev(counts), 2),

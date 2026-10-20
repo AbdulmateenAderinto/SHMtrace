@@ -24,7 +24,7 @@ SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "indel_density_x1e5", "clustered_calls",
                   "reads_with_junction", "clones", "largest_clone_pct",
                   "clone_weighted_frequency_x1e3",
-                  "mutation_frequency_x1e3", "mutated_reads_pct",
+                  "mutation_frequency_x1e3", "mutation_frequency_observed_x1e3", "mutated_reads_pct",
                   "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_CT_GA", "s5f_index", "s5f_p",
                   "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",
                   "model_used", "warnings"]

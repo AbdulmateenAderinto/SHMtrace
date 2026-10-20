@@ -216,7 +216,14 @@ def _consensus(members: list[AlignedRead], ref: str, name: str) -> AlignedRead |
 
 def consensus_reads(aligned: list[AlignedRead], ref: str, p,
                     fates: dict | None = None) -> tuple[list[AlignedRead], dict]:
-    """Group aligned reads by UMI and return one consensus read per molecule."""
+    """Group aligned reads by UMI and return one substitution consensus per molecule.
+
+    Insertion voting and contiguous deletion reconstruction are not implemented;
+    the resulting reads must not be used for quantitative indel analysis.
+    """
+    if not p.exclude_indels:
+        raise ValueError("Indel analysis after UMI consensus is not supported. "
+                         "Set exclude_indels=True to analyze substitutions.")
     keys: dict[str, str] = {}
     no_umi = 0
     for r in aligned:
