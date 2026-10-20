@@ -29,7 +29,7 @@ def main():
     by = {g: [v for k, v in S.items() if G[k] == g] for g in GEN}
     comp = {(r["group"], r["feature"]): r for r in d["comparisons"]}
     fig = plt.figure(figsize=(FULL, 104 * MM))
-    gs = gridspec.GridSpec(2, 2, figure=fig, left=0.08, right=0.98, top=0.9, bottom=0.12,
+    gs = gridspec.GridSpec(2, 2, figure=fig, left=0.105, right=0.98, top=0.9, bottom=0.12,
                            wspace=0.33, hspace=0.75)
     # A: what each library yields
     ax = fig.add_subplot(gs[0, 0])
@@ -45,15 +45,16 @@ def main():
         x += 0.8
     ax.set_yscale("log")
     ax.set_ylabel("Reads or junctions")
-    ax.set_xticks([1 + i * 3.8 for i in range(4)], [LAB[g].replace("\n", " ") for g in GEN], fontsize=5)
+    ax.set_xticks([1 + i * 3.8 for i in range(4)], [LAB[g] for g in GEN], fontsize=6)
+    ax.set_ylim(top=6e4)                 # headroom: the legend sits above the points, not on them
     ax.set_title("Each library's yield", fontsize=7)
     ax.scatter([], [], s=11, facecolor="white", edgecolor=INK, lw=0.7, label="reads")
     ax.scatter([], [], s=11, color=SOFT, label="junction reads")
     ax.scatter([], [], s=13, color=INK, label="unique junctions")
-    ax.legend(fontsize=4.8, loc="lower left", ncol=3, frameon=False, handletextpad=0.1, columnspacing=0.7,
-              bbox_to_anchor=(-0.02, -0.02))
-    ax.text(0.5, -0.30, "reads per unique junction range from 1.1 to 23 across samples",
-            transform=ax.transAxes, ha="center", fontsize=5, color=MID)
+    ax.legend(fontsize=6, loc="upper left", ncol=3, frameon=False, handletextpad=0.1, columnspacing=0.7,
+              bbox_to_anchor=(-0.02, 1.02))
+    ax.text(0.5, -0.38, "reads per unique junction range from 1.1 to 23 across samples",
+            transform=ax.transAxes, ha="center", fontsize=6, color=MID)
     letter(ax, "A", dx=-0.22)
     # B: microhomology classes
     ax = fig.add_subplot(gs[0, 1])
@@ -62,12 +63,12 @@ def main():
         for c in CLS:
             vals = [v["microhomology_classes_pct"].get(c, 0.0) for v in by[g]]
             m = float(np.mean(vals))
-            ax.bar(i, m, 0.62, bottom=bottom, color=CLSC[c], edgecolor="white", lw=0.4)
+            ax.bar(i, m, 0.62, bottom=bottom, color=CLSC[c], edgecolor="white", lw=0.5)
             if m > 7:
-                ax.text(i, bottom + m / 2, c.replace(">=", "\u2265"), ha="center", va="center", fontsize=4.6,
+                ax.text(i, bottom + m / 2, c.replace(">=", "\u2265"), ha="center", va="center", fontsize=6,
                         color=INK if c != ">=4 nt" else "white")
             bottom += m
-    ax.set_xticks(range(4), [LAB[g] for g in GEN], fontsize=5)
+    ax.set_xticks(range(4), [LAB[g] for g in GEN], fontsize=6)
     ax.set_ylabel("Unique junctions (%)")
     ax.set_ylim(0, 100)
     ax.set_title("Junction structure", fontsize=7)
@@ -77,30 +78,30 @@ def main():
     for i, g in enumerate(GEN):
         vals = [v["mean_microhomology"] for v in by[g]]
         ax.scatter(np.full(len(vals), i) + np.linspace(-0.11, 0.11, len(vals)), vals, s=15,
-                   facecolor=COL[g], edgecolor="white", lw=0.4, zorder=3)
+                   facecolor=COL[g], edgecolor="white", lw=0.5, zorder=3)
         ax.plot([i - 0.25, i + 0.25], [np.mean(vals)] * 2, color=COL[g], lw=1.4)
         if g != "WT":
             p = comp[(g, "mean_microhomology")]["p_welch"]
             txt = "p < 0.001" if p < 0.001 else f"p = {p:.3f}"
-            ax.text(i, 2.02, txt, ha="center", fontsize=5, color=MID)
-    ax.set_xticks(range(4), [LAB[g] for g in GEN], fontsize=5)
+            ax.text(i, 2.02, txt, ha="center", fontsize=6, color=MID)
+    ax.set_xticks(range(4), [LAB[g] for g in GEN], fontsize=6)
     ax.set_ylabel("Mean microhomology (nt)")
     ax.set_ylim(0, 2.2)
     ax.set_title("Microhomology use, by sample", fontsize=7)
     ax.text(0.02, 0.04, "Welch t against wild type, n = 3 mice per genotype;\n"
                         "the permutation floor at n = 3 is p = 0.1",
-            transform=ax.transAxes, fontsize=4.8, color=MID)
+            transform=ax.transAxes, fontsize=6, color=MID)
     letter(ax, "C", dx=-0.22)
     # D: breakpoint ambiguity, measured directly against the module's own flag
     ax = fig.add_subplot(gs[1, 1])
     for i, g in enumerate(GEN):
         vals = [v["acceptor_ambiguity_direct"]["ambiguous_pct"] for v in by[g]]
         ax.scatter(np.full(len(vals), i) + np.linspace(-0.11, 0.11, len(vals)), vals, s=15,
-                   facecolor=COL[g], edgecolor="white", lw=0.4, zorder=3)
+                   facecolor=COL[g], edgecolor="white", lw=0.5, zorder=3)
         ax.plot([i - 0.25, i + 0.25], [np.mean(vals)] * 2, color=COL[g], lw=1.4)
     ax.axhline(0, color=CASE, lw=1.0, ls="--")
-    ax.text(3.45, 1.5, "the module's own flag:\n0% in every sample", ha="right", fontsize=5, color=CASE)
-    ax.set_xticks(range(4), [LAB[g] for g in GEN], fontsize=5)
+    ax.text(3.45, 1.5, "the module's own flag:\n0% in every sample", ha="right", fontsize=6, color=CASE)
+    ax.set_xticks(range(4), [LAB[g] for g in GEN], fontsize=6)
     ax.set_ylabel("Unique junctions (%)")
     ax.set_ylim(-3, 55)
     ax.set_title("Acceptor breakpoint ambiguity", fontsize=7)

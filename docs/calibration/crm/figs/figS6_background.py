@@ -43,7 +43,7 @@ def profile_panel(ax, key, title):
     print(f"   {title}: between-control Spearman r = {min(rs):.2f}-{max(rs):.2f} ({len(rs)} pairs)")
     ax.text(0.99, 0.95, f"between controls: Spearman r = {min(rs):.2f}–{max(rs):.2f}\n"
             "(weak rank agreement position by position)",
-            transform=ax.transAxes, ha="right", va="top", fontsize=5.6, color=INK, linespacing=1.3)
+            transform=ax.transAxes, ha="right", va="top", fontsize=6, color=INK, linespacing=1.3)
     # the controls on their own scale: the AID-active curve is an order of magnitude higher and hides them
     ins = ax.inset_axes([0.055, 0.40, 0.42, 0.32], facecolor="white", zorder=5)
     ins.patch.set_alpha(1.0)
@@ -51,16 +51,19 @@ def profile_panel(ax, key, title):
         ins.plot(xs, r, color=col, lw=0.5)
     ins.set_xlim(lo, hi)
     ins.set_ylim(0, np.nanpercentile(np.concatenate(list(ctl.values())), 99.9) * 1.15)
-    ins.tick_params(labelsize=4.4, length=1.5, pad=1)
-    ins.set_title("controls only, own scale", fontsize=4.8, color=MID, pad=1.5)
+    ins.tick_params(labelsize=6, length=1.5, pad=1)
+    # a white backing: at 6 pt the label and the legend would otherwise sit on the busy traces
+    ins.set_title("controls only, own scale", fontsize=6, color=MID, pad=1.5,
+                  bbox=dict(facecolor="white", edgecolor="none", pad=0.6))
     for sp in ins.spines.values():
-        sp.set_linewidth(0.4)
+        sp.set_linewidth(0.5)
     ax.set_xlim(lo, hi)
     ax.set_ylim(0, np.nanpercentile(np.concatenate([*ctl.values(), case]), 99.7) * 1.25)
     ax.set_xlabel(f"{title} position")
     ax.set_ylabel("Mismatches, Q ≥ 20 (%)")
     ax.set_title(f"{title}: background along the amplicon ({d['depth']:,} reads per library)", fontsize=6.8)
-    ax.legend(fontsize=5.3, loc="upper left", ncol=4, handlelength=1.2, borderaxespad=0.2, columnspacing=1)
+    ax.legend(fontsize=6, loc="upper left", ncol=4, handlelength=1.2, borderaxespad=0.2, columnspacing=1,
+              frameon=True, facecolor="white", edgecolor="none", framealpha=0.9)
 
 
 def raster_panel(ax, d, n, label):
@@ -85,7 +88,7 @@ def raster_panel(ax, d, n, label):
         if k < 10:
             break
         y += k
-        ax.axhline(y - 0.5, color=MID, lw=0.3, ls=":")
+        ax.axhline(y - 0.5, color=MID, lw=0.5, ls=":")
     ax.set_xlim(lo, hi)
     ax.set_ylim(len(reads), 0)
     ax.set_xlabel("J$_H$4 position")

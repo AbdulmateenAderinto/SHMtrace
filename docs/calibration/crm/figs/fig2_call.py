@@ -60,8 +60,8 @@ def site_panel(ax, site, case, title):
         # Bars count all qualities; Q20 counts are a descriptive subset, not a test cutoff.
         hq = sum(q >= 20 for q in v["alt_quals"])
         ax.text(plus + minus + 0.04, y, f"{v['alt_plus'] + v['alt_minus']}/{d} ({hq} at Q≥20)", va="center",
-                fontsize=5.3, color=MID)
-    ax.set_yticks(ys, [f"{n}\n(case)" if n == case else n for n in libs], fontsize=5.8)
+                fontsize=6, color=MID)
+    ax.set_yticks(ys, [f"{n}\n(case)" if n == case else n for n in libs], fontsize=6)
     ax.set_xlim(0, 2.3)
     ax.set_xticks([0, 0.5, 1, 1.5])
     ax.set_xlabel("Reads carrying the change, any quality (%)")
@@ -70,7 +70,7 @@ def site_panel(ax, site, case, title):
                  f"({ctx[:2]}$\\underline{{{ctx[2]}}}${ctx[3:]})", fontsize=6.6)
     verdict = "called" if site["called"] else "not called"
     ax.text(0.99, 0.42, f"SHMtrace\np = {sci(site['p'])}\n{verdict}", transform=ax.transAxes, ha="right",
-            va="center", fontsize=5.6, color=INK, linespacing=1.3)
+            va="center", fontsize=6, color=INK, linespacing=1.3)
 
 
 def fdr_panel(ax, d, case):
@@ -93,7 +93,7 @@ def fdr_panel(ax, d, case):
     ax.set_xlabel("p-value threshold t")
     ax.set_ylabel("Count")
     ax.set_title(f"Control FDR, {LOCI[d['dataset']]} {case}", fontsize=6.6)
-    ax.legend(fontsize=5.2, loc="upper left", handlelength=1.4, borderaxespad=0.2)
+    ax.legend(fontsize=6, loc="upper left", handlelength=1.4, borderaxespad=0.2)
 
 
 def af_panel(ax):
@@ -109,7 +109,7 @@ def af_panel(ax):
         allaf += af
         h, _ = np.histogram(af, bins)
         ax.bar(bins[:-1], h, np.diff(bins), bottom=bottom, align="edge", color=col, label=LOCI[key],
-               edgecolor="white", linewidth=0.2)
+               edgecolor="white", linewidth=0.5)
         bottom += h
         total += len(af)
     allaf = np.array(allaf)
@@ -122,14 +122,15 @@ def af_panel(ax):
     ax.axvspan(fr[0], fr[-1], color=CALLERS["clairs"][1], alpha=0.10, lw=0)
     def pct(c):
         return " / ".join(f"{100 * rec[c][x]:.0f}" for x in fr)
-    ax.text(fr[0] * 0.92, top * 0.8, f"shaded: range tested\nwith planted mutations\n(Fig. 3H); recall at\n"
+    # above the shaded range, where the bars are low: at 6 pt the note no longer fits beside them
+    ax.text(46, top * 0.97, f"shaded: range tested\nwith planted mutations\n(Fig. 3H); recall at\n"
             f"{' / '.join(f'{x:.0f}' for x in fr)}% of reads:\n"
-            f"DeepSomatic {pct('deepsomatic')}%\nClairS {pct('clairs')}%", fontsize=5,
-            ha="right", va="top", color=CALLERS["clairs"][1], linespacing=1.25)
+            f"DeepSomatic {pct('deepsomatic')}%\nClairS {pct('clairs')}%", fontsize=6,
+            ha="right", va="top", color=CALLERS["clairs"][1], linespacing=1.12)
     ax.axvline(50, color=SOFT, lw=0.7, ls=":")
-    ax.text(46, top * 0.38, "heterozygous\ngermline", fontsize=5, color=MID, ha="right", va="center")
+    ax.text(46, top * 0.38, "heterozygous\ngermline", fontsize=6, color=MID, ha="right", va="center")
     ax.text(0.05, top * 0.97, f"{shares[1]:.0f}% of {total:,} calls in < 1% of reads\n"
-            f"{shares[5]:.0f}% in < 5%", fontsize=5.4, va="top", color=INK)
+            f"{shares[5]:.0f}% in < 5%", fontsize=6, va="top", color=INK)
     ax.set_xscale("log")
     ax.set_xticks([0.1, 1, 10, 50], ["0.1", "1", "10", "50"])
     ax.minorticks_off()
@@ -138,7 +139,7 @@ def af_panel(ax):
     ax.set_xlabel("Reads carrying the call (%)")
     ax.set_ylabel("SHMtrace calls")
     ax.set_title("Allele fractions of SHMtrace calls", fontsize=6.6)
-    ax.legend(fontsize=5.3, loc="upper left", bbox_to_anchor=(0.0, 0.84), handlelength=1, borderaxespad=0.2,
+    ax.legend(fontsize=6, loc="upper left", bbox_to_anchor=(0.0, 0.84), handlelength=1, borderaxespad=0.2,
               ncol=2, columnspacing=0.8)
     return shares, total
 
@@ -156,8 +157,8 @@ def quality_panel(ax, a, case):
             ax.scatter(i + rng.uniform(-0.18, 0.18, len(qs)), qs, s=4, color=col, alpha=0.75, linewidths=0)
             ax.plot([i - 0.28, i + 0.28], [np.median(qs)] * 2, color=INK, lw=1)
     ax.axhline(20, color=SOFT, lw=0.6, ls=":")
-    ax.text(1, 20.8, "Q20 reference", fontsize=4.8, color=MID, ha="center", va="bottom")
-    ax.set_xticks(range(len(groups)), [g[0] for g in groups], fontsize=5.5)
+    ax.text(1, 20.8, "Q20 reference", fontsize=6, color=MID, ha="center", va="bottom")
+    ax.set_xticks(range(len(groups)), [g[0] for g in groups], fontsize=6)
     ax.set_ylabel("Base quality of alt reads")
     ax.set_ylim(0, 52)
     ax.set_title("Quality cannot tell them apart", fontsize=6.6)
@@ -183,7 +184,7 @@ def main():
     letter(ax, "C", dx=-0.32)
     handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in (CASE, CASEF, CTRL, CTRLF)]
     fig.legend(handles, [f"{case} (AID-active), + strand", "− strand", "AID-null controls, + strand",
-                         "− strand"], loc="upper center", ncol=4, fontsize=5.6, bbox_to_anchor=(0.5, 1.0),
+                         "− strand"], loc="upper center", ncol=4, fontsize=6, bbox_to_anchor=(0.5, 1.0),
                handlelength=1.2, columnspacing=1.4)
     ax = fig.add_subplot(bottom[0])
     fdr_panel(ax, d, case)

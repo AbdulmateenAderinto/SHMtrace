@@ -172,6 +172,12 @@ RESULTS = [
           "{sp_pim1_recall}% at FDR {sp_su_lps_fdr} and {sp_pim1_fdr}. Geneious recalled {sp_su_lps_gen_recall}% and "
           "{sp_pim1_gen_recall}% at FDR {sp_su_lps_gen_fdr} and {sp_n114_gen_fdr}; LoFreq recalled "
           "{sp_ext_lf_lo}–{sp_ext_lf_hi}%, with permissive FDR {sp_ext_lfp_fdr} (Figure 3C)."),
+    ("p", "Calling the same libraries at targets from 1% to 30% tested whether the threshold delivers the rate it "
+          "targets. At the default 5%, the pooled false-discovery proportion was {fc_def_lo}–{fc_def_hi}% across the "
+          "four loci, and looser targets stayed at or below their stated rate except {fc_loose_over} (Figure S19A). "
+          "Targets below 5% did not deliver their stated rate on J_{H}4, Sμ or *Pim1* ({fc_strict_lo}–{fc_strict_hi}% "
+          "at a 1% target; N114, {fc_n114_1}%): false calls per library levelled off while recall fell, from "
+          "{fc_jh4_rec_def}% to {fc_jh4_rec_1}% on J_{H}4 (Figures S19B and S19C)."),
     ("p", "Indel validation used ten planted insertions or deletions of 1–40 bp per library, supported by 1–20 reads, "
           "with {ind_draws} draws per control and error models fitted to the other controls. Among events supported by "
           "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114, with {ind_jh4_fp} "
@@ -234,15 +240,14 @@ RESULTS = [
           "SHMtrace detected 3–10 variants per AID-competent library and 0–3 per AID-null library, while Geneious "
           "detected 5–7 and 0–{pim1_rec_ctl}, respectively (Table S2)."),
     ("p", "CH12 off-targets OT1 and OT2 tested a genetic perturbation expected to reduce AID targeting[@seija2026]. "
-          "OT1 Wt libraries carried 79, 56 and 57 calls versus 0, 2 and 1 in *Aicda*^{−/−} controls, with densities of "
+          "OT1 Wt libraries carried {ot1_wt} calls versus {ot1_ko} in *Aicda*^{−/−} controls, with densities of "
           "{ot1_wt_dens} versus {ot1_ko_dens} per 10^{5} bases (Welch p = {ot1_p_dens} on log density; {ot1_p} on "
-          "frequency). OT2 counts were 28, 23 and 27 versus 0, 0 and 1, with densities of {ot2_wt_dens} versus "
+          "frequency). OT2 counts were {ot2_wt} versus {ot2_ko}, with densities of {ot2_wt_dens} versus "
           "{ot2_ko_dens} (p = {ot2_p_dens} and {ot2_p}). G:C substitutions accounted for {ot1_gc}% of {ot1_n} OT1 "
           "calls and {ot2_gc}% of {ot2_n} OT2 calls. MLLT1/MLLT3 double knockout reduced counts to {ot1_dko} at OT1 "
           "({ot1_dko_dens} per 10^{5} bases) and {ot2_dko} at OT2 ({ot2_dko_dens}), statistically indistinguishable "
           "from *Aicda*^{−/−} controls (p = {ot1_p_dko_ko} and {ot2_p_dko_ko}). No fold is reported because a "
-          "zero-count convention would determine its magnitude. At OT1, {ot1_ctl_drop} was excluded from "
-          "threshold-setting decoys, leaving two controls (Limitations)."),
+          "zero-count convention would determine its magnitude."),
     ("p", "SHMtrace multiplies the control-derived error rates by an empirically selected calibration factor to "
           "account for background that the fitted model underestimates. This adjustment increases the expected error "
           "probability used in the test, so a candidate requires stronger evidence to be called; it does not change "
@@ -359,7 +364,7 @@ RESULTS = [
           "substitution calls each, with {hmces_gc_range}% at G:C. In a sensitivity analysis, treating the noisy "
           "library as a sample rather than a control yielded {hmk3_calls} calls per Wt or HMCES-deficient clone, with "
           "{hmk3_gc}% at G:C. The difference shows that control assignment materially affects the inferred "
-          "substitution burden. The same exclusion rule was triggered in the OT1 and mOrange analyses."),
+          "substitution burden. The same exclusion rule was triggered in the mOrange analysis."),
     ("p", "On dual-UMI R10 rRNA-operon reads[@karst2021], consensus reduced error 57-fold (95% CI 35–99) to 0.17%, "
           "with residual errors concentrated in homopolymer indels. At ≥10 reads per family, substitution error "
           "approached one per 10,000 bases (Figure 7E). Critically, this is a technical consensus benchmark rather "
@@ -371,14 +376,14 @@ RESULTS = [
           "condition. SHMtrace used the inactive-AID libraries from this condition to calibrate substitution calling "
           "across all three repair conditions. It retained {mo_calls} substitutions across nine active-AID libraries, "
           "all at G:C bases, with {mo_wrc}% at WRC/GYW hotspots. Inactive-AID libraries carrying Ugi or UNG retained "
-          "zero and two calls, respectively. Separation between active and inactive AID increased to 20-fold with "
+          "zero and two calls, respectively. Separation between active and inactive AID increased to {mo_control_fold}-fold with "
           "empty vector, {mo_ugi_fold}-fold with Ugi and {mo_ung_fold}-fold with UNG; the Ugi comparison assigned the "
           "zero-call controls one event. Among retained substitutions, the transition share decreased from "
           "{mo_ugi_ts}% with Ugi to {mo_ung_ts}% with UNG, whereas uncorrected inactive-AID backgrounds contained "
           "{mo_dead_ts}% transitions (Figure 7F). The mean paired difference between Ugi and UNG was {mo_arm_diff} "
           "percentage points (95% CI {mo_arm_ci}; p = {mo_ugi_dead}.0021), although the small number of calls per "
           "library limits precision."),
-    ("p", "Four engineered-diversification datasets extended the evaluation to mutations measured relative to "
+    ("p", "Two engineered-diversification datasets extended the evaluation to mutations measured relative to "
           "experimental starting constructs (Figure S18). In a study using a common GFP substrate[@liu2018], no-editor "
           "libraries yielded at most one call in 20,000 reads. AID substitutions were more frequently located at "
           "WRC/GYW hotspots than APOBEC3A substitutions, both in Wt cells ({eng_wt_wrc_aid}% versus {eng_wt_wrc_apo}%; "
@@ -386,13 +391,7 @@ RESULTS = [
           "{eng_ko_wrc_p}). In the repair-deficient background, however, their transition shares were similar "
           "({eng_ko_ctga_aid}% versus {eng_ko_ctga_apo}%; p = {eng_ko_ctga_p}), showing that transition enrichment "
           "alone could not distinguish the two enzymes."),
-    ("p", "Where a deaminase was tethered to dCas9 for targeted AID-mediated mutagenesis (TAM)[@ma2016], the reporter "
-          "arm carries a single no-editor library, which has to serve as both the error model and the only decoy. "
-          "Calibration then inverts: the model fitted to that one library absorbs the signal, so SHMtrace called "
-          "{eng_tam_case} substitutions in the library with the largest raw mismatch excess ({eng_tam_raw_case} "
-          "mismatches) and {eng_tam_ctrl} in the control itself. That arm is reported as mismatch rates rather than "
-          "calibrated calls, and it marks the lower bound of what control calibration can do. A fourth dataset "
-          "diversified an antibody V_{H} and published the mutations it found in each selected cluster[@devilder2019]. "
+    ("p", "A second dataset diversified an antibody V_{H} and published the mutations it found in each selected cluster[@devilder2019]. "
           "Comparing the two lists position by position, SHMtrace recovered {eng_dev_mut} of the {eng_dev_mut} "
           "published mutations and called none the authors did not, across all {eng_dev_n} cluster entries (Figure "
           "S18B). Because the comparator is an independently curated list rather than another run of the same "
@@ -434,8 +433,8 @@ DISCUSSION = [
     "AID-null arms, so each candidate is tested against the errors those controls make: nanopore spans the whole "
     "amplicon, making the 3′ decline visible without tiling, identifying clones from the V(D)J junction and ordering "
     "their mutations into a tree, while Illumina gives depth without that linkage. PacBio combines length with "
-    "per-base accuracy, used here on class-switch junctions and an engineered construct; neither deposit carries an "
-    "AID-null arm, so those are reported without control-calibrated calls. Figure S12 sets out what each measured; the "
+    "per-base accuracy, used here on class-switch junctions; that deposit carries no AID-null arm, so it is "
+    "reported without control-calibrated calls. Figure S12 sets out what each measured; the "
     "Sanger re-analysis also exposed bookkeeping problems that SHMtrace now checks explicitly.",
     "Published sequence collections can support reproducible reanalysis when clones are linked to animals and "
     "genotypes. SHMtrace recovered the principal J_{H}4 frequency and G:C comparisons and closely matched SW_{HEL} "

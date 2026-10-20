@@ -77,7 +77,7 @@ def main():
     ax.set_title("Frequency per mouse", fontsize=7)
     ax.scatter([], [], s=13, facecolor=SOFT, edgecolor=INK, lw=0.6, label="SHMtrace")
     ax.scatter([], [], s=13, facecolor="white", edgecolor=INK, lw=0.6, marker="s", label="Published")
-    ax.legend(loc="upper right", fontsize=5.3, handletextpad=0.2, borderaxespad=0.1)
+    ax.legend(loc="upper right", fontsize=6, handletextpad=0.2, borderaxespad=0.1)
     letter(ax, "A", dx=-0.24)
 
     # B: G:C transitions and transversions
@@ -114,11 +114,11 @@ def main():
     ax.set_xlim(0, 28)
     ax.set_ylim(0, 28)
     r = stats.pearsonr(allx, ally)[0]
-    ax.text(0.05, 0.95, f"r = {r:.2f}", transform=ax.transAxes, va="top", fontsize=5.5, color=MID)
+    ax.text(0.05, 0.95, f"r = {r:.2f}", transform=ax.transAxes, va="top", fontsize=6, color=MID)
     ax.set_xlabel("Published (%)")
     ax.set_ylabel("SHMtrace (%)")
     ax.set_title("Substitution spectrum", fontsize=7)
-    ax.legend(loc="lower right", fontsize=5.2, handletextpad=0.2)
+    ax.legend(loc="lower right", fontsize=6, handletextpad=0.2)
     letter(ax, "C", dx=-0.26)
 
     # D: what was recovered
@@ -154,14 +154,14 @@ def main():
     for k, (a, b, c) in enumerate(lines):
         y = 0.96 - k * 0.088
         w = "bold" if k == 0 else "normal"
-        kw = dict(fontsize=5.6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
+        kw = dict(fontsize=6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
         ax.text(0.0, y, a, color=INK, **kw)
         ax.text(0.62, y, b, color=PUB_C if k else INK, ha="center", **kw)
         ax.text(0.88, y, c, color=SH_C if k else INK, ha="center", **kw)
     ax.plot([0, 0.98], [0.895, 0.895], color=SOFT, lw=0.5, transform=ax.transAxes)
     ax.set_title("Published tests", fontsize=7)
     ax.text(0.0, -0.06, "$^{a}$ Ts / Tv; fit the tables only transposed", transform=ax.transAxes,
-            fontsize=4.8, color=MID, va="top")
+            fontsize=6, color=MID, va="top")
     letter(ax, "D", dx=-0.04)
     fig.savefig(DATA / "FigureS9_sanger_mkln_matplotlib.png", dpi=300)
     return {"spec_r": float(r), "fold_sh": float(np.mean(shf(wt)) / np.mean(shf(mk))),

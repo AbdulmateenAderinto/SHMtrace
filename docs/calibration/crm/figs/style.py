@@ -37,6 +37,11 @@ def setup():
         "text.color": INK, "pdf.fonttype": 42, "ps.fonttype": 42, "svg.fonttype": "none",
         "legend.frameon": False, "axes.titleweight": "bold", "axes.titlelocation": "left",
     })
+    # Cell Press prints no text below 6 pt, super- and subscripts included (figs/print_check.py checks every
+    # figure). matplotlib draws them at 0.7x their text, so 10^{2} or J_{H}4 at 6 pt would print at 4.2;
+    # the smallest text here is 6 pt, so scripts keep its size. The SciCanvas plot worker applies the same rule.
+    import matplotlib._mathtext as mathtext
+    mathtext.SHRINK_FACTOR = 1.0
 
 
 def letter(ax, s, dx=-0.18, dy=1.06):

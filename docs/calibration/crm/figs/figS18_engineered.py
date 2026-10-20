@@ -36,19 +36,19 @@ def main():
                 vals = [v[key] for k, v in liu.items() if k.startswith(pfx) and v[key] is not None]
                 x = gi * 2.6 + mi * 1.1 + ci * 0.34
                 ax.scatter([x] * len(vals), vals, s=11, marker=mark, facecolor=col, edgecolor="white",
-                           lw=0.3, zorder=3)
+                           lw=0.5, zorder=3)
                 ax.plot([x - 0.14, x + 0.14], [np.mean(vals)] * 2, color=col, lw=1.2)
-    ax.set_xticks([0.17, 1.27, 2.77, 3.87], ["WRC/\nGYW", "C→T/\nG→A", "WRC/\nGYW", "C→T/\nG→A"], fontsize=5)
+    ax.set_xticks([0.17, 1.27, 2.77, 3.87], ["WRC/\nGYW", "C→T/\nG→A", "WRC/\nGYW", "C→T/\nG→A"], fontsize=6)
     for x, lab in ((0.72, "wild-type"), (3.32, "UNG/MSH2-null")):
-        ax.text(x, -0.26, lab, transform=ax.get_xaxis_transform(), ha="center", fontsize=5.5, color=MID)
+        ax.text(x, -0.26, lab, transform=ax.get_xaxis_transform(), ha="center", fontsize=6, color=MID)
     ax.set_ylabel("Share of calls (%)")
     ax.set_ylim(0, 100)
     ax.set_title("One substrate, two deaminases", fontsize=7)
     ax.scatter([], [], s=11, color=AID_C, label="AID")
     ax.scatter([], [], s=11, color=APO_C, label="APOBEC3A")
-    ax.legend(fontsize=5, loc="upper left", frameon=False, handletextpad=0.1, ncol=2, columnspacing=0.7)
+    ax.legend(fontsize=6, loc="upper left", frameon=False, handletextpad=0.1, ncol=2, columnspacing=0.7)
     ax.text(0.98, 0.04, "the motif separates them in both;\nthe transition share only in wild type",
-            transform=ax.transAxes, ha="right", fontsize=4.8, color=MID)
+            transform=ax.transAxes, ha="right", fontsize=6, color=MID)
     letter(ax, "A", dx=-0.2)
     # B: every mutation the authors list, against what SHMtrace called in the same cluster. The
     # comparator is their published list, so this is the one engineered panel with outside truth.
@@ -67,7 +67,7 @@ def main():
     ax.plot([0, hi], [0, hi], color=SOFT, lw=0.8, ls="--", zorder=1)
     for (x, y, rnd), n in sorted(pts.items()):
         col, mark = (AID_C, "o") if rnd == "R1" else (BASE_C, "s")
-        ax.scatter([x], [y], s=9 + 7 * n, marker=mark, facecolor=col, edgecolor="white", lw=0.4, zorder=3)
+        ax.scatter([x], [y], s=9 + 7 * n, marker=mark, facecolor=col, edgecolor="white", lw=0.5, zorder=3)
     for rnd, n_c, n_m in sorted(rounds):
         col, mark = (AID_C, "o") if rnd == "R1" else (BASE_C, "s")
         ax.scatter([], [], s=14, marker=mark, color=col,
@@ -77,11 +77,11 @@ def main():
     ax.set_xlabel("Mutations the authors list")
     ax.set_ylabel("Mutations SHMtrace called")
     ax.set_title("An external list, cluster by cluster", fontsize=7)
-    ax.legend(fontsize=4.8, loc="upper left", frameon=False, handletextpad=0.1)
+    ax.legend(fontsize=6, loc="upper left", frameon=False, handletextpad=0.1)
     tot_c = sum(n for _r, n, _m in rounds)
     tot_m = sum(m for _r, _n, m in rounds)
     ax.text(0.97, 0.06, f"{tot_m}/{tot_m} recovered, none added,\nover {tot_c} cluster entries; "
-                        "marker area, entries", transform=ax.transAxes, ha="right", fontsize=4.8, color=MID)
+                        "marker area, entries", transform=ax.transAxes, ha="right", fontsize=6, color=MID)
     letter(ax, "B", dx=-0.22)
 
     save(fig, "FigureS18_engineered")

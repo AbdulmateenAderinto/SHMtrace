@@ -55,7 +55,7 @@ The text and the numbers cannot drift: every result in the prose is a `{placehol
    paper reuse images from it. When one of those needed changing, the fix was to **copy the builder into
    `crm/` and edit the copy** — see `crm/scicanvas/figS1_workflow.js`, which is this article's own copy of
    the detailed workflow figure. Do the same rather than editing the original.
-2. **The main text is capped at 7,000 words.** Since the 18 October change to `journal_word_count` (legends and front matter now count) the build reports **7,647**, about 650 over (20 October); it writes both documents and then fails the assertion. `build_crm.py` asserts this
+2. **The main text is capped at 7,000 words.** Since the 18 October change to `journal_word_count` (legends and front matter now count) the build reports **7,628**, about 630 over (20 October: 7,538 after the TAM and TCR studies were dropped, then +90 for the Figure S19 paragraph); it writes both documents and then fails the assertion. `build_crm.py` asserts this
    and fails the build if exceeded. The count covers Introduction → Limitations only. **Figure legends,
    STAR Methods, tables and the Motivation are not counted**, so detail belongs there.
    Summary ≤ 150 (now 139), eTOC ≤ 50 (now 43), four highlights ≤ 85 characters each. The documents are
@@ -110,6 +110,20 @@ Each build writes four files from one stem: `<stem>.scifig` (reopen in the app t
 | `figS13_overview.js` | `FigureS13_overview` | — |
 | `figS14_engine.js` | `FigureS14_engine` | `engine_data.py` |
 | `star_figure1.js` | the STAR protocol's figure | — |
+
+
+**Print minimums for the matplotlib figures.** Every figure drawn by `figs/*.py` meets Cell Press's production
+rules: text at least 6 pt (super- and subscripts included: `style.setup()` keeps them at their text's size),
+lines 0.5-1.5 pt. `python figs/print_check.py` reads each figure's SVG at print size and lists any breach; run
+it after changing a figure (the STAR protocol's Figures 3 and 4 are checked too). Those sizes are set in the
+scripts themselves, so the figures stay generated from the analysis outputs.
+
+**A final hand-finishing pass in SciCanvas.** Once the numbers are frozen, `scicanvas/mpl_to_scicanvas.py
+<script>` turns a `figs/*.py` figure into a SciCanvas builder: one code plot per panel (the numbers written into
+its code), the panel letters and titles as SciCanvas text, fixed margins so the axes sit where matplotlib put
+them. Build it with `node scicanvas/build.js scicanvas/<script>.js figures/<Figure>_scicanvas` and edit the
+`.scifig`. Do this last: the converted copy no longer follows the data, and re-running the converter after new
+analyses replaces anything edited in SciCanvas.
 
 ### How a builder works
 

@@ -791,6 +791,20 @@ SUPP_FIGS = [
      "per-round listing rather than a deduplicated set. This is the only engineered analysis whose comparator "
      "is an independently curated list rather than another run of this software. Analyses in "
      "`crm/liu_mutators.py` and `crm/devilder_clones.py`."),
+    ("Figure S19. The control-based false-discovery threshold against planted truth, related to Figure 3",
+     FIG / "FigureS19_fdr_calibration.png",
+     "The spike-in libraries of Figure 3 (60 substitutions planted into 1–20 reads of each held-out AID-null "
+     "control, three draws per control; {fc_libs} libraries per locus) were called at six target false-discovery "
+     "rates, every other setting at its default and only the other controls serving as null and decoys. (A) "
+     "Realised false-discovery proportion, false over all calls pooled across a locus's libraries, against the "
+     "target; dashed line, agreement; shading, over target; a pooled proportion of zero is drawn on the 0 row. "
+     "(B) False calls per library. (C) Recall of planted substitutions. Vertical lines, the default target of "
+     "5%. At the default, pooled proportions were {fc_def_lo}–{fc_def_hi}% ({fc_def_fp_lo}–{fc_def_fp_hi} false "
+     "calls per library), and single libraries reached {fc_def_lib_max}%. Below 5%, false calls levelled off at "
+     "{fc_floor_lo}–{fc_floor_hi} per library while recall fell, consistent with library-specific errors that the "
+     "other controls do not share and with decoy counts too coarse to resolve small targets (STAR Methods). The "
+     "realised proportion depends on the number of true mutations per library (here 60) and is not a per-library "
+     "guarantee. Analysis in `crm/spikein.py` (`--tag _fdrcal`) and `crm/figs/figS19_fdr_calibration.py`."),
 ]
 
 if __name__ == "__main__":

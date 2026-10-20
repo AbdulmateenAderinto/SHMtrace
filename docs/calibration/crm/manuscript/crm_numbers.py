@@ -988,6 +988,31 @@ def compute():
         strict = [v for ds in pj.values() for k, v in ds.items() if k != "default"]
         N.update(st_p_hi=pfmt(max(v["p_log_welch"] for v in strict)),
                  st_fold_lo=f0(min(v["fold"] for v in strict)), st_fold_hi=f0(max(v["fold"] for v in strict)))
+    # Figure S19: the false-discovery target against planted truth at six targets (figs/figS19_fdr_calibration.py)
+    fc_path = OUT / "fdr_calibration.json"
+    if fc_path.exists():
+        fc = _load(fc_path)
+        at = lambda t: {k: v[t] for k, v in fc.items()}  # noqa: E731
+        d, one = at("0.05"), at("0.01")
+        pc1 = lambda x: f"{100 * x:.1f}"  # noqa: E731
+        loose = [(k, float(t), v["fdp_pooled"]) for k, per in fc.items() for t, v in per.items() if float(t) > 0.05]
+        over = [x for x in loose if x[2] > x[1]]
+        three = [k for k in fc if k != "n114"]
+        LBL = {"jh4": "J_{H}4", "n114": "N114", "su_lps": "Sμ", "pim1": "*Pim1*"}
+        N.update(fc_def_lo=pc1(min(v["fdp_pooled"] for v in d.values())),
+                 fc_def_hi=pc1(max(v["fdp_pooled"] for v in d.values())),
+                 fc_def_lib_max=pc1(max(max(v["fdp_libraries"]) for v in d.values())),
+                 fc_libs=f0(d["jh4"]["libraries"]),
+                 fc_loose_over=series([f"{LBL[k]} at {100 * t:g}% ({pc1(f)}%)" for k, t, f in over]),
+                 fc_strict_lo=pc1(min(one[k]["fdp_pooled"] for k in three)),
+                 fc_strict_hi=pc1(max(one[k]["fdp_pooled"] for k in three)),
+                 fc_n114_1=pc1(one["n114"]["fdp_pooled"]),
+                 fc_floor_lo=f1(min(v["false_per_library"] for v in one.values())),
+                 fc_floor_hi=f1(max(v["false_per_library"] for v in one.values())),
+                 fc_def_fp_lo=f1(min(v["false_per_library"] for v in d.values())),
+                 fc_def_fp_hi=f1(max(v["false_per_library"] for v in d.values())),
+                 fc_jh4_rec_def=pct(d["jh4"]["recall"]), fc_jh4_rec_1=pct(one["jh4"]["recall"]),
+                 fc_su_rec_def=pct(d["su_lps"]["recall"]), fc_su_rec_1=pct(one["su_lps"]["recall"]))
     return N
 
 

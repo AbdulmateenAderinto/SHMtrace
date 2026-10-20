@@ -43,7 +43,7 @@ def series(ax, per, samples, depths, field, colr, colf):
             ax.scatter(np.full(len(v), i) + np.linspace(-0.13, 0.13, len(v)), v, s=3.2, color=colf,
                        linewidths=0, zorder=2)
         ax.plot(xs, means, color=colr, lw=1.1, marker="o", ms=2.6, zorder=3)
-    ax.set_xticks(xs, [str(d) for d in depths], fontsize=5.4)
+    ax.set_xticks(xs, [str(d) for d in depths], fontsize=6)
 
 
 def main():
@@ -64,7 +64,7 @@ def main():
             # symlog: linear below 1, so a library with no calls sits at zero rather than at an invented floor
             ax.set_yscale("symlog", linthresh=LINTHRESH, linscale=0.45)
             ax.set_ylim(0, None)
-            ax.axhline(LINTHRESH, color=SOFT, lw=0.4, ls=":")
+            ax.axhline(LINTHRESH, color=SOFT, lw=0.5, ls=":")
             ax.set_xlabel("Reads analyzed")
             ax.set_ylabel(ylab)
             ax.set_title(f"{title}: {short}", fontsize=6.6)
@@ -82,12 +82,12 @@ def main():
                    color=CASE if key == "jh4" else "#6d9ad0", linewidths=0, zorder=3)
         ax.plot([i - 0.3, i + 0.3], [np.mean(v)] * 2, color=INK, lw=1.1, zorder=4)
     ax.axhline(100, color=SOFT, lw=0.5, ls=":")
-    ax.set_xticks(range(len(names)), names, fontsize=5.4, rotation=45, ha="right")
+    ax.set_xticks(range(len(names)), names, fontsize=6, rotation=45, ha="right")
     ax.set_ylim(0, 118)
     ax.set_ylabel("Calls at 500 reads (% of that library's mean at 1,000)")
     ax.set_title("What 500 reads had reached", fontsize=6.6)
     ax.text(0.5, 0.06, "AID-active libraries only\nJ$_H$4 (dark), N114 (light)\npoints, the five draws",
-            transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, color=MID, linespacing=1.4)
+            transform=ax.transAxes, ha="center", va="bottom", fontsize=6, color=MID, linespacing=1.4)
     letter(ax, "E", dx=-0.26)
     save(fig, "FigureS5")
     out = {s: {"mean_pct_at_500": round(float(np.mean(v)), 1), "draws": [round(x, 1) for x in v]}

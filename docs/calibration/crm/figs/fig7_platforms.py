@@ -24,7 +24,7 @@ PUB = DATA / "public"
 def titled(ax, title, question, size=7):
     """Panel title, with the validation question it answers on a smaller line beneath."""
     ax.set_title(title, fontsize=size, pad=10)
-    ax.text(0.5, 1.012, question, transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, color=MID,
+    ax.text(0.5, 1.012, question, transform=ax.transAxes, ha="center", va="bottom", fontsize=6, color=MID,
             style="italic")
 
 
@@ -39,7 +39,7 @@ def strip(ax, groups, values, colors, floor):
         if len(pos):
             g_ = 10 ** np.mean(np.log10(np.where(v > 0, v, floor)))
             ax.plot([i - 0.28, i + 0.28], [g_, g_], color=e, lw=1.4)
-    ax.axhline(floor * 1.5, color=SOFT, lw=0.4, ls=":")
+    ax.axhline(floor * 1.5, color=SOFT, lw=0.5, ls=":")
 
 
 def main():
@@ -82,13 +82,13 @@ def main():
         for (lab, _k, col), c in zip(cats, (ctga, gc_other, at)):
             ax.bar(i, 100 * c / n, 0.6, bottom=bottom, color=col, label=lab if i == 0 else None)
             bottom += 100 * c / n
-        ax.text(i, 103, f"n = {n}\nS5F {s5[g]['index']:.2f}", ha="center", fontsize=5.5, color=MID)
+        ax.text(i, 103, f"n = {n}\nS5F {s5[g]['index']:.2f}", ha="center", fontsize=6, color=MID)
     ax.set_xticks([0, 1], ["AID", "R174E/\nR178E"])
     ax.set_ylim(0, 125)
     ax.set_yticks([0, 25, 50, 75, 100])
     ax.set_ylabel("Share of calls (%)")
     titled(ax, "Spectrum and targeting", "do the mutant's calls look like AID's?")
-    ax.legend(fontsize=5.2, loc="upper center", bbox_to_anchor=(0.5, -0.3), ncol=3, handlelength=1, columnspacing=0.7)
+    ax.legend(fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.3), ncol=3, handlelength=1, columnspacing=0.7)
     letter(ax, "C", dx=-0.42)
     # D
     ax = fig.add_subplot(gs[1, 0:2])
@@ -97,12 +97,12 @@ def main():
     for j, kind in enumerate(("deletions", "insertions")):
         for i, (g, lab, f, e) in enumerate(groups):
             v = [s[kind] for s in p["samples"] if s["group"] == g]
-            x = j * 3.6 + i
+            x = j * 3.9 + i * 1.15      # spaced so the 6-pt group labels clear each other
             ax.bar(x, np.mean(v), 0.75, color=f, edgecolor=e, lw=0.6)
             ax.scatter(x + np.linspace(-0.2, 0.2, len(v)), v, s=7, color=e, zorder=3)
-    ax.set_xticks([0, 1, 2, 3.6, 4.6, 5.6], ["Wt", "HMCES\nKO", "AID\nKO"] * 2, fontsize=5.4)
-    ax.text(1, -0.36, "deletions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
-    ax.text(4.6, -0.36, "insertions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
+    ax.set_xticks([0, 1.15, 2.3, 3.9, 5.05, 6.2], ["Wt", "HMCES\nKO", "AID\nKO"] * 2, fontsize=6)
+    ax.text(1.15, -0.36, "deletions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
+    ax.text(5.05, -0.36, "insertions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
     ax.set_ylabel("Events per clone (20,000 reads)")
     titled(ax, "Indels in Ramos, Illumina (Wu et al.)", "indels, not only substitutions")
     letter(ax, "D", dx=-0.3, dy=1.1)
@@ -116,7 +116,7 @@ def main():
     ax.plot(x, allerr, marker="o", ms=3, color="#9aa5b1", lw=1.1, label="all errors")
     ax.plot(x, sub, marker="o", ms=3, color="#1f6f8b", lw=1.1, label="substitutions")
     ax.axhline(u["raw_read_error_pct"], color=CTRL, ls="--", lw=0.8)
-    ax.text(3.0, u["raw_read_error_pct"] * 1.25, f"raw reads {u['raw_read_error_pct']:.1f}%", fontsize=5.5,
+    ax.text(3.0, u["raw_read_error_pct"] * 1.25, f"raw reads {u['raw_read_error_pct']:.1f}%", fontsize=6,
             color=CTRL, ha="right")
     ax.set_yscale("log")
     ax.set_ylim(0.0005, 30)
@@ -134,10 +134,10 @@ def main():
     raw = u["raw_read_error_pct"]
     ax.errorbar([3.45], [cons], yerr=[[cons - lo], [hi - cons]], fmt="D", ms=3, color=INK, capsize=1.5, lw=0.8)
     ax.text(3.3, cons * 2.6, f"all {len(mol)}: {cons:.2f}%\n{raw / cons:.0f}-fold\n({raw / hi:.0f}–{raw / lo:.0f})",
-            fontsize=4.8, color=INK, ha="center", va="bottom", linespacing=1.15)
+            fontsize=6, color=INK, ha="center", va="bottom", linespacing=1.15)
     ax.set_xlim(-0.3, 3.75)
     titled(ax, "UMI consensus, R10 (Karst et al.)", f"error after consensus, {u['molecules_3plus_reads']} molecules")
-    ax.legend(fontsize=5.3, loc="lower left", title="consensus", title_fontsize=5.3, handlelength=1.4)
+    ax.legend(fontsize=6, loc="lower left", title="consensus", title_fontsize=6, handlelength=1.4)
     json.dump({"consensus_error_pct": round(cons, 4), "ci": [round(lo, 4), round(hi, 4)],
                "fold": round(raw / cons, 1), "fold_ci": [round(raw / hi, 1), round(raw / lo, 1)]},
               open(DATA / "fig7_umi.json", "w"), indent=1)
@@ -170,11 +170,11 @@ def main():
     ax.scatter(np.tile(x + 0.08, 3), ours.ravel(), marker="o", s=9, color=CASE, zorder=3, label="AID, SHMtrace calls")
     json.dump({"arms": arms, "shmtrace": ours.round(1).tolist(), "authors": theirs.round(1).tolist(),
                "dead": dead.round(1).tolist()}, open(DATA / "fig7_morange.json", "w"), indent=1)
-    ax.set_xticks(x, ["Ugi\n(UNG off)", "empty", "UNG\n(extra)"], fontsize=5.4)
+    ax.set_xticks(x, ["Ugi\n(UNG off)", "empty", "UNG\n(extra)"], fontsize=6)
     ax.set_ylim(-4, 104)
     ax.set_ylabel("Transitions at C:G (%)")
     titled(ax, "Ectopic AID, non-B cells (Pérez-Durán)", "does the spectrum follow UNG?", size=6.6)
-    ax.legend(fontsize=5, loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1, handlelength=1.2,
+    ax.legend(fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1, handlelength=1.2,
               handletextpad=0.3, labelspacing=0.3)
     letter(ax, "F", dx=-0.3, dy=1.1)
     save(fig, "Figure7")

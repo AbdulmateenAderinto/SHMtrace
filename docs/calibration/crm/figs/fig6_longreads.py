@@ -66,7 +66,7 @@ def draw_tree(ax, nodes):
         for k, m in enumerate(n["mutations"]):
             ax.plot([x0 + k + 0.5] * 2, [y - 0.22, y + 0.22], color=CLASS[klass(m)][1], lw=1.4)
         ax.scatter(x_end[n["id"]], y, s=6 + 1.5 * n["reads"], facecolor="white", edgecolor=INK, lw=0.6, zorder=3)
-        ax.text(x_end[n["id"]], y - 0.42, str(n["reads"]), fontsize=5, color=MID, ha="center")
+        ax.text(x_end[n["id"]], y - 0.42, str(n["reads"]), fontsize=6, color=MID, ha="center")
     ax.set_ylim(leaf[0] - 0.4, -0.95)
     ax.set_yticks([])
     ax.spines["left"].set_visible(False)
@@ -93,18 +93,18 @@ def main():
         bases = [sum(depth[s][p] for p in range(a, min(b, 1231))) for a, b in zip(edges[:-1], edges[1:])]
         curves[s] = 1e5 * h / np.maximum(bases, 1)
     ax.axvspan(101, 629, color="#f0e2cf", lw=0)
-    ax.text(365, 0.97, "529-bp Sanger window", transform=ax.get_xaxis_transform(), ha="center", fontsize=5.5,
+    ax.text(365, 0.97, "529-bp Sanger window", transform=ax.get_xaxis_transform(), ha="center", fontsize=6,
             color="#a3621b", va="top")
     for s in ("WT2", "WT3", "WT4"):
         ax.plot(mids, curves[s], color="#6d9ad0", lw=0.6)
-    ax.plot(mids, np.mean([curves[s] for s in ("WT2", "WT3", "WT4")], axis=0), color=CASE, lw=1.6, label="Wt (mean; thin, mice)")
+    ax.plot(mids, np.mean([curves[s] for s in ("WT2", "WT3", "WT4")], axis=0), color=CASE, lw=1.5, label="Wt (mean; thin, mice)")
     ax.plot(mids, np.mean([curves[s] for s in ("KO1", "KO2", "KO3")], axis=0), color=CTRL, lw=1.2,
             label="Aicda$^{-/-}$ (mean)")
     ax.set_xlim(90, 1230)
     ax.set_xlabel("J$_H$4 amplicon position (bp); 50-bp bins")
     ax.set_ylabel("Unique variants per 10$^5$ bases")
     ax.set_title("The whole amplicon from each read (positions 90–1,230)", fontsize=7)
-    ax.legend(fontsize=5.5, loc="upper right")
+    ax.legend(fontsize=6, loc="upper right")
     letter(ax, "A", dx=-0.08)
     # B: targeting dose-response
     ax = fig.add_subplot(gs[0, 2])
@@ -120,9 +120,9 @@ def main():
     ax.set_ylabel("Per position, relative to mean")
     wi = [t["wt"][s]["index"] for s in ("WT2", "WT3", "WT4")]
     ax.text(0.04, 0.97, f"targeting index\nWt {min(wi):.2f}–{max(wi):.2f}\nerror {t['ko_all_positions']['index']:.2f}",
-            transform=ax.transAxes, va="top", fontsize=5.5, color=MID)
+            transform=ax.transAxes, va="top", fontsize=6, color=MID)
     ax.set_title("AID targeting vs error", fontsize=7)
-    ax.legend(fontsize=5.3, loc="lower right")
+    ax.legend(fontsize=6, loc="lower right")
     letter(ax, "B", dx=-0.3)
     # C: clones
     ax = fig.add_subplot(gs[1, 0])
@@ -137,19 +137,19 @@ def main():
         left = 0
         for k, z in enumerate(sizes):
             ax.barh(i, 100 * z / tot, left=left, height=0.6, color=CASE if k == 0 else "#9fc0d8",
-                    edgecolor="white", lw=0.3)
+                    edgecolor="white", lw=0.5)
             left += 100 * z / tot
-        ax.barh(i, 100 - left, left=left, height=0.6, color="white", edgecolor=SOFT, lw=0.4, hatch="////")
-        ax.text(left / 2, i - 0.42, f"junction read in {100 * e['reads_with_junction'] / tot:.0f}%",
-                fontsize=4.8, color=MID, ha="center", va="bottom")
+        ax.barh(i, 100 - left, left=left, height=0.6, color="white", edgecolor=SOFT, lw=0.5, hatch="////")
+        ax.text(1, i - 0.42, f"junction read in {100 * e['reads_with_junction'] / tot:.0f}%",
+                fontsize=6, color=MID, ha="left", va="bottom")
         ax.text(101, i, f"{e['mutation_frequency_x1e3']:.1f} → {e['clone_weighted_frequency_x1e3']:.1f}",
-                va="center", fontsize=5.5, color=MID)
+                va="center", fontsize=6, color=MID)
     ax.set_yticks(range(3), ["Wt2", "Wt3", "Wt4"])
     ax.set_xlim(0, 140)
     ax.set_xticks([0, 25, 50, 75, 100])
     ax.set_xlabel("Reads, by clone (% of 500)")
     ax.set_ylim(2.5, -1.0)
-    ax.text(101, -0.72, "per 10$^3$ bp, read-\n→ clone-weighted", fontsize=5, color=SOFT, va="center")
+    ax.text(101, -0.72, "per 10$^3$ bp, read-\n→ clone-weighted", fontsize=6, color=SOFT, va="center")
     ax.set_title("Clones from the V(D)J junction", fontsize=7)
     letter(ax, "C", dx=-0.3)
     # D: mutation tree
@@ -161,10 +161,10 @@ def main():
     n_fit = round(tr["fit"] * carriers)
     ax.set_title(f"Read-level reconstruction of one Wt3 clone ({tr['reads']} reads)", fontsize=7, pad=10)
     ax.text(0.5, 1.01, f"{n_fit} of {carriers} reads ({round(100 * tr['fit'])}%) fit one path, {carriers - n_fit} do "
-            f"not; numbers, reads carrying each node (nested)", transform=ax.transAxes, fontsize=5.2, color=MID,
+            f"not; numbers, reads carrying each node (nested)", transform=ax.transAxes, fontsize=6, color=MID,
             ha="center", va="bottom")
-    hs = [plt.Line2D([], [], color=c, lw=1.6, label=lab) for lab, c in CLASS.values()]
-    ax.legend(handles=hs, fontsize=5.3, loc="lower right", ncol=3, handlelength=1)
+    hs = [plt.Line2D([], [], color=c, lw=1.5, label=lab) for lab, c in CLASS.values()]
+    ax.legend(handles=hs, fontsize=6, loc="lower right", ncol=3, handlelength=1)
     letter(ax, "D", dx=-0.06)
     save(fig, "Figure6")
 

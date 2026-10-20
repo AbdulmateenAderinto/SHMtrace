@@ -79,7 +79,7 @@ def main():
                 ax.scatter(x, y, s=9, marker="o" if r["calls"] else "v", linewidth=0.5,
                            facecolor=(CTRLF if ctl else CASEF), edgecolor=(CTRL if ctl else CASE), zorder=3)
         ax.set_yscale("log")
-        ax.axhline(floor * 1.6, color=SOFT, lw=0.4, ls=":")
+        ax.axhline(floor * 1.6, color=SOFT, lw=0.5, ls=":")
         ax.set_xticks(range(len(SHOW)), [SHORT[c] for c in SHOW], rotation=55, ha="right")
         ax.set_xlim(-0.6, len(SHOW) - 0.4)
         ax.set_title(title, fontsize=6.5)
@@ -116,7 +116,7 @@ def main():
                     continue
                 txt = (f"{v:.0f}" if v >= 10 else f"{v:.1f}") if which == 0 else f"{v:.0f}"
                 dark = show[i, j] > np.nanmax(show) * 0.6
-                ax.text(j, i, txt, ha="center", va="center", fontsize=5.3, color="white" if dark else INK)
+                ax.text(j, i, txt, ha="center", va="center", fontsize=6, color="white" if dark else INK)
         ax.set_xticks(range(len(SHOW)), [SHORT[c] for c in SHOW], rotation=55, ha="right")
         # F is per case group ("OT1 Wt", "OT1 dKO"); G is per dataset, so a split dataset is named once
         if which == 0:
@@ -143,7 +143,7 @@ def main():
         ax.plot([float(x) for x in xs], [100 * tr[x][0] / tr[x][1] for x in xs], marker="o", ms=2.5, color=col, ls=ls,
                 lw=1, label=lab)
     ax.axhline(1, color=CTRL, lw=0.6, ls=":")
-    ax.text(1.0, 0.55, "1% target", fontsize=5.2, color=CTRL)
+    ax.text(1.0, 0.55, "1% target", fontsize=6, color=CTRL)
     ax.set_xlabel("Margin on control error rates (×)")
     ax.set_ylabel("Held-out control tests, p < 0.01 (%)")
     ax.set_xscale("log")
@@ -151,7 +151,7 @@ def main():
     ax.set_xticks(ticks, [f"{t:g}" for t in ticks])
     ax.minorticks_off()
     ax.set_title("Leave-one-control-out", fontsize=6.5)
-    ax.legend(fontsize=5.3, loc="upper right")
+    ax.legend(fontsize=6, loc="upper right")
     letter(ax, "H", dx=-0.3)
     # I: read accounting
     ax = fig.add_subplot(outer[2])
@@ -169,12 +169,12 @@ def main():
                 v = 100 * a[key] / a["delivered"]
                 ax.bar(len(labels) - 1, v, bottom=left, color=col, width=0.75, label=lab if len(labels) == 1 else None)
                 left += v
-    ax.set_xticks(range(len(labels)), labels, fontsize=5.3, rotation=40, ha="right")
+    ax.set_xticks(range(len(labels)), labels, fontsize=6, rotation=40, ha="right")
     ax.set_ylim(0, 100)
     ax.set_xlim(-0.6, len(labels) - 0.4)
     ax.set_ylabel("Delivered reads (%)")
     ax.set_title("Fate of every delivered read (SHMtrace read preparation)", fontsize=6.5)
-    ax.legend(fontsize=5.3, loc="center left", bbox_to_anchor=(1.005, 0.5), handlelength=1)
+    ax.legend(fontsize=6, loc="center left", bbox_to_anchor=(1.005, 0.5), handlelength=1)
     ax.set_position([0.07, ax.get_position().y0, 0.72, ax.get_position().height])
     letter(ax, "I", dx=-0.075)
     save(fig, "Figure4")

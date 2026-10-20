@@ -61,7 +61,7 @@ def _stage_box(ax, num, title, body, eq):
     lines = body.count("\n") + 1
     ax.text(0.022, 0.93, num, transform=ax.transAxes, fontsize=10.5, fontweight="bold", color=ACC, va="top")
     ax.text(0.062, 0.935, title, transform=ax.transAxes, fontsize=7.4, fontweight="bold", color=INK, va="top")
-    ax.text(0.062, 0.745, body, transform=ax.transAxes, fontsize=5.9, color=MID, va="top", linespacing=1.4)
+    ax.text(0.062, 0.745, body, transform=ax.transAxes, fontsize=6, color=MID, va="top", linespacing=1.4)
     # mathtext with fractions and sums is tall, so the equation is centred well clear of the text
     ax.text(0.062, max(0.18, 0.32 - 0.055 * lines), eq, transform=ax.transAxes, fontsize=6.4, color=INK, va="center")
 
@@ -81,11 +81,11 @@ def panel1(ax):
             v = 100 * sum(a[k] for k in keys) / a["delivered"]
             ax.bar(i, v, bottom=left, color=col, width=0.74, lw=0, label=lab if i == 0 else None)
             left += v
-    ax.set_xticks(range(len(libs)), libs, fontsize=4.6, rotation=35, ha="right")
+    ax.set_xticks(range(len(libs)), libs, fontsize=6, rotation=35, ha="right")
     ax.set_ylim(0, 100)
-    ax.set_ylabel("% of delivered reads", fontsize=5.6)
-    ax.tick_params(labelsize=5)
-    ax.legend(fontsize=4.4, loc="upper center", bbox_to_anchor=(0.5, -0.26), ncol=3, handlelength=0.8,
+    ax.set_ylabel("% of delivered reads", fontsize=6)
+    ax.tick_params(labelsize=6)
+    ax.legend(fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.26), ncol=3, handlelength=0.8,
               handletextpad=0.3, columnspacing=0.9)
     ax.set_title("The fate of every read", fontsize=6.2, pad=4)
 
@@ -126,15 +126,15 @@ def panel2(ax):
     pts = alignment_points()
     for lab, key, col, f in (("to target", "target", CASE, CASEF), ("to paralogue", "paralogue", "#7a4f9a", "#bda3d4")):
         xy = pts[key]
-        ax.scatter([q[0] for q in xy], [q[1] for q in xy], s=3.5, facecolor=f, edgecolor=col, lw=0.25, label=lab)
+        ax.scatter([q[0] for q in xy], [q[1] for q in xy], s=3.5, facecolor=f, edgecolor=col, lw=0.5, label=lab)
     lim = [min(q[0] for v in pts.values() for q in v) - 0.01, 1.005]
     ax.plot(lim, lim, color=SOFT, lw=0.6, ls="--")
     ax.set_xlim(*lim)
     ax.set_ylim(*lim)
-    ax.set_xlabel("identity to target", fontsize=5.6)
-    ax.set_ylabel("identity to paralogue", fontsize=5.6)
-    ax.tick_params(labelsize=5)
-    ax.legend(fontsize=4.8, handletextpad=0.2, borderaxespad=0.1, loc="upper left")
+    ax.set_xlabel("identity to target", fontsize=6)
+    ax.set_ylabel("identity to paralogue", fontsize=6)
+    ax.tick_params(labelsize=6)
+    ax.legend(fontsize=6, handletextpad=0.2, borderaxespad=0.1, loc="upper left")
     ax.set_title("Each read goes to its best match", fontsize=6.2, pad=4)
 
 
@@ -150,10 +150,10 @@ def panel3(ax):
             label="measured in controls")
     lim = [min(xs), max(xs)]
     ax.plot(lim, lim, color=INK, lw=0.7, ls="--", label="what the score promises")
-    ax.set_xlabel("reported quality", fontsize=5.6)
-    ax.set_ylabel("measured quality", fontsize=5.6)
-    ax.tick_params(labelsize=5)
-    ax.legend(fontsize=4.8, handletextpad=0.3, borderaxespad=0.1, loc="upper left")
+    ax.set_xlabel("reported quality", fontsize=6)
+    ax.set_ylabel("measured quality", fontsize=6)
+    ax.tick_params(labelsize=6)
+    ax.legend(fontsize=6, handletextpad=0.3, borderaxespad=0.1, loc="upper left")
     ax.set_title("Quality scores are optimistic", fontsize=6.2, pad=4)
 
 
@@ -177,12 +177,12 @@ def panel4(ax):
     ax.bar(x + 0.18, ctl_v, width=0.34, color=CTRLF, edgecolor=CTRL, lw=0.6, label="$Aicda^{-/-}$")
     for i, c in enumerate(called):
         ax.text(i, max(case_v[i], ctl_v[i]) + 1.4, "called" if c else "not called", ha="center",
-                fontsize=5.2, color=CASE if c else MID, fontweight="bold" if c else "normal")
-    ax.set_xticks(x, labels, fontsize=5)
+                fontsize=6, color=CASE if c else MID, fontweight="bold" if c else "normal")
+    ax.set_xticks(x, labels, fontsize=6)
     ax.set_ylim(0, max(case_v + ctl_v) * 1.45)
-    ax.set_ylabel("reads with the change", fontsize=5.6)
-    ax.tick_params(labelsize=5)
-    ax.legend(fontsize=4.8, handletextpad=0.3, borderaxespad=0.1, loc="upper right")
+    ax.set_ylabel("reads with the change", fontsize=6)
+    ax.tick_params(labelsize=6)
+    ax.legend(fontsize=6, handletextpad=0.3, borderaxespad=0.1, loc="upper right")
     ax.set_title("Same depth, opposite verdicts", fontsize=6.2, pad=4)
 
 
@@ -198,12 +198,12 @@ def panel5(ax):
         ax.plot(grid, [np.searchsorted(dp, g, "right") for g in grid], color=CTRL, lw=0.7, alpha=0.75,
                 label="held-out controls (decoys)" if i == 0 else None)
     ax.axvline(t, color=INK, lw=0.8, ls="--")
-    ax.text(t, ax.get_ylim()[1] * 0.97, f"  $t^*$ = {t:.3f}", fontsize=5, color=INK, va="top")
+    ax.text(t, ax.get_ylim()[1] * 0.97, f"  $t^*$ = {t:.3f}", fontsize=6, color=INK, va="top")
     ax.set_xscale("log")
-    ax.set_xlabel("p-value threshold", fontsize=5.6)
-    ax.set_ylabel("candidates kept", fontsize=5.6)
-    ax.tick_params(labelsize=5)
-    ax.legend(fontsize=4.8, handletextpad=0.3, borderaxespad=0.1, loc="upper left")
+    ax.set_xlabel("p-value threshold", fontsize=6)
+    ax.set_ylabel("candidates kept", fontsize=6)
+    ax.tick_params(labelsize=6)
+    ax.legend(fontsize=6, handletextpad=0.3, borderaxespad=0.1, loc="upper left")
     ax.set_title("The controls set the threshold", fontsize=6.2, pad=4)
 
 
@@ -220,10 +220,10 @@ def panel6(ax):
         g = 10 ** np.mean(np.log10(vals))
         ax.plot([i - 0.22, i + 0.22], [g, g], color=col, lw=1.3)
     ax.set_yscale("log")
-    ax.set_xticks(range(2), [g[0] for g in groups], fontsize=5.6)
+    ax.set_xticks(range(2), [g[0] for g in groups], fontsize=6)
     ax.set_xlim(-0.5, 1.5)
-    ax.set_ylabel("unique variants / 10$^5$ bases", fontsize=5.6)
-    ax.tick_params(labelsize=5)
+    ax.set_ylabel("unique variants / 10$^5$ bases", fontsize=6)
+    ax.tick_params(labelsize=6)
     ax.set_title("One point per animal", fontsize=6.2, pad=4)
 
 

@@ -26,7 +26,7 @@ TYPES = ["A>T", "A>C", "A>G", "T>A", "T>C", "T>G", "C>A", "C>T", "C>G", "G>A", "
 
 def save(fig, name):
     OUT.mkdir(parents=True, exist_ok=True)
-    for ext, kw in (("pdf", {}), ("png", {"dpi": 600})):
+    for ext, kw in (("pdf", {}), ("png", {"dpi": 600}), ("svg", {})):     # svg: figs/print_check.py reads it
         fig.savefig(OUT / f"{name}.{ext}", facecolor="white", **kw)
     Image.open(OUT / f"{name}.png").convert("RGB").save(OUT / f"{name}.tif", dpi=(600, 600), compression="tiff_lzw")
     print(name)
@@ -74,7 +74,9 @@ def fig3():
           for grp in ("WT", "Aicda-/-")}
     fold = 10 ** (np.mean(np.log10(gv["WT"])) - np.mean(np.log10(gv["Aicda-/-"])))
     pw = stats.ttest_ind(np.log10(gv["WT"]), np.log10(gv["Aicda-/-"]), equal_var=False).pvalue
-    ax.text(0.5, 400, f"≥{fold:.0f}×, p = {pw:.4f}", ha="center", fontsize=5.8)
+    # a plain fold: the mouse with no calls sits at one event (the paper's zero-count convention), which is
+    # not a statistical lower bound, so no "≥"
+    ax.text(0.5, 400, f"{fold:.0f}×, p = {pw:.4f}", ha="center", fontsize=6)
     ax.set_yscale("log")
     ax.set_ylim(0.2, 1000)
     ax.set_xticks([0, 1], ["Wt", "Aicda$^{-/-}$"])
@@ -95,14 +97,14 @@ def fig3():
         for k, lab, col in parts:
             ax.barh(i, a[k], left=left, color=col, height=0.7, label=lab if i == 0 else None)
             left += a[k]
-        ax.text(left + 60, i, f"{a['usable']:,} usable", va="center", fontsize=5.5, color=MID)
+        ax.text(left + 60, i, f"{a['usable']:,} usable", va="center", fontsize=6, color=MID)
     ax.axvline(500, color=INK, lw=0.6, ls=":")
     ax.set_yticks(range(len(acct)), [names[x] for x in acct])
     ax.invert_yaxis()
     ax.set_xlim(0, 6400)
     ax.set_xlabel("Delivered reads")
     ax.set_title("Read accounting per library (dotted line: 500 analyzed)", fontsize=7)
-    ax.legend(fontsize=5.2, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.28), handlelength=1, columnspacing=0.8)
+    ax.legend(fontsize=6, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.28), handlelength=1, columnspacing=0.8)
     letter(ax, "B", dx=-0.1)
     # C spectrum
     ax = fig.add_subplot(gs[1, :2])
@@ -114,12 +116,12 @@ def fig3():
     tot = sum(counts.values())
     cols = ["#d9952b" if t_[0] in "AT" else "#2c5d8a" for t_ in TYPES]
     ax.bar(range(12), [100 * counts[t_] / tot for t_ in TYPES], color=cols)
-    ax.set_xticks(range(12), [t_.replace(">", "→") for t_ in TYPES], rotation=0, fontsize=5.5)
+    ax.set_xticks(range(12), [t_.replace(">", "→") for t_ in TYPES], rotation=0, fontsize=6)
     ax.set_ylabel("Share of Wt calls (%)")
     ax.set_title(f"Spectrum, three Wt mice pooled (n = {tot} unique variants)", fontsize=7)
     from matplotlib.patches import Patch
     ax.legend(handles=[Patch(color="#2c5d8a", label="from G:C"), Patch(color="#d9952b", label="from A:T")],
-              fontsize=5.5, loc="upper right")
+              fontsize=6, loc="upper right")
     letter(ax, "C", dx=-0.09)
     # D full length
     ax = fig.add_subplot(gs[1, 2])
@@ -142,7 +144,7 @@ def fig3():
     ax.set_xlabel("J$_H$4 position (bp)")
     ax.set_ylabel("Calls per 10$^5$ bases")
     ax.set_title("Whole amplicon", fontsize=7)
-    ax.legend(fontsize=5.5)
+    ax.legend(fontsize=6)
     letter(ax, "D", dx=-0.32)
     save(fig, "STAR_Figure3")
 
@@ -161,13 +163,13 @@ def fig4():
         sizes = sorted(clones[s], reverse=True)
         tot, left = sum(sizes), 0
         for k, z in enumerate(sizes):
-            ax.barh(i, 100 * z / tot, left=left, height=0.6, color=CASE if k == 0 else "#9fc0d8", edgecolor="white", lw=0.3)
+            ax.barh(i, 100 * z / tot, left=left, height=0.6, color=CASE if k == 0 else "#9fc0d8", edgecolor="white", lw=0.5)
             left += 100 * z / tot
         e = ex[s]
         ax.text(102, i, f"{e['mutation_frequency_x1e3']:.1f} → {e['clone_weighted_frequency_x1e3']:.1f}",
-                va="center", fontsize=5.5, color=MID)
+                va="center", fontsize=6, color=MID)
     ax.set_ylim(2.5, -1.0)
-    ax.text(102, -0.72, "per 10$^3$ bp, read-\n→ clone-weighted", fontsize=5, color=SOFT, va="center")
+    ax.text(102, -0.72, "per 10$^3$ bp, read-\n→ clone-weighted", fontsize=6, color=SOFT, va="center")
     ax.set_yticks(range(3), ["Wt2", "Wt3", "Wt4"])
     ax.set_xlim(0, 150)
     ax.set_xticks([0, 50, 100])
@@ -185,7 +187,7 @@ def fig4():
     ax.set_ylabel("Calls per 5 bp")
     ax.set_ylim(0, 17)
     ax.set_title("An error cluster (CH12F3)", fontsize=7)
-    ax.legend(fontsize=5.3, loc="upper left")
+    ax.legend(fontsize=6, loc="upper left")
     letter(ax, "B", dx=-0.3)
     # C depth
     ax = fig.add_subplot(gs[0, 2])
@@ -202,7 +204,7 @@ def fig4():
     ax.set_xlabel("Reads analyzed")
     ax.set_ylabel("Unique variants (geometric mean)")
     ax.set_title("Depth", fontsize=7)
-    ax.legend(fontsize=5.5, loc="center right")
+    ax.legend(fontsize=6, loc="center right")
     letter(ax, "C", dx=-0.3)
     save(fig, "STAR_Figure4")
 

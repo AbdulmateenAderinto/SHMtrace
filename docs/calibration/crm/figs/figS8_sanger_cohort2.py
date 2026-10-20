@@ -97,7 +97,7 @@ def main():
     ax.set_title("Frequency per mouse", fontsize=7)
     ax.scatter([], [], s=13, facecolor=SOFT, edgecolor=INK, lw=0.6, label="SHMtrace, chromatograms")
     ax.scatter([], [], s=13, facecolor="white", edgecolor=INK, lw=0.6, marker="s", label="Published")
-    ax.legend(loc="upper right", fontsize=5.3, handletextpad=0.2, borderaxespad=0.1)
+    ax.legend(loc="upper right", fontsize=6, handletextpad=0.2, borderaxespad=0.1)
     letter(ax, "A", dx=-0.22)
 
     # B: per mouse, SHMtrace against published
@@ -116,7 +116,7 @@ def main():
     r, _ = stats.spearmanr(xs, ys)
     ratio = 10 ** np.mean(np.log10(np.array(ys) / np.array(xs)))
     ax.text(0.04, 0.96, f"8 mice, Spearman ρ = {r:.2f}\nSHMtrace/published = {ratio:.2f}× (geometric)",
-            transform=ax.transAxes, va="top", fontsize=5.3, color=MID)
+            transform=ax.transAxes, va="top", fontsize=6, color=MID)
     ax.set_xlabel("Published (per 10$^4$ bp)")
     ax.set_ylabel("SHMtrace (per 10$^4$ bp)")
     ax.set_title("Agreement by mouse", fontsize=7)
@@ -135,19 +135,19 @@ def main():
         left = 0
         y = [4.4, 3.5, 1.6, 0.7][k]
         for _b, v, c in zip(bins, pc, shades, strict=True):
-            ax.barh(y, v, left=left, color=c, edgecolor=INK, lw=0.3, height=0.78)
+            ax.barh(y, v, left=left, color=c, edgecolor=INK, lw=0.5, height=0.78)
             if v >= 9:
-                ax.text(left + v / 2, y, f"{v:.0f}", ha="center", va="center", fontsize=5,
+                ax.text(left + v / 2, y, f"{v:.0f}", ha="center", va="center", fontsize=6,
                         color="white" if c in shades[4:] else INK)
             left += v
-    ax.set_yticks([4.4, 3.5, 1.6, 0.7], [r[0] for r in rows], fontsize=5.3)
+    ax.set_yticks([4.4, 3.5, 1.6, 0.7], [r[0] for r in rows], fontsize=6)
     ax.set_ylim(0.1, 5.0)
     ax.set_xlim(0, 100)
     ax.set_xlabel("% of clones")
     for lab_b, c in zip(bins, shades, strict=True):
-        ax.bar(0, 0, color=c, edgecolor=INK, lw=0.3, label=lab_b)
-    ax.legend(title="Mutations per clone", ncol=6, loc="lower center", bbox_to_anchor=(0.45, 1.0), fontsize=5,
-              title_fontsize=5.3, handlelength=0.9, columnspacing=0.6, handletextpad=0.3)
+        ax.bar(0, 0, color=c, edgecolor=INK, lw=0.5, label=lab_b)
+    ax.legend(title="Mutations per clone", ncol=6, loc="lower center", bbox_to_anchor=(0.45, 1.0), fontsize=6,
+              title_fontsize=6, handlelength=0.9, columnspacing=0.6, handletextpad=0.3)
     letter(ax, "C", dx=-0.62)
 
     # D: G:C transitions and transversions per mouse
@@ -186,16 +186,16 @@ def main():
         for t, a, b in zip(TYPES, x, y, strict=True):
             if a > 13 or b > 13:
                 off = {"A>T": (-14, 4), "T>C": (3, -7)}.get(t, (3, -3))
-                ax.annotate(t.replace(">", "→"), (a, b), xytext=off, textcoords="offset points", fontsize=4.8, color=MID)
+                ax.annotate(t.replace(">", "→"), (a, b), xytext=off, textcoords="offset points", fontsize=6, color=MID)
     ax.plot([0, 30], [0, 30], color=SOFT, lw=0.6, ls="--")
     ax.set_xlim(0, 30)
     ax.set_ylim(0, 30)
     r = stats.pearsonr(allx, ally)[0]
-    ax.text(0.04, 0.96, f"r = {r:.2f}", transform=ax.transAxes, va="top", fontsize=5.5, color=MID)
+    ax.text(0.04, 0.96, f"r = {r:.2f}", transform=ax.transAxes, va="top", fontsize=6, color=MID)
     ax.set_xlabel("Published (% of mutations)")
     ax.set_ylabel("SHMtrace (% of mutations)")
     ax.set_title("Substitution spectrum", fontsize=7)
-    ax.legend(loc="lower right", fontsize=5.2, handletextpad=0.2)
+    ax.legend(loc="lower right", fontsize=6, handletextpad=0.2)
     letter(ax, "E", dx=-0.3)
 
     # F: the published comparisons recovered
@@ -225,7 +225,7 @@ def main():
     for k, (a, b, c) in enumerate(lines):
         y = 0.96 - k * 0.096
         w = "bold" if k == 0 else "normal"
-        kw = dict(fontsize=5.6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
+        kw = dict(fontsize=6, fontweight=w, va="top", transform=ax.transAxes, clip_on=False)
         ax.text(0.0, y, a, color=INK, **kw)
         ax.text(0.66, y, b, color=PUB_C if k else INK, ha="center", **kw)
         ax.text(0.93, y, c, color=SH_C if k else INK, ha="center", **kw)

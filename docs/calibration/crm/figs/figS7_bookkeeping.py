@@ -24,7 +24,7 @@ def main():
     y = np.arange(len(keys))
     ax.barh(y, [100 * v for v in vals], color="#a3621b", height=0.62)
     for yy, k, v in zip(y, keys, vals, strict=True):
-        ax.text(100 * v + 1.5, yy, det[k], va="center", fontsize=5.5)
+        ax.text(100 * v + 1.5, yy, det[k], va="center", fontsize=6)
     ax.set_yticks(y, [NAMES[k] for k in keys])
     ax.invert_yaxis()
     ax.set_xlim(0, 118)
@@ -32,7 +32,7 @@ def main():
     ax.set_xlabel("Planted errors flagged (%)")
     ax.set_title("Sanger bookkeeping checks, 40 simulated projects", fontsize=7, loc="right")
     ax.text(1.0, -0.42, "no flags on 6,018 correctly filed clones", transform=ax.transAxes, ha="right",
-            fontsize=5.5, color=MID)
+            fontsize=6, color=MID)
     save(fig, "FigureS7_bookkeeping")
 
 

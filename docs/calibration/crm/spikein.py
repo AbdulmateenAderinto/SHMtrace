@@ -38,6 +38,9 @@ VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             # candidates for a sensitive mode: a looser control-based FDR, or the calibrated test uncorrected
             "recommended_fdr10": ("recommended", {"fdr_alpha": 0.10}),
             "recommended_fdr20": ("recommended", {"fdr_alpha": 0.20}),
+            # the rest of the calibration sweep (fdr_calibration.py): target against realised FDP
+            "recommended_fdr02": ("recommended", {"fdr_alpha": 0.02}),
+            "recommended_fdr30": ("recommended", {"fdr_alpha": 0.30}),
             "qcal_uncorrected": ("recommended", {"multiple_testing": "none"}),
             # base-quality recalibration from the controls (recal.py)
             "recommended_recal": ("recommended", {"recalibrate": True}),

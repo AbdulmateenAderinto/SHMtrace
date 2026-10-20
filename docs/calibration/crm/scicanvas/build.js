@@ -185,12 +185,12 @@ const PLOT_STYLE = { family: 'Arial', fontSize: 7, tickSize: 6.6, labelSize: 7, 
 // The figure's shared plot code (doc.plotPrelude): run before every plot, in the app as here
 const PRELUDE = { python: fs.readFileSync(path.join(__dirname, 'plots_common.py'), 'utf8') };
 let _plotSeq = 0;
-function runPlot(code, w, h) {
+function runPlot(code, w, h, margins = null) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'crm-plot-'));
   try {
     fs.writeFileSync(path.join(dir, 'code.py'), code);
     const { palette, family, ...sizes } = PLOT_STYLE;
-    fs.writeFileSync(path.join(dir, 'params.json'), JSON.stringify({ width: w * K / 96, height: h * K / 96, ...sizes, palette, family }));
+    fs.writeFileSync(path.join(dir, 'params.json'), JSON.stringify({ width: w * K / 96, height: h * K / 96, ...sizes, palette, family, margins }));
     fs.writeFileSync(path.join(dir, 'prelude.py'), PRELUDE.python);
     fs.writeFileSync(path.join(dir, 'data.json'), '{}');
     const worker = path.join(SCI, 'scripts', 'plot-worker.py');
@@ -233,12 +233,15 @@ async function main() {
     const f = path.join(figs, run, 'table_s1.json');
     if (fs.existsSync(f)) ctx.READS[k] = JSON.parse(fs.readFileSync(f, 'utf8'));
   }
-  ctx.PLOT = ({ code, x, y, w, h, name = 'Python plot' }) => {
-    const a = plotAssetFrom(runPlot(code, w, h), (m) => app.normalizeColors(m));
+  // STYLE({...}): a builder's own plot style, merged before its first PLOT and saved with the figure
+  ctx.STYLE = (o) => Object.assign(PLOT_STYLE, o);
+  // margins (mm, optional): fixed axes margins, so converted panels keep their axes where the original had them
+  ctx.PLOT = ({ code, x, y, w, h, name = 'Python plot', margins = null }) => {
+    const a = plotAssetFrom(runPlot(code, w, h, margins), (m) => app.normalizeColors(m));
     const key = `upload:plot${Object.keys(ASSETS).length}`;
     ASSETS[key] = a;
     return { id: `plot${Object.keys(ASSETS).length}`, type: 'icon', iconId: key, x, y, w, h, rot: 0, name,
-      plot: { lang: 'python', code, w, h, k: K, files: [], error: null, textEdits: {} } };
+      plot: { lang: 'python', code, w, h, k: K, files: [], error: null, textEdits: {}, ...(margins ? { margins } : {}) } };
   };
   const builder = vm.runInNewContext(`(${fs.readFileSync(builderPath, 'utf8')})`, ctx);
   const page = builder();

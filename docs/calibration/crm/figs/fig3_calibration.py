@@ -100,9 +100,9 @@ def main():
         ax.set_ylim(-0.03, 1.03)
         ax.set_xlabel("Reads carrying the planted mutation")
         ax.set_ylabel("Recall")
-        ax.set_title(f"{DATASET_LABEL[key]} spike-ins", fontsize=7, pad=9)
+        ax.set_title(f"{DATASET_LABEL[key]} spike-ins", fontsize=7, pad=12)
         ax.text(0.5, 1.005, f"FDR: SHMtrace {s['recommended']['fdr']:.2f}, Geneious {s['geneious']['fdr']:.2f}",
-                transform=ax.transAxes, ha="center", va="bottom", fontsize=5.2, color=MID)
+                transform=ax.transAxes, ha="center", va="bottom", fontsize=6, color=MID)
         letter(ax, "AB"[i], dx=-0.32)
     handles = [plt.Line2D([], [], color=CALLERS[c][1], marker=CALLERS[c][2], ms=3.5, lw=1, label=CALLERS[c][0])
                for c in SHOW]
@@ -116,7 +116,7 @@ def main():
             continue
         for c in SHOW:
             ax.scatter(max(s[c]["fp"], 0.05), s[c]["recall"], marker=mk, s=16, color=CALLERS[c][1],
-                       edgecolor="white", linewidth=0.3, zorder=3)
+                       edgecolor="white", linewidth=0.5, zorder=3)
     ax.set_xscale("log")
     ax.set_xlim(0.04, 20)
     ax.set_ylim(-0.03, 1.03)
@@ -126,8 +126,8 @@ def main():
     for j, (key, mk) in enumerate(DATASET_MARK.items()):
         if spike_summary(key):
             ax.scatter([], [], marker=mk, s=14, color=SOFT, label=DATASET_LABEL[key])
-    ax.legend(loc="lower right", fontsize=5.5, handletextpad=0.2, borderaxespad=0.2)
-    ax.text(0.045, 0.02, "0 = plotted at 0.05", fontsize=5, color=SOFT, transform=ax.transData)
+    ax.legend(loc="lower right", fontsize=6, handletextpad=0.2, borderaxespad=0.2)
+    ax.text(0.045, 0.13, "0 plotted\nat 0.05", fontsize=6, color=SOFT, transform=ax.transData)
     letter(ax, "C", dx=-0.26)
     # D: lineage simulation recall by support, polyclonal and low
     lin = json.load(open(DATA / "lineage_sim_jh4/lineage_sim.json"))["summary"]
@@ -152,11 +152,11 @@ def main():
     ax.set_title("Simulated lineages", fontsize=7)
     nulls = {m: next(x for x in lin if x["scenario"] == "null" and x["mode"] == m)["false_calls_per_library"]
              for m in ("recommended", "geneious")}
-    ax.text(0.98, 0.04, f"null libraries, false calls:\nSHMtrace {nulls['recommended']:.1f}, "
-            f"Geneious {nulls['geneious']:.1f}", transform=ax.transAxes, ha="right", fontsize=5.3, color=MID)
+    ax.text(0.98, 0.04, f"null libraries, false calls:\nSHMtrace {nulls['recommended']:.1f}\n"
+            f"Geneious {nulls['geneious']:.1f}", transform=ax.transAxes, ha="right", fontsize=6, color=MID)
     ax.plot([], [], color=SOFT, ls="-", label="polyclonal")
     ax.plot([], [], color=SOFT, ls="--", label="low load")
-    ax.legend(loc="center right", fontsize=5.5, handlelength=1.6)
+    ax.legend(loc="center right", fontsize=6, handlelength=1.6)
     letter(ax, "D", dx=-0.3)
     # E: clone-weighted vs read-weighted, estimate against truth (recommended)
     ax = fig.add_subplot(bottom[0])
@@ -174,14 +174,14 @@ def main():
             ax.vlines(px, [x[f"true_{kind}_weighted_x1e3"] for x in rs], [x[f"est_{kind}_weighted_x1e3"] for x in rs],
                       color=INK, lw=0.5, zorder=4)
             ax.scatter(px, [x[f"est_{kind}_weighted_x1e3"] for x in rs], s=3, color="white", edgecolor=INK,
-                       linewidth=0.4, zorder=5)
+                       linewidth=0.5, zorder=5)
     ax.set_xticks(xs, ["poly-\nclonal", "expanded\nclone", "low\nload"])
     ax.set_ylim(0, 27)
     ax.set_yticks([0, 5, 10, 15, 20])
     ax.set_ylabel("Mutations per 10$^3$ bp")
     ax.set_title("Clones: estimate and truth", fontsize=7)
     ax.scatter([], [], marker="_", s=40, color=INK, label="truth")
-    ax.legend(fontsize=5.5, loc="upper left", handlelength=1, ncol=1)
+    ax.legend(fontsize=6, loc="upper left", handlelength=1, ncol=1)
     letter(ax, "E", dx=-0.32)
     # F: quantification accuracy against depth
     ax = fig.add_subplot(bottom[1])
@@ -214,7 +214,7 @@ def main():
     ax.set_title("Quantification", fontsize=7)
     ax.plot([], [], color=SOFT, ls="-", label="J$_H$4")
     ax.plot([], [], color=SOFT, ls="--", label="N114")
-    ax.legend(fontsize=5.2, loc="lower left", handlelength=1.6, ncol=1)
+    ax.legend(fontsize=6, loc="lower left", handlelength=1.6, ncol=1)
     letter(ax, "F", dx=-0.32)
     # G: group tests
     ax = fig.add_subplot(bottom[2])
@@ -227,28 +227,28 @@ def main():
         vals = [np.mean([x[k] < 0.05 for x in rep if x["n"] == n and x["fold"] == f]) for n, f in cells]
         ax.bar(np.arange(len(cells)) + (j - 1.5) * w, vals, w * 0.95, color=col, label=lab)
     ax.axhline(0.05, color=INK, lw=0.6, ls=":")
-    ax.set_xticks(range(len(cells)), ["none" if f == 1 else f"{f:.0f}-fold" for n, f in cells], fontsize=5.5)
+    ax.set_xticks(range(len(cells)), ["none" if f == 1 else f"{f:.0f}×" for n, f in cells], fontsize=6)
     for n, x in ((3, 1), (5, 4)):
-        ax.text(x, -0.2, f"{n} vs {n} animals", ha="center", fontsize=5.8, color=MID,
+        ax.text(x, -0.2, f"{n} vs {n} animals", ha="center", fontsize=6, color=MID,
                 transform=ax.get_xaxis_transform())
     ax.set_ylabel("Share of experiments, p < 0.05")
     ax.set_ylim(0, 1.3)
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_title("Group tests (300 simulations)", fontsize=7)
-    ax.legend(fontsize=5.3, ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.02), columnspacing=0.8, handlelength=1.2)
+    ax.legend(fontsize=6, ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.02), columnspacing=0.8, handlelength=1.2)
     letter(ax, "G", dx=-0.2)
     # H: the somatic callers need a mutation in a large share of reads
     ax = fig.add_subplot(bottom[3])
     spiked = spike_summary("jh4")["recommended"]["by_k"]
     lab, col, mk = CALLERS["recommended"]
     ax.plot([100 * k / SPIKE_READS for k in spiked], list(spiked.values()), marker=mk, ms=3, color=col, lw=1)
-    ax.text(2.2, 1.04, lab, fontsize=5.8, color=col, va="bottom", ha="center")
+    ax.text(2.2, 1.04, lab, fontsize=6, color=col, va="bottom", ha="center")
     for caller, (tx, ty, ha) in (("clairs", (4.4, 0.06, "right")), ("deepsomatic", (1.9, 0.765, "center"))):
         spike, clean = by_fraction(caller)
         lab, col, mk = CALLERS[caller]
         ax.plot(list(spike), list(spike.values()), marker=mk, ms=3.5, color=col, lw=1)
         ax.plot(list(clean), list(clean.values()), marker=mk, ms=3.5, color=col, lw=1, ls="--", mfc="white")
-        ax.text(tx, ty, lab, fontsize=5.8, color=col, ha=ha)
+        ax.text(tx, ty, lab, fontsize=6, color=col, ha=ha)
     ax.axvspan(100 / SPIKE_READS * 0.8, 100 * 20 / SPIKE_READS * 1.15, color=SOFT, alpha=0.12, lw=0)
     ax.set_xscale("log")
     ax.set_xticks([0.2, 1, 5, 20], ["0.2", "1", "5", "20"])
