@@ -20,7 +20,7 @@ from style import CALLERS, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 
 CALIB = DATA.parents[1]          # docs/calibration
 SHOW = ["recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive"]
-DATASET_LABEL = {"jh4": "J$_H$4", "n114": "N114", "su_lps": "Sμ (LPS)", "pim1": "Pim1"}
+DATASET_LABEL = {"jh4": "J$_H$4", "n114": "N114 V$_H$", "su_lps": "Sμ (LPS)", "pim1": "Pim1"}
 DATASET_MARK = {"jh4": "o", "n114": "s", "su_lps": "^", "pim1": "D"}
 
 
@@ -213,7 +213,7 @@ def main():
     ax.set_ylabel("Estimate / truth")
     ax.set_title("Quantification", fontsize=7)
     ax.plot([], [], color=SOFT, ls="-", label="J$_H$4")
-    ax.plot([], [], color=SOFT, ls="--", label="N114")
+    ax.plot([], [], color=SOFT, ls="--", label="N114 V$_H$")
     ax.legend(fontsize=6, loc="lower left", handlelength=1.6, ncol=1)
     letter(ax, "F", dx=-0.32)
     # G: group tests

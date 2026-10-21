@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from scipy import stats
 from style import DATA, HALF, INK, MM, SOFT, save, setup
 
-SETS = {"jh4": ("J$_H$4 (this study)", "#274b7e", "o"), "n114": ("N114 (this study)", "#6d9ad0", "s"),
+SETS = {"jh4": ("J$_H$4 (this study)", "#274b7e", "o"), "n114": ("N114 V$_H$ (this study)", "#6d9ad0", "s"),
         "su_lps": ("Sμ (PRJNA1481264)", "#1f6f8b", "^"), "pim1": ("$Pim1$ (PRJNA1481264)", "#9a3439", "D")}
 BIN, MIN_BASES = 2, 2000
 

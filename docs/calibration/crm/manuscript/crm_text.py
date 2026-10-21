@@ -150,17 +150,17 @@ RESULTS = [
           "per library (Figures 3A and 3C)."),
     ("p", "ClairS[@zheng2026] and DeepSomatic[@park2026] were supplied with the other AID-null libraries as matched "
           "normals. Neither recovered planted mutations at default settings. Across 2,160 substitutions on J_{H}4, "
-          "N114, Sμ and *Pim1*, permissive ClairS recovered none; permissive DeepSomatic recalled 19%, 18%, 5% and 3%, "
+          "N114 V_{H}, Sμ and *Pim1*, permissive ClairS recovered none; permissive DeepSomatic recalled 19%, 18%, 5% and 3%, "
           "respectively, with at most {ds_fp} false calls per library. Recall increased at higher allele fractions, "
           "approaching complete recovery at 20% on J_{H}4 (Figure 3H). On real J_{H}4 libraries, ClairS reported "
           "{cs_real_pass} mutation and DeepSomatic at most {ds_real_pass} across three mice, compared with 221, 344 "
-          "and 73 SHMtrace calls. Corresponding N114 totals were {cs_real_n114_pass} and at most {ds_real_n114_pass}, "
+          "and 73 SHMtrace calls. Corresponding N114 V_{H} totals were {cs_real_n114_pass} and at most {ds_real_n114_pass}, "
           "compared with 70, 49 and 173. ClairS rejected both Wt3 candidates supported by at least 20% of reads. Most "
           "SHMtrace-retained calls had much lower fractions: among {af_n} calls across four loci, {af_lt1}% occurred "
           "in <1% of reads, {af_lt5}% in <5% and {af_lt20}% in <20% (Figure 2E). Germline callers Clair3 and "
           "DeepVariant recovered none of the 2,160 planted substitutions, consistent with their intended operating "
           "range (Table S1)."),
-    ("p", "On N114, SHMtrace recalled {sp_n114_recall}% of planted substitutions, including {sp_n114_1}% supported by "
+    ("p", "On N114 V_{H}, SHMtrace recalled {sp_n114_recall}% of planted substitutions, including {sp_n114_1}% supported by "
           "one read, with {sp_n114_fp} false calls per library (FDR {sp_n114_fdr}; Figure 3B). Geneious recalled "
           "{sp_n114_gen_recall}% with {sp_n114_gen_fp} false calls (FDR {sp_n114_gen_fdr}); LoFreq without "
           "base-alignment quality recalled {sp_n114_lfnb}%. Of two C3 control libraries, the one with more usable "
@@ -176,7 +176,7 @@ RESULTS = [
           "targets. At the default 5%, the pooled false-discovery proportion was {fc_def_lo}–{fc_def_hi}% across the "
           "four loci, and looser targets stayed at or below their stated rate except {fc_loose_over} (Figure S4A). "
           "Targets below 5% did not deliver their stated rate on J_{H}4, Sμ or *Pim1* ({fc_strict_lo}–{fc_strict_hi}% "
-          "at a 1% target; N114, {fc_n114_1}%): false calls per library levelled off while recall fell, from "
+          "at a 1% target; N114 V_{H}, {fc_n114_1}%): false calls per library levelled off while recall fell, from "
           "{fc_jh4_rec_def}% to {fc_jh4_rec_1}% on J_{H}4 (Figures S4B and S4C)."),
     ("p", "Varying the controls through the whole procedure on J_{H}4 showed how many are needed (Figure S5). One "
           "control leaves no decoys, so the threshold falls back to Benjamini–Hochberg: it recalled {cd_rec_1}% of "
@@ -187,13 +187,13 @@ RESULTS = [
           "matched controls ({cd_su_rec_other}% versus {cd_su_rec_matched}% recall), and pooling all five lowered "
           "false calls from {cd_su_fp_matched} to {cd_su_fp_pooled} per library."),
     ("p", "Diluting real hypermutated reads into AID-null reads tested the estimates on mutations AID made, with "
-          "their clonality and clustering (Figure S6). On N114, mutation frequency was {ti_n114_ratio} of the "
+          "their clonality and clustering. On N114 V_{H}, mutation frequency was {ti_n114_ratio} of the "
           "expected value at 25–50% donor reads, and calls were made from {ti_n114_det}% donor reads. On J_{H}4, "
           "detection was all-or-nothing and depended on the donor: calls began at {ti_jh4_det_lo}% donor reads for "
           "{ti_jh4_most} and at {ti_jh4_det_hi}% for {ti_jh4_least}, and no call was made below that."),
     ("p", "Indel validation used ten planted insertions or deletions of 1–40 bp per library, supported by 1–20 reads, "
           "with {ind_draws} draws per control and error models fitted to the other controls. Among events supported by "
-          "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114, with {ind_jh4_fp} "
+          "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114 V_{H}, with {ind_jh4_fp} "
           "and zero false calls per library. Events supported by one or two reads were excluded by the three-read "
           "requirement. J_{H}4 single-base homopolymer deletions were least reliably recovered ({ind_jh4_hp}%); recall "
           "was {ind_jh4_ins2}% for 2-bp insertions and {ind_jh4_long}% for deletions ≥10 bp (Figure S7D)."),
@@ -212,8 +212,8 @@ RESULTS = [
           "80% were removed. Read-weighted and clone-weighted estimates fell by as much as {mask80_rw}% and "
           "{mask80_cw}%, respectively (STAR Methods). Excluded sites are reported for inspection."),
     ("p", "At 500 reads per library, read-weighted mutation frequencies were within {q_rw_dev}% of the simulated "
-          "values for both J_{H}4 and N114 (Figure 3F). Unique-variant density was less consistently recovered: J_{H}4 "
-          "estimates were 97% of the true density at 500 reads and 94% at 1,000 reads, whereas N114 reached 77% at "
+          "values for both J_{H}4 and N114 V_{H} (Figure 3F). Unique-variant density was less consistently recovered: J_{H}4 "
+          "estimates were 97% of the true density at 500 reads and 94% at 1,000 reads, whereas N114 V_{H} reached 77% at "
           "1,000 reads. This endpoint counts each distinct substitution once and divides by the number of analyzed "
           "bases. As sequencing depth increases, additional reads can carry mutations already counted, increasing the "
           "denominator without adding new variants; depth also affects detection of rare mutations. Including the "
@@ -234,19 +234,19 @@ RESULTS = [
           "cells, and the AID off-target gene *Pim1*. Every caller analyzed exactly the same reads (Table S3)."),
     ("p", "SHMtrace retained {ctl_rec} calls across the three controls per assay, versus {ctl_gen} for Geneious "
           "(Figures 4A–4E and 4G). Geometric-mean unique-density separation, with zero-call controls assigned "
-          "one-event values, was {sep_jh4}-fold for J_{H}4, {sep_n114}-fold for N114 (Figure S8), {sep_su_lps}-fold for "
+          "one-event values, was {sep_jh4}-fold for J_{H}4, {sep_n114}-fold for N114 V_{H} (Figure S8), {sep_su_lps}-fold for "
           "primary-cell Sμ and {sep_su_ch12}-fold for CH12 Sμ, compared with {gen_lo}–{gen_hi}-fold for Geneious and "
           "{lf_lo}–{lf_hi}-fold for LoFreq configurations (Figure 4F). J_{H}4 Wt counts were {jh4_wt2_rec}, 344 and 73 "
           "versus 0, 2 and 0 in controls; Geneious yielded 203, 337 and 73 versus 2, 6 and 5. Default LoFreq called 0, "
           "11 and 0 Wt variants. Disabling base-alignment quality yielded {jh4_wt2_lfnb} in Wt2 versus {jh4_wt2_rec} "
-          "for SHMtrace. At 500 reads, J_{H}4 and N114 had reached {depth_jh4_500}% and {depth_n114_500}% of calls "
+          "for SHMtrace. At 500 reads, J_{H}4 and N114 V_{H} had reached {depth_jh4_500}% and {depth_n114_500}% of calls "
           "observed at the largest tested depth (Figure S9), without establishing saturation. External Sμ Wt counts "
           "were {su_wt_calls} for SHMtrace and {su_gen_wt_calls} for Geneious, with {su_ctl_calls} versus "
           "{su_gen_ctl_calls} per control. Control mismatches were position-dependent (Figures S10A and S10B). After "
           "germline exclusion, representative Wt and null J_{H}4 libraries contained {rast_wt_other} and "
           "{rast_ko_other} other high-quality mismatches, while the Wt library added {rast_wt_called} at called sites, "
           "often shared within clones (Figures S10C and S10D)."),
-    ("p", "The same N114 reads were analyzed by IgBLAST[@ye2013] and SHazaM[@gupta2015], which count every "
+    ("p", "The same N114 V_{H} reads were analyzed by IgBLAST[@ye2013] and SHazaM[@gupta2015], which count every "
           "mismatch to the germline (Figure S11). With the IMGT germline the AID libraries were {im_fold_imgt}-fold "
           "above the empty-vector libraries, because the parental line differs from it ({im_vid}% identity) and "
           "sequencing errors count as mutations. Using the parental V as germline raised this to {im_fold_par}-fold, "
@@ -257,13 +257,14 @@ RESULTS = [
           "Increasing depth to all available reads (3,238–3,447 per library) did not clearly resolve the signal: "
           "SHMtrace detected 3–10 variants per AID-competent library and 0–3 per AID-null library, while Geneious "
           "detected 5–7 and 0–{pim1_rec_ctl}, respectively (Table S1)."),
-    ("p", "CH12 off-targets OT1 and OT2 tested a genetic perturbation expected to reduce AID targeting[@seija2026]. "
-          "OT1 Wt libraries carried {ot1_wt} calls versus {ot1_ko} in *Aicda*^{−/−} controls, with densities of "
+    ("p", "The two CH12 AID off-target loci, off-target 1 and off-target 2, tested a genetic perturbation expected to "
+          "reduce AID targeting[@seija2026]. "
+          "Off-target 1 Wt libraries carried {ot1_wt} calls versus {ot1_ko} in *Aicda*^{−/−} controls, with densities of "
           "{ot1_wt_dens} versus {ot1_ko_dens} per 10^{5} bases (Welch p = {ot1_p_dens} on log density; {ot1_p} on "
-          "frequency). OT2 counts were {ot2_wt} versus {ot2_ko}, with densities of {ot2_wt_dens} versus "
-          "{ot2_ko_dens} (p = {ot2_p_dens} and {ot2_p}). G:C substitutions accounted for {ot1_gc}% of {ot1_n} OT1 "
-          "calls and {ot2_gc}% of {ot2_n} OT2 calls. MLLT1/MLLT3 double knockout reduced counts to {ot1_dko} at OT1 "
-          "({ot1_dko_dens} per 10^{5} bases) and {ot2_dko} at OT2 ({ot2_dko_dens}), statistically indistinguishable "
+          "frequency). Off-target 2 counts were {ot2_wt} versus {ot2_ko}, with densities of {ot2_wt_dens} versus "
+          "{ot2_ko_dens} (p = {ot2_p_dens} and {ot2_p}). G:C substitutions accounted for {ot1_gc}% of {ot1_n} off-target 1 "
+          "calls and {ot2_gc}% of {ot2_n} off-target 2 calls. MLLT1/MLLT3 double knockout reduced counts to {ot1_dko} at off-target 1 "
+          "({ot1_dko_dens} per 10^{5} bases) and {ot2_dko} at off-target 2 ({ot2_dko_dens}), statistically indistinguishable "
           "from *Aicda*^{−/−} controls (p = {ot1_p_dko_ko} and {ot2_p_dko_ko}). No fold is reported because a "
           "zero-count convention would determine its magnitude."),
     ("p", "SHMtrace multiplies the control-derived error rates by an empirically selected calibration factor to "
@@ -271,8 +272,8 @@ RESULTS = [
           "probability used in the test, so a candidate requires stronger evidence to be called; it does not change "
           "the observed mutation count. The factor is selected by testing each control against the remaining controls "
           "and choosing the smallest tested multiplier for which no more than 1% of held-out candidate tests yield p < "
-          "0.01. Without adjustment, {loco_jh4_face}% of J_{H}4 and {loco_n114_face}% of N114 held-out tests fell "
-          "below this threshold. Factors of five for the shared J_{H}4 window and ten for full-length J_{H}4 and N114 "
+          "0.01. Without adjustment, {loco_jh4_face}% of J_{H}4 and {loco_n114_face}% of N114 V_{H} held-out tests fell "
+          "below this threshold. Factors of five for the shared J_{H}4 window and ten for full-length J_{H}4 and N114 V_{H} "
           "reduced these proportions to {loco_jh4_final}%, {loco_full_final}% and {loco_n114_final}%, respectively "
           "(Figure 4H). These factors are empirical calibration adjustments: they do not imply that sequencing errors "
           "are universally five or ten times higher than the fitted model, and they do not by themselves deliver a 5% "
@@ -442,7 +443,7 @@ DISCUSSION = [
     "external-data comparisons. Germline callers were expected to miss rare variants. Geneious provided greater "
     "single-read recall on J_{H}4 and *Pim1* but more false calls on each amplicon. Unresolved single-read events can "
     "instead be estimated in aggregate. Sensitive mode increases the empirical target to 0.20: single-read recall "
-    "reached {sens_jh4_1}% on J_{H}4 and {sens_n114_1}% on N114, with observed FDR {sens_jh4_fdr} and {sens_n114_fdr}. "
+    "reached {sens_jh4_1}% on J_{H}4 and {sens_n114_1}% on N114 V_{H}, with observed FDR {sens_jh4_fdr} and {sens_n114_fdr}. "
     "These trade-offs should guide settings according to the experimental question.",
     "What each platform contributes to an SHM experiment differs, and SHMtrace reads all four. A Sanger clone is one "
     "molecule read once, so its mutations are read directly. There is no read support to weigh against a background, "
@@ -462,10 +463,11 @@ DISCUSSION = [
     "should therefore include explicit clone-to-animal assignments and original counting conventions, alongside "
     "sequences and chromatograms.",
     "Read accounting, fixed-seed sampling and a shared desktop/command-line engine support routine use. The power "
-    "analysis also illustrates the importance of biological replication: under variation estimated from three Wt "
-    "J_{H}4 mice, detecting a two-fold difference requires approximately twenty animals per group, with considerable "
-    "uncertainty in that estimate (Figure S7B). Increasing sequencing depth cannot substitute for independent "
-    "biological samples.",
+    "analysis also illustrates the importance of biological replication: how many animals a study needs depends on "
+    "the difference it seeks. Under variation estimated from three Wt J_{H}4 mice, the AID-competent against "
+    "AID-null contrasts made here separate at three animals per group, whereas a two-fold difference between two "
+    "AID-proficient groups would require approximately twenty, with considerable uncertainty in that estimate "
+    "(Figure S7B). Increasing sequencing depth cannot substitute for independent biological samples.",
 ]
 LIMITATIONS = [
     "SHMtrace relies on representative AID-null controls prepared and sequenced alongside the samples. Error profiles "
@@ -501,7 +503,7 @@ RESOURCE = [
     ("Lead contact", "Requests for further information and resources should be directed to and will be fulfilled by "
                      "the lead contact, Alberto Martin (alberto.martin@utoronto.ca)."),
     ("Materials availability", "This study did not generate new unique reagents."),
-    ("Data and code availability", "Nanopore reads of the J_{H}4 and N114 libraries, the Sanger chromatograms and "
+    ("Data and code availability", "Nanopore reads of the J_{H}4 and N114 V_{H} libraries, the Sanger chromatograms and "
                                    "clone records, SHMtrace project files, per-library read accounting and all "
                                    "benchmark outputs will be deposited at {lab_data_doi} and will be publicly "
                                    "available as of the date of publication; accession numbers are listed in the key "

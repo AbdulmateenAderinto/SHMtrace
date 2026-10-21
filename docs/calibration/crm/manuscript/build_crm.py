@@ -329,10 +329,10 @@ def write_supplement(s):
     s.page_break()
     s.table(M.TABLE_S6_HEADER, M.TABLE_S6, title=f"**{M.TABLE_S6_TITLE}**", footnote=M.TABLE_S6_NOTE,
             widths=[28, 20, 28, 32, 28, 20, 18], size=7.5)
-    # Table S3: what SHMtrace did with every delivered read, and the calls (J_H4 and N114)
+    # Table S3: what SHMtrace did with every delivered read, and the calls (J_H4 and N114 V_{H})
     s.page_break()
     rows = []
-    for run, label in (("jh4", "J_{H}4"), ("n114", "N114")):
+    for run, label in (("jh4", "J_{H}4"), ("n114", "N114 V_{H}")):
         acct = json.load(open(CAL / f"figures/{run}_shmtrace/table_s1.json"))
         proj = json.load(open(CAL / f"figures/{run}_shmtrace/project.json"))
         by = {x["sample"]: x for x in proj["samples"]}
@@ -395,7 +395,7 @@ def write_supplement(s):
         st = json.load(open(st_path))
         prof = (("default", "Default"), ("strict", "α 0.01"), ("strict_max", "Noisiest decoy"))
         rows = []
-        for ds, lab in (("jh4", "J_{H}4"), ("n114", "N114")):
+        for ds, lab in (("jh4", "J_{H}4"), ("n114", "N114 V_{H}")):
             for k, name in prof:
                 r = st["spikein"][ds][k]
                 rows.append((f"Spike-ins, {lab}", name, f"{r['false_per_lib']:.1f}", f"{r['fdr']:.3f}",
@@ -411,7 +411,7 @@ def write_supplement(s):
         s.table(["Benchmark", "Setting", "False calls per library", "FDR", "Recall", "Single-read recall"], rows,
                 widths=[34, 26, 24, 22, 18, 24], size=7.5, title=f"**{M.TABLE_S7_TITLE}**")
         prow = []
-        for ds, lab in (("jh4", "J_{H}4"), ("n114", "N114")):
+        for ds, lab in (("jh4", "J_{H}4"), ("n114", "N114 V_{H}")):
             for k, name in prof:
                 r = st["projects"][ds][k]
                 prow.append((lab, name, ", ".join(map(str, r["case_calls"])), ", ".join(map(str, r["control_calls"])),
@@ -522,7 +522,7 @@ STATS = [
      "{ont_fold}-fold; p = {ont_p}"),
     ("J_{H}4, Wt vs *Aicda*^{−/−} (Sanger, unique-variant density)", "Welch t on log_{10}; n = 3 vs 3",
      "{sanger_fold}-fold; p = {sanger_p}"),
-    ("N114, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "{sep_n114}-fold"),
+    ("N114 V_{H}, pMX-*Aicda* vs empty vector", "geometric means; n = 3 vs 3", "{sep_n114}-fold"),
     ("J_{H}4, full length (positions 90–1,230)", "geometric means", "{full_wt} vs {full_ko} × 10^{−5}; ~{full_fold}-fold"),
     # descriptive, not a population interval: 12 compositional categories pooled from 3 mice, so a Fisher
     # interval here describes the types and not the animals. Results drops it for the same reason.
@@ -536,14 +536,14 @@ STATS = [
     ("Group tests without a true difference (simulated)", "share with p < 0.05, 300 experiments",
      "pooled reads 0.91–0.94; negative binomial 0.050–0.057; Welch 0.037–0.043"),
     ("Leave-one-control-out margin", "held-out control tests with p < 0.01 at the samples' depth",
-     "J_{H}4 {loco_jh4_face}% at 1×, {loco_jh4_final}% at {loco_jh4_margin}×; N114 {loco_n114_face}% at 1×, "
+     "J_{H}4 {loco_jh4_face}% at 1×, {loco_jh4_final}% at {loco_jh4_margin}×; N114 V_{H} {loco_n114_face}% at 1×, "
      "{loco_n114_final}% at {loco_n114_margin}×"),
     # minor 14: the sensitive mode's claims, with the default beside them so the trade is visible
     ("Sensitive mode (FDR 0.20) vs default (0.05), J_{H}4 spike-ins",
      "single-read recall; overall recall; observed FDR; false calls per library",
      "{sens_jh4_1}% vs {sp_jh4_1}%; {sens_jh4_all}% vs {sp_jh4_recall}%; {sens_jh4_fdr} vs {sp_jh4_fdr}; "
      "{sens_jh4_fp} vs {sp_jh4_fp}"),
-    ("Sensitive mode (FDR 0.20) vs default (0.05), N114 spike-ins",
+    ("Sensitive mode (FDR 0.20) vs default (0.05), N114 V_{H} spike-ins",
      "single-read recall; overall recall; observed FDR; false calls per library",
      "{sens_n114_1}% vs {sp_n114_1}%; {sens_n114_all}% vs {sp_n114_recall}%; {sens_n114_fdr} vs "
      "{sp_n114_fdr}; {sens_n114_fp} vs {sp_n114_fp}"),
@@ -554,7 +554,7 @@ STATS = [
     ("Repair context, transitions at C:G (NIH-3T3, SHMtrace calls)",
      "one value per experiment; n = 3 per arm", "{mo_ugi_ts}% (Ugi) vs {mo_ung_ts}% (UNG); {mo_arm_p}"),
     ("Spike-in FDR, control-based vs Benjamini–Hochberg", "observed false/(true + false) calls",
-     "J_{H}4 {sp_jh4_fdr} vs {sp_jh4_bh_fdr}; N114 {sp_n114_fdr} vs {sp_n114_bh_fdr} (other C3 library: "
+     "J_{H}4 {sp_jh4_fdr} vs {sp_jh4_bh_fdr}; N114 V_{H} {sp_n114_fdr} vs {sp_n114_bh_fdr} (other C3 library: "
      "{c31_fdr} vs {c31_bh_fdr})"),
 ]
 
@@ -562,7 +562,7 @@ SUPP_FIGS = [
     ("Figure S1. Detailed workflow and read accounting, related to Figure 1",
      FIG / "FigureS1_workflow_preview.png",
      "The workflow of Figure 1 in full, from the design of the two experiments to the fate of every delivered read. "
-     "(A) Experimental design for the J_{H}4 and N114 libraries. (B, C) Read preparation and variant calling from "
+     "(A) Experimental design for the J_{H}4 and N114 V_{H} libraries. (B, C) Read preparation and variant calling from "
      "the delivered sequence files, which is the read-library route of Figure 1C. By default, an allele carried by "
      "50% or more of the reads is excluded as a likely germline difference; because a mutation driven to that "
      "frequency within a dominant clone is removed with it, this is a heuristic and not a test (STAR Methods). (D) "
@@ -571,7 +571,7 @@ SUPP_FIGS = [
      "subtracted from them, because it estimates the background of the whole set and not of any one call. A "
      "sequencing clone is one PCR-derived molecule sequenced once, so it says nothing about which B cell the "
      "molecule came from. (E) What happened to every delivered read in each library; the line marks the 500 reads "
-     "drawn for analysis. Experimental details: as in Figure 5 for J_{H}4 and Figure 4 for N114."),
+     "drawn for analysis. Experimental details: as in Figure 5 for J_{H}4 and Figure 4 for N114 V_{H}."),
     ("Figure S2. Reported base qualities and observed control mismatch rates, related to Figure 2",
      FIG / "FigureS2.png",
      "A reported base quality is a prediction, and this is how far it holds at each of the four nanopore loci. Top, "
@@ -581,7 +581,7 @@ SUPP_FIGS = [
      "axis; dashed line, the error probability the quality score nominally implies, 10^{−Q/10}. Bottom, the number of "
      "control bases in each bin. Observations thin out above Q40, so the uncertainty grows there. This is why each "
      "locus is calibrated against its own controls rather than against the reported qualities. Experimental details: "
-     "the J_{H}4 libraries were sequenced under order DHJGKB and the N114 libraries under order 75K3B3; for Sμ and "
+     "the J_{H}4 libraries were sequenced under order DHJGKB and the N114 V_{H} libraries under order 75K3B3; for Sμ and "
      "*Pim1* (PRJNA1481264) the deposited records do not establish which libraries shared a flow cell."),
     ("Figure S7. Single-read estimate, power, UMI consensus and planted indels, related to Figure 3",
      FIG / "FigureS7.png",
@@ -636,7 +636,7 @@ SUPP_FIGS = [
      [FIG / "FigureS8_spectra_jh4.png", FIG / "FigureS8_spectra_n114.png"],
      "The same spectra resolved to one matrix per library, so that the pooled patterns of Figure 4 and the preceding "
      "page can be seen to hold in each animal and subclone rather than in the pool alone. Top, J_{H}4 wild-type "
-     "(*Wt*) and *Aicda*^{−/−} libraries; bottom, N114 pMX-*Aicda* and empty-vector subclones. Within each component "
+     "(*Wt*) and *Aicda*^{−/−} libraries; bottom, N114 V_{H} pMX-*Aicda* and empty-vector subclones. Within each component "
      "(A) denotes the AID-active libraries and (B) the AID-null libraries, and the panel letters restart in the lower "
      "component. Matrices are oriented From (rows) → To (columns), and each cell gives the unique-variant count and "
      "its share of that library's calls. Experimental details: the libraries are those of Figures 4 and 5, analysed "
@@ -646,7 +646,7 @@ SUPP_FIGS = [
      "Every library was analyzed at 30–1,000 reads, and the whole analysis was repeated five times at each depth with "
      "a different random draw of usable reads, the AID-null controls redrawn and recalibrated at that depth each time, "
      "so the spread shown is the spread a single run would have had. (A and B) J_{H}4 unique variants and "
-     "unique-variant density against depth; (C and D) the same for N114. Points, the five draws of each library; "
+     "unique-variant density against depth; (C and D) the same for N114 V_{H}. Points, the five draws of each library; "
      "lines, their mean; blue, AID-active libraries, red, AID-null. A library with no calls has a density of zero, "
      "which has no logarithm: those draws are drawn on the \"0\" row below the dotted break rather than floored to a "
      "small number, and they are common (J_{H}4 KO1 and KO3 called nothing at any depth in any draw). Density falls "
@@ -690,15 +690,6 @@ SUPP_FIGS = [
      "{sanger_wt_clones} Wt clones ({sanger_wt_total} total) and {sanger_ko_clones} AID-null clones "
      "({sanger_ko_total} total). Bookkeeping checks flag "
      "potential problems without automatically removing clones."),
-    ("Figure S12. Sanger bookkeeping checks, related to Figure 5 (page 2 of 2)",
-     [FIG / "FigureS12_bookkeeping.png"],
-     "Archived Sanger projects accumulate clerical errors, so SHMtrace flags them; this measures how often it "
-     "succeeds. Forty simulated projects were built, each carrying one instance of every bookkeeping error, and "
-     "detection is shown against the errors planted. The shared-lineage test used a lineage represented by 125 "
-     "clones. A changed label was detectable only when the affected clones shared mutations with another animal's "
-     "clones, because a label on its own leaves no trace in the sequence. No correctly assigned clone was flagged in "
-     "error among the 6,018 tested, so the flags are specific as well as sensitive. The flags report a clone for "
-     "review and never remove it automatically (STAR Methods)."),
     ("Figure S13. Reanalysis of published Maea Sanger data, related to Figure 5",
      [FIG / "FigureS13_sanger_cohort2.png"],
      "J_{H}4 clones of germinal-center B cells from four wild-type (blue), four *Maea*^{fl/fl}*Mb1*^{cre} (purple) and "
@@ -867,9 +858,11 @@ SUPP_FIGS = [
      "contains switch repeats. Six of nine Wt libraries are 300-bp single-end, whereas all *Aicda*^{−/−} libraries are "
      "paired-end, confounding genotype with library layout. Mates do not overlap. Window B is covered by one read from "
      "every library; window C covers repeats accessible only through the second mate. (B) Unique mutations per library "
-     "in window B at 20,000 reads; bars, group means. *Aicda*^{−/−} libraries remain at background across treatments. "
-     "Wt means increase with both inhibitors, but within-treatment variation exceeds between-treatment differences, "
-     "leaving the drug effect unresolved in this window. (C) Descriptive genotype comparison in window C using the "
+     "in window B at 20,000 reads; bars, group means. Window B is the only stretch every library reads, and it "
+     "lies outside the switch repeats where AID acts, so it cannot carry the drug comparison: *Aicda*^{−/−} "
+     "libraries stay at background across treatments, and among wild-type libraries the variation between "
+     "replicates of one treatment exceeds the differences between treatments. That is why the comparison that "
+     "follows is restricted to the repeats and to the paired libraries that reach them. (C) Descriptive genotype comparison in window C using the "
      "twelve paired libraries (three Wt and nine *Aicda*^{−/−}). Each Wt treatment has only one replicate, so pooled "
      "treatment groups do not provide a balanced treatment comparison. Targeting index and C→T/G→A share refer to Wt "
      "calls."),
@@ -943,21 +936,9 @@ SUPP_FIGS = [
      "line and *Aicda*^{−/−} below; ticks, WRC/GYW hotspots. (F) Clones defined by the V(D)J junction, by size and "
      "number of mutations. Seven figures are drawn for every project and up to nineteen more when the run has the "
      "data, so a run of this project writes {s3_drawn} of them. Each panel is an output of the run itself, not a schematic. Built with `crm/scicanvas/figS3_outputs.js`."),
-    ("Figure S6. Real hypermutation diluted into AID-null reads, related to Figure 3",
-     FIG / "FigureS6_titration.png",
-     "Each AID-active library (donor) was mixed with one AID-null library (diluent) at 1–100% donor reads in 500 "
-     "usable reads, {ti_reps} draws per fraction, and called against the other two AID-null libraries (J_{H}4: "
-     "donors Wt2–Wt4, diluent KO1, controls KO2 and KO3; N114: donors C1, D3 and D5, diluent D1, controls C3 and C4). "
-     "(A, B) Mean observed mutation frequency against the frequency expected from donor and diluent alone; lines, "
-     "the range of draws; dashed line, equality; a frequency of zero is drawn on the 0 row. N114 used "
-     "`ancestral_reference` (STAR Methods). (C) Unique mutations called, mean of draws, against the share of donor "
-     "reads. On N114, frequency was {ti_n114_ratio} of the expected value at 25–50% donor reads and calls began at "
-     "{ti_n114_det}%. On J_{H}4, calling was all-or-nothing and began at {ti_jh4_det_lo}–{ti_jh4_det_hi}% donor "
-     "reads depending on the donor, consistent with a control-based threshold that admits no call until enough "
-     "candidates exceed the controls' background. Analysis in `crm/titration.py` and `crm/figs/figS6_titration.py`."),
-    ("Figure S11. SHMtrace and the IgBLAST–SHazaM route on the same N114 reads, related to Figure 4",
+    ("Figure S11. SHMtrace and the IgBLAST–SHazaM route on the same N114 V_{H} reads, related to Figure 4",
      FIG / "FigureS11_immcantation.png",
-     "The 500 reads SHMtrace analyzed from each N114 library were assigned by IgBLAST ({im_vcall}; the parental "
+     "The 500 reads SHMtrace analyzed from each N114 V_{H} library were assigned by IgBLAST ({im_vcall}; the parental "
      "line is {im_vid}% identical to it over {im_vlen} bp) and their substitutions over the V segment counted by "
      "SHazaM, with the IMGT germline, with the parental V segment as germline, and with the parental germline after "
      "masking bases below Q20; SHMtrace's calls over the same segment are shown for comparison. (A) Mutation "

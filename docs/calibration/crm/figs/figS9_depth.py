@@ -20,7 +20,7 @@ from matplotlib import pyplot as plt
 from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, MID, MM, SOFT, letter, save, setup
 
 ASSAYS = {"jh4": ("J$_H$4 intron", ("WT2", "WT3", "WT4"), ("KO1", "KO2", "KO3"), "Wt", "$Aicda^{-/-}$"),
-          "n114": ("N114 V region", ("C1", "D3", "D5"), ("C3", "C4", "D1"), "pMX-$Aicda$", "empty vector")}
+          "n114": ("N114 V$_H$", ("C1", "D3", "D5"), ("C3", "C4", "D1"), "pMX-$Aicda$", "empty vector")}
 LINTHRESH = 1.0      # below this the axis is linear, so a zero is drawn at zero and not at an invented floor
 
 

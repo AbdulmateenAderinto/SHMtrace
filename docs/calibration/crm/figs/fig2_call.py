@@ -33,7 +33,7 @@ from style import (
 )
 
 SITE_SET = "su_lps"
-LOCI = {"jh4": "J$_H$4", "n114": "N114", "su_lps": "Sμ", "pim1": "$Pim1$"}
+LOCI = {"jh4": "J$_H$4", "n114": "N114 V$_H$", "su_lps": "Sμ", "pim1": "$Pim1$"}
 
 
 def load(key):

@@ -5,7 +5,7 @@ B    pooled 12-type substitution spectrum, Sanger against nanopore (three Wt mic
 C    where calls fall along the window (25-bp bins)
 D    hotspot use: G:C calls at WRC/GYW and A:T calls at WA/TW, against the window's share of such sites
 E    the same comparison mouse by mouse: four substitution classes, Sanger against nanopore
-     (the bookkeeping checks that were panel E are Figure S7, page 2: figS12_bookkeeping.py)
+     (the bookkeeping checks that were panel E are now summarised in STAR Methods; their figure was removed)
 """
 import json
 

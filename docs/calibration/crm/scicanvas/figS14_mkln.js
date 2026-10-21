@@ -73,7 +73,7 @@
 
   // ───────── A: frequency per mouse ─────────
   head('A', 38, 'Frequency per mouse');
-  o.push(PLOT({ name: 'A: frequency per mouse', x: 20, y: 40, w: 364, h: 452, code: CODE({ A: DATA.A, col: COLS }, `
+  o.push(PLOT({ name: 'A: frequency per mouse', x: 20, y: 40, w: 344, h: 452, code: CODE({ A: DATA.A, col: COLS }, `
 fig, ax = plt.subplots()
 for i, g in enumerate(["WT", "Mkln1_KO", "Aicda_KO"]):
     e, f = D["col"][g]
@@ -92,8 +92,8 @@ ax.legend(loc="upper right", frameon=False, handletextpad=0.2, borderaxespad=0.1
 `) }));
 
   // ───────── B: G:C transitions and transversions ─────────
-  head('B', 418, 'G:C Ts and Tv');
-  o.push(PLOT({ name: 'B: G:C Ts and Tv', x: 400, y: 40, w: 300, h: 452, code: CODE({ B: DATA.B, col: COLS }, `
+  head('B', 398, 'G:C Ts and Tv');
+  o.push(PLOT({ name: 'B: G:C Ts and Tv', x: 380, y: 40, w: 284, h: 452, code: CODE({ B: DATA.B, col: COLS }, `
 fig, ax = plt.subplots()
 for i, b in enumerate(D["B"]):
     e, f = D["col"][b["group"]]
@@ -105,8 +105,8 @@ ax.set_ylabel("% of mutations at G:C")
 `) }));
 
   // ───────── C: the pooled substitution spectrum ─────────
-  head('C', 734, 'Spectrum');
-  o.push(PLOT({ name: 'C: substitution spectrum', x: 716, y: 40, w: 250, h: 452, code: CODE({ C: DATA.C, r: DATA.r_group, col: COLS }, `
+  head('C', 698, 'Spectrum');
+  o.push(PLOT({ name: 'C: substitution spectrum', x: 680, y: 40, w: 240, h: 452, code: CODE({ C: DATA.C, r: DATA.r_group, col: COLS }, `
 fig, ax = plt.subplots()
 ax.plot([0, 20], [0, 20], color=SOFT, linewidth=lw(0.6), linestyle=(0, (3, 2)), zorder=1)
 for g, lab in (("WT", "Wt"), ("Mkln1_KO", "Mkln1 −/−")):

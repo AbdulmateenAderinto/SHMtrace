@@ -16,7 +16,7 @@ from style import CALLERS, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
 CAL = DATA.parents[1]
 
 
-DATASET_LABEL = {"jh4": "J$_H$4", "n114": "N114"}
+DATASET_LABEL = {"jh4": "J$_H$4", "n114": "N114 V$_H$"}
 
 
 def indel_recall(key):

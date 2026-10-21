@@ -62,11 +62,11 @@ def main():
             ax.plot([x - 0.26, x + 0.26], [np.mean(v)] * 2, color=c, lw=1.4)
     ax.set_xticks([i * 2.5 + 0.5 for i in range(3)], TREAT, fontsize=6)
     ax.set_ylabel("Unique mutations per library")
-    ax.set_title("Window B: the shared 216 bp", fontsize=7)
+    ax.set_title("Window B: shared, but outside the repeats", fontsize=7)
     ax.scatter([], [], s=12, color=WT_C, label="wild type")
     ax.scatter([], [], s=12, color=KO_C, label="$\\it{Aicda}^{-/-}$")
     ax.legend(fontsize=6, loc="upper left", frameon=False, handletextpad=0.1)
-    ax.text(0.98, 0.78, "AID-null at background throughout;\nreplicates vary more\nthan treatments do",
+    ax.text(0.98, 0.78, "the only window every library reads\nlies outside the repeats, so this\ndeposit cannot answer the drug\nquestion here; AID-null stays at\nbackground throughout",
             transform=ax.transAxes, ha="right", va="top", fontsize=6, color=MID)
     letter(ax, "B", dx=-0.17)
     # C: the repeats, paired libraries only

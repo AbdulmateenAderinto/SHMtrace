@@ -11,20 +11,34 @@ import json
 import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
-
-from style import CALLERS, CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from scipy import stats
+from style import (
+    CASE,
+    CASEF,
+    CTRL,
+    CTRLF,
+    DATA,
+    FULL,
+    INK,
+    MID,
+    MM,
+    SOFT,
+    letter,
+    save,
+    setup,
+)
 
 FIGS = DATA.parents[1] / "figures"
 SHOW = ["recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive"]
 SHORT = {"recommended": "SHMtrace", "geneious": "Geneious", "lofreq": "LoFreq",
          "lofreq_nobaq": "LoFreq −BAQ", "lofreq_permissive": "LoFreq perm."}
-SHORTSET = {"jh4": "J$_H$4", "n114": "N114", "su_lps": "Sμ LPS", "su_ch12": "Sμ CH12", "pim1": "Pim1",
-            "ot1": "OT1", "ot2": "OT2"}
+SHORTSET = {"jh4": "J$_H$4", "n114": "N114 V$_H$", "su_lps": "Sμ LPS", "su_ch12": "Sμ CH12", "pim1": "Pim1",
+            "ot1": "Off-target 1", "ot2": "Off-target 2"}
 # the per-library panels (A-E) show the five loci of the first pass; the summary panels F and G take every
 # dataset, including the two CH12 AID off-targets added later
-PANEL_SETS = [("jh4", "J$_H$4 intron (ONT)"), ("n114", "N114 V region (ONT)"), ("su_lps", "Sμ, LPS blasts (ONT)"),
+PANEL_SETS = [("jh4", "J$_H$4 intron (ONT)"), ("n114", "N114 V$_H$ (ONT)"), ("su_lps", "Sμ, LPS blasts (ONT)"),
               ("su_ch12", "Sμ, CH12 (ONT)"), ("pim1", "Pim1, LPS blasts (ONT)")]
-SETS = PANEL_SETS + [("ot1", "OT1, CH12 (ONT)"), ("ot2", "OT2, CH12 (ONT)")]
+SETS = PANEL_SETS + [("ot1", "CH12 off-target 1 (ONT)"), ("ot2", "CH12 off-target 2 (ONT)")]
 
 
 def load(key):
@@ -40,7 +54,8 @@ def geo(xs):
 # expected to sit at the control level. Pooling it into the case group would average the perturbation together
 # with wild type and hide the very effect the panel is meant to show, so these two datasets get one row per
 # AID-competent group. Every other dataset has a single case group.
-SPLIT = {"ot1": [("OT1 Wt", "WT"), ("OT1 dKO", "dKO")], "ot2": [("OT2 Wt", "WT"), ("OT2 dKO", "dKO")]}
+SPLIT = {"ot1": [("Off-target 1 Wt", "WT"), ("Off-target 1 dKO", "dKO")],
+         "ot2": [("Off-target 2 Wt", "WT"), ("Off-target 2 dKO", "dKO")]}
 
 
 def separation(rows, mode, prefix=None):
@@ -51,6 +66,35 @@ def separation(rows, mode, prefix=None):
             if not r["control"] and (prefix is None or r["sample"].startswith(prefix))]
     ctrl = [dens(r) for r in rs if r["control"]]
     return geo(case) / geo(ctrl), sum(r["calls"] for r in rs if r["control"]), len(ctrl)
+
+
+def stars(p):
+    """Significance marker. ns is spelled out, because an unmarked column reads as untested."""
+    return "***" if p < 0.001 else "**" if p < 0.01 else "*" if p < 0.05 else "ns"
+
+
+def case_control(rows, mode):
+    """Case and control densities for one caller, a zero-call library entered at one event on its exposure."""
+    rs = [r for r in rows if r["mode"] == mode]
+    dens = lambda r: r["density_x1e5"] if r["calls"] else 1e5 / r["bases"]   # noqa: E731
+    return ([dens(r) for r in rs if not r["control"]], [dens(r) for r in rs if r["control"]])
+
+
+def panel_tests(rows):
+    """Welch on log10 density, AID-competent against AID-null, per caller; Holm-corrected within the panel."""
+    raw = {}
+    for c in SHOW:
+        case, ctrl = case_control(rows, c)
+        if len(case) < 2 or len(ctrl) < 2:
+            continue
+        a, b = np.log10(case), np.log10(ctrl)
+        if np.ptp(a) == 0 and np.ptp(b) == 0:       # both groups constant: Welch is undefined
+            continue
+        raw[c] = float(stats.ttest_ind(a, b, equal_var=False).pvalue)
+    out, m = {}, len(raw)
+    for i, (c, p) in enumerate(sorted(raw.items(), key=lambda kv: kv[1])):
+        out[c] = min(1.0, max(p * (m - i), *(out.values() or [0])))     # Holm, kept monotone
+    return out
 
 
 def main():
@@ -64,6 +108,7 @@ def main():
     avail = [(k, lbl, pre) for k, _t in SETS if load(k)
              for lbl, pre in SPLIT.get(k, [(SHORTSET[k], None)])]
     panels = [(k, t) for k, t in PANEL_SETS if load(k)]
+    tests = {}
     for i, (key, title) in enumerate(panels):
         ax = fig.add_subplot(row1[0, i])
         rows = load(key)
@@ -80,6 +125,16 @@ def main():
                            facecolor=(CTRLF if ctl else CASEF), edgecolor=(CTRL if ctl else CASE), zorder=3)
         ax.set_yscale("log")
         ax.axhline(floor * 1.6, color=SOFT, lw=0.5, ls=":")
+        # the test each caller's two groups support, marked over its own pair of columns
+        pv = panel_tests(rows)
+        tests[key] = {c: round(v, 5) for c, v in pv.items()}
+        lo, hi = ax.get_ylim()
+        ax.set_ylim(lo, hi ** 1.22 / lo ** 0.22)
+        top = ax.get_ylim()[1]
+        for j, c in enumerate(SHOW):
+            if c in pv:
+                ax.text(j, top ** 0.995 * lo ** 0.005, stars(pv[c]), ha="center", va="top",
+                        fontsize=6, color=MID)
         ax.set_xticks(range(len(SHOW)), [SHORT[c] for c in SHOW], rotation=55, ha="right")
         ax.set_xlim(-0.6, len(SHOW) - 0.4)
         ax.set_title(title, fontsize=6.5)
@@ -135,7 +190,7 @@ def main():
     # H: leave-one-control-out trace
     ax = fig.add_subplot(row2[0, 2])
     runs = [("jh4_shmtrace", "J$_H$4, 529 bp", "#2c5d8a", "-"), ("jh4_shmtrace_full", "J$_H$4, 1,141 bp", "#2c5d8a", "--"),
-            ("n114_shmtrace", "N114", "#6a4c93", "-")]
+            ("n114_shmtrace", "N114 V$_H$", "#6a4c93", "-")]
     for run, lab, col, ls in runs:
         cal = json.load(open(FIGS / run / "project.json"))["calibration"]
         tr = cal["qscale_trace"]
@@ -160,7 +215,7 @@ def main():
              ("short_alignment", "alignment too short", "#e6b98a"), ("paralogue_alleles", "paralog alleles", "#6a4c93"),
              ("usable", "usable", "#1f6f8b")]
     labels = []
-    for k, (run, name) in enumerate((("jh4_shmtrace", "J$_H$4"), ("n114_shmtrace", "N114"))):
+    for k, (run, name) in enumerate((("jh4_shmtrace", "J$_H$4"), ("n114_shmtrace", "N114 V$_H$"))):
         acct = json.load(open(FIGS / run / "table_s1.json"))
         for lib, a in acct.items():
             labels.append(f"{name} {lib}")
@@ -177,6 +232,9 @@ def main():
     ax.legend(fontsize=6, loc="center left", bbox_to_anchor=(1.005, 0.5), handlelength=1)
     ax.set_position([0.07, ax.get_position().y0, 0.72, ax.get_position().height])
     letter(ax, "I", dx=-0.075)
+    json.dump(tests, open(DATA / "fig4_tests.json", "w"), indent=1)
+    print("Figure 4A-E Welch p (Holm within panel):",
+          {k: {c: f"{v:.3g}" for c, v in t.items()} for k, t in tests.items()})
     save(fig, "Figure4")
 
 

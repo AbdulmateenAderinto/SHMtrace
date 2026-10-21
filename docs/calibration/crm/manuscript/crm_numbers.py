@@ -278,7 +278,7 @@ def compute():
     margins = {N["loco_jh4_margin"], N["loco_n114_margin"], N["loco_full_margin"]}
     N["loco_margins"] = (f"{N['loco_jh4_margin']}×" if len(margins) == 1 else
                          f"{N['loco_jh4_margin']}× on J_{{H}}4, {N['loco_full_margin']}× on the full length, and "
-                         f"{N['loco_n114_margin']}× on N114")
+                         f"{N['loco_n114_margin']}× on N114 V_{{H}}")
     # ---------------- J_H4 manuscript run, Sanger comparison
     jp = _load(FIG / "jh4_shmtrace/project.json")
     S = {x["sample"]: x for x in jp["samples"]}
@@ -1055,7 +1055,7 @@ def compute():
                  cd_su_fp_pooled=f1(S["pooled (5)"]["false_per_library"]),
                  cd_su_rec_pooled=pct(S["pooled (5)"]["recall"]),
                  cd_su_fdp_pooled=pc1(S["pooled (5)"]["fdp_pooled"]))
-    # Figure S6: real hypermutation diluted into AID-null reads (crm/titration.py, figs/figS6_titration.py)
+    # The dilution series: real hypermutation diluted into AID-null reads (crm/titration.py). Its figure was removed at the author’s request; the numbers stay in the Results.
     ti_path = OUT / "titration_summary.json"
     if ti_path.exists():
         ti = _load(ti_path)
