@@ -114,9 +114,9 @@
   panel('B', 'Read preparation in SHMtrace (from the delivered reads)', by);
   const bh = 210, b0 = by + 36;
   const bc = cards([
-    [1, 'Length and quality gates', ['read length ≤ 2,000 bp ({i|J_{H}4}) or', '≤ 900 bp (N114), no minimum;', 'mean expected error ≤ 0.01 per base']],
+    [1, 'Length and quality gates', ['read length ≤ 2,000 bp ({i|J_{H}4}) or', '≤ 900 bp (N114 V_{H}), no minimum;', 'mean expected error ≤ 0.01 per base']],
     [2, 'Competitive alignment', ['minimap2 against target and', 'paralog references; chimeras', 'removed; aligned ≥ 800 / 400 bp']],
-    [3, 'Paralog-allele filter', ['reads carrying ≥ 10 bases specific to', 'the {i|J_{H}4} paralog are removed', '(no paralog reference for N114)']],
+    [3, 'Paralog-allele filter', ['reads carrying ≥ 10 bases specific to', 'the {i|J_{H}4} paralog are removed', '(no paralog reference for N114 V_{H})']],
     [4, 'Depth matching', ['random draw of 500 usable reads per', 'library (fixed seed), from 962–2,905', 'usable reads per library']],
   ], b0, bh, JH4);
   let x = bc[0].cx;
@@ -154,7 +154,7 @@
   const ch = 250, c0 = cy + 36;
   const cc = cards([
     [5, 'Candidate substitutions', ['every base that differs from the', 'reference in the analyzed window;', 'one supporting read suffices']],
-    [6, 'Control error model', ['error rate per substitution, strand and', 'base quality from the AID-null controls;', 'margin (5× J_{H}4, 10× N114) set by', 'leave-one-control-out']],
+    [6, 'Control error model', ['error rate per substitution, strand and', 'base quality from the AID-null controls;', 'margin (5× J_{H}4, 10× N114 V_{H}) set by', 'leave-one-control-out']],
     [7, 'Significance and filtering', ['each candidate tested against the', 'control error; FDR ≤ 0.05 set by', 'control decoys; sites in ≥ 50% of', 'reads set aside as germline (heuristic)']],
     [8, 'Animal-level summary', ['unique variants per base sequenced;', 'spectra, clones and read-level trees;', 'the mouse or subclone is the unit']],
   ], c0, ch, TEAL);
@@ -191,7 +191,7 @@
   const d0 = dy + 36, dh = 88;
   card(30, d0, W - 60, dh, { stroke: SANG, dashStyle: 'dashed' });
   const sanger = [
-    ['Chromatograms', '447 traces (.ab1), 8 orders'],
+    ['Chromatograms', '184 traces (.ab1), these six mice'],
     ['Clone assignment', 'sample sheet with QC flags'],
     ['Quality trimming', 'clean core, aligned to {i|J_{H}4}'],
     ['Base calling', 'every substitution at Q ≥ 20'],
@@ -218,7 +218,7 @@
   const split = (a) => [a.usable, a.too_long + a.low_quality, a.not_target + a.chimeric + a.short_alignment + a.paralogue_alleles + a.minor_haplotype];
   const groups = [
     { title: '{i|J_{H}4} (GC B cells)', x: 30, data: READS.jh4, rows: [['{i|Wt} 2', 'WT2', CASE], ['{i|Wt} 3', 'WT3', CASE], ['{i|Wt} 4', 'WT4', CASE], ['{i|Aicda}^{−/−} 1', 'KO1', CTRL], ['{i|Aicda}^{−/−} 2', 'KO2', CTRL], ['{i|Aicda}^{−/−} 3', 'KO3', CTRL]] },
-    { title: 'N114 (subclones)', x: 720, data: READS.n114, rows: [['pMX-{i|Aicda} C1', 'C1', CASE], ['pMX-{i|Aicda} D3', 'D3', CASE], ['pMX-{i|Aicda} D5', 'D5', CASE], ['empty C3', 'C3', CTRL], ['empty C4', 'C4', CTRL], ['empty D1', 'D1', CTRL]] },
+    { title: 'N114 V_{H} (subclones)', x: 720, data: READS.n114, rows: [['pMX-{i|Aicda} C1', 'C1', CASE], ['pMX-{i|Aicda} D3', 'D3', CASE], ['pMX-{i|Aicda} D5', 'D5', CASE], ['empty C3', 'C3', CTRL], ['empty C4', 'C4', CTRL], ['empty D1', 'D1', CTRL]] },
   ];
   let bottom = 0;
   groups.forEach((g) => {
