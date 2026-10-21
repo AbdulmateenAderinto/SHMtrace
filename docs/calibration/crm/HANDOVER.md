@@ -50,6 +50,21 @@ The text and the numbers cannot drift: every result in the prose is a `{placehol
 
 ## 3. Hard constraints
 
+0. **The supplementary numbering has a deliberate gap at S6, and `renumber_supp.py check` cannot see it.**
+   Figure S6 (the dilution series) and Figure S12 page 2 (the bookkeeping checks) were removed on
+   21 October at the author's request, so the figures now run S1–S5, S7–S23. The author chose to leave
+   the numbering alone until the main-figure promotions are settled (Figure S11, the Immcantation
+   comparison, and Figure S19, the PacBio junctions, are both candidates, and the paper is already at the
+   journal's seven figure-and-table limit, so each promotion needs a demotion). Renumbering now would
+   stale every figure number the author is reviewing against. **Before submission**, close the gap by
+   shifting S7–S23 down to S6–S22. `renumber_supp.py` only checks citation *order*, not contiguity: it
+   reports "none needed" with the gap present, and its own mapping is wrong here, because it assumes a
+   figure 6 still exists and so slots it in at the end. Drive the shift with an explicit mapping through
+   `renumber_supp.rewrite`, then rename the figure files and their scripts to match.
+   Both removed results survive in text: the dilution numbers in the Results, the bookkeeping validation
+   (forty simulated projects; no false flag among 6,018 correctly filed clones) in STAR Methods, since
+   its numbers lived only in the deleted legend.
+
 1. **Never modify `manuscript_corrected/`.** That is a separate, earlier submission (the J Immunol paper)
    whose figures must stay as submitted. Supplementary Figures S4, S5 (components), S7 and S11 in *this*
    paper reuse images from it. When one of those needed changing, the fix was to **copy the builder into
@@ -182,7 +197,7 @@ cd ~/Nanoshm/nanoshm_v0.2/docs/calibration
 # a matplotlib figure
 cd crm/figs && $PY -W ignore fig3_calibration.py       # writes crm/figures/Figure3.{png,pdf,svg,tif}
 # Figure 5E reads out/fig5_per_mouse.json: $PY crm/fig5_per_mouse.py first (it refuses to write unless the
-# per-mouse calls pool back to Figure 5B exactly). Figure S7 page 2 is figs/figS12_bookkeeping.py.
+# per-mouse calls pool back to Figure 5B exactly).
 
 # the documents (always rerun after touching text, numbers or legends). Writes the article, Document S1,
 # the highlights, and SHMtrace_CellReportsMethods_complete_v<VERSION>.docx: the article, every supplementary
