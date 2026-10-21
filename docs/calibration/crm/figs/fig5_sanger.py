@@ -77,8 +77,8 @@ def main():
     ax.scatter([], [], s=12, color="#d9952b", label="from A:T")
     ax.legend(loc="lower right", fontsize=6, handletextpad=0.1)
     letter(ax, "B", dx=-0.32)
-    # C: positional profile
-    ax = fig.add_subplot(gs[0, 2:])
+    # D: positional profile
+    ax = fig.add_subplot(gs[1, 0:3])
     edges = np.arange(101, 630 + 25, 25)
     sang = json.load(open(SANGER))
     s_pos = [v[0] for m in ("Wt 2", "Wt 3", "Wt 4") for v in sang[m]["variants"]]
@@ -95,9 +95,9 @@ def main():
     ax.set_xlim(100, 630)
     ax.set_title("Where calls fall, 25-bp bins", fontsize=7)
     ax.legend(loc="upper center", fontsize=6, ncol=2)
-    letter(ax, "C", dx=-0.12)
-    # D: hotspots
-    ax = fig.add_subplot(gs[1, 0])
+    letter(ax, "D", dx=-0.07)
+    # E: hotspots
+    ax = fig.add_subplot(gs[1, 3:])
     hot = st["beyond"]["hotspot"]
     exp = st["beyond"]["hotspot_expected"]
     for j, (_label, idx) in enumerate((("G:C at WRC/GYW", 0), ("A:T at WA/TW", 1))):
@@ -114,13 +114,13 @@ def main():
     from matplotlib.patches import Patch
     ax.legend(handles=[Patch(color=SANG_C, label="Sanger"), Patch(color=ONT_C, label="Nanopore"),
                        plt.Line2D([], [], color=INK, ls="--", lw=0.7, label="sites")],
-              fontsize=6, loc="upper left", ncol=3, bbox_to_anchor=(-0.05, 1.02), columnspacing=0.6, handlelength=1.2)
+              fontsize=6, loc="upper left", ncol=2, bbox_to_anchor=(-0.05, 1.04), columnspacing=0.6, handlelength=1.2)
     ax.set_ylim(0, 112)
     ax.set_yticks([0, 20, 40, 60, 80, 100])
-    letter(ax, "D", dx=-0.3)
-    # E: the same comparison as grouped bars, mean and SD with the mice shown, as the published Sanger
+    letter(ax, "E", dx=-0.3)
+    # C: the same comparison as grouped bars, mean and SD with the mice shown, as the published Sanger
     # studies of these mice present it (crm/fig5_per_mouse.py, which checks it pools back to panel B)
-    ax = fig.add_subplot(gs[1, 1:])
+    ax = fig.add_subplot(gs[0, 2:])
     pm = json.load(open(DATA / "fig5_per_mouse.json"))
     marks = {"WT2": "o", "WT3": "s", "WT4": "^"}
     xs = np.arange(len(pm["classes"]))
@@ -135,7 +135,7 @@ def main():
                        facecolor="white", edgecolor=INK, linewidths=0.5, zorder=3)
     ax.set_xticks(xs, [c.replace(" ", "\n", 1) for c in pm["classes"]], fontsize=6)
     ax.set_xlim(-0.6, len(pm["classes"]) - 0.4)
-    ax.set_ylim(0, 48)
+    ax.set_ylim(0, 58)
     ax.set_ylabel("Share of calls (%)", labelpad=1)
     ax.set_title("The same comparison, mouse by mouse", fontsize=7)
     for m, mk in marks.items():
@@ -145,7 +145,7 @@ def main():
     ax.text(1.0, -0.33, "bars, mean ± SD of three mice; points, mice. Platform × type over 12 types, "
             f"p = {pm['summary']['rm_anova_interaction_p']:.2f}", transform=ax.transAxes, ha="right",
             fontsize=6, color=MID)
-    letter(ax, "E", dx=-0.1)
+    letter(ax, "C", dx=-0.1)
     save(fig, "Figure5")
 
 

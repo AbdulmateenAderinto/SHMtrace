@@ -4,7 +4,7 @@ Every main and supplementary figure, read panel by panel, asking one question: *
 one argument, and do panels that belong together sit together?** Checked against the v1.2 build
 (commit `ac002b1`), 7 main figures and 22 supplementary figures over 24 pages.
 
-**Verdict: the grouping is sound in 24 of 29 figures.** (Items 1, 2 and 3 were fixed on 21 October, so 27 now.) Five have a panel that sits apart from the
+**Verdict: the grouping is sound in 24 of 29 figures.** (Items 1, 2, 3 and 5 were fixed on 21 October, so 28 now; only item 4 is left, and it is a miscellany by design.) Five have a panel that sits apart from the
 material it belongs with, and two of those are duplications across the main/supplementary boundary.
 None is wrong, and the paper reads correctly as it stands; what follows is where a reader has to carry
 something across the figure to use it.
@@ -99,14 +99,15 @@ and splitting it would add figure numbers, so it may be worth keeping as is. Ite
 pair: C and D are now the simulated and measured halves of one question, which is the only internal
 grouping the figure has.
 
-### 5. Figure 5B and 5E are the same comparison, two panels apart
+### 5. ~~Figure 5B and 5E are the same comparison, two panels apart~~ — FIXED 21 October
 
 B is the pooled twelve-type substitution spectrum, Sanger against nanopore. E is that same comparison
 resolved per mouse. Between them sit C (positional) and D (hotspot motifs).
 
-Minor, and the present order has its own logic — pooled result first, then the two other views, then
-back to the per-mouse detail. But a reader checking whether the pooled agreement holds per mouse has to
-skip two panels to do it. B and E adjacent would read more directly.
+**Done.** The per-mouse comparison moved up beside the pooled one and became C; the positional profile
+is D and the hotspot panel E. A reader can now check the pooled agreement against the animals it came
+from without leaving the pair, and the legend says so. Row 2 was rebalanced to suit the panels that
+remain there, and no text cited these letters, so only the legend changed.
 
 ---
 
@@ -127,10 +128,8 @@ skip two panels to do it. B and E adjacent would read more directly.
 
 ## What is left
 
-Items 1, 2 and 3 are fixed. Items 4 and 5 remain:
+Items 1, 2, 3 and 5 are fixed. Only item 4 remains:
 
-- **4** — Figure S7 is now five checks under one number, of which C and D are a pair. Defensible as a
-  way of holding down the supplementary count.
-- **5** — Figure 5B and 5E are the pooled and per-mouse views of one comparison, two panels apart.
-
-None is a duplication, so the paper is correct either way.
+- **4** — Figure S7 is five checks under one number, of which C and D are now a pair. It is a
+  miscellany by design, a way of holding down the supplementary count, and splitting it would add
+  figure numbers. Worth leaving unless the supplement is reorganised for other reasons.

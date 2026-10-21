@@ -686,10 +686,11 @@ LEGENDS = [
      "platform-specific endpoints and are not compared between platforms. (B) Pooled twelve-type substitution shares "
      "({n_sanger} Sanger and {n_ont} nanopore calls across three Wt mice), without base-composition adjustment; dashed "
      "line, identity; r, descriptive Pearson correlation. The displayed Fisher interval describes pooled categories "
-     "rather than between-mouse uncertainty. (C) Call shares in 25-bp bins across the shared interval. (D) G:C calls "
-     "at WRC/GYW and A:T calls at WA/TW; bars, three-mouse means; points, mice; dashed lines, window opportunities. "
-     "(E) The four substitution classes on each platform; bars, mean ± SD of the three mice; points, mice. The "
-     "platform×type test "
+     "rather than between-mouse uncertainty. (C) The same comparison resolved per mouse: the four substitution "
+     "classes on each platform; bars, mean ± SD of the three mice; points, mice. It sits beside B so the pooled "
+     "agreement can be checked against the animals it came from. (D) Call shares in 25-bp bins across the shared "
+     "interval. (E) G:C calls at WRC/GYW and A:T calls at WA/TW; bars, three-mouse means; points, mice; dashed "
+     "lines, window opportunities. The platform×type test "
      "uses all twelve types with mouse as subject. Pooled values generate panel B. See also Figures S12–S15 and Tables "
      "S4 and S5."),
     ("Figure 6. Long reads retain positional profiles and linked mutation patterns",
