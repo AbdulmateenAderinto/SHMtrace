@@ -30,7 +30,7 @@ OUT = CRM / "out"
 CAL = CRM.parent
 MC = CAL / "manuscript_corrected/figures"
 # the combined review document's version (write_complete): raise it whenever a version goes out to readers
-VERSION = "1.1"
+VERSION = "1.2"
 
 
 def geo(x):
@@ -623,7 +623,7 @@ SUPP_FIGS = [
      "Because N114 cells carry a fixed V-region substrate, do not undergo ongoing V(D)J recombination and are not "
      "selected here for antigen binding, the excess in pMX-*Aicda* subclones reflects AID-dependent mutation rather "
      "than rearrangement or selection. That substrate carries an opal stop in CDR2, which silences antibody "
-     "production and whose reversion the original study reads out as hypermutation[@martin2002]; the calls "
+     "production, and whose reversion the original study scored as hypermutation[@martin2002]; the calls "
      "here are made against the line's own sequence, stop included, and count mutation across the whole V "
      "region rather than reversion at that codon (STAR Methods). Experimental details: N114 cells were transduced with pMX-*Aicda* or matched "
      "empty vector, both encoding GFP and puromycin resistance; GFP-high cells were subcloned by limiting dilution "
