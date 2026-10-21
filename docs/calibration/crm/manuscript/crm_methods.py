@@ -717,9 +717,7 @@ LEGENDS = [
      "expressing AID, R50E, R174E/R178E or empty vector (PRJNA918596; n=4 each); display as A. (C) Substitution "
      "classes and S5F targeting for AID and R174E/R178E; n denotes calls, not replicates. Mutant calls cluster at "
      "positions {ch12_cluster}. (D) Ramos deletion/insertion events in Wt and HMCES-knockout clones (n=6 each) and "
-     "AID-knockout controls (n=3), 20,000 reads per clone (PRJNA820976); bars, means. (E) UMI-consensus error in rRNA "
-     "operons[@karst2021] by family size; n, families. Dashed line, raw-read error; diamond, 103 pooled families with "
-     "a bootstrap 95% interval from 2,000 family resamples, holding raw error fixed. (F) C:G transition shares in "
+     "AID-knockout controls (n=3), 20,000 reads per clone (PRJNA820976); bars, means. (E) C:G transition shares in "
      "three mOrange experiments across empty, Ugi and UNG repair contexts (PRJNA170048): circles, SHMtrace; squares, "
      "raw Q>20 mismatches; crosses, dead-AID raw mismatches. Lines join repair arms within experiments. Calling uses "
      "empty-arm dead-AID controls; 4–40 called C:G substitutions per library give coarse shares. See also Table S1."),

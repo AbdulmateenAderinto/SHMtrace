@@ -598,6 +598,13 @@ def compute():
     c = su["candidates"][case]
     N.update(ana_thr=f"{c['threshold']:.3f}", ana_kept=f0(bisect_right(sorted(c["p"]), c["threshold"])),
              ana_cand=f"{len(c['p']):,}")
+    # Figure S7D: UMI consensus on the real dual-UMI rRNA reads (figs/figS7_estimates.py writes the
+    # bootstrap it draws). This was Figure 7E until 21 October, when it moved beside the simulation.
+    karst = OUT / "figS7_umi.json"
+    if karst.exists():
+        k = _load(karst)
+        N["umi_karst_fold"] = f"{k['fold']:.0f}"
+        N["umi_karst_n"] = str(_load(CAL / "umi_karst/results.json")["summary"]["molecules_3plus_reads"])
     # Figure S7C: UMI consensus on the simulated libraries, four mutation-bearing
     # conditions plus the two AID-null ones the panels leave out
     umi = _load(CAL / "umi_sim/runs.json")

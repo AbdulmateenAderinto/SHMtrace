@@ -91,7 +91,7 @@ def main():
     ax.legend(fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.3), ncol=3, handlelength=1, columnspacing=0.7)
     letter(ax, "C", dx=-0.42)
     # D
-    ax = fig.add_subplot(gs[1, 0:2])
+    ax = fig.add_subplot(gs[1, 0:3])
     p = json.load(open(PUB / "hmces/project.json"))
     groups = [("WT", "Wt", CASEF, CASE), ("HMCES_KO", "HMCES-KO", "#b9a3d6", "#6a4c93"), ("AID_KO", "AID-KO", CTRLF, CTRL)]
     for j, kind in enumerate(("deletions", "insertions")):
@@ -105,45 +105,9 @@ def main():
     ax.text(5.05, -0.36, "insertions", transform=ax.get_xaxis_transform(), ha="center", fontsize=6, fontweight="bold")
     ax.set_ylabel("Events per clone (20,000 reads)")
     titled(ax, "Indels in Ramos, Illumina (Wu et al.)", "indels, not only substitutions")
-    letter(ax, "D", dx=-0.3, dy=1.1)
-    # E
-    ax = fig.add_subplot(gs[1, 2:4])
-    u = json.load(open(CAL / "umi_karst/results.json"))["summary"]
-    bins = ["3-4", "5-9", "10-19", "20-+"]
-    x = np.arange(len(bins))
-    allerr = [u["by_reads_per_molecule"][b]["error_pct"] for b in bins]
-    sub = [u["by_reads_per_molecule"][b]["substitution_error_pct"] for b in bins]
-    ax.plot(x, allerr, marker="o", ms=3, color="#9aa5b1", lw=1.1, label="all errors")
-    ax.plot(x, sub, marker="o", ms=3, color="#1f6f8b", lw=1.1, label="substitutions")
-    ax.axhline(u["raw_read_error_pct"], color=CTRL, ls="--", lw=0.8)
-    ax.text(3.0, u["raw_read_error_pct"] * 1.25, f"raw reads {u['raw_read_error_pct']:.1f}%", fontsize=6,
-            color=CTRL, ha="right")
-    ax.set_yscale("log")
-    ax.set_ylim(0.0005, 30)
-    ax.set_xticks(x, [f"{lab}\nn = {u['by_reads_per_molecule'][b]['molecules']}"
-                      for lab, b in zip(["3–4", "5–9", "10–19", "≥20"], bins)])
-    ax.set_xlabel("Reads per molecule (n, molecules)")
-    ax.set_ylabel("Error per base (%)")
-    # the aggregate reduction, with a bootstrap interval over molecules (the raw-read rate is held fixed)
-    mol = [m for m in json.load(open(CAL / "umi_karst/results.json"))["molecules"] if m["reads"] >= 3]
-    nm, bl = np.array([m["nm"] for m in mol]), np.array([m["blen"] for m in mol])
-    rng = np.random.default_rng(7)
-    boot = [100 * nm[i].sum() / bl[i].sum() for i in (rng.integers(0, len(mol), len(mol)) for _ in range(2000))]
-    cons = 100 * nm.sum() / bl.sum()
-    lo, hi = np.percentile(boot, [2.5, 97.5])
-    raw = u["raw_read_error_pct"]
-    ax.errorbar([3.45], [cons], yerr=[[cons - lo], [hi - cons]], fmt="D", ms=3, color=INK, capsize=1.5, lw=0.8)
-    ax.text(3.3, cons * 2.6, f"all {len(mol)}: {cons:.2f}%\n{raw / cons:.0f}-fold\n({raw / hi:.0f}–{raw / lo:.0f})",
-            fontsize=6, color=INK, ha="center", va="bottom", linespacing=1.15)
-    ax.set_xlim(-0.3, 3.75)
-    titled(ax, "UMI consensus, R10 (Karst et al.)", f"error after consensus, {u['molecules_3plus_reads']} molecules")
-    ax.legend(fontsize=6, loc="lower left", title="consensus", title_fontsize=6, handlelength=1.4)
-    json.dump({"consensus_error_pct": round(cons, 4), "ci": [round(lo, 4), round(hi, 4)],
-               "fold": round(raw / cons, 1), "fold_ci": [round(raw / hi, 1), round(raw / lo, 1)]},
-              open(DATA / "fig7_umi.json", "w"), indent=1)
-    letter(ax, "E", dx=-0.26, dy=1.1)
-    # F: the dead-AID control reveals the UNG-dependent spectrum
-    ax = fig.add_subplot(gs[1, 4:6])
+    letter(ax, "D", dx=-0.12, dy=1.1)
+    # E: the dead-AID control reveals the UNG-dependent spectrum
+    ax = fig.add_subplot(gs[1, 3:6])
     mo = json.load(open(PUB / "morange/project.json"))
     au = json.load(open(PUB / "morange/authors_counts.json"))["libraries"]
     arms = ("Ugi", "Control", "UNG")
@@ -176,7 +140,7 @@ def main():
     titled(ax, "Ectopic AID, non-B cells (Pérez-Durán)", "does the spectrum follow UNG?", size=6.6)
     ax.legend(fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1, handlelength=1.2,
               handletextpad=0.3, labelspacing=0.3)
-    letter(ax, "F", dx=-0.3, dy=1.1)
+    letter(ax, "E", dx=-0.12, dy=1.1)
     save(fig, "Figure7")
 
 

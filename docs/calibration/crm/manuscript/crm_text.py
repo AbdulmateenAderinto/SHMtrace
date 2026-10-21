@@ -196,7 +196,7 @@ RESULTS = [
           "at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114 V_{H}, with {ind_jh4_fp} "
           "and zero false calls per library. Events supported by one or two reads were excluded by the three-read "
           "requirement. J_{H}4 single-base homopolymer deletions were least reliably recovered ({ind_jh4_hp}%); recall "
-          "was {ind_jh4_ins2}% for 2-bp insertions and {ind_jh4_long}% for deletions ≥10 bp (Figure S7D)."),
+          "was {ind_jh4_ins2}% for 2-bp insertions and {ind_jh4_long}% for deletions ≥10 bp (Figure S7E)."),
     ("p", "We next simulated approximately 40 B-cell clones per J_{H}4 library, with clone sizes following a power-law "
           "distribution. Mutations were introduced at positions sampled according to S5F mutability, including "
           "mutations shared across an entire clone, restricted to individual branches, or unique to individual "
@@ -386,7 +386,7 @@ RESULTS = [
           "substitution burden. The same exclusion rule was triggered in the mOrange analysis."),
     ("p", "On dual-UMI R10 rRNA-operon reads[@karst2021], consensus reduced error 57-fold (95% CI 35–99) to 0.17%, "
           "with residual errors concentrated in homopolymer indels. At ≥10 reads per family, substitution error "
-          "approached one per 10,000 bases (Figure 7E). Critically, this is a technical consensus benchmark rather "
+          "approached one per 10,000 bases (Figure S7D). Critically, this is a technical consensus benchmark rather "
           "than an SHM experiment."),
     ("p", "A published mOrange reporter study compared AID-ER with catalytically inactive AID-E58Q-ER in NIH-3T3 cells "
           "carrying an empty vector, Ugi or UNG, using 36-bp sequencing reads[@devilder2019]. Counting all mismatches "
@@ -399,7 +399,7 @@ RESULTS = [
           "empty vector, {mo_ugi_fold}-fold with Ugi and {mo_ung_fold}-fold with UNG; the Ugi comparison assigned the "
           "zero-call controls one event. Among retained substitutions, the transition share decreased from "
           "{mo_ugi_ts}% with Ugi to {mo_ung_ts}% with UNG, whereas uncorrected inactive-AID backgrounds contained "
-          "{mo_dead_ts}% transitions (Figure 7F). The mean paired difference between Ugi and UNG was {mo_arm_diff} "
+          "{mo_dead_ts}% transitions (Figure 7E). The mean paired difference between Ugi and UNG was {mo_arm_diff} "
           "percentage points (95% CI {mo_arm_ci}; p = {mo_ugi_dead}.0021), although the small number of calls per "
           "library limits precision."),
     ("p", "Two engineered-diversification datasets extended the evaluation to mutations measured relative to "

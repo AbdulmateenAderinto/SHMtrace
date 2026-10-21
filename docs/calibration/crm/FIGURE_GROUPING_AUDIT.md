@@ -4,7 +4,7 @@ Every main and supplementary figure, read panel by panel, asking one question: *
 one argument, and do panels that belong together sit together?** Checked against the v1.2 build
 (commit `ac002b1`), 7 main figures and 22 supplementary figures over 24 pages.
 
-**Verdict: the grouping is sound in 24 of 29 figures.** (Items 1 and 2 were fixed on 21 October, so 26 now.) Five have a panel that sits apart from the
+**Verdict: the grouping is sound in 24 of 29 figures.** (Items 1, 2 and 3 were fixed on 21 October, so 27 now.) Five have a panel that sits apart from the
 material it belongs with, and two of those are duplications across the main/supplementary boundary.
 None is wrong, and the paper reads correctly as it stands; what follows is where a reader has to carry
 something across the figure to use it.
@@ -70,7 +70,7 @@ every library had reads to spare. Figure 4I is percentages only, so that point n
 in its legend — each library yielded 962–2,905 usable reads against the 500 analysed — computed in
 `crm_numbers.py` from the same accounting, not written in by hand.
 
-### 3. Figure 7E is a method validation among biological datasets
+### 3. ~~Figure 7E is a method validation among biological datasets~~ — FIXED 21 October
 
 Figure 7's panels are public AID datasets: A (J_H4, Illumina), B and C (CH12F3 AID mutants — the same
 dataset, correctly adjacent), D (Ramos indels), F (ectopic AID across repair backgrounds).
@@ -82,8 +82,11 @@ It is also the second half of a split topic: **Figure S7C is UMI consensus on si
 and 7E is UMI consensus on real data. The evidence for one claim sits either side of the
 main/supplementary boundary.
 
-**Suggested:** move 7E next to S7C so the UMI consensus case is made in one place. Figure 7 then holds
-five panels, all of them public AID datasets.
+**Done.** The panel moved to Figure S7, where it is now D, directly beside the simulated version in C,
+and its legend says why it sits there rather than among the AID datasets. Figure 7 holds five panels,
+all public AID data, with its second row rebalanced to two wider panels; the repair-background panel
+became E. The Results sentence stays where it is and cites Figure S7D, since it already said the
+measurement is a consensus benchmark rather than an SHM experiment.
 
 ### 4. Figure S7 is four unrelated checks in one figure
 
@@ -92,8 +95,9 @@ estimation), B (statistical power), C (UMI consensus) and D (indel recall) share
 no question — only the fact that each supports Figure 3 somewhere.
 
 This is the weakest grouping in the paper. It is a defensible way to hold down the supplementary count,
-and splitting it would add figure numbers, so it may be worth keeping as is. If 7E moves here (item 3),
-C and the new panel at least form a pair inside it.
+and splitting it would add figure numbers, so it may be worth keeping as is. Item 3 has since given it a
+pair: C and D are now the simulated and measured halves of one question, which is the only internal
+grouping the figure has.
 
 ### 5. Figure 5B and 5E are the same comparison, two panels apart
 
@@ -123,13 +127,10 @@ skip two panels to do it. B and E adjacent would read more directly.
 
 ## What is left
 
-Items 1 and 2 are fixed. Items 3, 4 and 5 remain:
+Items 1, 2 and 3 are fixed. Items 4 and 5 remain:
 
-- **3** — Figure 7E (UMI consensus on rRNA reads) is a method validation among public AID datasets, and
-  its simulated counterpart is Figure S7C. Moving 7E beside S7C would put that evidence in one place
-  and leave Figure 7 as five panels of AID data.
-- **4** — Figure S7 is four unrelated checks under one number. Defensible as a way of holding down the
-  supplementary count; item 3 would at least give it a matching pair.
+- **4** — Figure S7 is now five checks under one number, of which C and D are a pair. Defensible as a
+  way of holding down the supplementary count.
 - **5** — Figure 5B and 5E are the pooled and per-mouse views of one comparison, two panels apart.
 
 None is a duplication, so the paper is correct either way.
