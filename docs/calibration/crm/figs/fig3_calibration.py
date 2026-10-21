@@ -81,8 +81,8 @@ def main():
     setup()
     fig = plt.figure(figsize=(FULL, 128 * MM))
     outer = gridspec.GridSpec(2, 1, figure=fig, left=0.065, right=0.975, top=0.87, bottom=0.08, hspace=0.6)
-    top = outer[0].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1.15, 1])
-    bottom = outer[1].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1.35, 1.1])
+    top = outer[0].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1.1, 1.15])
+    bottom = outer[1].subgridspec(1, 4, wspace=0.55, width_ratios=[1, 1, 1, 1.35])
     # A, B: recall by planted read count
     for i, key in enumerate(("jh4", "n114")):
         ax = fig.add_subplot(top[i])
@@ -108,8 +108,8 @@ def main():
                for c in SHOW]
     fig.legend(handles=handles, loc="upper center", ncol=5, bbox_to_anchor=(0.5, 0.995), fontsize=6,
                columnspacing=1.6, handlelength=1.8)
-    # C: recall vs false calls
-    ax = fig.add_subplot(top[2])
+    # D: recall vs false calls
+    ax = fig.add_subplot(top[3])
     for key, mk in DATASET_MARK.items():
         s = spike_summary(key)
         if not s:
@@ -128,10 +128,10 @@ def main():
             ax.scatter([], [], marker=mk, s=14, color=SOFT, label=DATASET_LABEL[key])
     ax.legend(loc="lower right", fontsize=6, handletextpad=0.2, borderaxespad=0.2)
     ax.text(0.045, 0.13, "0 plotted\nat 0.05", fontsize=6, color=SOFT, transform=ax.transData)
-    letter(ax, "C", dx=-0.26)
-    # D: lineage simulation recall by support, polyclonal and low
+    letter(ax, "D", dx=-0.26)
+    # E: lineage simulation recall by support, polyclonal and low
     lin = json.load(open(DATA / "lineage_sim_jh4/lineage_sim.json"))["summary"]
-    ax = fig.add_subplot(top[3])
+    ax = fig.add_subplot(bottom[0])
     bins = ["1", "2", "3-5", "6-10", ">10"]
     runs = json.load(open(DATA / "lineage_sim_jh4/lineage_sim.json"))["runs"]
     for scen, ls, dx0 in (("polyclonal", "-", -0.05), ("low", "--", 0.05)):
@@ -157,9 +157,9 @@ def main():
     ax.plot([], [], color=SOFT, ls="-", label="polyclonal")
     ax.plot([], [], color=SOFT, ls="--", label="low load")
     ax.legend(loc="center right", fontsize=6, handlelength=1.6)
-    letter(ax, "D", dx=-0.3)
-    # E: clone-weighted vs read-weighted, estimate against truth (recommended)
-    ax = fig.add_subplot(bottom[0])
+    letter(ax, "E", dx=-0.3)
+    # F: clone-weighted vs read-weighted, estimate against truth (recommended)
+    ax = fig.add_subplot(bottom[1])
     scen = ["polyclonal", "expanded", "low"]
     xs = np.arange(len(scen))
     for j, (kind, col) in enumerate((("read", "#9fc0d8"), ("clone", "#274b7e"))):
@@ -182,9 +182,9 @@ def main():
     ax.set_title("Clones: estimate and truth", fontsize=7)
     ax.scatter([], [], marker="_", s=40, color=INK, label="truth")
     ax.legend(fontsize=6, loc="upper left", handlelength=1, ncol=1)
-    letter(ax, "E", dx=-0.32)
-    # F: quantification accuracy against depth
-    ax = fig.add_subplot(bottom[1])
+    letter(ax, "F", dx=-0.32)
+    # G: quantification accuracy against depth
+    ax = fig.add_subplot(bottom[2])
     q = json.load(open(DATA / "quant_accuracy_jh4/runs.json")) + json.load(open(DATA / "quant_accuracy_n114/runs.json"))
     metrics = {"read-weighted frequency": ("est_read_weighted_x1e3", "true_read_weighted_x1e3", "#2c5d8a"),
                "unique density": ("est_unique_density_x1e5", "true_unique_density_x1e5", "#a3621b"),
@@ -215,9 +215,9 @@ def main():
     ax.plot([], [], color=SOFT, ls="-", label="J$_H$4")
     ax.plot([], [], color=SOFT, ls="--", label="N114 V$_H$")
     ax.legend(fontsize=6, loc="lower left", handlelength=1.6, ncol=1)
-    letter(ax, "F", dx=-0.32)
-    # G: group tests
-    ax = fig.add_subplot(bottom[2])
+    letter(ax, "G", dx=-0.32)
+    # H: group tests
+    ax = fig.add_subplot(bottom[3])
     rep = json.load(open(CALIB / "replicates_calibration/runs.json"))
     tests = [("p_pooled_reads", "pooled reads", "#c0392b"), ("p_welch_log", "Welch, log", "#2c5d8a"),
              ("p_negbinomial", "negative binomial", "#1f6f8b"), ("p_permutation", "permutation", "#9aa5b1")]
@@ -236,9 +236,9 @@ def main():
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_title("Group tests (300 simulations)", fontsize=7)
     ax.legend(fontsize=6, ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.02), columnspacing=0.8, handlelength=1.2)
-    letter(ax, "G", dx=-0.2)
-    # H: the somatic callers need a mutation in a large share of reads
-    ax = fig.add_subplot(bottom[3])
+    letter(ax, "H", dx=-0.2)
+    # C: the somatic callers need a mutation in a large share of reads
+    ax = fig.add_subplot(top[2])
     spiked = spike_summary("jh4")["recommended"]["by_k"]
     lab, col, mk = CALLERS["recommended"]
     ax.plot([100 * k / SPIKE_READS for k in spiked], list(spiked.values()), marker=mk, ms=3, color=col, lw=1)
@@ -259,7 +259,7 @@ def main():
     ax.set_xlabel("Reads with the mutation (%)")
     ax.set_ylabel("Recall")
     ax.set_title("Somatic callers on J$_H$4", fontsize=7)
-    letter(ax, "H", dx=-0.32)
+    letter(ax, "C", dx=-0.32)
     save(fig, "Figure3")
 
 

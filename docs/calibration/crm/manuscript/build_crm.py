@@ -600,7 +600,7 @@ SUPP_FIGS = [
      "calls per library when every read is used and when reads are first collapsed to a consensus by tag. The four "
      "conditions are the two amplicons under two planted mutation loads: J_{H}4 polyclonal (about 40 clones) and "
      "J_{H}4 low load, and N114 V_{H} subclonal (one dominant clone) and N114 V_{H} low load, the same scenarios "
-     "as Figure 3D. Consensus removes every false call in three of the four and leaves {umi_fp_poly} in the "
+     "as Figure 3E. Consensus removes every false call in three of the four and leaves {umi_fp_poly} in the "
      "fourth, annotated on the panel because a zero-height bar cannot be told from a missing one, while recall of "
      "the planted mutations rises from {umi_rec_reads_lo}–{umi_rec_reads_hi}% to {umi_rec_umi_lo}–"
      "{umi_rec_umi_hi}%. The two AID-null conditions are not plotted; their false calls fall from {umi_null_jh4} "

@@ -471,7 +471,7 @@ def compute():
     if (OUT / "deepsomatic_highaf_jh4.json").exists():      # DeepSomatic on the same plants (clairs_highaf.py)
         band = defaultdict(lambda: [0, 0])
         for r in _load(OUT / "deepsomatic_highaf_jh4.json")["rows"]:
-            if r["caller"] == "deepsomatic_permissive":            # as drawn in Figure 3H
+            if r["caller"] == "deepsomatic_permissive":            # as drawn in Figure 3C
                 for kk, (g, n) in r["recall_by_reads"].items():
                     band[5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)][0] += g
                     band[5 if int(kk) < 38 else (10 if int(kk) < 76 else 20)][1] += n

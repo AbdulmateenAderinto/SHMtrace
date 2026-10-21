@@ -4,7 +4,7 @@ Every main and supplementary figure, read panel by panel, asking one question: *
 one argument, and do panels that belong together sit together?** Checked against the v1.2 build
 (commit `ac002b1`), 7 main figures and 22 supplementary figures over 24 pages.
 
-**Verdict: the grouping is sound in 24 of 29 figures.** Five have a panel that sits apart from the
+**Verdict: the grouping is sound in 24 of 29 figures.** (Items 1 and 2 were fixed on 21 October, so 26 now.) Five have a panel that sits apart from the
 material it belongs with, and two of those are duplications across the main/supplementary boundary.
 None is wrong, and the paper reads correctly as it stands; what follows is where a reader has to carry
 something across the figure to use it.
@@ -33,7 +33,7 @@ these six mice". The same figure's bare `N114` labels became `N114 V_H`.
 
 ## Five places where related material sits apart
 
-### 1. Figure 3H is separated from Figure 3A–C by four panels
+### 1. ~~Figure 3H is separated from Figure 3A–C~~ — FIXED 21 October
 
 Figure 3 is a 2 × 4 grid. A, B are spike-in recall by supporting reads; C is recall against false
 calls; **H is the same benchmark run against permissive somatic callers** (ClairS, DeepSomatic). H
@@ -42,9 +42,14 @@ asks A's question with a different caller family, but sits in the far corner wit
 Between them lie three *different* questions: D (lineage simulations), E, F (quantification against
 truth), G (which statistical test to use for group comparisons).
 
-**Suggested:** row 1 = A, B, H, C — every caller-recall comparison together, closing with the
-recall-versus-false-calls summary. Row 2 = D, E, F, G — lineages, the estimates they support, and the
-group test. Two rows, two questions, instead of the present split.
+**Done.** The somatic-caller panel moved up beside the spike-ins and the panels were relettered so
+they read in position order: row 1 is now A, B, C (somatic callers), D (recall against false calls) —
+every caller comparison, closing with the summary; row 2 is E (lineages), F (clone estimates),
+G (quantification), H (group tests). The legend opens by saying which row answers which question.
+
+The old letters C–H all moved (C→D, D→E, E→F, F→G, G→H, H→C), so every citation was remapped in one
+pass across the text, the methods, the legends and two figure scripts. `star_text.py` was left alone:
+its "Figure 3" is the STAR Protocols article's own.
 
 ### 2. ~~Figure 4I duplicates Figure S1E~~ — FIXED 21 October
 
@@ -118,7 +123,13 @@ skip two panels to do it. B and E adjacent would read more directly.
 
 ## What is left
 
-Item 2, the only duplication, is fixed. Items 1, 3, 4 and 5 remain, and all four are questions of order
-rather than of repeated material, so the paper is correct as it stands either way. Of them, item 1
-(Figure 3H sitting four panels from the comparison it belongs to) is the one a reader is most likely to
-trip over.
+Items 1 and 2 are fixed. Items 3, 4 and 5 remain:
+
+- **3** — Figure 7E (UMI consensus on rRNA reads) is a method validation among public AID datasets, and
+  its simulated counterpart is Figure S7C. Moving 7E beside S7C would put that evidence in one place
+  and leave Figure 7 as five panels of AID data.
+- **4** — Figure S7 is four unrelated checks under one number. Defensible as a way of holding down the
+  supplementary count; item 3 would at least give it a matching pair.
+- **5** — Figure 5B and 5E are the pooled and per-mouse views of one comparison, two panels apart.
+
+None is a duplication, so the paper is correct either way.

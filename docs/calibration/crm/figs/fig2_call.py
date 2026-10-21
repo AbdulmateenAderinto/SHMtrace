@@ -6,7 +6,7 @@ C    the base qualities of the alt reads at both sites: quality alone cannot tel
 D    the control false-discovery threshold for the same library: candidates kept against the false calls the
      held-out controls predict
 E    the allele fractions of SHMtrace's calls, all AID-active libraries of four loci, against the range in which
-     the somatic callers were tested on planted mutations (Figure 3H) and their recall there
+     the somatic callers were tested on planted mutations (Figure 3C) and their recall there
 Data: out/intuition_<dataset>.json (intuition_data.py).
 """
 import json
@@ -115,7 +115,7 @@ def af_panel(ax):
     allaf = np.array(allaf)
     shares = {x: 100 * np.mean(allaf < x) for x in (1, 5, 20)}
     top = bottom.max() * 1.45
-    # the range in which the somatic callers were tested on clean planted mutations (Figure 3H, permissive
+    # the range in which the somatic callers were tested on clean planted mutations (Figure 3C, permissive
     # settings, J_H4, 500 reads): a measured range for those settings, not a general operating boundary
     rec = {c: by_fraction(c)[1] for c in ("deepsomatic", "clairs")}
     fr = sorted(rec["deepsomatic"])

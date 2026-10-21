@@ -147,12 +147,12 @@ RESULTS = [
           "library (FDR {sp_jh4_gen_fdr}). Default LoFreq recalled none; disabling its short-read-oriented "
           "base-alignment quality correction yielded {sp_jh4_lfnb}% recall, restricted to mutations with at least five "
           "supporting reads. Permissive settings increased recall to {sp_jh4_lfp}% with {sp_jh4_lfp_fp} false calls "
-          "per library (Figures 3A and 3C)."),
+          "per library (Figures 3A and 3D)."),
     ("p", "ClairS[@zheng2026] and DeepSomatic[@park2026] were supplied with the other AID-null libraries as matched "
           "normals. Neither recovered planted mutations at default settings. Across 2,160 substitutions on J_{H}4, "
           "N114 V_{H}, Sμ and *Pim1*, permissive ClairS recovered none; permissive DeepSomatic recalled 19%, 18%, 5% and 3%, "
           "respectively, with at most {ds_fp} false calls per library. Recall increased at higher allele fractions, "
-          "approaching complete recovery at 20% on J_{H}4 (Figure 3H). On real J_{H}4 libraries, ClairS reported "
+          "approaching complete recovery at 20% on J_{H}4 (Figure 3C). On real J_{H}4 libraries, ClairS reported "
           "{cs_real_pass} mutation and DeepSomatic at most {ds_real_pass} across three mice, compared with 221, 344 "
           "and 73 SHMtrace calls. Corresponding N114 V_{H} totals were {cs_real_n114_pass} and at most {ds_real_n114_pass}, "
           "compared with 70, 49 and 173. ClairS rejected both Wt3 candidates supported by at least 20% of reads. Most "
@@ -171,7 +171,7 @@ RESULTS = [
           "{c31_fdr}. On external Sμ and *Pim1* controls at 2,000 reads, SHMtrace recalled {sp_su_lps_recall}% and "
           "{sp_pim1_recall}% at FDR {sp_su_lps_fdr} and {sp_pim1_fdr}. Geneious recalled {sp_su_lps_gen_recall}% and "
           "{sp_pim1_gen_recall}% at FDR {sp_su_lps_gen_fdr} and {sp_n114_gen_fdr}; LoFreq recalled "
-          "{sp_ext_lf_lo}–{sp_ext_lf_hi}%, with permissive FDR {sp_ext_lfp_fdr} (Figure 3C)."),
+          "{sp_ext_lf_lo}–{sp_ext_lf_hi}%, with permissive FDR {sp_ext_lfp_fdr} (Figure 3D)."),
     ("p", "Calling the same libraries at targets from 1% to 30% tested whether the threshold delivers the rate it "
           "targets. At the default 5%, the pooled false-discovery proportion was {fc_def_lo}–{fc_def_hi}% across the "
           "four loci, and looser targets stayed at or below their stated rate except {fc_loose_over} (Figure S4A). "
@@ -200,19 +200,19 @@ RESULTS = [
     ("p", "We next simulated approximately 40 B-cell clones per J_{H}4 library, with clone sizes following a power-law "
           "distribution. Mutations were introduced at positions sampled according to S5F mutability, including "
           "mutations shared across an entire clone, restricted to individual branches, or unique to individual "
-          "sequences (Figure 3D). SHMtrace recalled {lin_1_rec}% of single-read mutations versus {lin_1_gen}% for "
+          "sequences (Figure 3E). SHMtrace recalled {lin_1_rec}% of single-read mutations versus {lin_1_gen}% for "
           "Geneious, with FDR {lin_fdr_rec} versus {lin_fdr_gen} and {lin_fp_rec} versus {lin_fp_gen} false calls per "
           "library. In null libraries, false calls averaged {lin_null_rec} versus {lin_null_gen}. Junction clustering "
           "recovered clone assignments with adjusted Rand indices[@hubert1985] of {lin_ari}. When an unmutated clone "
           "contributed 60% of reads, read-weighted frequency was {lin_rw_est} versus a true {lin_rw_true} per 10^{3} "
           "bp, while the majority-rule clone-weighted measure recovered {lin_cw_pct}% of its corresponding true burden "
-          "({lin_cw_est} versus {lin_cw_true}; Figure 3E)."),
+          "({lin_cw_est} versus {lin_cw_true}; Figure 3F)."),
     ("p", "The dominant unmutated clone could not trigger the ≥50% allele filter. Repeating the simulation with a "
           "mutated dominant clone showed no loss at 40% abundance, but all mutations crossing the threshold at 60% or "
           "80% were removed. Read-weighted and clone-weighted estimates fell by as much as {mask80_rw}% and "
           "{mask80_cw}%, respectively (STAR Methods). Excluded sites are reported for inspection."),
     ("p", "At 500 reads per library, read-weighted mutation frequencies were within {q_rw_dev}% of the simulated "
-          "values for both J_{H}4 and N114 V_{H} (Figure 3F). Unique-variant density was less consistently recovered: J_{H}4 "
+          "values for both J_{H}4 and N114 V_{H} (Figure 3G). Unique-variant density was less consistently recovered: J_{H}4 "
           "estimates were 97% of the true density at 500 reads and 94% at 1,000 reads, whereas N114 V_{H} reached 77% at "
           "1,000 reads. This endpoint counts each distinct substitution once and divides by the number of analyzed "
           "bases. As sequencing depth increases, additional reads can carry mutations already counted, increasing the "
@@ -222,7 +222,7 @@ RESULTS = [
           "mutations increased this estimate by an average of {sr_rec}% of the number introduced (Figure S7). "
           "Comparisons of unique-variant density therefore require matched sequencing depth."),
     ("p", "Group-test calibration was assessed in 300 simulations per condition, with between-animal coefficient of "
-          "variation 1 (Figure 3G). Under no true difference, pooled-read tests returned p < 0.05 in 91% of 3-versus-3 "
+          "variation 1 (Figure 3H). Under no true difference, pooled-read tests returned p < 0.05 in 91% of 3-versus-3 "
           "and 94% of 5-versus-5 experiments. Negative-binomial rejection rates were 5.0% and 5.7%. With three animals "
           "per group, that test detected two-fold and four-fold changes in 12% and 30% of simulations, illustrating "
           "the limited power at this sample size."),
