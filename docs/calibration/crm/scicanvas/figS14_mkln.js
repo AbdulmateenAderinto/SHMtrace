@@ -126,7 +126,7 @@ leg.get_texts()[1].set_fontstyle("italic")
   // Each value column is right-aligned at its own edge and the label column is clipped to the gap
   // before it, so no cell can run into its neighbour however long the numbers become.
   {
-    const x0 = 990, pubR = 1285, shR = 1400, y0 = 56;
+    const x0 = 976, pubR = 1262, shR = 1380, y0 = 56;
     head('D', x0 - 34, 'Published tests');
     TR('Published', pubR, y0 + 34, { bold: true });
     TR('SHMtrace', shR, y0 + 34, { bold: true });

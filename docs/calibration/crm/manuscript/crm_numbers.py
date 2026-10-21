@@ -393,14 +393,15 @@ def compute():
         dr = OUT / f"depth_draws_{k}.json"
         if dr.exists():
             # repeated draws: the share each library had reached at 500 reads, averaged over draws, and the
-            # spread over draws, so the figure's and the text's numbers come from the same runs
+            # spread over draws, so the figure's and the text's numbers come from the same runs. The denominator
+            # is the most that library ever yielded over every depth and draw, as in Figure S9E.
             runs = _load(dr)["runs"]
             per = {}
             for r in runs:
                 per.setdefault((r["sample"], r["depth"]), []).append(r["calls"])
             shares = []
             for x in case:
-                mx = max(np.mean(v) for (sx, _d), v in per.items() if sx == x)
+                mx = max(c for (sx, _d), v in per.items() if sx == x for c in v)
                 shares += [c / mx for c in per[(x, 500)]]
             N[f"depth_{k}_500"] = pct(np.mean(shares))
             N[f"depth_{k}_500_range"] = f"{pct(min(shares))}–{pct(max(shares))}"
@@ -597,7 +598,7 @@ def compute():
     c = su["candidates"][case]
     N.update(ana_thr=f"{c['threshold']:.3f}", ana_kept=f0(bisect_right(sorted(c["p"]), c["threshold"])),
              ana_cand=f"{len(c['p']):,}")
-    # Figures S7C and S7E: UMI consensus on the simulated libraries, four mutation-bearing
+    # Figure S7C: UMI consensus on the simulated libraries, four mutation-bearing
     # conditions plus the two AID-null ones the panels leave out
     umi = _load(CAL / "umi_sim/runs.json")
     cells = [("JH4", "polyclonal"), ("JH4", "low"), ("N114", "subclonal"), ("N114", "low")]
@@ -988,6 +989,10 @@ def compute():
         strict = [v for ds in pj.values() for k, v in ds.items() if k != "default"]
         N.update(st_p_hi=pfmt(max(v["p_log_welch"] for v in strict)),
                  st_fold_lo=f0(min(v["fold"] for v in strict)), st_fold_hi=f0(max(v["fold"] for v in strict)))
+    # Figure S3: how many figures the J_H4 project run actually drew, of the 26 a run can produce
+    jh4_run = FIG / "jh4_shmtrace/project.json"
+    if jh4_run.exists():
+        N["s3_drawn"] = word(len(_load(jh4_run).get("available_figures", [])))
     # Figure S4: the false-discovery target against planted truth at six targets (figs/figS4_fdr_calibration.py)
     fc_path = OUT / "fdr_calibration.json"
     if fc_path.exists():

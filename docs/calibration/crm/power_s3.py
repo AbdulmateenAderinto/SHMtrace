@@ -1,4 +1,4 @@
-"""Power for Figure S3B: animals per group needed for a 2-fold change, with the pilot CV's own uncertainty.
+"""Power for Figure S7B: animals per group by effect size, with the pilot CV's own uncertainty.
 
     python crm/power_s3.py      -> crm/out/power_s3.json
 
@@ -25,6 +25,10 @@ ANIMALS = [3, 5, 8, 10, 15, 20, 30, 40, 60]
 MEASURES = {"density": "unique density", "clone_weighted": "clone-weighted frequency",
             "frequency": "read-weighted frequency"}
 FOLD, READS, SIMS, ALPHA = 2.0, 500, 1000, 0.05
+# The difference a study is powered for matters more than the number of animals: a 2-fold change between two
+# AID-proficient groups is a far harder question than the AID-versus-null contrasts this paper makes, which are
+# 38-141-fold and separate at three animals. Unique density is simulated across this range so the figure says so.
+FOLDS = [2.0, 5.0, 10.0, 50.0]
 
 
 def cv_interval(cv: float, n: int) -> tuple[float, float]:
@@ -49,6 +53,14 @@ def main():
                                         alpha=ALPHA, seed=11) for n in ANIMALS]
         out["measures"][metric] = row
         print(label, f"CV {pl['cv_between']:.2f} [{lo:.2f}-{hi:.2f}]", [round(x, 2) for x in row["power"]])
+    # the same pilot and test, across effect sizes, for unique density
+    pl = power.pilot(res, "Wt", "density")
+    out["folds"] = {"animals": ANIMALS, "cv": pl["cv_between"], "measure": "unique density", "power": {}}
+    for f in FOLDS:
+        out["folds"]["power"][str(f)] = [
+            power.simulate(pl["rate"], f, n, READS, pl["bp"], pl["cv_between"], pl["dispersion"], sims=SIMS,
+                           alpha=ALPHA, seed=11) for n in ANIMALS]
+        print(f"{f:g}-fold", [round(x, 2) for x in out["folds"]["power"][str(f)]])
     json.dump(out, open(CRM / "out/power_s3.json", "w"), indent=1)
 
 

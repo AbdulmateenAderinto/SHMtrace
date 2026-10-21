@@ -2,7 +2,7 @@
 
 A-B  J_H4: unique variants and density against depth, every draw drawn
 C-D  N114: the same
-E    what each AID-active library had reached at 500 reads, relative to its own mean at the largest depth tested
+E    the share of each AID-active library's own variant set recovered at every depth, not only at 500 reads
 
 The earlier version stacked two figures, each lettered from A, and drew one random draw per depth, so the
 reader could not tell a depth effect from the luck of the draw. Here the whole analysis is repeated five
@@ -17,7 +17,7 @@ import json
 import numpy as np
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
-from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, MID, MM, SOFT, letter, save, setup
 
 ASSAYS = {"jh4": ("J$_H$4 intron", ("WT2", "WT3", "WT4"), ("KO1", "KO2", "KO3"), "Wt", "$Aicda^{-/-}$"),
           "n114": ("N114 V region", ("C1", "D3", "D5"), ("C3", "C4", "D1"), "pMX-$Aicda$", "empty vector")}
@@ -69,30 +69,37 @@ def main():
             ax.set_ylabel(ylab)
             ax.set_title(f"{title}: {short}", fontsize=6.6)
             letter(ax, "ABCD"[row * 2 + col], dx=-0.3)
-        # what 500 reads had reached, per library and draw, against that library's mean at the largest depth
-        for s in case:
-            mx = max(np.mean([r["calls"] for r in per[(s, d)]]) for d in depths)
-            reached[s] = ([100 * r["calls"] / mx for r in per[(s, 500)]], key)
+        # the share of that library's own variant set recovered at each depth. The denominator is the most
+        # that library ever yielded, over every depth and draw, so the curve is read against the library's own
+        # discovery rather than against the 1,000-read value alone.
+        for s_ in case:
+            mx = max(r["calls"] for d in depths for r in per[(s_, d)])
+            reached[s_] = ({d: [100 * r["calls"] / mx for r in per[(s_, d)]] for d in depths}, key)
     # E
     ax = fig.add_subplot(gs[:, 2])
-    names = list(reached)
-    for i, s in enumerate(names):
-        v, key = reached[s]
-        ax.scatter(np.full(len(v), i) + np.linspace(-0.12, 0.12, len(v)), v, s=7,
-                   color=CASE if key == "jh4" else "#6d9ad0", linewidths=0, zorder=3)
-        ax.plot([i - 0.3, i + 0.3], [np.mean(v)] * 2, color=INK, lw=1.1, zorder=4)
+    depths = load("jh4")[0]["depths"]
+    xs = range(len(depths))
+    for _s, (by_depth, key) in reached.items():
+        col = CASE if key == "jh4" else "#6d9ad0"
+        mean = [np.mean(by_depth[d]) for d in depths]
+        ax.plot(xs, mean, color=col, lw=0.9, marker="o" if key == "jh4" else "s", ms=2.6,
+                markeredgewidth=0, zorder=3)
+        ax.vlines(xs, [min(by_depth[d]) for d in depths], [max(by_depth[d]) for d in depths],
+                  color=col, lw=0.6, alpha=0.7)
     ax.axhline(100, color=SOFT, lw=0.5, ls=":")
-    ax.set_xticks(range(len(names)), names, fontsize=6, rotation=45, ha="right")
-    ax.set_ylim(0, 118)
-    ax.set_ylabel("Calls at 500 reads (% of that library's mean at 1,000)")
-    ax.set_title("What 500 reads had reached", fontsize=6.6)
-    ax.text(0.5, 0.06, "AID-active libraries only\nJ$_H$4 (dark), N114 (light)\npoints, the five draws",
-            transform=ax.transAxes, ha="center", va="bottom", fontsize=6, color=MID, linespacing=1.4)
+    ax.axvline(depths.index(500), color=SOFT, lw=0.5)
+    ax.set_xticks(xs, [str(d) for d in depths], fontsize=6)
+    ax.set_xlabel("Reads analyzed")
+    ax.set_ylim(0, 112)
+    ax.set_ylabel("Share of that library's variants recovered (%)")
+    ax.set_title("Share of each library's own total", fontsize=6.6)
+    ax.text(0.97, 0.06, "AID-active libraries only\nJ$_H$4 (dark), N114 V$_H$ (light)\nlines, the range of five draws",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=6, color=MID, linespacing=1.4)
     letter(ax, "E", dx=-0.26)
     save(fig, "FigureS9")
-    out = {s: {"mean_pct_at_500": round(float(np.mean(v)), 1), "draws": [round(x, 1) for x in v]}
-           for s, (v, _k) in reached.items()}
-    json.dump(out, open(DATA / "figS5_reached.json", "w"), indent=1)
+    out = {s_: {"mean_pct": {str(d): round(float(np.mean(v[d])), 1) for d in v},
+                "mean_pct_at_500": round(float(np.mean(v[500])), 1)}
+           for s_, (v, _k) in reached.items()}
     print({s: out[s]["mean_pct_at_500"] for s in out})
 
 

@@ -90,17 +90,25 @@
   // ───────── B. Inputs and read preparation ─────────
   panel('B', 'Inputs and read preparation', 720, 10);
   const bx = 720, bw = 650;
+  // PacBio has no icon in the set, so its card carries a drawn glyph: the circular template a HiFi read is
+  // read around, and the single long read that comes off it.
+  const hifi = (cx, cy) => {
+    E(cx, cy - 4, 42, { fill: 'none', stroke: INK, strokeWidth: 4 });
+    E(cx, cy - 4, 20, { fill: '#ffffff' });
+    SEG(cx - 26, cy + 28, cx + 26, cy + 28, 8, INK);
+  };
   const inputs = [
     ['s-nanopore-sequencing-strand-through-pore', 'Nanopore', 'full-length amplicons', INK, 74],
     ['s-sanger-chromatogram-trace-only', 'Sanger', '.ab1 traces + sample sheet', SANG, 74],
     ['s-flow-cell-clusters-illumina', 'Illumina', 'paired reads, merged', ILL, 104],
+    [hifi, 'PacBio', 'HiFi reads, one molecule', INK, 74],
     ['s-umi-tagged-pcr-products', 'UMI-tagged', 'one consensus per molecule', TEAL, 96],
   ];
-  const iw = (bw - 3 * 12) / 4, inCards = [];
+  const iw = (bw - 4 * 10) / 5, inCards = [];
   inputs.forEach(([icon, title, sub, c, size], k) => {
-    const x = bx + k * (iw + 12);
+    const x = bx + k * (iw + 10);
     inCards.push(card(x, 48, iw, 182));
-    I(icon, x + iw / 2, 100, size);
+    if (typeof icon === 'function') icon(x + iw / 2, 100); else I(icon, x + iw / 2, 100, size);
     TC(title, x + iw / 2, 150, { bold: true, color: c });
     const words = sub.split(' '), half = Math.ceil(words.length / 2);
     TC(words.slice(0, half).join(' '), x + iw / 2, 176, { fontSize: SM, color: MID });

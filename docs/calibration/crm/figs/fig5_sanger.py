@@ -118,30 +118,31 @@ def main():
     ax.set_ylim(0, 112)
     ax.set_yticks([0, 20, 40, 60, 80, 100])
     letter(ax, "D", dx=-0.3)
-    # E: the same comparison mouse by mouse (crm/fig5_per_mouse.py, which checks it pools back to panel B)
+    # E: the same comparison as grouped bars, mean and SD with the mice shown, as the published Sanger
+    # studies of these mice present it (crm/fig5_per_mouse.py, which checks it pools back to panel B)
     ax = fig.add_subplot(gs[1, 1:])
     pm = json.load(open(DATA / "fig5_per_mouse.json"))
     marks = {"WT2": "o", "WT3": "s", "WT4": "^"}
-    for i, cls in enumerate(pm["classes"]):
-        x0 = i * 3
-        ax.axvspan(x0 - 0.6, x0 + 1.6, color="#f3f1ec", lw=0, zorder=0)
-        for m in pm["mice"]:
-            a, b = pm["share"]["sanger"][m][i], pm["share"]["ont"][m][i]
-            ax.plot([x0, x0 + 1], [a, b], color=SOFT, lw=0.7, zorder=1)
-            ax.scatter([x0], [a], s=13, marker=marks[m], color=SANG_C, edgecolor="white", lw=0.5, zorder=3)
-            ax.scatter([x0 + 1], [b], s=13, marker=marks[m], color=ONT_C, edgecolor="white", lw=0.5, zorder=3)
-        ax.text(x0 + 0.5, 47.5, cls.replace(" ", "\n", 1), ha="center", va="top", fontsize=6)
-    ax.set_xticks([x for i in range(4) for x in (i * 3, i * 3 + 1)], ["S", "N"] * 4, fontsize=6)
-    ax.set_xlim(-0.8, 10.8)
+    xs = np.arange(len(pm["classes"]))
+    for j, (plat, col, lab) in enumerate((("sanger", SANG_C, "Sanger"), ("ont", ONT_C, "Nanopore"))):
+        vals = [[pm["share"][plat][m][i] for m in pm["mice"]] for i in range(len(pm["classes"]))]
+        mean = [np.mean(v) for v in vals]
+        sd = [np.std(v, ddof=1) for v in vals]
+        ax.bar(xs + (j - 0.5) * 0.38, mean, 0.34, yerr=sd, color=col, label=lab, zorder=2,
+               error_kw={"elinewidth": 0.8, "capsize": 2, "capthick": 0.8, "ecolor": INK})
+        for i, m in enumerate(pm["mice"]):
+            ax.scatter(xs + (j - 0.5) * 0.38 + (i - 1) * 0.07, [v[i] for v in vals], s=9, marker=marks[m],
+                       facecolor="white", edgecolor=INK, linewidths=0.5, zorder=3)
+    ax.set_xticks(xs, [c.replace(" ", "\n", 1) for c in pm["classes"]], fontsize=6)
+    ax.set_xlim(-0.6, len(pm["classes"]) - 0.4)
     ax.set_ylim(0, 48)
-    for t in ax.get_xticklabels():
-        t.set_color(SANG_C if t.get_text() == "S" else ONT_C)
     ax.set_ylabel("Share of calls (%)", labelpad=1)
     ax.set_title("The same comparison, mouse by mouse", fontsize=7)
     for m, mk in marks.items():
-        ax.scatter([], [], s=12, marker=mk, color=MID, label=f"Wt {m[-1]}")
-    ax.legend(loc="lower left", fontsize=6, ncol=3, handletextpad=0.1, columnspacing=0.8, frameon=False)
-    ax.text(1.0, -0.2, "S, Sanger; N, nanopore. Platform × type interaction over 12 types, "
+        ax.scatter([], [], s=9, marker=mk, facecolor="white", edgecolor=INK, linewidths=0.5, label=f"Wt {m[-1]}")
+    ax.legend(loc="upper right", fontsize=6, ncol=2, handletextpad=0.2, columnspacing=0.8, frameon=False,
+              borderaxespad=0.2)
+    ax.text(1.0, -0.33, "bars, mean ± SD of three mice; points, mice. Platform × type over 12 types, "
             f"p = {pm['summary']['rm_anova_interaction_p']:.2f}", transform=ax.transAxes, ha="right",
             fontsize=6, color=MID)
     letter(ax, "E", dx=-0.1)

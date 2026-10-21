@@ -3,8 +3,6 @@
 A  recall of planted lineage mutations by number of controls (J_H4, the whole run_project procedure)
 B  false calls per library by number of controls, in lineage-bearing and all-null libraries
 C  one control carrying recurrent artifacts: false calls with the noisy-control rule off and on, beside the clean set
-D  Sμ: controls from the matched experiment against controls from another experiment of the same locus, and pooled:
-   recall against false calls per library, one point per control set, ranges across the held-out libraries
 Writes out/controls_design.json, the numbers the text quotes.
 """
 import json
@@ -13,7 +11,7 @@ from collections import defaultdict
 
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
-from style import CASE, CASEF, CTRL, CTRLF, DATA, FULL, INK, MID, MM, SOFT, letter, save, setup
+from style import CASE, CASEF, CTRL, DATA, FULL, INK, MID, MM, letter, save, setup
 
 NS = (1, 2, 3, 4)
 ARM_STYLE = {"matched (2)": ("#274b7e", "o"), "other experiment (2)": ("#a3621b", "s"),
@@ -70,8 +68,8 @@ def main():
     J = s["jh4"]
     rng = random.Random(1)
     fig = plt.figure(figsize=(FULL, 64 * MM))
-    gs = gridspec.GridSpec(1, 4, figure=fig, left=0.065, right=0.99, top=0.88, bottom=0.2, wspace=0.55,
-                           width_ratios=[1, 1, 1.05, 1.25])
+    gs = gridspec.GridSpec(1, 3, figure=fig, left=0.065, right=0.99, top=0.88, bottom=0.2, wspace=0.42,
+                           width_ratios=[1, 1, 1.1])
 
     # A: recall by number of controls
     ax = fig.add_subplot(gs[0])
@@ -122,23 +120,6 @@ def main():
     ax.set_ylabel("False calls per library")
     letter(ax, "C", dx=-0.42)
 
-    # D: Sμ, matched against another experiment's controls, and pooled
-    ax = fig.add_subplot(gs[3])
-    for arm, v in s["su"].items():
-        col, mk = ARM_STYLE[arm]
-        fx = [c["false_per_library"] for c in v["per_case"].values()]
-        ry = [100 * c["recall"] for c in v["per_case"].values()]
-        x, y = v["false_per_library"], 100 * v["recall"]
-        ax.plot([min(fx), max(fx)], [y, y], color=col, linewidth=0.6, zorder=2)
-        ax.plot([x, x], [min(ry), max(ry)], color=col, linewidth=0.6, zorder=2)
-        ax.scatter([x], [y], s=16, color=col, marker=mk, zorder=3, label=arm.replace(" (", ", ").rstrip(")"))
-    ax.set_xlim(-0.2, 5); ax.set_ylim(40, 90); ax.set_yticks([40, 60, 80])
-    ax.set_xlabel("False calls per library"); ax.set_ylabel("Planted mutations recalled (%)")
-    ax.legend(loc="upper right", handletextpad=0.1, borderaxespad=0.1, labelspacing=0.3, title="Sμ controls",
-              title_fontsize=6)
-    letter(ax, "D", dx=-0.36)
-    for a in fig.axes:
-        a.tick_params(labelcolor=INK)
     save(fig, "FigureS5_controls")
 
 

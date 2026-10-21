@@ -75,7 +75,7 @@
 
   // ───────── A: mutations per sequence, per arm ─────────
   head('A', 38, 'Mutations per sequence');
-  o.push(PLOT({ name: 'A: mutations per sequence', x: 20, y: 40, w: 440, h: 432, code: CODE({ A: DATA.A, arm: ARM }, `
+  o.push(PLOT({ name: 'A: mutations per sequence', x: 20, y: 40, w: 416, h: 432, code: CODE({ A: DATA.A, arm: ARM }, `
 fig, ax = plt.subplots()
 rows = D["A"][::-1]                        # wild type at the top
 for i, a in enumerate(rows):
@@ -97,8 +97,8 @@ ax.legend(loc="lower right", frameon=False, handletextpad=0.2, borderaxespad=0.1
 `) }));
 
   // ───────── B: the 12-type spectrum, every arm ─────────
-  head('B', 494, 'Substitution spectrum');
-  o.push(PLOT({ name: 'B: substitution spectrum', x: 476, y: 40, w: 352, h: 432, code: CODE({ B: DATA.B, r: DATA.r, arm: ARM }, `
+  head('B', 464, 'Substitution spectrum');
+  o.push(PLOT({ name: 'B: substitution spectrum', x: 446, y: 40, w: 336, h: 432, code: CODE({ B: DATA.B, r: DATA.r, arm: ARM }, `
 fig, ax = plt.subplots()
 ax.plot([0, 49], [0, 49], color=SOFT, linewidth=lw(0.6), linestyle=(0, (3, 2)), zorder=1)
 for x, y, g, t in D["B"]:
@@ -111,8 +111,8 @@ ax.text(0.04, 0.96, f"r = {D['r']:.4f}\\n12 types × 5 arms", transform=ax.trans
 `) }));
 
   // ───────── C: the four classes the paper tests ─────────
-  head('C', 862, 'The four classes tested');
-  o.push(PLOT({ name: 'C: the four classes tested', x: 844, y: 40, w: 350, h: 432, code: CODE({ C: DATA.C, arm: ARM }, `
+  head('C', 816, 'The four classes tested');
+  o.push(PLOT({ name: 'C: the four classes tested', x: 798, y: 40, w: 318, h: 432, code: CODE({ C: DATA.C, arm: ARM }, `
 fig, ax = plt.subplots()
 (we, wf), (ke, kf) = D["arm"]["Samhd1_WT"], D["arm"]["Samhd1_KO"]
 for i, c in enumerate(D["C"]):
@@ -135,7 +135,7 @@ leg.get_texts()[1].set_fontstyle("italic")
 
   // ───────── D: the paper's claims, and what SHMtrace finds ─────────
   {
-    const x0 = 1204, pubR = 1300, shR = 1400, y0 = 56;
+    const x0 = 1146, pubR = 1262, shR = 1380, y0 = 56;
     head('D', x0 - 34, 'Claims');
     TR('Pub.', pubR, y0 + 34, { bold: true });
     TR('SHMtrace', shR, y0 + 34, { bold: true });

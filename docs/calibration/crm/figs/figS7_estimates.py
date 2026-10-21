@@ -1,11 +1,9 @@
 """Figure S7: single-read estimate, power, and UMI consensus on simulated libraries.
 
 A  single-read estimate: change in the estimate against one-read mutations planted (J_H4, 3 held-out controls)
-B  power at alpha 0.05 to detect a 2-fold change, by animals per group (J_H4 Wt pilot; power_s3.py), with a band
-   for the uncertainty of a CV estimated from three mice
+B  power at alpha 0.05 by animals per group and by the size of the difference sought (J_H4 Wt pilot; power_s3.py)
 C  UMI consensus against every read: false calls per library (umi_sim)
 D  indels planted into held-out AID-null libraries (indel_spike.py): recall by planted read count, J_H4 and N114
-E  the recall that goes with C: consensus removes the false calls without losing planted mutations
 """
 import json
 from collections import defaultdict
@@ -41,9 +39,9 @@ def indel_recall(key):
 
 def main():
     setup()
-    fig = plt.figure(figsize=(FULL, 112 * MM))
-    gs = gridspec.GridSpec(2, 3, figure=fig, left=0.075, right=0.978, top=0.93, bottom=0.09,
-                           wspace=0.42, hspace=0.46)
+    fig = plt.figure(figsize=(FULL, 104 * MM))
+    gs = gridspec.GridSpec(2, 2, figure=fig, left=0.075, right=0.978, top=0.93, bottom=0.10,
+                           wspace=0.30, hspace=0.46)
     # A
     ax = fig.add_subplot(gs[0, 0])
     rows = json.load(open(DATA / "single_read_spike.json"))
@@ -59,34 +57,34 @@ def main():
     ax.set_xlabel("One-read mutations planted")
     ax.set_ylabel("Change in single-read estimate")
     ax.set_title("Single-read estimate", fontsize=7)
-    letter(ax, "A", dx=-0.3)
-    # B: power from the J_H4 wild-type pilot (power_s3.py), with the pilot CV's own uncertainty
+    letter(ax, "A", dx=-0.13)
+    # B: power by effect size. A 2-fold difference between two AID-proficient groups is a far harder question
+    # than the AID-versus-null contrasts this paper makes, and reporting only that invites the reading that the
+    # method needs tens of animals.
     ax = fig.add_subplot(gs[0, 1])
     pw = json.load(open(DATA / "power_s3.json"))
     animals = pw["animals"]
-    cols = {"density": "#1f6f8b", "clone_weighted": "#274b7e", "frequency": "#9aa5b1"}
-    d = pw["measures"]["density"]
-    ax.fill_between(animals, d["power_cv_double"], d["power_cv_low"], color=cols["density"], alpha=0.15, lw=0)
-    for m, col in cols.items():
-        r = pw["measures"][m]
-        ax.plot(animals, r["power"], marker="o", ms=2.4, color=col, lw=1, label=f"{r['label']} (CV {r['cv']:.2f})")
-    # where the unique-density estimate reaches 80%
-    n80 = float(np.interp(0.8, d["power"], animals))
+    folds = pw["folds"]
+    shades = {"2.0": "#9aa5b1", "5.0": "#6d9ad0", "10.0": "#274b7e", "50.0": "#1f6f8b"}
+    for f, col in shades.items():
+        if f not in folds["power"]:
+            continue
+        ax.plot(animals, folds["power"][f], marker="o", ms=2.4, color=col, lw=1, label=f"{float(f):g}-fold")
     ax.axhline(0.8, color=INK, ls=":", lw=0.6)
-    ax.annotate(f"≈{n80:.0f} mice", (n80, 0.8), (n80 * 1.35, 0.6), fontsize=6, color=cols["density"],
-                arrowprops={"arrowstyle": "-", "lw": 0.5, "color": cols["density"]})
     ax.set_xscale("log")
     ax.set_xticks(animals, [str(a) for a in animals], fontsize=6)
     ax.minorticks_off()
-    ax.set_ylim(0, 1.32)
+    ax.set_ylim(0, 1.2)
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_xlabel("Animals per group")
-    ax.set_ylabel("Power, 2-fold change")
-    ax.set_title("Power (J$_H$4 wild-type pilot)", fontsize=7)
-    ax.legend(fontsize=6, loc="upper left", bbox_to_anchor=(0, 1.02), handlelength=1.4)
-    letter(ax, "B", dx=-0.3)
+    ax.set_ylabel("Power at α = 0.05")
+    ax.set_title("Power by size of difference", fontsize=7, pad=13)
+    ax.text(0.5, 1.005, f"unique density, CV {folds['cv']:.2f}; this paper's own contrasts are 38–141-fold",
+            transform=ax.transAxes, ha="center", va="bottom", fontsize=6, color=MID)
+    ax.legend(fontsize=6, loc="lower right", handlelength=1.4, borderaxespad=0.2, labelspacing=0.3)
+    letter(ax, "B", dx=-0.13)
     # C
-    ax = fig.add_subplot(gs[0, 2])
+    ax = fig.add_subplot(gs[1, 0])
     runs = json.load(open(CAL / "umi_sim/runs.json"))
     cells = [("JH4", "polyclonal"), ("JH4", "low"), ("N114", "subclonal"), ("N114", "low")]
     x = np.arange(len(cells))
@@ -95,17 +93,18 @@ def main():
         ax.bar(x + (j - 0.5) * 0.38, fp, 0.36, color=col, label=lab)
         if kind == "umi":
             # three of the four are exactly zero, and a zero-height bar reads as missing data
-            for xi, v in zip(x, fp):
+            for xi, v in zip(x, fp, strict=True):
                 ax.text(xi + 0.19, v + 0.25, "0" if v == 0 else f"{v:.1f}", ha="center", va="bottom",
                         fontsize=6, color=col)
-    ax.set_xticks(x, ["J$_H$4\npoly", "J$_H$4\nlow", "N114\nsub", "N114\nlow"])
+    ax.set_xticks(x, ["J$_H$4\npolyclonal", "J$_H$4\nlow load", "N114 V$_H$\nsubclonal", "N114 V$_H$\nlow load"],
+                  fontsize=6)
     ax.set_ylabel("False calls per library")
     ax.set_title("UMI consensus (simulated)", fontsize=7)
     ax.legend(fontsize=6, loc="upper right")
-    letter(ax, "C", dx=-0.3)
+    letter(ax, "C", dx=-0.13)
 
     # D: planted indels, the indel counterpart of Figure 3A and 3B
-    ax = fig.add_subplot(gs[1, 0])
+    ax = fig.add_subplot(gs[1, 1])
     teal = CALLERS["recommended"][1]
     notes = []
     for j, (key, ls, mk) in enumerate((("jh4", "-", "o"), ("n114", "--", "s"))):
@@ -127,29 +126,7 @@ def main():
     ax.legend(loc="lower right", fontsize=6, handlelength=2.0, borderaxespad=0.1)
     ax.text(0.5, 1.005, "false calls/library: " + ", ".join(notes), transform=ax.transAxes, ha="center",
             va="bottom", fontsize=6, color=MID)
-    letter(ax, "D", dx=-0.3)
-    # E: the recall behind C. Consensus removes the false calls of panel C without losing
-    # planted mutations, which a false-call panel on its own cannot show.
-    ax = fig.add_subplot(gs[1, 1])
-    for j, (kind, col, lab) in enumerate((("reads", "#9aa5b1", "every read"),
-                                          ("umi", "#1f6f8b", "UMI consensus"))):
-        rec = [100 * np.mean([r[kind]["recall"] for r in runs if (r["amplicon"], r["scenario"]) == c])
-               for c in cells]
-        ax.bar(x + (j - 0.5) * 0.38, rec, 0.36, color=col, label=lab)
-        if kind == "umi":
-            for xi, v in zip(x, rec):
-                ax.text(xi + 0.19, v + 1.2, f"{v:.0f}", ha="center", va="bottom", fontsize=6, color=col)
-    mol = np.mean([r["umi"]["molecules_analysed"] for r in runs
-                   if (r["amplicon"], r["scenario"]) in cells])
-    ax.set_xticks(x, ["J$_H$4\npoly", "J$_H$4\nlow", "N114\nsub", "N114\nlow"])
-    ax.set_ylim(0, 126)
-    ax.set_ylabel("Planted mutations recalled (%)")
-    ax.set_title("Recall under consensus", fontsize=7)
-    # above the bars: every bar here clears 90%, so there is no room inside them
-    ax.text(0.5, 0.955, f"{mol:.0f} molecules per library from 500 reads", transform=ax.transAxes,
-            ha="center", va="top", fontsize=6, color=MID)
-    letter(ax, "E", dx=-0.3)
-
+    letter(ax, "D", dx=-0.13)
     save(fig, "FigureS7")
 
 

@@ -34,7 +34,7 @@ KRT = [
     ("Anti-HLA-A2 antibody clone sequences", "Devilder et al.[@devilder2019]",
      "the study's Additional file 1"),
     ("**Experimental models: Cell lines**", "", ""),
-    ("N114 hybridoma", "Martin et al.[@martin2002]", "N/A"),
+    ("N114 hybridoma (V_{H}, J558/IGHV1 family)", "Martin et al.[@martin2002]", "N/A"),
     ("**Experimental models: Organisms/strains**", "", ""),
     ("Mouse: C57BL/6N wild type", "{lab_wt_source}", "{lab_wt_rrid}"),
     ("Mouse: *Aicda*^{−/−} (C57BL/6 background)", "Muramatsu et al.[@muramatsu2000]", "{lab_aicda_rrid}"),
@@ -89,7 +89,12 @@ METHODS = [
           "was released from the sorted cells, or from 5 × 10^{6} hybridoma cells, by proteinase K digestion "
           "({lab_lysis}), and lysate quality was checked by A260/280 and A260/230 ratios."),
     ("h2", "Amplification and sequencing"),
-    ("p", "The 1,230-bp J_{H}4 intron amplicon[@jolly1997,@barbulescu2024] and the 655-bp N114 V-region "
+    ("p", "The N114 line carries a fixed, rearranged heavy-chain V region of the J558/IGHV1 family: IgBLAST assigns "
+          "it to IGHV1-47-36 with IGHD1-1 and IGHJ3, and two independently held sequences of the line's V region "
+          "match that gene over its whole length, so the assignment does not rest on this analysis. The "
+          "rearranged region carries two differences from that germline in CDR2, which the reads confirm, so the "
+          "analysis is made against the line's own reference throughout and the V region is called N114 V_{H} "
+          "rather than by an allele. The 1,230-bp J_{H}4 intron amplicon[@jolly1997,@barbulescu2024] and the 655-bp N114 V-region "
           "amplicon[@martin2002] were amplified with Platinum SuperFi II high-fidelity DNA polymerase. Each 50-µL "
           "reaction held 1× SuperFi II master mix, 0.5 µM of each primer and {lab_lysate_volume} of lysate, with "
           "a no-template control in every setup; wild-type and AID-null samples were amplified together. The "
@@ -101,7 +106,9 @@ METHODS = [
           "R10.4.1 flow cells, Kit 14 chemistry, and super-accuracy basecalling "
           "(dna_r10.4.1_e8.2_400bps_sup@v5.2.0). Between 2,336 and 5,000 reads were delivered per library. For the "
           "Sanger benchmark, J_{H}4 amplicons from separate PCRs of the same DNA had been cloned and "
-          "sequenced[@barbulescu2025], and the 447 resulting chromatograms were re-analyzed here."),
+          "sequenced[@barbulescu2025]. Of the {sanger_archive} chromatograms in that archive, which also covers "
+          "other mice of that study, {sanger_sheet} were filed to the six mice sequenced here and re-analyzed; "
+          "{sanger_clones} returned analyzable clones (Figure S12)."),
     ("h2", "Read preparation"),
     ("p", "SHMtrace reads FASTQ files, which may be gzipped or, for Illumina data, paired files that are merged on "
           "their overlap. Reads are then processed in the following order. First, reads longer than a locus-specific "
@@ -596,8 +603,10 @@ LEGENDS = [
      "Quality-based tests can retain recurrent technical mismatches when reported qualities do not reflect their "
      "source. SHMtrace compares observed support with mismatch rates measured by substitution, strand and quality in "
      "matched AID-null libraries. Check marks and crosses indicate correct and incorrect decisions in the schematic. "
-     "(B) Read preparation. Sanger traces use Q≥20 trimming instead of step 1; they undergo competitive alignment and "
-     "relevant paralog checks but are not downsampled. (C) Nanopore, Illumina and UMI-consensus libraries use a "
+     "(B) The inputs SHMtrace accepts and the preparation every library passes through before calling: nanopore "
+     "and PacBio long reads, Sanger traces, merged Illumina pairs and UMI consensus sequences. Sanger traces "
+     "use Q≥20 trimming instead of step 1; they undergo competitive alignment and relevant paralog checks "
+     "but are not downsampled. (C) Nanopore, Illumina and UMI-consensus libraries use a "
      "control-fitted test and an empirical false-discovery threshold; a call can have one supporting read. Sanger "
      "substitutions at Q≥20 are counted directly, with the control-derived expected background reported beside them "
      "rather than subtracted, because it estimates the background of the set and not of any one call. The workflows "
@@ -664,7 +673,8 @@ LEGENDS = [
      "line, identity; r, descriptive Pearson correlation. The displayed Fisher interval describes pooled categories "
      "rather than between-mouse uncertainty. (C) Call shares in 25-bp bins across the shared interval. (D) G:C calls "
      "at WRC/GYW and A:T calls at WA/TW; bars, three-mouse means; points, mice; dashed lines, window opportunities. "
-     "(E) Four displayed substitution classes per mouse and platform; lines join matched mice. The platform×type test "
+     "(E) The four substitution classes on each platform; bars, mean ± SD of the three mice; points, mice. The "
+     "platform×type test "
      "uses all twelve types with mouse as subject. Pooled values generate panel B. See also Figures S12–S15 and Tables "
      "S4 and S5."),
     ("Figure 6. Long reads retain positional profiles and linked mutation patterns",
