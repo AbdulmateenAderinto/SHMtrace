@@ -559,9 +559,9 @@ STATS = [
 ]
 
 SUPP_FIGS = [
-    ("Figure S1. Detailed workflow and read accounting, related to Figure 1",
+    ("Figure S1. Detailed workflow, related to Figure 1",
      FIG / "FigureS1_workflow_preview.png",
-     "The workflow of Figure 1 in full, from the design of the two experiments to the fate of every delivered read. "
+     "The workflow of Figure 1 in full, from the design of the two experiments to the counting of a Sanger clone. "
      "(A) Experimental design for the J_{H}4 and N114 V_{H} libraries. (B, C) Read preparation and variant calling from "
      "the delivered sequence files, which is the read-library route of Figure 1C. By default, an allele carried by "
      "50% or more of the reads is excluded as a likely germline difference; because a mutation driven to that "
@@ -570,8 +570,8 @@ SUPP_FIGS = [
      "window. The mismatch rate measured in the AID-null clones is reported beside those counts rather than "
      "subtracted from them, because it estimates the background of the whole set and not of any one call. A "
      "sequencing clone is one PCR-derived molecule sequenced once, so it says nothing about which B cell the "
-     "molecule came from. (E) What happened to every delivered read in each library; the line marks the 500 reads "
-     "drawn for analysis. Experimental details: as in Figure 5 for J_{H}4 and Figure 4 for N114 V_{H}."),
+     "molecule came from. What became of every delivered read is in Figure 4I. Experimental details: as in Figure 5 "
+     "for J_{H}4 and Figure 4 for N114 V_{H}."),
     ("Figure S2. Reported base qualities and observed control mismatch rates, related to Figure 2",
      FIG / "FigureS2.png",
      "A reported base quality is a prediction, and this is how far it holds at each of the four nanopore loci. Top, "

@@ -2,8 +2,8 @@
   // Figure S1 of the Cell Reports Methods article (a copy of the JIM manuscript's detailed workflow, kept
   // apart so that submission's figure is untouched): the full workflow as SHMtrace runs it, from the delivered reads.
   // A design; B read preparation and C variant calling (SHMtrace's own steps and settings, from the
-  // presets jh4_intron / n114_vregion and the recommended mode); D the Sanger route; E what happened to
-  // every delivered read (READS, SHMtrace's per-library accounting, injected by build.js).
+  // presets jh4_intron / n114_vregion and the recommended mode); D the Sanger route. Read accounting was
+  // panel E until 21 October; it duplicated Figure 4I, which keeps the seven-category version.
   // Cell Press production rules (checked by build.js): 174 mm wide (1 unit = 0.352 pt), at most 200 mm
   // tall, Arial, text 6-8 pt, strokes 0.5-1.5 pt, no red with green. Flow arrows are attached to the
   // objects they join; decorative lines are thin shapes.
@@ -207,38 +207,8 @@
   const pin = (x0) => R(x0, d0 + 31, 1, 2, { fill: '#ffffff' });
   anchors.slice(1).forEach((t, i) => LINK(pin(anchors[i].x + anchors[i].w + 12), 'e', pin(t.x - 14), 'w', { color: SANG, headSize: 0.7 }));
 
-  // ───────── E. What SHMtrace did with every delivered read ─────────
-  const ey = d0 + dh + 16;
-  panel('E', 'Read accounting in SHMtrace', ey);
-  const lgx = 460, ly = ey + 6;
-  R(lgx, ly, 14, 12, { fill: CASE }); R(lgx + 14, ly, 14, 12, { fill: CTRL }); T('usable', lgx + 36, ly - 5, { fontSize: SM, color: MID });
-  R(lgx + 120, ly, 26, 12, { fill: QCG }); T('length / quality', lgx + 154, ly - 5, { fontSize: SM, color: MID });
-  R(lgx + 300, ly, 26, 12, { fill: ALG }); T('alignment / paralog', lgx + 334, ly - 5, { fontSize: SM, color: MID });
-  SEG(lgx + 540, ly + 6, lgx + 566, ly + 6, 2, INK); T('500 analyzed', lgx + 574, ly - 5, { fontSize: SM, color: MID });
-  const split = (a) => [a.usable, a.too_long + a.low_quality, a.not_target + a.chimeric + a.short_alignment + a.paralogue_alleles + a.minor_haplotype];
-  const groups = [
-    { title: '{i|J_{H}4} (GC B cells)', x: 30, data: READS.jh4, rows: [['{i|Wt} 2', 'WT2', CASE], ['{i|Wt} 3', 'WT3', CASE], ['{i|Wt} 4', 'WT4', CASE], ['{i|Aicda}^{−/−} 1', 'KO1', CTRL], ['{i|Aicda}^{−/−} 2', 'KO2', CTRL], ['{i|Aicda}^{−/−} 3', 'KO3', CTRL]] },
-    { title: 'N114 V_{H} (subclones)', x: 720, data: READS.n114, rows: [['pMX-{i|Aicda} C1', 'C1', CASE], ['pMX-{i|Aicda} D3', 'D3', CASE], ['pMX-{i|Aicda} D5', 'D5', CASE], ['empty C3', 'C3', CTRL], ['empty C4', 'C4', CTRL], ['empty D1', 'D1', CTRL]] },
-  ];
-  let bottom = 0;
-  groups.forEach((g) => {
-    const top = ey + 70, bx0 = g.x + 170, bw = 380, s = bw / 5000, rh = 27;
-    T(g.title, g.x, ey + 36, { fontSize: HEAD, bold: true });
-    g.rows.forEach(([lab, key, c], i) => {
-      const y = top + i * rh, [use, qc, al] = split(g.data[key]);
-      TR(lab, bx0 - 10, y - 2, { fontSize: SM });
-      R(bx0, y, use * s, 18, { fill: c });
-      R(bx0 + use * s, y, qc * s, 18, { fill: QCG });
-      R(bx0 + (use + qc) * s, y, al * s, 18, { fill: ALG });
-      T(use.toLocaleString('en-GB'), bx0 + (use + qc + al) * s + 8, y - 0.5, { fontSize: SM, color: MID });
-    });
-    const b = top + g.rows.length * rh - 6;
-    SEG(bx0 + 500 * s, top - 8, bx0 + 500 * s, b, 2, INK);
-    SEG(bx0, b + 4, bx0 + bw, b + 4, 1.8, INK);
-    [0, 1000, 2000, 3000, 4000, 5000].forEach((v) => { SEG(bx0 + v * s, b + 4, bx0 + v * s, b + 10, 1.8, INK); TC(v ? `${v / 1000}k` : '0', bx0 + v * s, b + 13, { fontSize: SM, color: MID }); });
-    TC('delivered reads', bx0 + bw / 2, b + 36, { fontSize: SM, color: MID });
-    bottom = Math.max(bottom, b + 64);
-  });
+  const bottom = d0 + dh + 30;
+
   return { id: 'fig-s11', name: 'Figure S1', width: W, height: bottom, background: '#ffffff', objects: o,
-    alt: 'Figure S1. Workflow as run by SHMtrace from the delivered reads: experimental design, read preparation, variant calling, the Sanger route and the fate of every delivered read.' };
+    alt: 'Figure S1. Workflow as run by SHMtrace from the delivered reads: experimental design, read preparation, variant calling and the Sanger route.' };
 }

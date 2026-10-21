@@ -989,6 +989,14 @@ def compute():
         strict = [v for ds in pj.values() for k, v in ds.items() if k != "default"]
         N.update(st_p_hi=pfmt(max(v["p_log_welch"] for v in strict)),
                  st_fold_lo=f0(min(v["fold"] for v in strict)), st_fold_hi=f0(max(v["fold"] for v in strict)))
+    # Figure 4I: the usable reads each library yielded, against the 500 drawn for analysis. This was the
+    # point of Figure S1E, which was dropped on 21 October because it repeated Figure 4I.
+    usable = [v["usable"] for run in ("jh4_shmtrace", "n114_shmtrace")
+              for v in _load(FIG / f"{run}/table_s1.json").values()]
+    if usable:
+        N["reads_usable_lo"] = f"{min(usable):,}"
+        N["reads_usable_hi"] = f"{max(usable):,}"
+        N["reads_usable_n"] = str(len(usable))
     # Figure S3: how many figures the J_H4 project run actually drew, of the 26 a run can produce
     jh4_run = FIG / "jh4_shmtrace/project.json"
     if jh4_run.exists():

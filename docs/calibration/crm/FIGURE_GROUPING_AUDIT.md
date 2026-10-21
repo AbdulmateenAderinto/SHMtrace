@@ -9,7 +9,7 @@ material it belongs with, and two of those are duplications across the main/supp
 None is wrong, and the paper reads correctly as it stands; what follows is where a reader has to carry
 something across the figure to use it.
 
-Fixed while auditing: Figure S1D said "447 traces (.ab1), 8 orders", which was comment 10 of the
+Fixed while auditing (see also item 2): Figure S1D said "447 traces (.ab1), 8 orders", which was comment 10 of the
 20 October round. The text was corrected then, the figure was not. It now reads "184 traces (.ab1),
 these six mice". The same figure's bare `N114` labels became `N114 V_H`.
 
@@ -46,7 +46,7 @@ truth), G (which statistical test to use for group comparisons).
 recall-versus-false-calls summary. Row 2 = D, E, F, G — lineages, the estimates they support, and the
 group test. Two rows, two questions, instead of the present split.
 
-### 2. Figure 4I is read accounting among caller comparisons, and duplicates Figure S1E
+### 2. ~~Figure 4I duplicates Figure S1E~~ — FIXED 21 October
 
 A–H compare five callers over six datasets. **I is the fate of every delivered read** for this study's
 twelve libraries — no callers in it, a different scope, and a bookkeeping question rather than a
@@ -56,9 +56,14 @@ It also overlaps **Figure S1E**, "Read accounting in SHMtrace", which shows the 
 delivered reads with the 500-read line. S1E gives three categories and totals; 4I gives seven
 categories as percentages. Same analysis, two figures.
 
-**Suggested:** keep one. 4I's seven-category breakdown is the more informative of the two, so either
-move it into S1 in place of S1E, or cut S1E and cite 4I from the workflow figure. Removing I from
-Figure 4 would also leave that figure as a clean 2-row caller comparison.
+**Done.** Panel E was removed from Figure S1, whose seven-category counterpart in Figure 4I is the
+more informative of the two. Figure S1 is now "Detailed workflow", A–D, and 153 mm tall instead of 188;
+its legend points at Figure 4I for the read accounting.
+
+S1E carried one thing 4I did not: absolute counts with the 500-read line, which showed at a glance that
+every library had reads to spare. Figure 4I is percentages only, so that point now travels as a number
+in its legend — each library yielded 962–2,905 usable reads against the 500 analysed — computed in
+`crm_numbers.py` from the same accounting, not written in by hand.
 
 ### 3. Figure 7E is a method validation among biological datasets
 
@@ -111,7 +116,9 @@ skip two panels to do it. B and E adjacent would read more directly.
 
 ---
 
-## If only one thing is changed
+## What is left
 
-Item 2. Figure 4I and Figure S1E are the same analysis printed twice, and that is the only finding here
-that is a duplication rather than a matter of order.
+Item 2, the only duplication, is fixed. Items 1, 3, 4 and 5 remain, and all four are questions of order
+rather than of repeated material, so the paper is correct as it stands either way. Of them, item 1
+(Figure 3H sitting four panels from the comparison it belongs to) is the one a reader is most likely to
+trip over.
