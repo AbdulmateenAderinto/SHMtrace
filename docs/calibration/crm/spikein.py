@@ -54,7 +54,16 @@ VARIANTS = {"recommended_bhall": ("recommended", {"bh_family": "all"}),
             "recommended_q30_fdr20": ("recommended", {"single_read_call_min_quality": 30,
                                                       "fdr_alpha": 0.20}),
             "recommended_q25_fdr20": ("recommended", {"single_read_call_min_quality": 25,
-                                                      "fdr_alpha": 0.20})}
+                                                      "fdr_alpha": 0.20}),
+            # ablations of the recommended mode, labelled by what each actually tests. ctlnull_bh: each site
+            # against its per-position error rate in the other controls, Benjamini-Hochberg (what the "v0.1"
+            # and "pbinom" profiles above both ran, since a supplied control rate takes precedence over read
+            # qualities). qualonly_pbinom: the exact Poisson-binomial on read qualities with no control null at
+            # all, BH -- the quality-only baseline. Neither uses the quality calibration or the decoy threshold.
+            "ctlnull_bh": ("v0.1", {}),
+            "qualonly_pbinom": ("pbinom", {})}
+# profiles called without any control null, so the controls play no part in the test
+NO_NULL = {"qualonly_pbinom"}
 
 
 def run(key, reps, n_sites, seed=1):
@@ -95,7 +104,7 @@ def run(key, reps, n_sites, seed=1):
                     mode, extra = VARIANTS.get(prof, (prof, {}))
                     pp = replace(base, **{**pipeline.mode_overrides(mode), **extra})
                     nr = None
-                    if pp.error_model != "geneious":
+                    if pp.error_model != "geneious" and prof not in NO_NULL:
                         # Calibration depends on candidate eligibility as well
                         # as preparation. Reuse only for an identical Params set.
                         k = json.dumps(pipeline.to_dict(pp), sort_keys=True)

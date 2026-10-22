@@ -16,7 +16,8 @@ from openpyxl.styles import Alignment, Font
 OUT = Path(__file__).parent / "out"
 LABEL = {"recommended": "SHMtrace", "geneious": "Geneious rule", "lofreq": "LoFreq (defaults)",
          "lofreq_nobaq": "LoFreq (-B, BAQ off)", "lofreq_permissive": "LoFreq (-B, p<=0.05 uncorrected, filters off)",
-         "v0.1": "per-position null", "pbinom": "quality model only",
+         "v0.1": "per-position control null", "pbinom": "per-position control null (pbinom profile)",
+         "ctlnull_bh": "per-position control null, BH", "qualonly_pbinom": "read qualities only, no controls",
          "clairs": "ClairS (defaults, ont_r10_dorado_sup_5khz)", "clairs_permissive": "ClairS (snv_min_af 0.005)",
          "clair3": "Clair3 (defaults, r1041_e82_400bps_sup_v520)", "clair3_permissive": "Clair3 (snp_min_af 0.01)",
          "deepvariant": "DeepVariant (defaults, ONT_R104)",

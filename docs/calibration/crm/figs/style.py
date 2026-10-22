@@ -18,8 +18,11 @@ CALLERS = {   # key: (label, colour, marker)
     "lofreq": ("LoFreq, defaults", "#9aa5b1", "v"),
     "lofreq_nobaq": ("LoFreq, BAQ off", "#6a4c93", "^"),
     "lofreq_permissive": ("LoFreq, permissive", "#c08fc7", "D"),
-    "v0.1": ("Per-position null", "#5f6b75", "x"),
-    "pbinom": ("Quality model only", "#2c5d8a", "P"),
+    "v0.1": ("Per-position control null", "#5f6b75", "x"),
+    # the "pbinom" profile ran with a control null, which takes precedence: it is the per-position null too
+    "pbinom": ("Per-position control null", "#5f6b75", "x"),
+    "ctlnull_bh": ("Per-position control null", "#5f6b75", "x"),
+    "qualonly_pbinom": ("Read qualities only", "#2c5d8a", "P"),
     "clairs": ("ClairS", "#c99a06", "X"),
     "deepsomatic": ("DeepSomatic", "#b5487a", "P"),
 }
