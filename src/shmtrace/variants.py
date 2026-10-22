@@ -274,6 +274,13 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         notes.append("error_model 'qcal' needs control reads (--null or a panel); "
                      "used the read-quality model instead")
         model = "auto"
+    if model == "pbinom" and null_rates is not None:
+        # As under "auto", a control rate measured at a site takes precedence over the read
+        # qualities, so with controls the exact Poisson-binomial applies only where they gave none.
+        notes.append("error_model 'pbinom' with control reads: sites the controls cover were tested "
+                     "against their per-position control error rate, as under 'auto'; the exact "
+                     "Poisson-binomial on read qualities applies only where the controls give no rate. "
+                     "Run without controls for the read-quality test alone")
     minq = gate_quality(p)
 
     win = p.analysis_window

@@ -59,6 +59,23 @@ def test_poisson_binomial_matches_binomial_when_probabilities_are_equal():
     assert _pbinom_sf(3, [0.01] * 200) == pytest.approx(_binom_sf(3, 200, 0.01), rel=1e-6)
 
 
+def test_pbinom_with_controls_says_the_control_rate_was_used(tmp_path):
+    """With a control null, 'pbinom' tests a covered site against its control rate, exactly as
+    'auto' does, and must say so: the spike-in ablations ran it that way unknowingly."""
+    ref = _ref(tmp_path)
+    reads = _reads(40, edits=_edits((range(4), 10, A10)))
+    null = {(pos, alt): 0.002 for pos in range(len(REF)) for alt in "ACGT" if alt != REF[pos]}
+    called = {}
+    for model, rates in (("pbinom", null), ("auto", null), ("pbinom", None)):
+        v, stats = call_variants(reads, ref, "ref", _params(error_model=model, multiple_testing="none"), rates)
+        called[(model, rates is None)] = (next(x.p_value for x in v if x.pos == 11),
+                                          any("'pbinom' with control reads" in n for n in stats.get("notes", [])))
+    assert called[("pbinom", False)] == (called[("auto", False)][0], True)
+    assert called[("auto", False)][1] is False
+    p_qual, noted = called[("pbinom", True)]
+    assert noted is False and p_qual != called[("pbinom", False)][0]
+
+
 def test_poisson_is_a_close_approximation_for_small_error():
     probs = [0.001] * 500
     assert _pbinom_sf(2, probs) == pytest.approx(_poisson_sf(2, 0.5), rel=0.05)
