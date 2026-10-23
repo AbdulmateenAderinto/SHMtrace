@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="493.228346pt" height="354.330709pt" viewBox="0 0 493.228346 354.330709" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-21T23:58:07.769424</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 354.330709 
+L 493.228346 354.330709 
+L 493.228346 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="line2d_1">
+    <path d="M 17.262992 135.974409 
+L 471.378331 135.974409 
+" clip-path="url(#p4973e2a60b)" style="fill: none; stroke: #bdc8d1; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 17.262992 191.994094 
+L 471.378331 191.994094 
+" clip-path="url(#p4973e2a60b)" style="fill: none; stroke: #bdc8d1; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 17.262992 248.01378 
+L 471.378331 248.01378 
+" clip-path="url(#p4973e2a60b)" style="fill: none; stroke: #bdc8d1; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 17.262992 304.033465 
+L 471.378331 304.033465 
+" clip-path="url(#p4973e2a60b)" style="fill: none; stroke: #bdc8d1; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="17.262992" y="21.521069" transform="rotate(-0 17.262992 21.521069)">What each platform measures</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="17.262992" y="60.336349" transform="rotate(-0 17.262992 60.336349)">Platform</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="99.829417" y="60.336349" transform="rotate(-0 99.829417 60.336349)">Measurement unit</text>
+   </g>
+   <g id="text_4">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="196.156913" y="60.336349" transform="rotate(-0 196.156913 60.336349)">Analysis route</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="342.941669" y="60.336349" transform="rotate(-0 342.941669 60.336349)">Output / qualification</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1f6f8b" x="17.262992" y="101.861714" transform="rotate(-0 17.262992 101.861714)">Sanger</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="99.829417" y="101.900971" transform="rotate(-0 99.829417 101.900971)">Cloned amplicon</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 101.863807)">Q ≥ 20 changes counted;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 112.510134)">background reported alongside</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 101.860143)">Per-clone load and spectrum;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 113.175946)">shared readable window</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1f6f8b" x="17.262992" y="157.884539" transform="rotate(-0 17.262992 157.884539)">Nanopore</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="99.829417" y="157.879828" transform="rotate(-0 99.829417 157.879828)">Amplicon read</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 158.112235)">Control-calibrated variants;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 168.569076)">optional UMI consensus</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 157.840571)">Long positional span;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 168.570647)">junction-defined clones</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1f6f8b" x="17.262992" y="214.526068" transform="rotate(-0 17.262992 214.526068)">Illumina</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="99.829417" y="213.860256" transform="rotate(-0 99.829417 213.860256)">Merged paired read</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 214.13192)">Control-calibrated variants;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 224.590332)">reference and layout stated</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 213.860256)">Mutation burden and signature;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 224.549504)">span limited by read layout</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1f6f8b" x="17.262992" y="270.545753" transform="rotate(-0 17.262992 270.545753)">PacBio</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 6.7px; font-family: 'Arial'; text-anchor: start; fill: #1d2733" x="99.829417" y="269.920769" transform="rotate(-0 99.829417 269.920769)">Switch-junction read</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 269.879941)">Junction alignment and</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(196.156913 280.569189)">unique-junction summaries</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 269.879941)">Microhomology, insertions;</text>
+    <text style="font-size: 6.7px; font-family: 'Arial'; fill: #1d2733" transform="translate(342.941669 280.569189)">placement ambiguity checked</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 6.5px; font-family: 'Arial'; text-anchor: start; fill: #4a5562" x="17.262992" y="335.127847" transform="rotate(-0 17.262992 335.127847)">Measurement units and counting rules differ across routes; absolute densities should not be treated as interchangeable.</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p4973e2a60b">
+   <rect x="17.262992" y="12.401575" width="458.702362" height="329.527559"/>
+  </clipPath>
+ </defs>
+</svg>

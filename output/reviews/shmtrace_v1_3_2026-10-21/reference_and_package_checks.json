@@ -1,0 +1,34 @@
+{
+  "cited_source_keys": 51,
+  "unknown_reference_keys": [],
+  "article_reference_entries": 51,
+  "duplicate_article_dois": {},
+  "complete_bookmarks": 89,
+  "complete_internal_links": 389,
+  "broken_internal_links": [],
+  "duplicate_bookmark_names": [],
+  "missing_package_images": [
+    "FigureS7.png",
+    "FigureS12_bookkeeping.png"
+  ],
+  "supplement_images_not_listed_in_package": [
+    "FigureS7_indels.png",
+    "FigureS8_estimates.png"
+  ],
+  "laboratory_blockers": [
+    "GL7 Cat#; RRID",
+    "proteinase K Cat#",
+    "Monarch kit Cat#",
+    "Aicda-/- RRID (MGI)",
+    "sex of each of the 6 J_{H}4 mice (e.g. Wt2 M, Wt3 F, ...)",
+    "how the N114 hybridoma was authenticated, or 'not authenticated'",
+    "N114 mycoplasma testing result and date, or 'not tested'",
+    "FACS buffer composition, e.g. PBS with 2% fetal bovine serum",
+    "lysis buffer, volume, and incubation",
+    "lysate volume per PCR",
+    "SRA BioProject",
+    "data deposit DOI",
+    "SHMtrace Zenodo DOI",
+    "companion Cell Reports Methods article, to be cited once accepted"
+  ]
+}

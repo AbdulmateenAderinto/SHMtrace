@@ -1,0 +1,37 @@
+{
+ "jh4": {
+  "recommended": 0.01336,
+  "geneious": 0.01364,
+  "lofreq_permissive": 0.03486,
+  "lofreq_nobaq": 0.04472,
+  "lofreq": 0.42233
+ },
+ "n114": {
+  "geneious": 0.00114,
+  "recommended": 0.02826,
+  "lofreq_permissive": 0.04119,
+  "lofreq_nobaq": 0.0811,
+  "lofreq": 0.0811
+ },
+ "su_lps": {
+  "recommended": 0.00192,
+  "lofreq_nobaq": 0.00553,
+  "lofreq_permissive": 0.00553,
+  "lofreq": 0.02613,
+  "geneious": 0.02786
+ },
+ "su_ch12": {
+  "geneious": 0.00032,
+  "recommended": 0.00061,
+  "lofreq": 0.00828,
+  "lofreq_nobaq": 0.00828,
+  "lofreq_permissive": 0.01063
+ },
+ "pim1": {
+  "lofreq_permissive": 0.02583,
+  "recommended": 1.0,
+  "geneious": 1.0,
+  "lofreq": 1.0,
+  "lofreq_nobaq": 1.0
+ }
+}

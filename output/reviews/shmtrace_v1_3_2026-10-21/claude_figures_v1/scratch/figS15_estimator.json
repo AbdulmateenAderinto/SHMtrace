@@ -1,0 +1,23 @@
+[
+ {
+  "noise": "none",
+  "true_mean": 403.0,
+  "true_max": 389.0,
+  "fdp_mean_pct": 3.762,
+  "fdp_max_pct": 2.544
+ },
+ {
+  "noise": "one_noisy",
+  "true_mean": 396.0,
+  "true_max": 377.4,
+  "fdp_mean_pct": 2.994,
+  "fdp_max_pct": 1.686
+ },
+ {
+  "noise": "case_only",
+  "true_mean": 403.2,
+  "true_max": 389.8,
+  "fdp_mean_pct": 5.13,
+  "fdp_max_pct": 4.077999999999999
+ }
+]

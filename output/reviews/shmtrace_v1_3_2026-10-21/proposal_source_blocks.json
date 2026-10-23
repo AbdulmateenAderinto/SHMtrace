@@ -1,0 +1,252 @@
+{
+  "INTRO": [
+    "Somatic hypermutation (SHM) diversifies immunoglobulin (Ig) genes in germinal-center B cells. It is initiated by Activation-induced cytidine deaminase (AID) which deaminates cytosines in Ig DNA. Replication over the resulting uracils, together with uracil excision and mismatch repair, generates substitutions at G:C and A:T base pairs[@muramatsu2000,@dinoia2007,@methot2017]. Because each repair pathway leaves its own footprint, the frequency, position and spectrum of mutations are therefore key readouts of AID activity and broader lesion processing[@dinoia2002,@rada2004,@rada2002,@zeng2001]. Relatedly, the mouse J_{H}4 downstream intron is widely used as a genomic reporter because it undergoes SHM without directly contributing to antigen binding[@jolly1997,@lebecque1990].",
+    "AID activity read out from J_{H}4 amplicons can be measured on various sequencing platforms, each reporting a different kind of evidence. Cloned-amplicon Sanger sequencing reads one molecule at a time at high per-base confidence, though it yields only tens of sequences per animal[@sible2021]. Short reads typical of Illumina sequencers give depth but may not span the complete region[@martin2023]. Long reads from ONT and PacBio span the J_{H}4, so mutations stay linked across the amplicon, and nanopore accuracy now reaches modal values above 99% with R10.4.1 flow cells[@zhang2023,@sereika2022,@sanderson2024]; nanopore sequencing has also been used to sequence Ig genes, where consensus sequencing can absorb errors[@minervini2021,@subassatish2022]. What all platforms, however, share is the need to separate AID-driven mutation from their own error. A wild-type J_{H}4 intron carries roughly one mutation per 100 bases, whereas the residual error of a single filtered read, especially with nanopore, is within one or two orders of magnitude of that rate and is concentrated at particular positions and sequence contexts[@delahaye2021].",
+    "Two common analysis practices make this problem worse. First, general-purpose low-frequency variant callers judge each base by its own quality score[@wilm2012], and the simple rules used in commercial software test candidates one at a time without correcting for the number of tests[@kearse2012]. In the configurations evaluated here, neither measures the errors a particular library makes, so mismatches that recur at one position, from PCR, sequence context or a co-amplified paralog, can be counted as SHM mutations. Second, treating reads from the same animal as independent replicates overstates statistical certainty because multiple reads can derive from the same B-cell clone or PCR-amplified molecule[@lazic2010]. Matched AID-null libraries address technical background, whereas group comparisons must account for biological replication by using one summary value per animal. Existing SHM software summarises previously identified mutations[@maccarthy2009,@gupta2015,@yaari2013] but does not use matched AID-null controls to distinguish candidate variants from technical background.",
+    "Here we describe SHMtrace, which integrates variant calling calibrated against matched AID-null controls from the same sequencing run with mutation profiling and group comparisons across independent biological replicates, starting from delivered reads or Sanger chromatograms. We validated it with planted mutations, simulated lineages, {ds_loci} loci from {ds_labs} laboratories across four platforms, Sanger sequencing of the same mice, and deposited clones from three published Sanger studies, and compared it against LoFreq[@wilm2012], the long-read somatic callers ClairS[@zheng2026] and DeepSomatic[@park2026], the germline callers Clair3[@zheng2022] and DeepVariant[@poplin2018], and the uncorrected Geneious test[@kearse2012]."
+  ],
+  "RESULTS": [
+    [
+      "h",
+      "SHMtrace calibrates substitutions against AID-null controls"
+    ],
+    [
+      "p",
+      "SHMtrace starts from delivered reads or Sanger chromatograms (Figures 1 and S1). Read libraries undergo length and expected-error filtering[@edgar2015], competitive alignment with minimap2[@li2018], paralog checks and matched-depth sampling. Sanger traces are assigned through a sample sheet and quality-trimmed; UMI-tagged reads can be collapsed to molecular consensuses (STAR Methods)."
+    ],
+    [
+      "p",
+      "For each substitution, SHMtrace tests read support against control error rates stratified by substitution type, strand and quality, incorporating position-specific background (Figures 1A and 1C). A leave-one-control-out margin adjusts underestimated error (Figure S2); held-out controls then set an empirical target–decoy threshold targeting 5% false discoveries[@elias2007]. This estimate depends on representative controls and is not a general FDR guarantee. Data-dependent candidate selection motivates empirical calibration rather than assuming valid Benjamini–Hochberg p-values[@benjamini1995]. Alleles in ≥50% of reads are excluded as likely germline or parental differences; genuine dominant-lineage mutations can also cross this heuristic threshold, and exclusions are reported."
+    ],
+    [
+      "p",
+      "The read-library test can retain a candidate supported by a single read; repeated sequencing of the same original molecule is not required. SHMtrace uses a separate Sanger counting route (Figure 1C): every substitution at base quality ≥ 20 is counted, and the AID-null clones' mismatch rate gives the expected background count, reported separately without subtraction. The germline filter, window, automatic checks and animal-level comparisons are shared. The Sanger results below therefore test trace reading, counting, bookkeeping and group comparisons, not the control-calibrated test."
+    ],
+    [
+      "p",
+      "Two C-to-T candidates in Sμ {ana_case} had similar qualities and support on both strands (Figure 2). Position {ana_t_pos}, in a WRC hotspot, lacked Q≥20 control support and was retained (p = {ana_t_p}); position {ana_e_pos} recurred in controls and was rejected (p = {ana_e_p}). Of {ana_cand} candidates, {ana_kept} met the threshold (p ≤ {ana_thr}); the remainder were unresolved against background."
+    ],
+    [
+      "p",
+      "Group comparisons use one value per biological replicate, with log-rate Welch, bootstrapped negative-binomial and permutation tests (Figure 1D). Outputs include spectra, hotspot use, S5F targeting[@yaari2013], clustering, aggregate single-read estimates, junction-defined clones, read-level trees and power estimates (Figure S3). Desktop and command-line interfaces share the analysis engine."
+    ],
+    [
+      "h",
+      "Planted mutations and simulated lineages quantify recall and false calls"
+    ],
+    [
+      "p",
+      "We planted 60 AID-weighted substitutions into each held-out control library, preserving base qualities and assigning 1–20 supporting reads per site, with three repetitions per control (Figure 3). On J_{H}4, SHMtrace recalled {sp_jh4_recall}% overall and {sp_jh4_ge3}% among events supported by at least three reads, with {sp_jh4_fp} false calls per library (observed FDR {sp_jh4_fdr}). In contrast, Geneious recalled more single-read mutations ({sp_jh4_gen_1}% versus {sp_jh4_1}%) but produced {sp_jh4_gen_fp} false calls per library (FDR {sp_jh4_gen_fdr}). Default LoFreq recalled none; disabling its short-read-oriented base-alignment quality correction yielded {sp_jh4_lfnb}% recall, restricted to mutations with at least five supporting reads. Permissive settings increased recall to {sp_jh4_lfp}% with {sp_jh4_lfp_fp} false calls per library (Figures 3A and 3D)."
+    ],
+    [
+      "p",
+      "ClairS[@zheng2026] and DeepSomatic[@park2026] received peer controls as matched normals. Neither recovered planted events at defaults. Across 2,160 substitutions, permissive ClairS recovered none; DeepSomatic recalled 19%, 18%, 5% and 3% on J_{H}4, N114 V_{H}, Sμ and *Pim1*, respectively. Recall improved at higher allele fractions (Figure 3C), whereas {af_lt1}% of {af_n} retained SHMtrace calls occurred in <1% of reads (Figure 2E). Germline callers Clair3 and DeepVariant recovered none, consistent with their intended use (Table S1)."
+    ],
+    [
+      "p",
+      "On N114 V_{H}, SHMtrace recalled {sp_n114_recall}% of planted substitutions, including {sp_n114_1}% supported by one read, with {sp_n114_fp} false calls per library (FDR {sp_n114_fdr}; Figure 3B). Geneious recalled {sp_n114_gen_recall}% with {sp_n114_gen_fp} false calls (FDR {sp_n114_gen_fdr}); LoFreq without base-alignment quality recalled {sp_n114_lfnb}%. On external Sμ and *Pim1* controls at 2,000 reads, SHMtrace recalled {sp_su_lps_recall}% and {sp_pim1_recall}% at FDR {sp_su_lps_fdr} and {sp_pim1_fdr}. Geneious recalled {sp_su_lps_gen_recall}% and {sp_pim1_gen_recall}% at FDR {sp_su_lps_gen_fdr} and {sp_pim1_gen_fdr}; LoFreq recalled {sp_ext_lf_lo}–{sp_ext_lf_hi}%, with permissive FDR {sp_ext_lfp_fdr} (Figure 3D)."
+    ],
+    [
+      "p",
+      "Calling the same libraries at targets from 1% to 30% tested whether the threshold delivers the rate it targets. At the default 5%, the pooled false-discovery proportion was {fc_def_lo}–{fc_def_hi}% across the four loci, and looser targets stayed at or below their stated rate except {fc_loose_over} (Figure S4A). Targets below 5% did not deliver their stated rate on J_{H}4, Sμ or *Pim1* ({fc_strict_lo}–{fc_strict_hi}% at a 1% target; N114 V_{H}, {fc_n114_1}%): false calls per library levelled off while recall fell, from {fc_jh4_rec_def}% to {fc_jh4_rec_1}% on J_{H}4 (Figures S4B and S4C)."
+    ],
+    [
+      "p",
+      "Varying the controls through the whole procedure on J_{H}4 showed how many are needed (Figure S5). One control leaves no decoys, so the threshold falls back to Benjamini–Hochberg: it recalled {cd_rec_1}% of planted lineage mutations, against {cd_rec_2}% with two controls and {cd_rec_34}% with three or four, at false-discovery proportions of {cd_fdp}%. All-null libraries yielded no calls with any number of controls ({cd_null_n} runs). One control carrying recurrent artifacts changed false calls little, with or without the noisy-control rule. On Sμ, AID-null controls from a second experiment performed like the matched controls ({cd_su_rec_other}% versus {cd_su_rec_matched}% recall), and pooling all five lowered false calls from {cd_su_fp_matched} to {cd_su_fp_pooled} per library."
+    ],
+    [
+      "p",
+      "Diluting real hypermutated reads into AID-null reads tested the estimates on mutations AID made, with their clonality and clustering (Figure S6). On N114 V_{H}, mutation frequency was {ti_n114_ratio} of the expected value at 25–50% donor reads, and calls were made from {ti_n114_det}% donor reads. On J_{H}4, detection was all-or-nothing and depended on the donor: calls began at {ti_jh4_det_lo}% donor reads for {ti_jh4_most} and at {ti_jh4_det_hi}% for {ti_jh4_least}, and no call was made below that."
+    ],
+    [
+      "p",
+      "Indel validation used ten planted insertions or deletions of 1–40 bp per library, supported by 1–20 reads, with {ind_draws} draws per control and error models fitted to the other controls. Among events supported by at least three reads, recall was {ind_jh4_ge3}% on J_{H}4 and {ind_n114_ge3}% on N114 V_{H}, with {ind_jh4_fp} and zero false calls per library. Events supported by one or two reads were excluded by the three-read requirement. J_{H}4 single-base homopolymer deletions were least reliably recovered ({ind_jh4_hp}%); recall was {ind_jh4_ins2}% for 2-bp insertions and {ind_jh4_long}% for deletions ≥10 bp (Figure S7)."
+    ],
+    [
+      "p",
+      "We next simulated approximately 40 B-cell clones per J_{H}4 library, with clone sizes following a power-law distribution. Mutations were introduced at positions sampled according to S5F mutability, including mutations shared across an entire clone, restricted to individual branches, or unique to individual sequences (Figure 3E). SHMtrace recalled {lin_1_rec}% of single-read mutations versus {lin_1_gen}% for Geneious, with FDR {lin_fdr_rec} versus {lin_fdr_gen} and {lin_fp_rec} versus {lin_fp_gen} false calls per library. In null libraries, false calls averaged {lin_null_rec} versus {lin_null_gen}. Junction clustering recovered clone assignments with adjusted Rand indices[@hubert1985] of {lin_ari}. When an unmutated clone contributed 60% of reads, read-weighted frequency was {lin_rw_est} versus a true {lin_rw_true} per 10^{3} bp, while the majority-rule clone-weighted measure recovered {lin_cw_pct}% of its corresponding true burden ({lin_cw_est} versus {lin_cw_true}; Figure 3F)."
+    ],
+    [
+      "p",
+      "The dominant unmutated clone could not trigger the ≥50% allele filter. Repeating the simulation with a mutated dominant clone showed no loss at 40% abundance, but all mutations crossing the threshold at 60% or 80% were removed. Read-weighted and clone-weighted estimates fell by as much as {mask80_rw}% and {mask80_cw}%, respectively (STAR Methods). Excluded sites are reported for inspection."
+    ],
+    [
+      "p",
+      "Read-weighted frequencies were within {q_rw_dev}% of simulated truth at 500 reads (Figure 3G). Unique-variant density varied with depth because repeated variants increase exposure without adding discoveries, while rare-event detection also changes. Adding the aggregate single-read estimate recovered 96–100% of truth; independently planted single-read events were recovered at {sr_rec}% in aggregate (Figure S8A). Unique-density comparisons require matched depth."
+    ],
+    [
+      "p",
+      "Group-test calibration was assessed in 300 simulations per condition, with between-animal coefficient of variation 1 (Figure 3H). Under no true difference, pooled-read tests returned p < 0.05 in 91% of 3-versus-3 and 94% of 5-versus-5 experiments. Negative-binomial rejection rates were 5.0% and 5.7%. With three animals per group, that test detected two-fold and four-fold changes in 12% and 30% of simulations, illustrating the limited power at this sample size."
+    ],
+    [
+      "h",
+      "Matched controls set the background in real libraries"
+    ],
+    [
+      "p",
+      "We next compared callers on real libraries with matched AID-null controls (Table S2; Figure 4). These included our J_{H}4 intron libraries from germinal-center B cells of three wild-type (Wt) and three *Aicda*^{−/−} mice, N114 hybridoma subclones transduced with AID or empty vector, and two loci in three assay contexts from an independent laboratory's public nanopore dataset: the Sμ switch region in LPS-activated B cells and in CH12 cells, and the AID off-target gene *Pim1*. Every caller analysed exactly the same reads (Table S3)."
+    ],
+    [
+      "p",
+      "SHMtrace retained {ctl_rec} calls across three controls per assay versus {ctl_gen} for Geneious (Figures 4A–4E and 4G). Geometric-mean unique-density separation was {sep_jh4}-, {sep_n114}-, {sep_su_lps}- and {sep_su_ch12}-fold for J_{H}4, N114 V_{H}, primary-cell Sμ and CH12 Sμ, respectively, using one-event values for zero-call controls (Figure 4F). At 500 reads, J_{H}4 and N114 V_{H} reached {depth_jh4_500}% and {depth_n114_500}% of discoveries at the largest tested depth, without establishing saturation (Figures S9 and S10). Background mismatches were position-dependent and separable from abundant clone-shared calls (Figure S11)."
+    ],
+    [
+      "p",
+      "The same N114 V_{H} reads were analyzed by IgBLAST[@ye2013] and SHazaM[@gupta2015], which count every mismatch to the germline (Figure S12). With the IMGT germline the AID libraries were {im_fold_imgt}-fold above the empty-vector libraries, because the parental line differs from it ({im_vid}% identity) and sequencing errors count as mutations. Using the parental V as germline raised this to {im_fold_par}-fold, and masking bases below Q20 to {im_fold_q20}-fold, compared with {im_fold_sh}-fold for SHMtrace."
+    ],
+    [
+      "p",
+      "At *Pim1*, mutation calls in AID-competent libraries remained close to the AID-null background. At 2,000 reads per library, SHMtrace yielded {pim1_rec_fold}-fold separation between groups, with four calls across the controls, compared with {pim1_gen_fold}-fold separation and eleven control calls for Geneious. Increasing depth to all available reads (3,238–3,447 per library) did not clearly resolve the signal: SHMtrace detected 3–10 variants per AID-competent library and 0–3 per AID-null library, while Geneious detected 5–7 and 0–{pim1_rec_ctl}, respectively (Table S1)."
+    ],
+    [
+      "p",
+      "The two CH12 AID off-target loci, off-target 1 and off-target 2, tested a genetic perturbation expected to reduce AID targeting[@seija2026]. Off-target 1 Wt libraries carried {ot1_wt} calls versus {ot1_ko} in *Aicda*^{−/−} controls, with densities of {ot1_wt_dens} versus {ot1_ko_dens} per 10^{5} bases (Welch p = {ot1_p_dens} on log density; {ot1_p} on frequency). Off-target 2 counts were {ot2_wt} versus {ot2_ko}, with densities of {ot2_wt_dens} versus {ot2_ko_dens} (p = {ot2_p_dens} and {ot2_p}). G:C substitutions accounted for {ot1_gc}% of {ot1_n} off-target 1 calls and {ot2_gc}% of {ot2_n} off-target 2 calls. MLLT1/MLLT3 double knockout reduced counts to {ot1_dko} at off-target 1 ({ot1_dko_dens} per 10^{5} bases) and {ot2_dko} at off-target 2 ({ot2_dko_dens}), with no detected difference from *Aicda*^{−/−} controls (p = {ot1_p_dko_ko} and {ot2_p_dko_ko}). No fold is reported because a zero-count convention would determine its magnitude."
+    ],
+    [
+      "p",
+      "Leave-one-control-out error margins of five for the shared J_{H}4 window and ten for full-length J_{H}4 and N114 V_{H} reduced held-out candidate tests with p<0.01 to {loco_jh4_final}%, {loco_full_final}% and {loco_n114_final}%, respectively (Figure 4H). This calibrates the error model; the separate decoy threshold estimates the false-discovery proportion."
+    ],
+    [
+      "p",
+      "Read preparation removed 67% of delivered J_{H}4 reads overall (Figure 4I). Competitive alignment required an additional paralog-base filter: without it, simulated paralog reads produced 35–54 false variants per library (STAR Methods)."
+    ],
+    [
+      "h",
+      "SHMtrace-generated nanopore and Sanger profiles agree in matched mice"
+    ],
+    [
+      "p",
+      "SHMtrace processed {sanger_submitted} Sanger chromatograms from the six nanopore-sequenced mice, retaining {sanger_clones} clones after alignment and sequence-quality filtering for comparison across the shared 529-bp window (Figures 5 and S13). SHMtrace-derived mutation profiles distinguished Wt from *Aicda*^{−/−} mice on both platforms: Sanger showed {sanger_fold}-fold separation (p = {sanger_p}), and nanopore showed {ont_fold}-fold separation when zero-call controls were assigned one event (p = {ont_p}; Welch tests on log densities, n = 3 mice per group). Pooled substitution spectra were similar across the twelve substitution types (descriptive Pearson r = {r_spec}; slope = {slope}), as were positional profiles in 25-bp bins (r = {r_pos}). Among G:C mutations, {hot_gc_s}% of Sanger and {hot_gc_o}% of nanopore calls occurred at WRC/GYW hotspots, which accounted for {hot_gc_exp}% of eligible sites in the window. Among A:T mutations, {hot_at_s}% and {hot_at_o}%, respectively, occurred at WA/TW motifs, compared with {hot_at_exp}% of eligible sites. No platform-by-substitution-type interaction was detected (p = {interaction_p}), although this does not establish equivalence with three mice per group. Absolute unique-variant densities are not directly comparable between workflows because the Sanger analysis counts mutations in individual cloned products, whereas the nanopore analysis counts distinct variants among 500 reads."
+    ],
+    [
+      "h",
+      "Sanger reanalysis recovers published comparisons and identifies discrepancies"
+    ],
+    [
+      "p",
+      "Reanalysis of published *Maea* J_{H}4 chromatograms[@maccarthy2009,@barbulescu2024] recovered a {c2_fold}-fold frequency reduction versus {c2_pub_fold}-fold published (one-tailed p = {c2_p} and {c2_pub_p}; Figure S14). Spectra correlated at r = {c2_spec_r}, but denominator-harmonized frequencies averaged {c2_ratio}-fold published values. Shared trace assignments and identical mutated-clone pairs were retained as filed and flagged; detailed discrepancies are in Table S4 and STAR Methods."
+    ],
+    [
+      "p",
+      "Reanalysis of {mk_traces} *Mkln1*-study chromatograms[@barbulescu2025] found an {mk_fold}-fold frequency reduction versus the published {mk_pub_fold}-fold (p = {mk_p} and {mk_pub_p}). G:C transversions increased from {mk_tv_wt}% to {mk_tv_ko}% versus {mk_tv_pub_wt}% to {mk_tv_pub_ko}% in the published tables (p = {mk_tv_p} and {mk_tv_pub_p}). Spectrum correlations were r = {mk_spec_r_wt} for Wt and {mk_spec_r_ko} for knockout (Figure S15; Table S4)."
+    ],
+    [
+      "p",
+      "An independent laboratory's SW_{HEL} study[@thientosapol2018] provided {sw_clones} sequences across five arms (Figure S16). SHMtrace recovered {sw_muts} of {sw_pub_muts} tabulated mutations (r = {sw_r} across 60 spectrum cells), matching mutations per sequence to two decimals. The four substitution-class comparisons agreed with the publication. Total mutation decreased in both analyses, but significance differed under different tests. A potentially pooled host was retained; excluding it did not change the reanalysis conclusions (STAR Methods). The *Msh2*^{−/−} arm showed the expected A:T collapse. Deposited sequences evaluate counting, spectra and group statistics, without testing chromatogram reading."
+    ],
+    [
+      "h",
+      "Long reads retain whole-amplicon profiles and within-lineage linkage"
+    ],
+    [
+      "p",
+      "Nanopore sequencing extended SHMtrace analysis of the J_{H}4 intron from the shared 529-bp Sanger window to a 1,141-bp interval spanning positions 90–1,230 (Figure 6A). Across this longer interval, Wt unique-variant density was {full_fold}-fold above controls. Approximately {full_450}% of mutations occurred within the first 450 bp, with a seven-fold decline between the first and last 250 bp, consistent with the reported decline downstream of V(D)J[@lebecque1990]. Substitution spectra across the full interval closely matched those within the Sanger window (Pearson r = {s1_r}; Figure S17)."
+    ],
+    [
+      "p",
+      "Wt mutations preferentially occurred at positions predicted to undergo SHM by the S5F model, which assigns mutability according to the surrounding five-base sequence. The targeting index, defined as mean predicted mutability at mutated positions divided by the mean across the analysis window, ranged from 1.22 to 1.36, indicating 22–36% enrichment over the window average (permutation p ≤ {s5f_wt_p}). Calls per position were also {s5f_dose}-fold higher in the highest-mutability quintile than in the lowest (Figure 6B). In contrast, *Aicda*^{−/−} mismatch positions showed no enrichment (index = {s5f_ko}; p = {s5f_ko_p}). Because S5F mutability is not used in the variant-calling test, this analysis provides a separate check that the detected mutations follow an SHM-associated targeting pattern."
+    ],
+    [
+      "p",
+      "Junction sequences upstream of J_{H}4 group reads into B-cell lineages (Figure 6C). In Wt2, one largely unmutated lineage accounted for {wt2_largest}% of junction-assigned reads. Read-weighted frequency was {wt2_rw} per 10^{3} bp, compared with {wt2_cw} when each lineage's majority-rule mutation profile was counted once. Wt3 and Wt4 changed less ({wt3_rw} to {wt3_cw} and {wt4_rw} to {wt4_cw}). The largest Wt3 lineage comprised {tree_reads} reads and {tree_founders} founder mutations, with {tree_sub} inferred sublineages extending to {tree_depth} mutations (Figure 6D). {tree_fit}% of mutated reads fitted one tree; 7/1,128 mutation pairs failed the four-gamete test. Without UMIs, PCR recombination and residual errors remain possible, so these are read-level reconstructions rather than proven cellular lineages."
+    ],
+    [
+      "h",
+      "Public datasets test transfer across platforms and experimental designs"
+    ],
+    [
+      "p",
+      "Three public Illumina studies tested different biological contexts (Figure 7). At J_{H}4 positions 53–122, Wt mice showed {ldha_fold}-fold greater mutation frequency than AID-null mice (log-rate Welch p = {ldha_p}; n = {ldha_nwt} and {ldha_nko}). *Ldha* deletion showed no detectable difference from Wt (Mann–Whitney p = {ldha_p_ko}), consistent with the original study[@sharma2023] (Figure 7A)."
+    ],
+    [
+      "p",
+      "In *Aicda*^{−/−}*Ung*^{−/−}*Msh2*^{−/−} CH12F3 cells, ectopic AID increased frequency {ch12_fold}-fold over empty vector (p = {ch12_p}; n = 4 each), with one control call in 20,000 reads[@wang2023]. All AID calls were C→T/G→A, consistent with loss of uracil excision and mismatch repair; R50E yielded none (Figure 7B). R174E/R178E appeared more active but gave only {ch12_mut_ctga}% transitions, a {ch12_cluster_pct}% cluster within positions {ch12_cluster} and targeting index {ch12_mut_s5f} versus {ch12_aid_s5f} for AID. These features suggest a library-specific artifact absent from controls (Figure 7C). Establishing its source would require additional sequencing provenance or independent material."
+    ],
+    [
+      "p",
+      "HMCES-deficient Ramos clones[@wu2022] had {hmces_del_fold}-fold more deletions and {hmces_ins_fold}-fold more insertions (deletion p = {hmces_del_p}; n=6 per group; Figure 7D). Substitution calls depended strongly on a noisy AID-null library. A rule developed after inspecting this dataset excluded it from decoy thresholding, retaining it in model fitting and reporting the exclusion. Adjusted calls were {hm_calls} per Wt/HMCES-deficient clone; treating that control as a sample instead yielded {hmk3_calls}. This sensitivity limits substitution-burden inference (STAR Methods); the rule also acted in mOrange."
+    ],
+    [
+      "p",
+      "On dual-UMI R10 rRNA-operon reads[@karst2021], consensus reduced error 57-fold (95% CI 35–99) to 0.17%, with residual errors concentrated in homopolymer indels. At ≥10 reads per family, substitution error approached one per 10,000 bases (Figure S8D). Critically, this is a technical consensus benchmark rather than an SHM experiment."
+    ],
+    [
+      "p",
+      "In the mOrange study[@perezduran2012], inactive-AID controls calibrated active AID across empty-vector, Ugi and UNG contexts (Figure 7E). SHMtrace retained {mo_calls} substitutions, all at G:C, with {mo_wrc}% at WRC/GYW hotspots. Active/inactive separation was {mo_control_fold}-, {mo_ugi_fold}- and {mo_ung_fold}-fold, respectively; Ugi zeros used one-event values. Ugi-to-UNG transition shares fell from {mo_ugi_ts}% to {mo_ung_ts}%. The paired mean difference was {mo_arm_diff} percentage points (95% CI {mo_arm_ci}; {mo_arm_p}); few calls per library limit precision."
+    ],
+    [
+      "p",
+      "Two engineered-diversification datasets extended the evaluation to mutations measured relative to experimental starting constructs (Figure S18). In a study using a common GFP substrate[@liu2018], no-editor libraries yielded at most one call in 20,000 reads. AID substitutions were more frequently located at WRC/GYW hotspots than APOBEC3A substitutions, both in Wt cells ({eng_wt_wrc_aid}% versus {eng_wt_wrc_apo}%; p = {eng_wt_wrc_p}) and in UNG/MSH2-deficient cells ({eng_ko_wrc_aid}% versus {eng_ko_wrc_apo}%; p = {eng_ko_wrc_p}). In the repair-deficient background, however, their transition shares were similar ({eng_ko_ctga_aid}% versus {eng_ko_ctga_apo}%; p = {eng_ko_ctga_p}), showing that transition enrichment alone could not distinguish the two enzymes."
+    ],
+    [
+      "p",
+      "The second engineered dataset, a CRISPR-X antibody-evolution study, diversified an antibody V_{H} and published the mutations it found in each selected cluster[@devilder2019]. Comparing the two lists position by position, SHMtrace recovered {eng_dev_mut} of the {eng_dev_mut} published mutations and called none the authors did not, across all {eng_dev_n} cluster entries (Figure S18B). Because the comparator is an independently curated list rather than another run of the same software, this is the sharpest available test of variant identity on this route."
+    ],
+    [
+      "p",
+      "Two further datasets tested transfer to another laboratory's switch-region libraries and to a fourth platform, and showed where a deposit limits what can be asked. Sμ libraries under PI3Kδ inhibition[@compagno2017] confound genotype with library layout: six of nine wild-type libraries are single-end whereas every *Aicda*^{−/−} library is paired, and the mates do not overlap, so only the twelve paired libraries reach the switch repeats where AID acts (Figure S19). Analysed over those repeats, the nine *Aicda*^{−/−} libraries returned {smur_ko_tot} call between them against {smur_wt_lo}–{smur_wt_hi} per wild-type library (p = {smur_p}), and the wild-type calls carried the AID signature: targeting index {smur_s5f_lo}–{smur_s5f_hi} and {smur_ctga_lo}–{smur_ctga_hi}% C→T or G→A. The calibration therefore transfers to an independent laboratory, platform and perturbation. The drug comparison does not follow from this deposit, because only one wild-type replicate per treatment reaches the repeats."
+    ],
+    [
+      "p",
+      "PacBio Sμ–Sγ1 junctions[@vincendeau2022] tested junction structure rather than calibrated mutation calls (Figure S20). Mean microhomology was {pb_mh_wt} nt in Wt and {pb_mh_shld} nt in *Shld1*^{−/−}, rising to {pb_mh_xlf} nt without XLF and {pb_mh_dko} nt in double mutants. Double mutants showed more ≥4-nt microhomology and fewer blunt junctions; *Shld1*^{−/−} showed more insertions. These patterns support recovery of a known repair phenotype. Counts reflect PCR recovery rather than switching efficiency; {pb_amb_lo}–{pb_amb_hi}% of junctions had alternative equally good acceptor placements (STAR Methods)."
+    ]
+  ],
+  "DISCUSSION": [
+    "Measuring somatic hypermutation has long meant choosing between reading molecules accurately and reading enough of them. This study supports a cloning-free SHM workflow by estimating technical background from controls. SHMtrace connects delivered reads or chromatograms to mutation profiles and comparisons across biological replicates. Rather than relying on quality scores alone, it estimates the background in the AID-null libraries that SHM studies already include, at the level of substitution type, strand and base quality, and checks that calibration by holding out each control in turn. Instead of treating reads as replicates, it tests independent biological samples. Both replacements held: {sp_jh4_recall}% of planted J_{H}4 mutations and {sp_n114_recall}% on N114 V_{H} were recovered at false-discovery proportions near the default target, while a quality-based caller either missed most true mutations or, made permissive, called as much background as the uncorrected rule, and pooling reads produced false positives in more than 90% of simulated experiments without a true difference. Together, these results support a practical route from deeply sequenced amplicons to interpretable SHM measurements across biological replicates.",
+    "The gap this fills is specific, and it sits between two mature bodies of software. Repertoire toolkits identify and summarise mutations well: IgBLAST assigns germlines[@ye2013], Change-O and SHazaM quantify load[@gupta2015], SHMTool compares datasets[@maccarthy2009], and S5F models targeting[@yaari2013]. They begin, however, from mismatches already taken to be real, which is why counting every mismatch to the germline separated AID from empty-vector N114 libraries by {im_fold_imgt}-fold where SHMtrace separated them by {im_fold_sh}-fold. General-purpose variant callers do the opposite: they decide what is real, but from error models fitted to data of a different kind. LoFreq reads base qualities[@wilm2012]; ClairS and DeepSomatic were developed for tumour–normal sequencing, with different training data and calling assumptions[@zheng2026,@park2026]. The evaluated configurations did not use AID-null calibration in the manner tested here. SHMtrace closes that circuit by making the AID-null control, where available, the source of the error model, and by carrying the measurement through to the animal-level comparison that the biology requires[@lazic2010]. Its distinctive contribution is to connect control-informed mutation detection with interpretable profiles and comparisons across biological replicates in one reproducible workflow.",
+    "Seen this way, comparator performance is a matter of operating range rather than quality. LoFreq was designed for deep short-read data with calibrated qualities; its base-alignment correction suppressed nearly all nanopore calls here, and disabling it still limited recovery of low-support variants. That is not a defect on its intended data: the configurations tested here did not capture this assay's background as effectively as matched-control calibration. The measurements say why. Above Q40, control error stopped decreasing and differed across the evaluated datasets ({q40_lo}–{q40_hi} × 10^{−5}; Figure S2), so the quality score runs out of information exactly where SHM calling needs it. ClairS and DeepSomatic recovered clean variants at higher allele fractions but few real SHM calls, and chemistry and model mismatches further qualify external-data comparisons. Clair3 and DeepVariant found none of the planted mutations, as expected of callers built to genotype a sample against a reference rather than to find a variant carried by a few reads. Geneious provided greater single-read recall on J_{H}4 and *Pim1* but more false calls on each amplicon. These are choices a study can make deliberately: sensitive mode raises the empirical target to 0.20 and recovers {sens_jh4_1}% of single-read mutations on J_{H}4 and {sens_n114_1}% on N114 V_{H} at observed FDR {sens_jh4_fdr} and {sens_n114_fdr}, while events unresolved individually can be estimated in aggregate. Together, these outputs make the sensitivity–background tradeoff explicit and help investigators choose a calling regime appropriate to their experiment.",
+    "A shared framework accommodates four platforms through distinct analyses: control-calibrated read-library substitutions, direct Sanger counting and PacBio junction characterization. A Sanger clone is one molecule read once, so its mutations are read directly; the workflow therefore counts quality-filtered substitutions directly and reports the control-derived background separately. Nanopore and Illumina libraries carry matched AID-null arms, so each candidate is tested against the errors those controls make. Nanopore spans the whole amplicon, which made the 3′ decline visible without tiling, identified clones from the V(D)J junction and ordered their mutations into trees; Illumina gives depth without that linkage. PacBio combines length with per-base accuracy, and reading the donor, the join and the acceptor on one molecule recovered a known end-joining phenotype from a deposit with no AID-null arm, using junction shape in place of calibrated calls. Figure S21 sets out what each measured. Agreement between platforms is itself evidence: nanopore and Sanger reads from the same six mice gave substitution spectra correlated at r = {r_spec} and the same AID-null contrast, supporting the use of cloning-free long reads to recover established SHM patterns while adding whole-amplicon linkage.",
+    "Reanalysis of public data tested SHMtrace against independent biological and counting expectations. Published sequence collections support reproducible reanalysis when clones are linked to animals and genotypes: SHMtrace recovered the principal J_{H}4 frequency and G:C comparisons, matched SW_{HEL} counts across five arms and twelve substitution types ({sw_muts} of {sw_pub_muts} tabulated mutations; r = {sw_r}), and recovered {eng_dev_mut} of {eng_dev_mut} mutations an antibody-evolution study curated by hand, calling none its authors did not. Agreement was not complete, and the exceptions are as informative: Wt frequencies differed after denominator harmonisation, the published *Mkln1* A:T decrease was not significant in the reanalysis, and the SW_{HEL} total-mutation inference differed under a different test (Tables S4 and S5; Figures S14–S16). The Sanger re-analysis also surfaced bookkeeping problems, which SHMtrace now checks and reports rather than silently resolving. By retaining assignments, counting conventions and quality flags, SHMtrace makes legacy sequence collections easier to revisit, compare and reuse.",
+    "What this enables in practice is a short experiment-to-answer path that keeps its own evidence: read accounting, fixed-seed sampling and one engine behind the desktop and command-line interfaces, with every exclusion, threshold and flagged site written out for inspection. The power analysis sets the honest expectation. How many animals a study needs depends on the difference it seeks: under variation estimated from three Wt J_{H}4 mice, the AID-competent against AID-null contrasts made here separate at three animals per group, whereas a two-fold difference between two AID-proficient groups would require approximately twenty, with considerable uncertainty in that estimate (Figure S8B). Sequencing depth cannot substitute for independent biological samples, and no analysis can recover a comparison the design did not support. Within that boundary the framework extends readily. It needs only a target, matched AID-null libraries and a sample sheet, supporting its application to off-target loci, switch regions, engineered diversification and base-editor substrates across {ds_loci} loci from {ds_labs} laboratories. Further validation on independently prepared runs and UMI-tagged SHM libraries can establish how far this framework extends. SHMtrace brings control-calibrated mutation detection, whole-amplicon profiles and comparisons across biological replicates into one reproducible workflow. By preserving mutation linkage and documenting analytical choices, it makes long-read SHM data more informative and supports transparent reanalysis of existing sequence collections. This provides a practical foundation for studying how AID targeting and DNA repair shape antibody diversification."
+  ],
+  "LIMITATIONS": [
+    "SHMtrace relies on representative AID-null controls prepared and sequenced alongside the samples. Error profiles can vary between runs and basecalling configurations, and calibration using controls from a different run was not evaluated. With one nanopore run per assay, the present results do not establish performance across independent runs.",
+    "The reported variants remain subject to technical uncertainty. Without UMIs, early PCR errors, recombination and repeated sequencing of PCR-derived molecules cannot be reliably distinguished from genuine mutations or expanded biological lineages. Mutation trees therefore describe relationships among reads rather than independently established cellular lineages. The default ≥50% allele-frequency filter can also remove genuine mutations shared by a dominant lineage. Excluded sites are reported for review, and experiments with a known starting sequence can use an optional reference policy that retains high-frequency differences. Single-read mutations that cannot be called individually are estimated only in aggregate, and unique-variant densities require comparison at matched sequencing depth.",
+    "The empirical false-discovery estimate depends on the available controls and can exceed its nominal target when background differs between libraries. Noisy-control exclusion requires at least three controls, and its effect should be reviewed. Sample-specific artifacts absent from the controls may still pass the test; spectrum and clustering flags can identify unusual patterns but require interpretation. At weakly mutated targets such as Pim1, signal remained close to background.",
+    "The core validation used three animals per group for J_{H}4 and one locus per cell system. Settings were developed using these libraries and applied to public datasets without dataset-specific retuning, although the noisy-control exclusion rule was introduced after inspection of the Ramos results. Evaluation on an independent sequencing run with new biological samples would provide a stronger test of generalizability. Indel validation comprised nanopore spike-ins and one Illumina biological phenotype, while UMI validation used rRNA rather than SHM data. These experiments do not establish performance on biological nanopore indels or UMI-tagged SHM libraries; molecule-level consensus remains preferable when available. Two Sanger studies originated from the authors’ laboratory, while the independent Sanger study provided sequences without chromatograms or AID-null controls. Together, these datasets evaluate distinct parts of the workflow, with different limits on the conclusions each can support."
+  ],
+  "RESOURCE": [
+    [
+      "Lead contact",
+      "Requests for further information and resources should be directed to and will be fulfilled by the lead contact, Alberto Martin (alberto.martin@utoronto.ca)."
+    ],
+    [
+      "Materials availability",
+      "This study did not generate new unique reagents."
+    ],
+    [
+      "Data and code availability",
+      "Nanopore reads of the J_{H}4 and N114 V_{H} libraries, the Sanger chromatograms and clone records, SHMtrace project files, per-library read accounting and all benchmark outputs will be deposited at {lab_data_doi} and will be publicly available as of the date of publication; accession numbers are listed in the key resources table. The public datasets analyzed are listed in Table S2 and the key resources table. SHMtrace (v{shmtrace_version}), including the desktop application, and all analysis and figure code will be deposited at {lab_code_doi} and will be publicly available as of the date of publication. The deposit carries a file manifest with SHA-256 checksums, the sample sheets, the per-library read accounting, and the intermediate tables each figure reads. It also carries a record of the environment the analyses were run in (interpreter, package and external-tool versions, and the commit the manuscript was built from) and a table giving, for every figure, table and quoted number, the command that produced it with its inputs and outputs, so that each displayed value can be traced to one file without reading the prose. Alignment uses the mappy bindings; the LoFreq comparison uses the standalone minimap2 executable, and the key resources table gives both versions. Any additional information required to reanalyze the data reported in this paper is available from the lead contact upon request."
+    ]
+  ],
+  "LEGENDS": [
+    [
+      "Figure 1. SHMtrace tests read-library variants against controls and counts Sanger substitutions separately",
+      "(A) Quality-based versus control-calibrated decisions, schematically. SHMtrace estimates background by substitution, strand, quality and position from matched null controls. Check marks/crosses denote correct/incorrect schematic decisions. (B) Accepted inputs and preparation. Sanger Q≥20 trimming replaces the expected-error gate; Sanger clones are not downsampled. (C) Read-library substitutions undergo a control-fitted test and empirical false-discovery threshold; single-read support is allowed. Sanger Q≥20 substitutions are counted with expected background reported separately, without subtraction. Both share windows, quality checks and the heuristic ≥50% allele exclusion, with an opt-in known-ancestor exception. (D) Outputs and comparisons across biological replicates. Reads need not represent independent original molecules. FDR, false-discovery rate. See also Figure S1. The PacBio evaluation concerns junction structure, without validating control-calibrated mutation calls."
+    ],
+    [
+      "Figure 2. Matched controls distinguish candidate substitutions from recurrent background",
+      "(A, B) C-to-T support by strand in Sμ WT3 and controls (PRJNA1481264; 2,000 reads/library). Counts include all qualities; parentheses give Q≥20 subsets. Positions 165 and 97 show hotspot-associated and recurrent-background candidates. p denotes SHMtrace's test. (C) Supporting-base qualities; bars, medians; dotted line, Q20. (D) Retained candidates and depth-scaled decoy estimates across thresholds; the empirical 5% criterion retained 88 calls. (E) Allele fractions of retained calls at 500 reads for J_{H}4/N114 V_{H} and 2,000 for Sμ/*Pim1*. Shading marks 5–20% support tested in Figure 3C, rather than a universal caller boundary; dotted line, default 50% exclusion. See also Figure S2."
+    ],
+    [
+      "Figure 3. Planted mutations and simulated lineages quantify recall and false calls",
+      "(A, B) Planted-substitution recall by support: 60 sites × 3 draws × 3 held-out controls/locus, 90 events/support point; lines span controls. FDR labels are pooled false/(true+false) calls. (C) Permissive somatic callers on J_{H}4: solid, 1–20/500 reads; dashed, 5–20% support, 30 sites/fraction/control with peer controls as normal. (D) Recall versus false calls/library across four loci; zero is displayed at 0.05 on the logarithmic axis. (E) Simulated approximately 40-clone libraries, three/scenario; lines span libraries. (F) Read- and clone-weighted estimates versus corresponding truth; stems join each library's pair. An unmutated expanded clone contributes 60% of reads. (G) Estimate/truth by depth, means and ranges over three controls; solid, J_{H}4; dashed, N114. Combined density adds estimated uncalled single-read events. (H) Rejection rates across 300 experiments/condition, n=3 or 5/group; dotted line, 5%. Monte Carlo 95% half-width ≤5.6 points. Exact two-sided permutation p≥0.10 at n=3. BAQ, base-alignment quality. See Figures S4–S8 and S24; Tables S1 and S6."
+    ],
+    [
+      "Figure 4. Matched controls reduce apparent substitution background in real libraries",
+      "(A–E) Unique variants/10^{5} analyzed bases; circles, libraries; triangles, no calls. J_{H}4: three mice/genotype; N114: three subclones/arm, 500 reads/library. External Sμ/*Pim1*: 3–4 case and three null libraries, 2,000 reads each. Welch tests on log density compare case/null per caller, Holm-adjusted across five callers/panel. Zero-call tests use one event/library exposure. ns, not significant; \\*p<0.05; \\*\\*p<0.01; \\*\\*\\*p<0.001. (F) Geometric-mean case/null separation with the same zero convention; off-target Wt and double-knockout groups are separate (n=3 each). (G) Total calls in three controls/assay. (H) Held-out candidate tests with p<0.01 versus error margin; dotted line, 1%. (I) Delivered-read disposition. Panels use peer-control caller-comparison calibration; off-target Results use production-project calibration, so counts can differ (STAR Methods). See Figures S9–S11; Tables S1 and S3."
+    ],
+    [
+      "Figure 5. Matched Sanger and nanopore libraries yield similar mutation profiles",
+      "Matched 529-bp data from three Wt and three null mice[@barbulescu2025]. (A) Within-platform densities; 26–40 Sanger clones/Wt mouse and 500 nanopore reads. Bars, geometric means; p, log-Welch. Nanopore zeros use one event. Densities are distinct platform-specific endpoints. (B) Pooled twelve-type shares ({n_sanger} Sanger/{n_ont} nanopore calls), without composition adjustment; dashed line, identity; r, descriptive correlation. (C) Four classes by mouse; bars, mean±SD; shapes identify mice. Platform×type testing uses all twelve types, matched by mouse. (D) Positional shares in 25-bp bins. (E) WRC/GYW use among G:C calls and WA/TW among A:T calls; bars, mouse means; points, mice; dashed lines, sequence opportunities. See Figures S13–S16; Tables S4 and S5."
+    ],
+    [
+      "Figure 6. Long reads retain positional profiles and linked mutation patterns",
+      "Libraries as Figure 5. (A) J_{H}4 variants/10^{5} bases in 50-bp bins, positions 90–1,230; thin lines, Wt mice; thick lines, genotype means, n=3 each. Shading, Sanger window. (B) Calls by S5F mutability quintile, normalized to each series' mean: Wt calls versus germline-excluded null mismatches. Targeting indices use permutation tests. (C) Junction-defined lineages among 500 reads/mouse: dark, largest; light, others; hatching, unassigned. Frequencies are read- and majority-rule clone-weighted. (D) Largest Wt3 lineage: square, reference; ticks, substitution classes; node sizes/counts, nested read support; distance, accumulated mutations. Forty-eight of 69 reads fit one tree; 21 are incompatible. This is a read reconstruction, not proven cellular ancestry. See Figure S17."
+    ],
+    [
+      "Figure 7. Public datasets test analysis across platforms and biological contexts",
+      "(A) Illumina J_{H}4 frequencies (PRJNA973112); points, mice; triangles, no calls; bars, geometric means with one-event zero floors. Tests: log-Welch versus null; Mann–Whitney for *Ldha*/Wt. (B) *Aicda*^{−/−}*Ung*^{−/−}*Msh2*^{−/−} CH12F3 expressing AID variants or empty vector (PRJNA918596), n=4/arm; display as A. (C) Substitution classes and S5F indices; n counts calls. (D) Ramos indels at 20,000 reads/clone (PRJNA820976); n=6 Wt/HMCES-KO and 3 AID-KO; bars, means. (E) Paired mOrange repair arms across three experiments (PRJNA170048): circles, SHMtrace; squares, active-AID raw Q>20 mismatches; crosses, inactive-AID raw mismatches. Empty-arm inactive-AID libraries calibrate calling; 4–40 calls/library give coarse shares. See Table S1."
+    ]
+  ]
+}

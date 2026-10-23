@@ -1,0 +1,365 @@
+{
+ "source": "Barbulescu et al., Nat Commun 15:7541 (2024), doi:10.1038/s41467-024-52009-x. Fig. 2g (pie percentages) and Supplementary Fig. 9b (per-mouse tables), transcribed 2026-10-16 and checked against the PDF text layer.",
+ "matrix_orientation": "rows = From (G, C, A, T), columns = To (G, C, A, T); diagonal is null",
+ "note": "In Wt #3, Wt #4 and Maea #1-#3 the printed cells do not sum to the printed totals (Wt #3 cells 118 vs 123; Wt #4 row C 31 vs 21; Maea #1 cells 70 vs 58; Maea #2 row A 23 vs 16; Maea #3 row T 16 vs 17). The paper's plotted frequencies (Figure 2h, in source_data) match the printed totals for the four wild-type mice and Maea #3-#4; for Maea #1 they use the cell sum (70) and for Maea #2 its 32 sequences x 577 bp rather than the printed 24,905 nt. Comparisons use the source data where they exist; spectra use the printed cells.",
+ "mice": {
+  "WT_2w1": {
+   "group": "WT",
+   "label": "wt #1",
+   "sequences": 23,
+   "nt": 13271,
+   "unique_mutations": 170,
+   "matrix": [
+    [
+     null,
+     11,
+     21,
+     8
+    ],
+    [
+     4,
+     null,
+     6,
+     12
+    ],
+    [
+     27,
+     16,
+     null,
+     16
+    ],
+    [
+     9,
+     22,
+     18,
+     null
+    ]
+   ]
+  },
+  "WT_2w2": {
+   "group": "WT",
+   "label": "wt #2",
+   "sequences": 30,
+   "nt": 17310,
+   "unique_mutations": 155,
+   "matrix": [
+    [
+     null,
+     8,
+     19,
+     2
+    ],
+    [
+     7,
+     null,
+     4,
+     12
+    ],
+    [
+     29,
+     17,
+     null,
+     13
+    ],
+    [
+     8,
+     20,
+     16,
+     null
+    ]
+   ]
+  },
+  "WT_2w3": {
+   "group": "WT",
+   "label": "wt #3",
+   "sequences": 23,
+   "nt": 13271,
+   "unique_mutations": 123,
+   "matrix": [
+    [
+     null,
+     6,
+     11,
+     4
+    ],
+    [
+     1,
+     null,
+     3,
+     11
+    ],
+    [
+     34,
+     13,
+     null,
+     9
+    ],
+    [
+     4,
+     18,
+     4,
+     null
+    ]
+   ]
+  },
+  "WT_2w4": {
+   "group": "WT",
+   "label": "wt #4",
+   "sequences": 21,
+   "nt": 12117,
+   "unique_mutations": 110,
+   "matrix": [
+    [
+     null,
+     3,
+     9,
+     2
+    ],
+    [
+     8,
+     null,
+     13,
+     10
+    ],
+    [
+     21,
+     11,
+     null,
+     12
+    ],
+    [
+     7,
+     16,
+     8,
+     null
+    ]
+   ]
+  },
+  "MaeaKO_2k1": {
+   "group": "Maea_KO",
+   "label": "Maea #1",
+   "sequences": 58,
+   "nt": 33466,
+   "unique_mutations": 58,
+   "matrix": [
+    [
+     null,
+     3,
+     5,
+     2
+    ],
+    [
+     4,
+     null,
+     4,
+     5
+    ],
+    [
+     14,
+     4,
+     null,
+     13
+    ],
+    [
+     2,
+     8,
+     6,
+     null
+    ]
+   ]
+  },
+  "MaeaKO_2k2": {
+   "group": "Maea_KO",
+   "label": "Maea #2",
+   "sequences": 32,
+   "nt": 24905,
+   "unique_mutations": 44,
+   "matrix": [
+    [
+     null,
+     2,
+     2,
+     4
+    ],
+    [
+     4,
+     null,
+     1,
+     2
+    ],
+    [
+     8,
+     2,
+     null,
+     13
+    ],
+    [
+     3,
+     5,
+     5,
+     null
+    ]
+   ]
+  },
+  "MaeaKO_2k3": {
+   "group": "Maea_KO",
+   "label": "Maea #3",
+   "sequences": 50,
+   "nt": 28850,
+   "unique_mutations": 75,
+   "matrix": [
+    [
+     null,
+     5,
+     6,
+     2
+    ],
+    [
+     4,
+     null,
+     4,
+     1
+    ],
+    [
+     22,
+     8,
+     null,
+     6
+    ],
+    [
+     4,
+     7,
+     5,
+     null
+    ]
+   ]
+  },
+  "MaeaKO_2k4": {
+   "group": "Maea_KO",
+   "label": "Maea #4",
+   "sequences": 47,
+   "nt": 27119,
+   "unique_mutations": 53,
+   "matrix": [
+    [
+     null,
+     2,
+     3,
+     1
+    ],
+    [
+     2,
+     null,
+     4,
+     4
+    ],
+    [
+     11,
+     4,
+     null,
+     6
+    ],
+    [
+     4,
+     7,
+     4,
+     null
+    ]
+   ]
+  }
+ },
+ "mouse_mapping": "wt #k and Maea #k are folders 2.k and 2.(k+4) of the original Benchling project: the read counts match where every page of the folder was seen (2.3 = 23, 2.4 = 21, 2.5 = 58, 2.7 = 50).",
+ "fig2g_bins": [
+  "0",
+  "1",
+  "2-5",
+  "6-10",
+  "11-20",
+  "21+"
+ ],
+ "fig2g_percent": {
+  "WT": [
+   8,
+   14,
+   34,
+   10,
+   20,
+   13
+  ],
+  "Maea_KO": [
+   26,
+   30,
+   33,
+   7,
+   4,
+   0
+  ]
+ },
+ "fig2g_n": {
+  "WT": 96,
+  "Maea_KO": 183
+ },
+ "fig2h_p": {
+  "WT_vs_Maea_KO": 0.0143,
+  "test": "one-tailed unpaired t-test"
+ },
+ "fig2i_p": {
+  "Ts": 0.0028,
+  "Tv": 0.0285
+ },
+ "aicda_mice": 3,
+ "source_data": {
+  "source": "The paper's Source Data file (41467_2024_52009_MOESM6_ESM.xlsx, nature.com), sheets 'Figure 2g', 'Figure 2h' and 'Figure 2i', read 2026-10-16. Mice are in the order of the per-mouse tables; the Figure 2g sheet names them by folder (2.1.txt to 2.8.txt), as in mouse_mapping.",
+  "analysis": "SHMTool (Methods: 'Analysis of sequencing was analyzed through SHMtool', ref. 48, MacCarthy et al. 2009); the Figure 2g sheet: 'generated through SHMtool'.",
+  "fig2h_x1e4": {
+   "WT_2w1": 128.0989,
+   "WT_2w2": 89.54362,
+   "WT_2w3": 92.68329,
+   "WT_2w4": 90.78155,
+   "MaeaKO_2k1": 20.91675,
+   "MaeaKO_2k2": 23.83016,
+   "MaeaKO_2k3": 25.99653,
+   "MaeaKO_2k4": 19.54349
+  },
+  "fig2h_aicda_x1e4": [
+   4.332756,
+   0,
+   0
+  ],
+  "fig2i_ts_tv_pct": {
+   "WT_2w1": [
+    19.5,
+    17.1
+   ],
+   "WT_2w2": [
+    20,
+    13.6
+   ],
+   "WT_2w3": [
+    17.8,
+    11.4
+   ],
+   "WT_2w4": [
+    17.3,
+    14.5
+   ],
+   "MaeaKO_2k1": [
+    14.2,
+    18.6
+   ],
+   "MaeaKO_2k2": [
+    9,
+    25
+   ],
+   "MaeaKO_2k3": [
+    9.3,
+    20
+   ],
+   "MaeaKO_2k4": [
+    13.2,
+    17
+   ]
+  },
+  "checks": "Figure 2i's per-mouse values reproduce the printed Figure 2i P values exactly (two-tailed unpaired t: Ts 0.0028, Tv 0.0285). Figure 2h's printed P (0.0143) is not what a one-tailed t-test gives on its own plotted values (0.0001); it equals 1/70, the smallest one-tailed Mann-Whitney P for 4 against 4 mice."
+ }
+}

@@ -1,0 +1,77 @@
+{
+  "journal_words": 9139,
+  "parts": {
+    "title, authors, affiliations": 35,
+    "summary": 150,
+    "keywords": 19,
+    "introduction": 488,
+    "results": 4721,
+    "discussion": 1145,
+    "limitations of the study": 355,
+    "resource availability": 259,
+    "acknowledgments": 47,
+    "author contributions": 38,
+    "declaration of interests": 6,
+    "declaration of generative AI": 52,
+    "supplemental information index": 44,
+    "figure titles and legends": 1780
+  },
+  "references_article": 51,
+  "article_diff_lines": 0,
+  "complete_prefix_diff_lines": 0,
+  "article_changes": {
+    "insertions": 0,
+    "deletions": 0,
+    "comments_xml": ""
+  },
+  "complete_changes": {
+    "insertions": 0,
+    "deletions": 0,
+    "comments_xml": ""
+  },
+  "hardcoded_superscripts": [
+    [
+      "AUTHORS",
+      "Abdulmateen Aderinto^{1,3} and Alberto Martin^{1,2,*}"
+    ],
+    [
+      "AFFIL",
+      "['^{1}Department of Immunology, University of Toronto, Toront"
+    ],
+    [
+      "AFFIL",
+      "o, ON M5S 1A8, Canada', '^{2}Lead contact', '^{3}Technical contact', '\\\\*Correspondence: alberto.martin@"
+    ],
+    [
+      "RESULTS",
+      "y length and expected error[@edgar2015] and aligned with minimap2^{29} against the target together with competing references."
+    ],
+    [
+      "RESULTS",
+      "f reads, read-weighted frequency was 6.2 versus a true 6.0 per 10^{3} bp, while the majority-rule clone-weighted measure rec"
+    ],
+    [
+      "RESULTS",
+      "*Aicda*^{−/−} controls, with densities of 3.07 versus 0.04 per 10^{5} bases (Welch p = 9.7 × 10^{−4} on log density; 0.024 o"
+    ],
+    [
+      "RESULTS",
+      "ockout reduced counts to 2, 0, and 2 at off-target 1 (0.07 per 10^{5} bases) and 1, 0, and 0 at off-target 2 (0.02), statist"
+    ],
+    [
+      "RESULTS",
+      "f junction-assigned reads. Read-weighted frequency was 2.8 per 10^{3} bp, compared with 16.3 when each lineage's majority-ru"
+    ],
+    [
+      "RESULTS",
+      "atches at Q>20 yielded background frequencies of 0.31–0.72 per 10^{3} bases in inactive-AID libraries, with only two-fold se"
+    ]
+  ],
+  "dataset_counts": {
+    "ds_loci": "twelve",
+    "ds_labs": "eleven",
+    "ds_shm": "six",
+    "ds_offtarget": "four",
+    "ds_engineered": "two"
+  }
+}

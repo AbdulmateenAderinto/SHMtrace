@@ -1,0 +1,853 @@
+{
+ "four_gamete": {
+  "jh4": {
+   "WT2:0": {
+    "pairs": 171,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 19
+   },
+   "WT2:1": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT3:0": {
+    "pairs": 1128,
+    "incompatible": 7,
+    "incompatible_pct": 0.6,
+    "mutations": 48
+   },
+   "WT3:1": {
+    "pairs": 276,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 24
+   },
+   "WT3:3": {
+    "pairs": 351,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 27
+   },
+   "WT3:2": {
+    "pairs": 351,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 27
+   },
+   "WT3:4": {
+    "pairs": 231,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 22
+   },
+   "WT3:6": {
+    "pairs": 36,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 9
+   },
+   "WT3:5": {
+    "pairs": 1326,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 52
+   },
+   "WT3:7": {
+    "pairs": 276,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 24
+   },
+   "WT3:14": {
+    "pairs": 703,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 38
+   },
+   "WT3:11": {
+    "pairs": 91,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 14
+   },
+   "WT3:8": {
+    "pairs": 3,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 3
+   },
+   "WT3:10": {
+    "pairs": 136,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 17
+   },
+   "WT3:9": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:0": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:2": {
+    "pairs": 45,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 10
+   },
+   "WT4:1": {
+    "pairs": 28,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 8
+   },
+   "WT4:3": {
+    "pairs": 78,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 13
+   },
+   "WT4:6": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:4": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:5": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:7": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:8": {
+    "pairs": 1,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 2
+   },
+   "WT4:9": {
+    "pairs": 210,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 21
+   },
+   "WT4:10": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:11": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   },
+   "WT4:14": {
+    "pairs": 1,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 2
+   },
+   "WT4:12": {
+    "pairs": 6,
+    "incompatible": 0,
+    "incompatible_pct": 0.0,
+    "mutations": 4
+   },
+   "WT4:13": {
+    "pairs": 0,
+    "incompatible": 0,
+    "incompatible_pct": null,
+    "mutations": 0
+   }
+  },
+  "n114": {
+   "C1": {
+    "pairs": 435,
+    "incompatible": 33,
+    "incompatible_pct": 7.6,
+    "mutations": 30
+   },
+   "D3": {
+    "pairs": 171,
+    "incompatible": 2,
+    "incompatible_pct": 1.2,
+    "mutations": 19
+   },
+   "D5": {
+    "pairs": 2016,
+    "incompatible": 102,
+    "incompatible_pct": 5.1,
+    "mutations": 64
+   }
+  }
+ },
+ "trees": {
+  "WT2:0": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 13,
+    "mutations": [
+     "G1005A"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": null,
+    "reads": 6,
+    "mutations": [
+     "G397A"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": null,
+    "reads": 5,
+    "mutations": [
+     "G504T"
+    ]
+   },
+   {
+    "id": 4,
+    "parent": null,
+    "reads": 4,
+    "mutations": [
+     "G212A"
+    ]
+   },
+   {
+    "id": 5,
+    "parent": null,
+    "reads": 4,
+    "mutations": [
+     "A783G"
+    ]
+   },
+   {
+    "id": 6,
+    "parent": 4,
+    "reads": 3,
+    "mutations": [
+     "A107G",
+     "C121T",
+     "T141C",
+     "A197G",
+     "G202T",
+     "G209C",
+     "T213A",
+     "T386G",
+     "T398G",
+     "A424G",
+     "C476T",
+     "T520C",
+     "G785T"
+    ]
+   },
+   {
+    "id": 7,
+    "parent": null,
+    "reads": 3,
+    "mutations": [
+     "G114A"
+    ]
+   },
+   {
+    "id": 8,
+    "parent": null,
+    "reads": 2,
+    "mutations": [
+     "A172G"
+    ]
+   },
+   {
+    "id": 9,
+    "parent": null,
+    "reads": 2,
+    "mutations": [
+     "A672G"
+    ]
+   }
+  ],
+  "WT3:3": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 28,
+    "mutations": [
+     "A307G",
+     "C363T",
+     "A455G"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": 1,
+    "reads": 16,
+    "mutations": [
+     "C139T",
+     "G160A",
+     "G165T",
+     "C166T",
+     "G209C",
+     "T383A",
+     "T395A",
+     "A422C",
+     "C488T",
+     "T490A",
+     "T517G",
+     "A550G",
+     "A559G",
+     "A565G",
+     "T566A",
+     "C695G",
+     "T739C"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": 1,
+    "reads": 13,
+    "mutations": [
+     "A223G",
+     "T258C",
+     "C269T",
+     "C367T",
+     "C368A",
+     "T369G"
+    ]
+   },
+   {
+    "id": 4,
+    "parent": 3,
+    "reads": 10,
+    "mutations": [
+     "T247C"
+    ]
+   },
+   {
+    "id": 5,
+    "parent": 2,
+    "reads": 2,
+    "mutations": [
+     "A224G"
+    ]
+   }
+  ],
+  "WT3:14": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 13,
+    "mutations": [
+     "G151C",
+     "G160C",
+     "T518G"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": 1,
+    "reads": 8,
+    "mutations": [
+     "G165T",
+     "G168C",
+     "G178A",
+     "C237G",
+     "C244T",
+     "T258C",
+     "C279G",
+     "A282T",
+     "A316G",
+     "G350A",
+     "A396G",
+     "C459A",
+     "T587G",
+     "T588C",
+     "T594C",
+     "T622C",
+     "C735G",
+     "A1012G"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": 1,
+    "reads": 5,
+    "mutations": [
+     "A111G",
+     "G143A",
+     "T154C",
+     "A173G",
+     "A219G",
+     "A222G",
+     "C266T",
+     "A285T",
+     "T333G",
+     "A428T",
+     "C436G",
+     "A475C",
+     "T539A",
+     "A597C",
+     "A602G",
+     "A631C",
+     "A702T"
+    ]
+   }
+  ]
+ },
+ "wt3_figure_clone": {
+  "clone": 0,
+  "reads": 69,
+  "fit": 0.696,
+  "nodes": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 69,
+    "mutations": [
+     "A107G",
+     "C166T",
+     "T320C",
+     "C368G"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": 1,
+    "reads": 32,
+    "mutations": [
+     "G217A",
+     "C279G",
+     "T490C",
+     "T814A",
+     "C868A"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": 2,
+    "reads": 24,
+    "mutations": [
+     "G212A"
+    ]
+   },
+   {
+    "id": 4,
+    "parent": 1,
+    "reads": 20,
+    "mutations": [
+     "A316G"
+    ]
+   },
+   {
+    "id": 5,
+    "parent": 1,
+    "reads": 15,
+    "mutations": [
+     "C138G",
+     "T144A",
+     "A275C",
+     "T290C",
+     "G323A",
+     "G403A",
+     "A422G",
+     "A425G",
+     "A442G",
+     "T446C",
+     "T474G"
+    ]
+   },
+   {
+    "id": 6,
+    "parent": 4,
+    "reads": 10,
+    "mutations": [
+     "A111G",
+     "T127C",
+     "A136G",
+     "A137C",
+     "T171C",
+     "C188T",
+     "A224T",
+     "T474C"
+    ]
+   },
+   {
+    "id": 7,
+    "parent": 4,
+    "reads": 10,
+    "mutations": [
+     "A136T",
+     "A222G",
+     "T508C"
+    ]
+   },
+   {
+    "id": 8,
+    "parent": 2,
+    "reads": 10,
+    "mutations": [
+     "T386C",
+     "G581T",
+     "A589G",
+     "A649G"
+    ]
+   },
+   {
+    "id": 9,
+    "parent": 1,
+    "reads": 9,
+    "mutations": [
+     "T132C"
+    ]
+   },
+   {
+    "id": 10,
+    "parent": 9,
+    "reads": 8,
+    "mutations": [
+     "T221A"
+    ]
+   },
+   {
+    "id": 11,
+    "parent": 2,
+    "reads": 7,
+    "mutations": [
+     "C488A"
+    ]
+   },
+   {
+    "id": 12,
+    "parent": 3,
+    "reads": 6,
+    "mutations": [
+     "A111T",
+     "A137G",
+     "T355C",
+     "A362G",
+     "T530A",
+     "T554C"
+    ]
+   },
+   {
+    "id": 13,
+    "parent": 5,
+    "reads": 3,
+    "mutations": [
+     "T395C",
+     "A535G"
+    ]
+   },
+   {
+    "id": 14,
+    "parent": 1,
+    "reads": 2,
+    "mutations": [
+     "T171A",
+     "C445G"
+    ]
+   }
+  ]
+ },
+ "clones": {
+  "WT2": [
+   {
+    "clone": 0,
+    "reads": 323,
+    "nodes": 9,
+    "max_depth": 14,
+    "branch_points": 1,
+    "fit": 0.909,
+    "left_out_single_read": 19
+   },
+   {
+    "clone": 1,
+    "reads": 20,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 4
+   }
+  ],
+  "WT3": [
+   {
+    "clone": 0,
+    "reads": 69,
+    "nodes": 14,
+    "max_depth": 17,
+    "branch_points": 3,
+    "fit": 0.696,
+    "left_out_single_read": 14
+   },
+   {
+    "clone": 1,
+    "reads": 30,
+    "nodes": 2,
+    "max_depth": 18,
+    "branch_points": 1,
+    "fit": 1.0,
+    "left_out_single_read": 4
+   },
+   {
+    "clone": 3,
+    "reads": 28,
+    "nodes": 5,
+    "max_depth": 21,
+    "branch_points": 1,
+    "fit": 0.964,
+    "left_out_single_read": 11
+   },
+   {
+    "clone": 2,
+    "reads": 19,
+    "nodes": 2,
+    "max_depth": 27,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 2
+   },
+   {
+    "clone": 4,
+    "reads": 17,
+    "nodes": 3,
+    "max_depth": 22,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 3
+   },
+   {
+    "clone": 6,
+    "reads": 15,
+    "nodes": 2,
+    "max_depth": 10,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 4
+   },
+   {
+    "clone": 5,
+    "reads": 15,
+    "nodes": 4,
+    "max_depth": 52,
+    "branch_points": 1,
+    "fit": 0.267,
+    "left_out_single_read": 5
+   },
+   {
+    "clone": 7,
+    "reads": 13,
+    "nodes": 1,
+    "max_depth": 24,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 2
+   },
+   {
+    "clone": 14,
+    "reads": 13,
+    "nodes": 3,
+    "max_depth": 21,
+    "branch_points": 1,
+    "fit": 1.0,
+    "left_out_single_read": 2
+   },
+   {
+    "clone": 11,
+    "reads": 12,
+    "nodes": 2,
+    "max_depth": 14,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 5
+   },
+   {
+    "clone": 8,
+    "reads": 12,
+    "nodes": 1,
+    "max_depth": 3,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 3
+   },
+   {
+    "clone": 10,
+    "reads": 11,
+    "nodes": 3,
+    "max_depth": 15,
+    "branch_points": 1,
+    "fit": 1.0,
+    "left_out_single_read": 6
+   },
+   {
+    "clone": 9,
+    "reads": 10,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 2
+   }
+  ],
+  "WT4": [
+   {
+    "clone": 0,
+    "reads": 30,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 2
+   },
+   {
+    "clone": 2,
+    "reads": 23,
+    "nodes": 1,
+    "max_depth": 10,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 1
+   },
+   {
+    "clone": 1,
+    "reads": 23,
+    "nodes": 1,
+    "max_depth": 8,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 0
+   },
+   {
+    "clone": 3,
+    "reads": 19,
+    "nodes": 1,
+    "max_depth": 13,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 1
+   },
+   {
+    "clone": 6,
+    "reads": 19,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 0
+   },
+   {
+    "clone": 4,
+    "reads": 19,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 1
+   },
+   {
+    "clone": 5,
+    "reads": 19,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 2
+   },
+   {
+    "clone": 7,
+    "reads": 18,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 3
+   },
+   {
+    "clone": 8,
+    "reads": 18,
+    "nodes": 1,
+    "max_depth": 2,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 2
+   },
+   {
+    "clone": 9,
+    "reads": 16,
+    "nodes": 3,
+    "max_depth": 21,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 3
+   },
+   {
+    "clone": 10,
+    "reads": 14,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 1
+   },
+   {
+    "clone": 11,
+    "reads": 13,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 0
+   },
+   {
+    "clone": 14,
+    "reads": 13,
+    "nodes": 1,
+    "max_depth": 2,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 1
+   },
+   {
+    "clone": 12,
+    "reads": 13,
+    "nodes": 1,
+    "max_depth": 4,
+    "branch_points": 0,
+    "fit": 1.0,
+    "left_out_single_read": 1
+   },
+   {
+    "clone": 13,
+    "reads": 11,
+    "nodes": 0,
+    "max_depth": 0,
+    "branch_points": 0,
+    "fit": null,
+    "left_out_single_read": 0
+   }
+  ]
+ }
+}

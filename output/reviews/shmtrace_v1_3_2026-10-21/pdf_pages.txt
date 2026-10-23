@@ -1,0 +1,85 @@
+PAGE 1: SHMtrace, complete manuscript, version 1.3 · page 1 | SHMtrace: complete manuscript with supplemental information | Version 1.3, 
+PAGE 2: SHMtrace, complete manuscript, version 1.3 · page 2 | SHMtrace calls somatic hypermutation and other AID-driven  | mutation with 
+PAGE 3: SHMtrace, complete manuscript, version 1.3 · page 3 | DNA. Replication over the resulting uracils, together with uracil excisio
+PAGE 4: SHMtrace, complete manuscript, version 1.3 · page 4 | chromatograms. We validated it with planted mutations, simulated lineages
+PAGE 5: SHMtrace, complete manuscript, version 1.3 · page 5 | The read-library test can retain a candidate supported by a single read; 
+PAGE 6: SHMtrace, complete manuscript, version 1.3 · page 6 | 0.083). Default LoFreq recalled none; disabling its short-read-oriented b
+PAGE 7: SHMtrace, complete manuscript, version 1.3 · page 7 | performed like the matched controls (66–68% versus 63% recall), and pooli
+PAGE 8: SHMtrace, complete manuscript, version 1.3 · page 8 | once and divides by the number of analyzed bases. As sequencing depth inc
+PAGE 9: SHMtrace, complete manuscript, version 1.3 · page 9 | The same N114 VH reads were analyzed by IgBLAST32 and SHazaM22, which cou
+PAGE 10: SHMtrace, complete manuscript, version 1.3 · page 10 | Read preparation excluded 44–79% of delivered JH4 reads per library, or 
+PAGE 11: SHMtrace, complete manuscript, version 1.3 · page 11 | knockout). Four traces assigned to two mice and 134 identical mutated-cl
+PAGE 12: SHMtrace, complete manuscript, version 1.3 · page 12 | the full interval closely matched those within the Sanger window (Pearso
+PAGE 13: SHMtrace, complete manuscript, version 1.3 · page 13 | HMCES-deficient Ramos clones had 3.8-fold more deletions and 2.5-fold mo
+PAGE 14: SHMtrace, complete manuscript, version 1.3 · page 14 | no-editor libraries yielded at most one call in 20,000 reads. AID substi
+PAGE 15: SHMtrace, complete manuscript, version 1.3 · page 15 | places 19–47% of unique junctions at more than one equally good position
+PAGE 16: SHMtrace, complete manuscript, version 1.3 · page 16 | Seen this way, comparator performance is a matter of operating range rat
+PAGE 17: SHMtrace, complete manuscript, version 1.3 · page 17 | linked to animals and genotypes: SHMtrace recovered the principal JH4 fr
+PAGE 18: SHMtrace, complete manuscript, version 1.3 · page 18 | distinguished from genuine mutations or expanded biological lineages. Mu
+PAGE 19: SHMtrace, complete manuscript, version 1.3 · page 19 | Data and code availability | Nanopore reads of the JH4 and N114 VH librari
+PAGE 20: SHMtrace, complete manuscript, version 1.3 · page 20 | Declaration of generative AI and AI-assisted technologies in the manuscr
+PAGE 21: SHMtrace, complete manuscript, version 1.3 · page 21 | Figure titles and legends | Figure 1. SHMtrace tests read-library variants
+PAGE 22: SHMtrace, complete manuscript, version 1.3 · page 22 | frequency is removed with it; known-reference experiments have an opt-in
+PAGE 23: SHMtrace, complete manuscript, version 1.3 · page 23 | Figure 3. Planted mutations and simulated lineages quantify recall and f
+PAGE 24: SHMtrace, complete manuscript, version 1.3 · page 24 | Figure 4. Matched controls reduce apparent substitution background in re
+PAGE 25: SHMtrace, complete manuscript, version 1.3 · page 25 | of them cleared the 500 drawn for analysis. Panels use the caller-compar
+PAGE 26: SHMtrace, complete manuscript, version 1.3 · page 26 | Figure 6. Long reads retain positional profiles and linked mutation patt
+PAGE 27: SHMtrace, complete manuscript, version 1.3 · page 27 | Figure 7. Public datasets test analysis across platforms and biological 
+PAGE 28: SHMtrace, complete manuscript, version 1.3 · page 28 | STAR Methods★ | Key resources table | REAGENT or RESOURCE SOURCE IDENTIFIER | 
+PAGE 29: SHMtrace, complete manuscript, version 1.3 · page 29 | REAGENT or RESOURCE SOURCE IDENTIFIER | Software and algorithms | SHMtrace v
+PAGE 30: SHMtrace, complete manuscript, version 1.3 · page 30 | Method details | Germinal-center B cell isolation and DNA extraction | Peyer
+PAGE 31: SHMtrace, complete manuscript, version 1.3 · page 31 | for 5 min. Products were checked on a 1% agarose gel for a single band o
+PAGE 32: SHMtrace, complete manuscript, version 1.3 · page 32 | Control-calibrated variant calling | Each observed single-nucleotide diffe
+PAGE 33: SHMtrace, complete manuscript, version 1.3 · page 33 | libraries were analyzed, where it excluded no control; it excluded one i
+PAGE 34: SHMtrace, complete manuscript, version 1.3 · page 34 | lower false-discovery proportion (0.061), whereas N114 VH kept 76% recal
+PAGE 35: SHMtrace, complete manuscript, version 1.3 · page 35 | 5.1% for unmodified, noisy-control, shared-artifact and case-only condit
+PAGE 36: SHMtrace, complete manuscript, version 1.3 · page 36 | exactly as the read depth summed over those positions, not the number of
+PAGE 37: SHMtrace, complete manuscript, version 1.3 · page 37 | merging a neighbor only when it is at most half as abundant; groups of f
+PAGE 38: SHMtrace, complete manuscript, version 1.3 · page 38 | overlap ≥0.9; each node's parent is the smallest node containing ≥90% of
+PAGE 39: SHMtrace, complete manuscript, version 1.3 · page 39 | unpaired t test; comparisons with Aicda−/− used Welch tests on log frequ
+PAGE 40: SHMtrace, complete manuscript, version 1.3 · page 40 | the other collections, suggesting that two animals may share this label.
+PAGE 41: SHMtrace, complete manuscript, version 1.3 · page 41 | benchmark route throughout, for comparability between callers, and Table
+PAGE 42: SHMtrace, complete manuscript, version 1.3 · page 42 | v_germline_alignment; a library's value is the mean over reads. SHMtrace
+PAGE 43: SHMtrace, complete manuscript, version 1.3 · page 43 | Simulations | Lineage simulations partitioned one null library into approx
+PAGE 44: SHMtrace, complete manuscript, version 1.3 · page 44 | reads was collapsed into one quality-weighted consensus, which was score
+PAGE 45: SHMtrace, complete manuscript, version 1.3 · page 45 | strengthens from p = 0.065 to 0.005, and insertions in Xlf−/− weaken fro
+PAGE 46: SHMtrace, complete manuscript, version 1.3 · page 46 | reached by R2; a second analysis uses positions 20–240 in the twelve pai
+PAGE 47: SHMtrace, complete manuscript, version 1.3 · page 47 | tests. Sample sizes, statistical tests, and dispersion measures are give
+PAGE 48: SHMtrace, complete manuscript, version 1.3 · page 48 | Document S1. Supplemental figures and tables
+PAGE 49: SHMtrace, complete manuscript, version 1.3 · page 49 | Figure S1. Detailed workflow, related to Figure 1. The workflow of Figur
+PAGE 50: SHMtrace, complete manuscript, version 1.3 · page 50 | Figure S2. Reported base qualities and observed control mismatch rates, 
+PAGE 51: SHMtrace, complete manuscript, version 1.3 · page 51 | Figure S3. What a project run writes, and how to read it, related to  Fi
+PAGE 52: SHMtrace, complete manuscript, version 1.3 · page 52 | Figure S4. The control-based false-discovery threshold against planted t
+PAGE 53: SHMtrace, complete manuscript, version 1.3 · page 53 | Figure S5. How many AID-null controls, and which, related to Figure 3. E
+PAGE 54: SHMtrace, complete manuscript, version 1.3 · page 54 | Figure S6 . Real hypermutation diluted into AID-null reads, related to  
+PAGE 55: SHMtrace, complete manuscript, version 1.3 · page 55 | Figure S7. Indels planted into held-out AID-null libraries, related to F
+PAGE 56: SHMtrace, complete manuscript, version 1.3 · page 56 | Figure S8. Single-read estimate, power and UMI consensus, related to  Fi
+PAGE 57: SHMtrace, complete manuscript, version 1.3 · page 57 | Figure S9. N114 V-region results, related to Figure 4 (page 1 of 2). AID
+PAGE 58: SHMtrace, complete manuscript, version 1.3 · page 58 | Figure S9. Per-library spectra, related to Figure 4 (page 2 of 2). The s
+PAGE 59: SHMtrace, complete manuscript, version 1.3 · page 59 | Figure S10. Sequencing depth and unique-variant discovery, related to Fi
+PAGE 60: SHMtrace, complete manuscript, version 1.3 · page 60 | Figure S11. The background along the amplicon and in each read, related 
+PAGE 61: SHMtrace, complete manuscript, version 1.3 · page 61 | Figure S12 . SHMtrace and the IgBLAST–SHazaM route on the same N114 V H 
+PAGE 62: SHMtrace, complete manuscript, version 1.3 · page 62 | Figure S13. Sanger re-analysis, related to Figure 5 (page 1 of 2). Top, 
+PAGE 63: SHMtrace, complete manuscript, version 1.3 · page 63 | Figure S14. Reanalysis of published Maea Sanger data, related to Figure 
+PAGE 64: SHMtrace, complete manuscript, version 1.3 · page 64 | Figure S15. Reanalysis of published Mkln1 Sanger data, related to Figure
+PAGE 65: SHMtrace, complete manuscript, version 1.3 · page 65 | Figure S16 . Reanalysis of published SW HEL Sanger sequences, related to
+PAGE 66: SHMtrace, complete manuscript, version 1.3 · page 66 | Figure S17. Full-length spectra, related to  Figure 6 (page 1 of 2).  Ex
+PAGE 67: SHMtrace, complete manuscript, version 1.3 · page 67 | Figure  S17.  Mutation  trees  in  each  mouse,  related  to  Figure  6 
+PAGE 68: SHMtrace, complete manuscript, version 1.3 · page 68 | Figure S18. Engineered AID diversification, related to Figure 7. (A) One
+PAGE 69: SHMtrace, complete manuscript, version 1.3 · page 69 | Figure S19. Public Sμ mutation libraries under PI3Kδ blockade, related t
+PAGE 70: SHMtrace, complete manuscript, version 1.3 · page 70 | Figure S20. Class-switch junctions in a public PacBio dataset, related t
+PAGE 71: SHMtrace, complete manuscript, version 1.3 · page 71 | Figure S21. What a read means on each of the four platforms, related to 
+PAGE 72: SHMtrace, complete manuscript, version 1.3 · page 72 | junction counts measure long-range PCR recovery and not switching effici
+PAGE 73: SHMtrace, complete manuscript, version 1.3 · page 73 | Figure S22. SHMtrace analysis workflow, related to STAR Methods. Sequenc
+PAGE 74: SHMtrace, complete manuscript, version 1.3 · page 74 | Figure S23. Rules underlying read preparation and variant calling, relat
+PAGE 75: SHMtrace, complete manuscript, version 1.3 · page 75 | Figure S24. End-to-end stress tests using resampled control reads, relat
+PAGE 76: SHMtrace, complete manuscript, version 1.3 · page 76 | Table S2. Datasets used to develop and validate SHMtrace, related to STA
+PAGE 77: SHMtrace, complete manuscript, version 1.3 · page 77 | Table S3. Read preparation and calls per library, related to Figure 4 | As
+PAGE 78: SHMtrace, complete manuscript, version 1.3 · page 78 | Table S4. SHMtrace and two published Sanger analyses, metric by metric, 
+PAGE 79: SHMtrace, complete manuscript, version 1.3 · page 79 | Table S5. What "reproduced" means for each re-analyzed study, related to
+PAGE 80: SHMtrace, complete manuscript, version 1.3 · page 80 | Table S6. Statistical summary, related to Figures 3–7 | Comparison Test Re
+PAGE 81: SHMtrace, complete manuscript, version 1.3 · page 81 | Table S7. The default calling threshold against two stricter settings, r
+PAGE 82: SHMtrace, complete manuscript, version 1.3 · page 82 | 5. Rada, C., Di Noia, J.M., and Neuberger, M.S. (2004). Mismatch recogni
+PAGE 83: SHMtrace, complete manuscript, version 1.3 · page 83 | 19. Kearse, M., Moir, R., Wilson, A., Stones-Havas, S., Cheung, M., Stur
+PAGE 84: SHMtrace, complete manuscript, version 1.3 · page 84 | 33. Seija, N., Gannon, S., Häfner, K., Gemeinhardt, T., Ridani, J., Alva
+PAGE 85: SHMtrace, complete manuscript, version 1.3 · page 85 | 45. Barbulescu, P., Wong, M.K., Baronian, L., Wang, P., Aderinto, A., Kn

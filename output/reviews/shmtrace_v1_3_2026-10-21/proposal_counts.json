@@ -1,0 +1,42 @@
+{
+  "baseline": 9139,
+  "results_and_legends_only": 6800,
+  "with_discussion_revisions": 6803,
+  "full_proposal": 6803,
+  "reduction": 2336,
+  "margin_below_7000": 197,
+  "parts_before": {
+    "title, authors, affiliations": 35,
+    "summary": 150,
+    "keywords": 19,
+    "introduction": 488,
+    "results": 4721,
+    "discussion": 1145,
+    "limitations of the study": 355,
+    "resource availability": 259,
+    "acknowledgments": 47,
+    "author contributions": 38,
+    "declaration of interests": 6,
+    "declaration of generative AI": 52,
+    "supplemental information index": 44,
+    "figure titles and legends": 1780
+  },
+  "parts_after": {
+    "title, authors, affiliations": 35,
+    "summary": 150,
+    "keywords": 19,
+    "introduction": 488,
+    "results": 3298,
+    "discussion": 1148,
+    "limitations of the study": 355,
+    "resource availability": 259,
+    "acknowledgments": 47,
+    "author contributions": 38,
+    "declaration of interests": 6,
+    "declaration of generative AI": 52,
+    "supplemental information index": 44,
+    "figure titles and legends": 864
+  },
+  "removed_results_placeholders": 81,
+  "removed_keys_requiring_context_review": 0
+}

@@ -1,0 +1,179 @@
+{
+ "v_call": "IGHV1-47-36*01",
+ "v_identity": 99.32,
+ "v_length": 294,
+ "routes": {
+  "imgt": {
+   "libraries": {
+    "C1": {
+     "group": "pMX-Aicda",
+     "value": 0.00986587596451323,
+     "plotted": 0.00986587596451323,
+     "zero": false
+    },
+    "D3": {
+     "group": "pMX-Aicda",
+     "value": 0.006035575632637284,
+     "plotted": 0.006035575632637284,
+     "zero": false
+    },
+    "D5": {
+     "group": "pMX-Aicda",
+     "value": 0.007778124587458513,
+     "plotted": 0.007778124587458513,
+     "zero": false
+    },
+    "C3": {
+     "group": "empty vector",
+     "value": 0.004371771394790554,
+     "plotted": 0.004371771394790554,
+     "zero": false
+    },
+    "C4": {
+     "group": "empty vector",
+     "value": 0.004265567389358895,
+     "plotted": 0.004265567389358895,
+     "zero": false
+    },
+    "D1": {
+     "group": "empty vector",
+     "value": 0.0040179155810738856,
+     "plotted": 0.0040179155810738856,
+     "zero": false
+    }
+   },
+   "aid_geo": 0.007737068008344802,
+   "empty_geo": 0.0042157840180042615,
+   "fold": 1.8352619525341587
+  },
+  "parental": {
+   "libraries": {
+    "C1": {
+     "group": "pMX-Aicda",
+     "value": 0.005439477441688566,
+     "plotted": 0.005439477441688566,
+     "zero": false
+    },
+    "D3": {
+     "group": "pMX-Aicda",
+     "value": 0.002276295462536027,
+     "plotted": 0.002276295462536027,
+     "zero": false
+    },
+    "D5": {
+     "group": "pMX-Aicda",
+     "value": 0.0038794095343878997,
+     "plotted": 0.0038794095343878997,
+     "zero": false
+    },
+    "C3": {
+     "group": "empty vector",
+     "value": 0.0007594282915485696,
+     "plotted": 0.0007594282915485696,
+     "zero": false
+    },
+    "C4": {
+     "group": "empty vector",
+     "value": 0.0007170246867785899,
+     "plotted": 0.0007170246867785899,
+     "zero": false
+    },
+    "D1": {
+     "group": "empty vector",
+     "value": 0.00036220339426686814,
+     "plotted": 0.00036220339426686814,
+     "zero": false
+    }
+   },
+   "aid_geo": 0.0036351065669166347,
+   "empty_geo": 0.0005820913319592253,
+   "fold": 6.244907572633755
+  },
+  "parental_q20": {
+   "libraries": {
+    "C1": {
+     "group": "pMX-Aicda",
+     "value": 0.004829409794209109,
+     "plotted": 0.004829409794209109,
+     "zero": false
+    },
+    "D3": {
+     "group": "pMX-Aicda",
+     "value": 0.0014040145847086594,
+     "plotted": 0.0014040145847086594,
+     "zero": false
+    },
+    "D5": {
+     "group": "pMX-Aicda",
+     "value": 0.0032890304200707456,
+     "plotted": 0.0032890304200707456,
+     "zero": false
+    },
+    "C3": {
+     "group": "empty vector",
+     "value": 0.00014101194585207878,
+     "plotted": 0.00014101194585207878,
+     "zero": false
+    },
+    "C4": {
+     "group": "empty vector",
+     "value": 9.976848785002088e-05,
+     "plotted": 9.976848785002088e-05,
+     "zero": false
+    },
+    "D1": {
+     "group": "empty vector",
+     "value": 4.8870030314591906e-05,
+     "plotted": 4.8870030314591906e-05,
+     "zero": false
+    }
+   },
+   "aid_geo": 0.0028147804285455747,
+   "empty_geo": 8.826000911032337e-05,
+   "fold": 31.89191182868734
+  },
+  "shmtrace": {
+   "libraries": {
+    "C1": {
+     "group": "pMX-Aicda",
+     "value": 0.0011972789115646258,
+     "plotted": 0.0011972789115646258,
+     "zero": false
+    },
+    "D3": {
+     "group": "pMX-Aicda",
+     "value": 0.0010816326530612246,
+     "plotted": 0.0010816326530612246,
+     "zero": false
+    },
+    "D5": {
+     "group": "pMX-Aicda",
+     "value": 0.0032312925170068026,
+     "plotted": 0.0032312925170068026,
+     "zero": false
+    },
+    "C3": {
+     "group": "empty vector",
+     "value": 1.3605442176870749e-05,
+     "plotted": 1.3605442176870749e-05,
+     "zero": false
+    },
+    "C4": {
+     "group": "empty vector",
+     "value": 0.0,
+     "plotted": 6.8027210884353745e-06,
+     "zero": true
+    },
+    "D1": {
+     "group": "empty vector",
+     "value": 0.0,
+     "plotted": 6.8027210884353745e-06,
+     "zero": true
+    }
+   },
+   "aid_geo": 0.0016114511046822497,
+   "empty_geo": 8.570891495883486e-06,
+   "fold": 188.01440963944225
+  }
+ }
+}

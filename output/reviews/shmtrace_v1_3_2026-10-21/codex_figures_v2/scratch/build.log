@@ -1,0 +1,78 @@
+Traceback (most recent call last):
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/build_data_figures.py", line 383, in <module>
+    mod.main()
+    ~~~~~~~~^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/fig2_call.py", line 184, in main
+    open('/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_version/scratch/fig2_numbers.json', "w"), indent=1)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/build_data_figures.py", line 29, in guarded
+    else: raise RuntimeError(f'Blocked external write: {p}')
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Blocked external write: /Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_version/scratch/fig2_numbers.json
+Traceback (most recent call last):
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/build_data_figures.py", line 383, in <module>
+    mod.main()
+    ~~~~~~~~^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/fig4_controls.py", line 235, in main
+    json.dump(tests, open('/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_version/scratch/fig4_tests.json', "w"), indent=1)
+                     ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/build_data_figures.py", line 29, in guarded
+    else: raise RuntimeError(f'Blocked external write: {p}')
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Blocked external write: /Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_version/scratch/fig4_tests.json
+Traceback (most recent call last):
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/build_data_figures.py", line 383, in <module>
+    mod.main()
+    ~~~~~~~~^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/fig4_controls.py", line 235, in main
+    json.dump(tests, open('/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_version/scratch/fig4_tests.json', "w"), indent=1)
+                     ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/build_data_figures.py", line 29, in guarded
+    else: raise RuntimeError(f'Blocked external write: {p}')
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Blocked external write: /Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_version/scratch/fig4_tests.json
+Figure2: 174 x 151 mm
+Figure3: 174 x 148 mm
+FigureS25_downstream: 174 x 164 mm
+Figure5: 174 x 147 mm
+Figure6: 174 x 150 mm
+Figure7: 174 x 158 mm
+FigureS2: 174 x 92 mm
+FigureS4_fdr_calibration: 174 x 90 mm
+FigureS5_controls: 174 x 90 mm
+FigureS6_titration: 174 x 108 mm
+FigureS7_indels: 174 x 90 mm
+FigureS8_estimates: 174 x 91 mm
+FigureS8_umi: 174 x 91 mm
+FigureS10: 174 x 104 mm
+{'WT2': 79.6, 'WT3': 94.2, 'WT4': 96.0, 'C1': 54.9, 'D3': 55.9, 'D5': 66.7}
+   J$_H$4: between-control Spearman r = 0.12-0.20 (3 pairs)
+   Sμ: between-control Spearman r = 0.29-0.45 (3 pairs)
+FigureS11: 174 x 150 mm
+FigureS12_immcantation: 174 x 90 mm
+FigureS14_sanger_cohort2: 174 x 150 mm
+FigureS15_sanger_mkln: 174 x 110 mm
+FigureS18_engineered: 174 x 90 mm
+FigureS19_public_smu: 174 x 112 mm
+FigureS20_switch_pacbio: 174 x 148 mm
+estimator (mean vs max):
+  none       true  403.0 ->  389.0   FDP  3.8% ->  2.5%
+  one_noisy  true  396.0 ->  377.4   FDP  3.0% ->  1.7%
+  case_only  true  403.2 ->  389.8   FDP  5.1% ->  4.1%
+FigureS24: 174 x 151 mm
+null/none/on                       any   4.0%  meanFDP   4.0%  pooled 100.0%  true    0.0  set aside  12.0%
+null/none/off                      any   0.0%  meanFDP   0.0%  pooled   0.0%  true    0.0  set aside   0.0%
+null/one_noisy/on                  any   0.0%  meanFDP   0.0%  pooled   0.0%  true    0.0  set aside 100.0%
+null/one_noisy/off                 any   0.0%  meanFDP   0.0%  pooled   0.0%  true    0.0  set aside   0.0%
+null/case_only/on                  any 100.0%  meanFDP 100.0%  pooled 100.0%  true    0.0  set aside   0.0%
+null/case_only/off                 any 100.0%  meanFDP 100.0%  pooled 100.0%  true    0.0  set aside   0.0%
+null/shared/on                     any   0.0%  meanFDP   0.0%  pooled   0.0%  true    0.0  set aside   0.0%
+null/shared/off                    any   0.0%  meanFDP   0.0%  pooled   0.0%  true    0.0  set aside   0.0%
+polyclonal/none/on                 any 100.0%  meanFDP   3.8%  pooled   3.8%  true  403.0  set aside  40.0%
+polyclonal/none/off                any 100.0%  meanFDP   3.1%  pooled   3.1%  true  399.6  set aside   0.0%
+polyclonal/one_noisy/on            any 100.0%  meanFDP   3.0%  pooled   3.0%  true  396.0  set aside 100.0%
+polyclonal/one_noisy/off           any 100.0%  meanFDP   2.8%  pooled   2.8%  true  394.2  set aside   0.0%
+polyclonal/case_only/on            any 100.0%  meanFDP   5.1%  pooled   5.1%  true  403.2  set aside  40.0%
+polyclonal/case_only/off           any 100.0%  meanFDP   4.5%  pooled   4.5%  true  400.0  set aside   0.0%
+polyclonal/shared/on               any 100.0%  meanFDP   3.7%  pooled   3.7%  true  402.8  set aside  40.0%
+polyclonal/shared/off              any 100.0%  meanFDP   3.0%  pooled   3.0%  true  399.2  set aside   0.0%

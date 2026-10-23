@@ -1,0 +1,17 @@
+Figure1: 174 x 133 mm
+FigureS1_workflow: 174 x 111 mm
+FigureS3_outputs: 174 x 119 mm
+FigureS9_spectra_jh4: 174 x 139 mm
+FigureS9_spectra_n114: 174 x 139 mm
+FigureS9_n114: 174 x 102 mm
+FigureS13_sanger_matrices: 174 x 140 mm
+FigureS17_spectra_full_length: 174 x 108 mm
+FigureS17_tree_WT2: 174 x 102 mm
+Traceback (most recent call last):
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/custom_figures.py", line 314, in <module>
+    if not selected or fn.__name__ in selected:fn()
+                                               ~~^^
+  File "/Users/abdulmateenaderinto/Nanoshm/nanoshm_v0.2/output/reviews/shmtrace_v1_3_2026-10-21/codex_figures_v2/sources/revised/custom_figures.py", line 178, in s17
+    nodes=t['trees'][n+':0'];meta=next(v for v in t['clones'][n] if v['clone']==0)
+          ~~~~~~~~~~^^^^^^^^
+KeyError: 'WT3:0'

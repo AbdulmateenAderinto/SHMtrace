@@ -1,0 +1,260 @@
+[
+  {
+    "stem": "Figure1",
+    "title": "Figure 1. Control-informed mutation calling",
+    "change": "Open three-stage schematic; separate Sanger and PacBio measurement routes.",
+    "old": "Figure1_preview"
+  },
+  {
+    "stem": "Figure2",
+    "title": "Figure 2. Matched controls distinguish candidates from background",
+    "change": "Enlarged paired examples, full-width quality comparison, and uncluttered allele-fraction distribution.",
+    "old": "Figure2"
+  },
+  {
+    "stem": "Figure3",
+    "title": "Figure 3. Sensitivity and false calls in spike-in benchmarks",
+    "change": "Calling performance stays in the main figure; downstream simulations move to S25.",
+    "old": "Figure3"
+  },
+  {
+    "stem": "Figure4",
+    "title": "Figure 4. Matched controls in real libraries",
+    "change": "Wider small multiples, zero-call strips and heatmap keys; read accounting moves to S26.",
+    "old": "Figure4"
+  },
+  {
+    "stem": "Figure5",
+    "title": "Figure 5. Matched Sanger and Nanopore mutation profiles",
+    "change": "Paired mouse observations replace dominant bars; motif availability is labelled explicitly.",
+    "old": "Figure5"
+  },
+  {
+    "stem": "Figure6",
+    "title": "Figure 6. Full-length information and linked mutation patterns",
+    "change": "Separated clone composition and weighting; clarified reconstruction and nested node counts.",
+    "old": "Figure6"
+  },
+  {
+    "stem": "Figure7",
+    "title": "Figure 7. External datasets across biological contexts",
+    "change": "Burden, signature and indels are clearer; E is split into calibrated-call and raw-mismatch tracks.",
+    "old": "Figure7"
+  },
+  {
+    "stem": "FigureS1_workflow",
+    "title": "Figure S1. Experimental design",
+    "change": "Experimental design separated from computational processing.",
+    "old": "FigureS1_workflow_preview"
+  },
+  {
+    "stem": "FigureS2",
+    "title": "Figure S2. Reported quality and observed control error",
+    "change": "Aligned support panel; explicit interval and zero-mismatch definitions.",
+    "old": "FigureS2"
+  },
+  {
+    "stem": "FigureS3_outputs",
+    "title": "Figure S3. Representative project outputs",
+    "change": "Three readable outputs replace six small instruction cards.",
+    "old": "FigureS3_outputs_preview"
+  },
+  {
+    "stem": "FigureS4_fdr_calibration",
+    "title": "Figure S4. Empirical calibration against planted truth",
+    "change": "True zero FDP retained; linear-to-log scale explained; default target marked.",
+    "old": "FigureS4_fdr_calibration"
+  },
+  {
+    "stem": "FigureS5_controls",
+    "title": "Figure S5. Control number and noisy-control handling",
+    "change": "BH fallback distinguished from decoy calibration; conditions named explicitly.",
+    "old": "FigureS5_controls"
+  },
+  {
+    "stem": "FigureS6_titration",
+    "title": "Figure S6. Dilution into AID-null reads",
+    "change": "More room for axes; zero-call and identity-line explanations retained.",
+    "old": "FigureS6_titration"
+  },
+  {
+    "stem": "FigureS7_indels",
+    "title": "Figure S7. Indel spike-ins",
+    "change": "Exclusion rule and planted-event counts stated explicitly.",
+    "old": "FigureS7_indels"
+  },
+  {
+    "stem": "FigureS8_estimates",
+    "title": "Figure S8. Estimation and pilot-based power (A–B)",
+    "change": "Estimation/power separated from UMI panels under the same figure number.",
+    "old": "FigureS8_estimates"
+  },
+  {
+    "stem": "FigureS8_umi",
+    "title": "Figure S8. UMI consensus (C–D)",
+    "change": "A separate page preserves readable labels and molecule counts.",
+    "old": "FigureS8_estimates"
+  },
+  {
+    "stem": "FigureS9_n114",
+    "title": "Figure S9. N114 results: pooled view",
+    "change": "Absolute counts replace unstable control percentages; density includes all six subclones.",
+    "old": "FigureS9_n114"
+  },
+  {
+    "stem": "FigureS9_spectra_jh4",
+    "title": "Figure S9. Per-library J_H4 spectra",
+    "change": "Common absolute-count colour scale; zero-event spectra marked undefined.",
+    "old": "FigureS9_spectra_jh4"
+  },
+  {
+    "stem": "FigureS9_spectra_n114",
+    "title": "Figure S9. Per-library N114 spectra",
+    "change": "Common absolute-count colour scale; tiny totals explicitly qualified.",
+    "old": "FigureS9_spectra_n114"
+  },
+  {
+    "stem": "FigureS10",
+    "title": "Figure S10. Sequencing depth and discovery",
+    "change": "Clarifies the library-specific maximum-discovery denominator.",
+    "old": "FigureS10"
+  },
+  {
+    "stem": "FigureS11",
+    "title": "Figure S11. Positional background and individual reads",
+    "change": "Separate control tracks replace overlaid profiles and small insets.",
+    "old": "FigureS11"
+  },
+  {
+    "stem": "FigureS12_immcantation",
+    "title": "Figure S12. Immcantation comparison",
+    "change": "Absolute values lead; ratios remain a secondary summary with an explicit zero floor.",
+    "old": "FigureS12_immcantation"
+  },
+  {
+    "stem": "FigureS13_sanger_matrices",
+    "title": "Figure S13. Sanger calls by mouse",
+    "change": "Counts share one scale; small control totals are descriptive only.",
+    "old": "FigureS13_sanger_matrices"
+  },
+  {
+    "stem": "FigureS13_sanger_window",
+    "title": "Figure S13. Readable Sanger window",
+    "change": "Saved vector curves retained; denominator clarification added without reprocessing traces.",
+    "old": "FigureS13_sanger_window"
+  },
+  {
+    "stem": "FigureS14_sanger_cohort2",
+    "title": "Figure S14. Maea Sanger reanalysis",
+    "change": "Larger data panels; numerical reproduction table moved to a companion page.",
+    "old": "FigureS14_sanger_cohort2"
+  },
+  {
+    "stem": "FigureS14_comparison_table",
+    "title": "Figure S14. Published and reanalysed results",
+    "change": "Same numerical table, separately readable and exported as CSV.",
+    "old": "FigureS14_sanger_cohort2"
+  },
+  {
+    "stem": "FigureS15_sanger_mkln",
+    "title": "Figure S15. Mkln1 Sanger reanalysis",
+    "change": "Larger burden, spectrum and class plots; table separated.",
+    "old": "FigureS15_sanger_mkln"
+  },
+  {
+    "stem": "FigureS15_comparison_table",
+    "title": "Figure S15. Published and reanalysed results",
+    "change": "Same numerical table with source-study footnotes and CSV.",
+    "old": "FigureS15_sanger_mkln"
+  },
+  {
+    "stem": "FigureS16_swhel",
+    "title": "Figure S16. SWHEL sequence reanalysis",
+    "change": "Near-unity correlation precision removed; recovery counts made explicit.",
+    "old": "FigureS16_swhel"
+  },
+  {
+    "stem": "FigureS16_comparison_table",
+    "title": "Figure S16. Published and reanalysed effects",
+    "change": "Effect comparison and differing test definitions moved to a readable table.",
+    "old": "FigureS16_swhel"
+  },
+  {
+    "stem": "FigureS17_spectra_full_length",
+    "title": "Figure S17. Spectra across nested windows",
+    "change": "Absolute counts and an explicit qualification that windows overlap.",
+    "old": "FigureS17_spectra_full_length"
+  },
+  {
+    "stem": "FigureS17_tree_WT2_clone0",
+    "title": "Figure S17. WT2 clone 0 reconstruction",
+    "change": "Full-width tree; fit is scoped to mutation-bearing reads.",
+    "old": "FigureS17_mutation_trees"
+  },
+  {
+    "stem": "FigureS17_tree_WT3_clone0",
+    "title": "Figure S17. WT3 clone 0 reconstruction",
+    "change": "Full-width tree; read counts and reconstructed relationships explained.",
+    "old": "FigureS17_mutation_trees"
+  },
+  {
+    "stem": "FigureS17_tree_WT3_clone14",
+    "title": "Figure S17. WT3 clone 14 reconstruction",
+    "change": "Preserves the actual third example rather than incorrectly describing it as WT4.",
+    "old": "FigureS17_mutation_trees"
+  },
+  {
+    "stem": "FigureS18_engineered",
+    "title": "Figure S18. Engineered diversification",
+    "change": "Local validation questions and external-list recovery remain explicit.",
+    "old": "FigureS18_engineered"
+  },
+  {
+    "stem": "FigureS19_public_smu",
+    "title": "Figure S19. Public Sμ libraries",
+    "change": "More separation between shared-window and repeat-window comparisons.",
+    "old": "FigureS19_public_smu"
+  },
+  {
+    "stem": "FigureS20_switch_pacbio",
+    "title": "Figure S20. PacBio switch junctions",
+    "change": "One composition bar per biological sample replaces group-mean stacks.",
+    "old": "FigureS20_switch_pacbio"
+  },
+  {
+    "stem": "FigureS21_platforms",
+    "title": "Figure S21. Platform measurements",
+    "change": "Compact comparison table replaces dense diagrams and prose cards.",
+    "old": "FigureS21_platforms"
+  },
+  {
+    "stem": "FigureS22_routes",
+    "title": "Figure S22. Distinct measurement routes",
+    "change": "A route-comparison plate replaces the redundant workflow overview.",
+    "old": "FigureS22_overview"
+  },
+  {
+    "stem": "FigureS23_engine",
+    "title": "Figure S23. Background, testing and empirical calibration",
+    "change": "Three readable statistical steps replace six formula cards.",
+    "old": "FigureS23_engine"
+  },
+  {
+    "stem": "FigureS24",
+    "title": "Figure S24. Artifact stress tests",
+    "change": "Any-discovery probability distinguished from per-library FDP; interval definitions explicit.",
+    "old": "FigureS24"
+  },
+  {
+    "stem": "FigureS25_downstream",
+    "title": "Figure S25. Downstream inference simulations",
+    "change": "Original Figure 3E–G retained as A–C; original H separated into false positives (D) and power (E).",
+    "old": "Figure3"
+  },
+  {
+    "stem": "FigureS26_read_accounting",
+    "title": "Figure S26. Read accounting",
+    "change": "Original Figure 4I moved intact to a dedicated companion figure.",
+    "old": "Figure4"
+  }
+]
