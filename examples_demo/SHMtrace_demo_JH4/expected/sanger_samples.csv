@@ -1,0 +1,7 @@
+sample,group,control,reads,unique_mutations,unique_density_x1e5,one_event_density_x1e5,combined_density_x1e5,combined_density_ci_low,combined_density_ci_high,multi_read_mutations,single_read_observed,single_read_background,single_read_estimate,single_read_density_x1e5,single_read_density_ci_low,single_read_density_ci_high,indels_called,insertions,deletions,frameshift_indels,indel_density_x1e5,clustered_calls,reads_with_junction,clones,largest_clone_pct,clone_weighted_frequency_x1e3,mutation_frequency_x1e3,mutation_frequency_observed_x1e3,mutated_reads_pct,mean_mutations_per_read,pct_GC,pct_transitions,pct_CT_GA,s5f_index,s5f_p,pct_GC_in_WRC_GYW,pct_AT_in_WA_TW,analysed_bp,null_from,model_used,warnings
+Aicda_A1,KO,True,11,1,17.271,17.271157,,,,,,,,,,,,,,,,0,,,,,0.1719,0.1727,9.09,0.0909,100.0,0.0,0.0,,,100.0,,529,none,sanger_threshold,
+Aicda_A2,KO,True,10,1,18.983,18.982536,,,,,,,,,,,,,,,,0,,,,,0.3781,0.3797,20.0,0.2,100.0,100.0,100.0,,,0.0,,529,none,sanger_threshold,
+Aicda_A3,KO,True,10,2,37.836,18.917896,,,,,,,,,,,,,,,,0,,,,,0.3781,0.3784,20.0,0.2,50.0,0.0,0.0,,,0.0,100.0,529,none,sanger_threshold,
+WT2,WT,False,37,135,711.875,5.273149,,,,,,,,,,,,,,,,0,,,,,8.5833,8.8589,48.65,4.5405,44.4,50.4,22.2,,,63.3,69.3,529,none,sanger_threshold,
+WT3,WT,False,40,230,1121.568,4.876384,,,,,,,,,,,,,,,,0,,,,,18.3365,18.9204,62.5,9.7,33.9,52.6,18.7,,,48.7,68.4,529,none,sanger_threshold,
+WT4,WT,False,26,106,827.996,7.811279,,,,,,,,,,,,,,,,0,,,,,10.9786,11.795,57.69,5.8077,38.7,50.0,27.4,,,61.0,72.3,529,none,sanger_threshold,

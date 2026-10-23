@@ -1,0 +1,101 @@
+"""Table S1 (Excel): the caller comparison. Per-library calls and densities of every caller on the same prepared
+reads of the nanopore datasets of Figure 4 (benchmark_real.py), and planted-mutation summaries (Figure 3).
+    python docs/calibration/crm/make_tables.py  -> out/Table_S1_benchmark.xlsx
+
+Claude figure revision 2 copy: reads crm/out as before, adds the two ablations of out/spikein_*_ablation.json to the
+Spike-ins sheet (same planted draws as the other callers), names the realised proportion FDP, and writes to this
+revision folder rather than crm/out.
+
+The rows come from the caller-comparison run, which fits each library's null by leaving each control out in turn
+and calibrates the margin and control-based threshold within that peer set. It does not apply the noisy-control
+rule or share one project-wide margin/decoy collection, so its SHMtrace counts can differ from those of
+run_project (OT1 and OT2 in the text). A note sheet says so."""
+import json
+from collections import defaultdict
+from pathlib import Path
+
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font
+
+OUT = Path(__file__).resolve().parents[5] / "docs/calibration/crm/out"   # inputs, read only
+DEST = Path(__file__).resolve().parents[1] / "Table_S1_benchmark.xlsx"
+LABEL = {"recommended": "SHMtrace", "geneious": "Geneious rule", "lofreq": "LoFreq (defaults)",
+         "lofreq_nobaq": "LoFreq (-B, BAQ off)", "lofreq_permissive": "LoFreq (-B, p<=0.05 uncorrected, filters off)",
+         "v0.1": "per-position control null", "pbinom": "per-position control null (pbinom profile)",
+         "ctlnull_bh": "per-position control null, BH", "qualonly_pbinom": "read qualities only, no controls",
+         "clairs": "ClairS (defaults, ont_r10_dorado_sup_5khz)", "clairs_permissive": "ClairS (snv_min_af 0.005)",
+         "clair3": "Clair3 (defaults, r1041_e82_400bps_sup_v520)", "clair3_permissive": "Clair3 (snp_min_af 0.01)",
+         "deepvariant": "DeepVariant (defaults, ONT_R104)",
+         "deepvariant_permissive": "DeepVariant (vsc_min_fraction_snps 0.01, vsc_min_count_snps 2)",
+         "deepsomatic": "DeepSomatic (defaults, ONT)",
+         "deepsomatic_permissive": "DeepSomatic (vsc_min_fraction_snps 0.005, vsc_min_count_snps 2)"}
+SETS = {"jh4": "J_H4 intron, this study", "n114": "N114 V region, this study", "su_lps": "Smu, LPS (PRJNA1481264)",
+        "su_ch12": "Smu, CH12 (PRJNA1481264)", "pim1": "Pim1, LPS (PRJNA1481264), 2,000 reads",
+        "pim1_deep": "Pim1, LPS (PRJNA1481264), all usable reads",
+        "ot1": "OT1, CH12 (PRJNA1481264)", "ot2": "OT2, CH12 (PRJNA1481264)"}
+wb = Workbook()
+ws = wb.active
+ws.title = "Real libraries"
+ws.append(["Dataset", "Library", "AID-null control", "Caller", "Reads analysed", "Bases in window",
+           "Distinct calls", "Density per 1e5 bases"])
+for c in ws[1]:
+    c.font = Font(bold=True)
+for key, name in SETS.items():
+    f = OUT / f"benchmark_real_{key}.json"
+    if not f.exists():
+        continue
+    for r in json.load(open(f))["rows"]:
+        ws.append([name, r["sample"], "yes" if r["control"] else "no", LABEL[r["mode"]], r["reads"], r["bases"],
+                   r["calls"], round(r["density_x1e5"], 3) if r["density_x1e5"] is not None else None])
+ws0 = wb.create_sheet("About", 0)
+for line in (
+        "Table S1. The caller comparison behind Figures 3 and 4.",
+        "Real libraries: every caller is run on the same prepared reads of each library (benchmark_real.py).",
+        "SHMtrace: each library is fitted against its peer controls, with the margin and control-based threshold calibrated within that peer set.",
+        "This harness does not use run_project's shared project margin/decoy collection or its noisy-decoy exclusion rule.",
+        "Both routes select control-based thresholds; their counts can differ. OT1/OT2 text counts come from run_project.",
+        "Real libraries covers the five listed calling settings in Figure 4; somatic/germline caller results are in Spike-ins and the manuscript.",
+        "OT1 and OT2 libraries: WT = wild type, dKO = Mllt1/Mllt3 double knockout, KO = Aicda-/- control.",
+        "Spike-ins: mutations planted into held-out AID-null libraries (Figure 3).",
+        "Spike-ins also lists two ablations of SHMtrace on the same planted libraries (spikein.py --profiles ctlnull_bh,qualonly_pbinom --tag _ablation): 'per-position control null, BH' tests each site against its error rate in the other controls with Benjamini-Hochberg correction, without quality calibration or the decoy threshold; 'read qualities only, no controls' applies the exact Poisson-binomial test to read qualities with no control null. In the same runs the recommended mode reproduced the SHMtrace rows exactly.",
+        "Observed FDP: false calls over all calls, pooled over a dataset's libraries; a realised proportion, not a target."):
+    ws0.append([line])
+ws0.column_dimensions["A"].width = 140
+for row in ws0:
+    row[0].alignment = Alignment(wrap_text=True, vertical="top")
+    ws0.row_dimensions[row[0].row].height = 32
+ws2 = wb.create_sheet("Spike-ins")
+ks = [1, 2, 3, 5, 10, 20]
+ws2.append(["Dataset", "Caller", "Libraries x replicates"] + [f"Recall, {k} read(s)" for k in ks]
+           + ["Recall, all", "False calls per library", "Observed FDP"])
+for c in ws2[1]:
+    c.font = Font(bold=True)
+for key in ("jh4", "n114", "su_lps", "pim1"):
+    f = OUT / f"spikein_{key}.json"
+    if not f.exists():
+        continue
+    rows = json.load(open(f))["rows"]
+    for tag in ("_clairs", "_clair3", "_deepvariant", "_deepsomatic", "_ablation"):   # same planted mutations
+        if (OUT / f"spikein_{key}{tag}.json").exists():
+            rows += [r for r in json.load(open(OUT / f"spikein_{key}{tag}.json"))["rows"] if r["caller"] != "recommended"]
+    for caller in ("recommended", "geneious", "lofreq", "lofreq_nobaq", "lofreq_permissive",
+                   "clairs", "clairs_permissive", "clair3", "clair3_permissive", "deepvariant",
+                   "deepvariant_permissive", "deepsomatic", "deepsomatic_permissive", "ctlnull_bh", "qualonly_pbinom"):
+        rs = [r for r in rows if r["caller"] == caller]
+        if not rs:                               # a caller not run on this dataset
+            continue
+        rec = defaultdict(lambda: [0, 0])
+        for r in rs:
+            for k, (got, n) in r["recall_by_reads"].items():
+                rec[int(k)][0] += got
+                rec[int(k)][1] += n
+        tp, fp = sum(r["true_calls"] for r in rs), sum(r["false_calls"] for r in rs)
+        tot = sum(v[0] for v in rec.values()) / max(1, sum(v[1] for v in rec.values()))
+        ws2.append([SETS.get(key, key).split(",")[0] if key != "pim1" else "Pim1 (PRJNA1481264)", LABEL[caller], len(rs)]
+                   + [round(rec[k][0] / rec[k][1], 3) if rec[k][1] else None for k in ks]
+                   + [round(tot, 3), round(fp / len(rs), 2), round(fp / (tp + fp), 3) if tp + fp else 0])
+for w in (ws, ws2):
+    for col in w.columns:
+        w.column_dimensions[col[0].column_letter].width = max(12, min(48, max(len(str(c.value or "")) for c in col) + 2))
+wb.save(DEST)
+print(DEST, ws.max_row - 1, "library rows")

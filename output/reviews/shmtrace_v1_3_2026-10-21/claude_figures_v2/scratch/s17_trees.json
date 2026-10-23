@@ -1,0 +1,303 @@
+{
+ "WT2": {
+  "clone": 0,
+  "reads": 323,
+  "fit": 0.909,
+  "depth": 14,
+  "ancestor_reads": 290,
+  "nodes": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 13,
+    "mutations": [
+     "G1005A"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": null,
+    "reads": 6,
+    "mutations": [
+     "G397A"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": null,
+    "reads": 5,
+    "mutations": [
+     "G504T"
+    ]
+   },
+   {
+    "id": 4,
+    "parent": null,
+    "reads": 4,
+    "mutations": [
+     "G212A"
+    ]
+   },
+   {
+    "id": 5,
+    "parent": null,
+    "reads": 4,
+    "mutations": [
+     "A783G"
+    ]
+   },
+   {
+    "id": 6,
+    "parent": 4,
+    "reads": 3,
+    "mutations": [
+     "A107G",
+     "C121T",
+     "T141C",
+     "A197G",
+     "G202T",
+     "G209C",
+     "T213A",
+     "T386G",
+     "T398G",
+     "A424G",
+     "C476T",
+     "T520C",
+     "G785T"
+    ]
+   },
+   {
+    "id": 7,
+    "parent": null,
+    "reads": 3,
+    "mutations": [
+     "G114A"
+    ]
+   },
+   {
+    "id": 8,
+    "parent": null,
+    "reads": 2,
+    "mutations": [
+     "A172G"
+    ]
+   },
+   {
+    "id": 9,
+    "parent": null,
+    "reads": 2,
+    "mutations": [
+     "A672G"
+    ]
+   }
+  ]
+ },
+ "WT3": {
+  "clone": 0,
+  "reads": 69,
+  "fit": 0.696,
+  "depth": 17,
+  "ancestor_reads": 0,
+  "nodes": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 69,
+    "mutations": [
+     "A107G",
+     "C166T",
+     "T320C",
+     "C368G"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": 1,
+    "reads": 32,
+    "mutations": [
+     "G217A",
+     "C279G",
+     "T490C",
+     "T814A",
+     "C868A"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": 2,
+    "reads": 24,
+    "mutations": [
+     "G212A"
+    ]
+   },
+   {
+    "id": 4,
+    "parent": 1,
+    "reads": 20,
+    "mutations": [
+     "A316G"
+    ]
+   },
+   {
+    "id": 5,
+    "parent": 1,
+    "reads": 15,
+    "mutations": [
+     "C138G",
+     "T144A",
+     "A275C",
+     "T290C",
+     "G323A",
+     "G403A",
+     "A422G",
+     "A425G",
+     "A442G",
+     "T446C",
+     "T474G"
+    ]
+   },
+   {
+    "id": 6,
+    "parent": 4,
+    "reads": 10,
+    "mutations": [
+     "A111G",
+     "T127C",
+     "A136G",
+     "A137C",
+     "T171C",
+     "C188T",
+     "A224T",
+     "T474C"
+    ]
+   },
+   {
+    "id": 7,
+    "parent": 4,
+    "reads": 10,
+    "mutations": [
+     "A136T",
+     "A222G",
+     "T508C"
+    ]
+   },
+   {
+    "id": 8,
+    "parent": 2,
+    "reads": 10,
+    "mutations": [
+     "T386C",
+     "G581T",
+     "A589G",
+     "A649G"
+    ]
+   },
+   {
+    "id": 9,
+    "parent": 1,
+    "reads": 9,
+    "mutations": [
+     "T132C"
+    ]
+   },
+   {
+    "id": 10,
+    "parent": 9,
+    "reads": 8,
+    "mutations": [
+     "T221A"
+    ]
+   },
+   {
+    "id": 11,
+    "parent": 2,
+    "reads": 7,
+    "mutations": [
+     "C488A"
+    ]
+   },
+   {
+    "id": 12,
+    "parent": 3,
+    "reads": 6,
+    "mutations": [
+     "A111T",
+     "A137G",
+     "T355C",
+     "A362G",
+     "T530A",
+     "T554C"
+    ]
+   },
+   {
+    "id": 13,
+    "parent": 5,
+    "reads": 3,
+    "mutations": [
+     "T395C",
+     "A535G"
+    ]
+   },
+   {
+    "id": 14,
+    "parent": 1,
+    "reads": 2,
+    "mutations": [
+     "T171A",
+     "C445G"
+    ]
+   }
+  ]
+ },
+ "WT4": {
+  "clone": 9,
+  "reads": 16,
+  "fit": 1.0,
+  "depth": 21,
+  "ancestor_reads": 0,
+  "nodes": [
+   {
+    "id": 1,
+    "parent": null,
+    "reads": 16,
+    "mutations": [
+     "T152G",
+     "A208G",
+     "G209C",
+     "T230G",
+     "A274T",
+     "A275C",
+     "A281G",
+     "A284C",
+     "C311T",
+     "C357G",
+     "T369C",
+     "G391A",
+     "T406C",
+     "T407A",
+     "A428G",
+     "T479C",
+     "A775C",
+     "A783C",
+     "G890A"
+    ]
+   },
+   {
+    "id": 2,
+    "parent": 1,
+    "reads": 14,
+    "mutations": [
+     "T213C"
+    ]
+   },
+   {
+    "id": 3,
+    "parent": 2,
+    "reads": 14,
+    "mutations": [
+     "T320C"
+    ]
+   }
+  ]
+ }
+}
