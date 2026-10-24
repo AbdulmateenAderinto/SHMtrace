@@ -82,26 +82,33 @@ In this simulation, read-by-read analysis already benefits from about six copies
 
 Without the step, about 150 reads fall out of molecules and five more small molecules appear. These are most likely pieces split off real molecules. With 3–4 reads each they carry high error, so substitution error triples. The step merged no reads of different species at any setting. For comparison, the old lookup at +2 gave 216 UMI groups and 103 molecules.
 
-*Simulated UMIs at scale* (`umi_sim.py --grouping`, `umi_sim/grouping.md`). N molecules, each with 1 + Poisson(5) copies. The UMI is read at Q15 with 2% indels, and 5% of copies are cut 1–2 bases short. UMIs are uniform, or T-rich (35% T, as in the Takara UMIs). One replicate per row; 3,000 molecules and three replicates are still to add.
+*Simulated UMIs at scale* (`umi_sim.py --grouping`, `umi_sim/grouping.md`). N molecules, each with 1 + Poisson(5) copies. The UMI is read at Q15 with 2% indels, and 5% of copies are cut 1–2 bases short. UMIs are uniform, or T-rich (35% T, as in the Takara UMIs).
 
 | Molecules | UMI | Composition | Directional | Groups mixing molecules | Purity | Molecules split | Reads in groups ≥ 3 |
 |---:|---|---|---|---:|---:|---:|---:|
-| 1,000 | 18 nt | uniform | +2 | 6.8% | 0.988 | 0.5% | 95.8% |
-| 1,000 | 18 nt | uniform | +1 | 1.0% | 0.999 | 0.5% | 95.3% |
-| 1,000 | 18 nt | uniform | **off** | 0.4% | 0.999 | 0.7% | 93.5% |
-| 1,000 | 18 nt | T-rich | +2 | 9.4% | 0.985 | 0.4% | 95.9% |
-| 1,000 | 18 nt | T-rich | +1 | 1.0% | 0.999 | 0.5% | 95.2% |
-| 1,000 | 18 nt | T-rich | **off** | 0.0% | 1.000 | 0.6% | 93.3% |
-| 1,000 | 2 × 18 nt | uniform | **+2** | 0.0% | 1.000 | 1.7% | 95.4% |
-| 1,000 | 2 × 18 nt | uniform | off | 0.0% | 1.000 | 2.3% | 93.0% |
-| 1,000 | 2 × 18 nt | T-rich | **+2** | 0.0% | 1.000 | 1.6% | 95.0% |
-| 1,000 | 2 × 18 nt | T-rich | off | 0.0% | 1.000 | 1.9% | 92.9% |
+| 1,000 | 18 nt | uniform | +2 | 6.2% | 0.989 | 0.5% | 95.5% |
+| 1,000 | 18 nt | uniform | +1 | 0.5% | 0.999 | 0.6% | 94.9% |
+| 1,000 | 18 nt | uniform | **off** | 0.2% | 1.000 | 0.7% | 93.1% |
+| 1,000 | 18 nt | T-rich | +2 | 8.6% | 0.986 | 0.4% | 95.4% |
+| 1,000 | 18 nt | T-rich | **off** | 0.2% | 1.000 | 0.7% | 92.9% |
+| 3,000 | 18 nt | uniform | +2 | 15.9% | 0.972 | 0.3% | 95.6% |
+| 3,000 | 18 nt | uniform | +1 | 1.8% | 0.997 | 0.4% | 94.9% |
+| 3,000 | 18 nt | uniform | **off** | 0.5% | 0.999 | 0.5% | 93.1% |
+| 3,000 | 18 nt | T-rich | +2 | 22.4% | 0.958 | 0.3% | 95.9% |
+| 3,000 | 18 nt | T-rich | +1 | 3.0% | 0.995 | 0.4% | 94.8% |
+| 3,000 | 18 nt | T-rich | **off** | 1.0% | 0.998 | 0.5% | 93.0% |
+| 1,000 | 2 × 18 nt | T-rich | **+2** | 0.0% | 1.000 | 1.6% | 94.8% |
+| 1,000 | 2 × 18 nt | T-rich | off | 0.0% | 1.000 | 1.9% | 92.5% |
+| 3,000 | 2 × 18 nt | uniform | **+2** | 0.0% | 1.000 | 1.4% | 95.0% |
+| 3,000 | 2 × 18 nt | uniform | off | 0.0% | 1.000 | 1.8% | 92.7% |
+| 3,000 | 2 × 18 nt | T-rich | **+2** | 0.0% | 1.000 | 1.6% | 94.8% |
+| 3,000 | 2 × 18 nt | T-rich | off | 0.0% | 1.000 | 1.9% | 92.5% |
 
-At 150 molecules no setting mixed molecules, apart from one group with a single 18-nt UMI at +2. In the pipeline simulation on the J꜀4 example controls (`examples_compare/KO1–3`, about 68 molecules), all three settings gave the same molecules, calls and purity (1.00).
+Every row is a mean of three replicates; the full table, 150 molecules included, is in `umi_sim/grouping.md`. At 150 molecules a single UMI at +2 mixed molecules in under 1% of groups, and the other settings in none. In the pipeline simulation on the J꜀4 example controls (`examples_compare/KO1–3`, about 68 molecules), all three settings gave the same molecules, calls and purity (1.00).
 
 **Decision.**
 - With two 18-nt UMIs (36 nt, up to 8 edits at +2), the step recovers split molecules on real reads and mixed none in simulation, so it stays at +2.
-- With one 18-nt UMI (up to 5 edits at +2), it mixed molecules in 7–9% of groups once there were 1,000 of them. That is the failure VDJtrace saw on 12-nt UMIs, while the step gained only about 2% of reads, so it is off.
+- With one 18-nt UMI (up to 5 edits at +2), it mixed molecules in 6–9% of groups at 1,000 molecules and 16–22% at 3,000. That is the failure VDJtrace saw on 12-nt UMIs, while the step gained only about 2% of reads, so it is off.
 
 `umi_directional` overrides either choice.
 
