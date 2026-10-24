@@ -6,6 +6,17 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **UMI grouping found no centroid for a UMI with an indel or cut short at the read end**, so such a UMI became a
+  molecule of its own even one edit away. Candidate lookup now uses pieces of one length for all UMIs and searches
+  every substring (`umi.group`). UMIs are also grouped only among reads aligned to the same reference.
+
+### Changed
+- **The UMI directional step is on only for dual UMIs** (`umi_directional`, default: +2 edits with UMIs at both
+  ends, off with one). With a single 18-nt UMI it mixed molecules in 7–9% of groups at 1,000 molecules in
+  simulation. With dual UMIs it mixed none and, on the Karst et al. reads, cut consensus substitution error from
+  0.088% to 0.027% by keeping split-off molecules together (`docs/calibration/UMI.md`).
+
 ## [0.2.2] - 2026-10-15
 
 ### Added
