@@ -32,9 +32,9 @@ docs/calibration/UMI.md:
   * on the Karst et al. R10 reads (2 x 18 nt), without it 147 more UMIs stay apart,
     mostly as split-off groups of 3-4 reads, and consensus substitution error rises
     from 0.027% to 0.088%; no group mixed species with it;
-  * in simulation at 1,000 molecules, a single 18-nt UMI with it (5 edits) put
-    different molecules into 7-9% of groups, against under 0.5% without; two UMIs
-    (8 edits on 36 nt) mixed none. VDJtrace, porting this, found the same on real
+  * in simulation, a single 18-nt UMI with it (5 edits) put different molecules
+    into 6-9% of groups at 1,000 molecules and 16-22% at 3,000, against at most 1%
+    without; two UMIs (8 edits on 36 nt) mixed none. VDJtrace, porting this, found the same on real
     12-nt Takara UMIs: +2 edits mixed rearrangements in most groups.
 `umi_directional` sets it outright. Groups with fewer than `umi_min_reads` reads are
 dropped: a consensus of one or two reads corrects little.

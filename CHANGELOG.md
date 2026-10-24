@@ -13,9 +13,9 @@ this project uses [semantic versioning](https://semver.org/).
 
 ### Changed
 - **The UMI directional step is on only for dual UMIs** (`umi_directional`, default: +2 edits with UMIs at both
-  ends, off with one). With a single 18-nt UMI it mixed molecules in 7–9% of groups at 1,000 molecules in
-  simulation. With dual UMIs it mixed none and, on the Karst et al. reads, cut consensus substitution error from
-  0.088% to 0.027% by keeping split-off molecules together (`docs/calibration/UMI.md`).
+  ends, off with one). With a single 18-nt UMI it mixed molecules in 6–9% of groups at 1,000 molecules and
+  16–22% at 3,000 in simulation. With dual UMIs it mixed none and, on the Karst et al. reads, cut consensus
+  substitution error from 0.088% to 0.027% by keeping split-off molecules together (`docs/calibration/UMI.md`).
 
 ## [0.2.2] - 2026-10-15
 
