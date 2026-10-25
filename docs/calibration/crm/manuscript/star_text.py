@@ -256,7 +256,11 @@ TROUBLE = [
      "one is unusual. In a public Ramos dataset, one AID-knockout clone carried {hmces_ko3_calls} calls, "
      "{hmces_ko3_gc}% at G:C, whereas the other two control clones had none. With that clone set aside as a "
      "decoy, wild-type and HMCES-deficient clones carried {hm_calls} calls each. Report the analysis with and "
-     "without such a control, and resequence it if possible."),
+     "without such a control, and resequence it if possible. Before treating such a control as noisy, check the "
+     "read fraction of its calls: in that same dataset the clone's calls were a second IGH allele, sitting near "
+     "half of its reads, that the phasing step removed from the other two clones and retained in this one. A "
+     "heterozygous line needs `mask_control_het`, or a declared ancestral reference, rather than a decoy "
+     "exclusion."),
     ("Problem 3", "One clone dominates a library (warning in step 22).",
      "This is common in Peyer's patches. In one wild-type mouse, a nearly unmutated clone made up {wt2_largest}% "
      "of the reads with a V(D)J junction (Figure 4A). Report the clone-weighted frequency alongside the "

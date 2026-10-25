@@ -441,6 +441,26 @@ def compute():
     N["hmk3_calls"] = f"{min(calls)}–{max(calls)}"
     N["hmk3_gc"] = f"{min(gcs):.0f}–{max(gcs):.0f}" if gcs else "–"
     N["hmces_gc_range"] = f"{min(gc):.0f}–{max(gc):.0f}" if gc else "[no substitution calls; see note]"
+    # the same run with mask_control_het on and nothing else changed (public_illumina.py hmces_het):
+    # the second allele every AID-knockout clone carries is left out of the candidates and the decoys
+    het = _load(OUT / "public/hmces_het/project.json")
+    base = {x["sample"]: x for x in hm["samples"] if x["group"] in ("WT", "HMCES_KO")}
+    masked = {x["sample"]: x for x in het["samples"] if x["sample"] in base}
+    fq = lambda d, s: d[s]["mutation_frequency_x1e3"]
+    fell = [s for s in base if abs(fq(base, s) - fq(masked, s)) > 1e-9]
+    held = [s for s in base if s not in fell]
+    N["hmces_het_clones"] = word(len(fell))
+    N["hmces_het_high"] = f"{min(fq(base, s) for s in fell):.1f}–{max(fq(base, s) for s in fell):.1f}"
+    N["hmces_het_low"] = f"{min(fq(base, s) for s in held):.1f}–{max(fq(base, s) for s in held):.1f}"
+    N["hmces_het_range"] = f"{min(fq(masked, s) for s in base):.2f}–{max(fq(masked, s) for s in base):.2f}"
+    vkey = lambda v: (v["sample"], v["pos"], v["alt"])
+    kept = {vkey(v) for v in het["variants"]}
+    dropped = [v for v in hm["variants"] if vkey(v) not in kept]
+    allelic = [v for v in dropped if v["frequency"] > 0.2]
+    N["hmces_het_dropped"] = str(len(dropped))
+    N["hmces_het_allelic"] = str(len(allelic))
+    N["hmces_het_allelic_pct"] = f"{100 * min(v['frequency'] for v in allelic):.0f}–{100 * max(v['frequency'] for v in allelic):.0f}"
+    N["hmces_het_allelic_pos"] = word(len({v["pos"] for v in allelic}))
     # sensitive mode (recommended at FDR 0.20), same spike-in design (spikein.py --tag _sensitive)
     for k in ("jh4", "n114"):
         r = spike(k, "recommended_fdr20", "_sensitive")
