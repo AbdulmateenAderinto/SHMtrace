@@ -360,7 +360,7 @@ RESULTS = [
           "library as a sample rather than a control yielded {hmk3_calls} calls per Wt or HMCES-deficient clone, with "
           "{hmk3_gc}% at G:C. The difference shows that control assignment materially affects the inferred "
           "substitution burden. The same exclusion rule was triggered in the OT1 and mOrange analyses."),
-    ("p", "On dual-UMI R10 rRNA-operon reads[@karst2021], consensus reduced error 57-fold (95% CI 35–99) to 0.17%, "
+    ("p", "On dual-UMI R10 rRNA-operon reads[@karst2021], consensus reduced error 46-fold (95% CI 30–83) to 0.21%, "
           "with residual errors concentrated in homopolymer indels. At ≥10 reads per family, substitution error "
           "approached one per 10,000 bases (Figure 7E). Critically, this is a technical consensus benchmark rather "
           "than an SHM experiment."),
