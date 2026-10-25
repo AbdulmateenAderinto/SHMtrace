@@ -21,10 +21,23 @@ Where the UMI is (Params.umi):
             umi_tools' "readname_ACGTACGT" or "...;UMI=ACGT...".
 
 Reads are grouped by UMI with errors allowed (`umi_max_edits` per UMI end), greedily
-by abundance against group centroids, as clones.cluster does; a UMI seen once or twice
-may also join a group three or more times its size within two more edits (UMI-tools'
-"directional" idea: it is far likelier an error copy than a molecule of its own). Groups with fewer than
-`umi_min_reads` reads are dropped: a consensus of one or two reads corrects little.
+by abundance against group centroids, as clones.cluster does, and only among reads
+aligned to the same reference. A UMI that lost or gained a base (an indel, or cut short
+at the read end) still finds its centroid (see group()).
+
+With UMIs at both ends, a UMI seen once or twice may also join a group three or more
+times its size within two more edits (UMI-tools' "directional" idea: it is likelier an
+error copy than a molecule of its own). With one UMI the step is off. Measured in
+docs/calibration/UMI.md:
+  * on the Karst et al. R10 reads (2 x 18 nt), without it 147 more UMIs stay apart,
+    mostly as split-off groups of 3-4 reads, and consensus substitution error rises
+    from 0.027% to 0.088%; no group mixed species with it;
+  * in simulation, a single 18-nt UMI with it (5 edits) put different molecules
+    into 6-9% of groups at 1,000 molecules and 16-22% at 3,000, against at most 1%
+    without; two UMIs (8 edits on 36 nt) mixed none. VDJtrace, porting this, found the same on real
+    12-nt Takara UMIs: +2 edits mixed rearrangements in most groups.
+`umi_directional` sets it outright. Groups with fewer than `umi_min_reads` reads are
+dropped: a consensus of one or two reads corrects little.
 
 The consensus is built column by column on the reference: at each position, the
 base (or deletion) with the highest summed log-likelihood over the group's reads,
@@ -131,51 +144,62 @@ def _edit(a: str, b: str, cap: int) -> int:
     return prev[-1]
 
 
-def group(keys: dict[str, str], max_edits: int) -> dict[str, int]:
+def group(keys: dict[str, str], max_edits: int, directional: int = 0) -> dict[str, int]:
     """read name -> group id: greedy by abundance against centroids.
 
-    Candidates are found through exact matches of UMI segments: with at most
-    `max_edits` edits, one of `max_edits + 1` segments of the UMI is untouched
-    (pigeonhole), so only centroids sharing a segment need an edit distance.
+    Candidates are found through exact matches of UMI pieces: a centroid is cut into
+    `max_edits + 1` pieces of equal length, and within `max_edits` edits one of them
+    is untouched (pigeonhole), so it occurs in the UMI somewhere, shifted by indels.
+    Only centroids with a piece in the UMI need an edit distance. Pieces have one
+    length for all UMIs (from the commonest UMI length), so a UMI shortened by a
+    deletion, or cut short at the read end, still finds its centroid; a centroid too
+    short to cut is always checked.
+
+    `directional` > 0 lets a UMI seen once or twice that matches no centroid join a
+    group at least three times its size within `max_edits + directional` edits
+    (UMI-tools' "directional" idea). See the module docstring for when it helps.
     """
     counts = Counter(keys.values())
+    if not counts:
+        return {}
     nseg = max_edits + 1
+    k = max(1, Counter(len(u) for u in keys.values()).most_common(1)[0][0] // nseg)
     centroids: list[str] = []
-    index: dict = defaultdict(set)
-    to_group: dict[str, int] = {}
-
-    def segments(u: str):
-        k = max(1, len(u) // nseg)
-        return [(i, u[i * k:(i + 1) * k if i < nseg - 1 else len(u)]) for i in range(nseg)]
-
     size: list[int] = []
-    wide = max_edits + 2
-    for u, n in counts.most_common():
-        cand = set()
-        for i, s in segments(u):
-            cand |= index.get((i, s), set())
-        hit = None
-        for c in sorted(cand):
-            if _edit(u, centroids[c], max_edits) <= max_edits:
-                hit = c
-                break
-        if hit is None and n <= 2:
-            # directional, as in UMI-tools: a UMI seen once or twice, a little beyond
-            # the tolerance of a group at least three times its size, is far likelier
-            # an error copy of that molecule than a molecule of its own
-            for c in range(len(centroids)):
-                if size[c] >= 3 * n and _edit(u, centroids[c], wide) <= wide:
-                    hit = c
-                    break
+    index: dict = defaultdict(set)
+    short: list[int] = []
+    to_group: dict[str, int] = {}
+    wide = max_edits + directional
+    for u, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        cand = set(short)
+        for i in range(len(u) - k + 1):
+            cand |= index.get(u[i:i + k], set())
+        hit = next((c for c in sorted(cand) if _edit(u, centroids[c], max_edits) <= max_edits),
+                   None)
+        if hit is None and directional > 0 and n <= 2:
+            # a UMI seen once or twice, a little beyond the tolerance of a group at least
+            # three times its size, is likelier an error copy of that molecule
+            hit = next((c for c in range(len(centroids))
+                        if size[c] >= 3 * n and _edit(u, centroids[c], wide) <= wide), None)
         if hit is None:
             hit = len(centroids)
             centroids.append(u)
             size.append(0)
-            for i, s in segments(u):
-                index[(i, s)].add(hit)
+            if len(u) < nseg * k:
+                short.append(hit)
+            for i in range(nseg):
+                index[u[i * k:(i + 1) * k]].add(hit)
         size[hit] += n
         to_group[u] = hit
     return {name: to_group[u] for name, u in keys.items()}
+
+
+def directional(p) -> int:
+    """The directional step's extra edits: Params.umi_directional, or by default 2 for
+    UMIs at both ends and off for one (see the module docstring)."""
+    if p.umi_directional is not None:
+        return p.umi_directional
+    return 2 if (p.umi == "flank" and p.umi_ends == "both") else 0
 
 
 def _consensus(members: list[AlignedRead], ref: str, name: str) -> AlignedRead | None:
@@ -235,11 +259,16 @@ def consensus_reads(aligned: list[AlignedRead], ref: str, p,
             if fates is not None:
                 fates[r.qname] = {"fate": "no UMI"}
     ends = 2 if (p.umi == "flank" and p.umi_ends == "both") else 1
-    gid = group(keys, p.umi_max_edits * ends)
-    by_group: dict[int, list] = defaultdict(list)
     byname = {r.qname: r for r in aligned}
-    for name, g in gid.items():
-        by_group[g].append(byname[name])
+    # one molecule has one reference: group only reads aligned to the same one
+    by_ctg: dict[str, dict] = defaultdict(dict)
+    for name, u in keys.items():
+        by_ctg[byname[name].ctg][name] = u
+    by_group: dict[int, list] = defaultdict(list)
+    for ctg in sorted(by_ctg):
+        base = len(by_group)
+        for name, g in group(by_ctg[ctg], p.umi_max_edits * ends, directional(p)).items():
+            by_group[base + g].append(byname[name])
     out, small = [], 0
     sizes = []
     for g, members in sorted(by_group.items()):
