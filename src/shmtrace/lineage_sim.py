@@ -27,6 +27,23 @@ The background errors are the control's own, so the false-call side is real;
 the planted side is idealised in the way `simulate.py` describes. Hold the
 planted control out of the null.
 
+Three options make the planted side less ideal (all off by default):
+
+* **Quality** (`qmap`). A planted base keeps the donor read's quality unless a
+  quality map is given: donor Phred -> planted Phred, matched by quantile from
+  the reference bases at real mutation sites to the mutant bases there
+  (`quality_map`), so a poor read stays poor and the planted base takes the
+  quality shift real mutations show.
+* **PCR** (`amplify`). The design is made over molecules, and reads are drawn
+  from them with log-normal amplification skew, so one molecule's mutations,
+  private ones included, appear in several reads, each a different donor read
+  with its own sequencing errors. Errors made in the first cycles are written
+  into every copy of their molecule and are not part of the truth: a call there
+  is false.
+* **Trees** (scenario key `levels`). Each clone is split into two or three
+  subclones, each of those again, to the given depth, every subclone with its
+  own mutations: a bushier tree than trunk, branch and sub-branch.
+
 Scores:
 
 * **Calls.** Recall by how many analysed reads carry the mutation, false calls
@@ -43,6 +60,7 @@ Scores:
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import math
 import os
@@ -189,7 +207,10 @@ def design(n_reads: int, ref: str, lo: int, hi: int, scenario: dict, rng: random
         taken: set = set()
         trunk = draw(_poisson(lam, rng), taken)
         branch, sub, bset, sset = [], [], [], []
-        if len(members) >= 4 and not dominant:
+        nodes: list = []
+        if scenario.get("levels") and len(members) >= 4 and not dominant:
+            nodes = _bushy(members, scenario["levels"], scenario["branch"], draw, taken, rng)
+        elif len(members) >= 4 and not dominant:
             bset = rng.sample(members, max(1, int(len(members) * rng.uniform(0.3, 0.6))))
             branch = draw(_poisson(scenario["branch"], rng), taken)
             if len(bset) >= 2:
@@ -202,12 +223,76 @@ def design(n_reads: int, ref: str, lo: int, hi: int, scenario: dict, rng: random
                 read_muts[r].update(branch)
             if r in sset:
                 read_muts[r].update(sub)
+            for node_reads, muts in nodes:
+                if r in node_reads:
+                    read_muts[r].update(muts)
             priv = draw(_poisson(scenario["private"], rng), set(taken))
             read_muts[r].update(priv)
         lineages.append({"clone": c, "reads": size, "junction": juncs[c], "j_start": jstarts[c] + 1,
-                         "trunk": len(trunk), "branch": len(branch), "subbranch": len(sub)})
+                         "trunk": len(trunk), "branch": len(branch), "subbranch": len(sub),
+                         "subclones": len(nodes)})
     return {"read_clone": read_clone, "read_muts": dict(read_muts),
             "junctions": juncs, "jstarts": jstarts, "lineages": lineages}
+
+
+def _bushy(members: list, levels: int, lam: float, draw, taken: set,
+           rng: random.Random) -> list[tuple[set, list]]:
+    """Subclones of one clone to `levels` deep: each node splits into two or three
+    children of random size, each child with Poisson(lam) mutations of its own."""
+    out = []
+
+    def split(group: list, depth: int) -> None:
+        if depth == 0 or len(group) < 4:
+            return
+        g = group[:]
+        rng.shuffle(g)
+        cuts = sorted(rng.sample(range(1, len(g)), min(rng.choice((2, 3)), len(g)) - 1))
+        for a, b in zip([0, *cuts], [*cuts, len(g)], strict=True):
+            part = g[a:b]
+            out.append((set(part), draw(_poisson(lam, rng), taken)))
+            split(part, depth - 1)
+
+    split(members, levels)
+    return out
+
+
+def amplify(truth: dict, n_reads: int, rng: random.Random, ref: str, lo: int, hi: int,
+            skew: float = 1.0, early_error: float = 0.0) -> dict:
+    """PCR over a design() made for molecules: `n_reads` reads drawn from them with
+    log-normal(0, `skew`) amplification weights. Each molecule also gets errors from
+    the first cycles, Poisson(`early_error` x window) of them, in all its copies; they
+    go in `read_noise`, not in the truth."""
+    n_mol = len(truth["read_clone"])
+    w = [rng.lognormvariate(0.0, skew) for _ in range(n_mol)]
+    mol_of = rng.choices(range(n_mol), weights=w, k=n_reads)
+    noise = {}
+    for m in sorted(set(mol_of)):
+        own = {pos for pos, _a in truth["read_muts"].get(m, ())}
+        errs = set()
+        for _ in range(_poisson(early_error * (hi - lo + 1), rng)):
+            i = rng.randint(lo, hi)
+            if ref[i] in BASES and i not in own:
+                errs.add((i, rng.choice([b for b in BASES if b != ref[i]])))
+        noise[m] = errs
+    return {**truth,
+            "read_clone": {j: truth["read_clone"][m] for j, m in enumerate(mol_of)},
+            "read_muts": {j: truth["read_muts"].get(m, set()) for j, m in enumerate(mol_of)},
+            "read_noise": {j: noise[m] for j, m in enumerate(mol_of)},
+            "read_molecule": dict(enumerate(mol_of))}
+
+
+def quality_map(ref_q: list[int], alt_q: list[int]) -> dict[int, int]:
+    """Donor Phred -> planted Phred, by quantile: the reference bases' qualities at
+    real mutation sites (`ref_q`) mapped onto the mutant bases' there (`alt_q`)."""
+    if not ref_q or not alt_q:
+        return {}
+    rs, al = sorted(ref_q), sorted(alt_q)
+    out = {}
+    for q in sorted(set(rs)):
+        # mid-rank of q among the reference qualities, read off the mutant ones
+        f = (bisect.bisect_left(rs, q) + bisect.bisect_right(rs, q)) / 2 / len(rs)
+        out[q] = al[min(len(al) - 1, int(f * len(al)))]
+    return out
 
 
 def _noisy(junction: str, quals: str, rng: random.Random, indel_rate: float) -> tuple[str, str]:
@@ -228,7 +313,8 @@ def _noisy(junction: str, quals: str, rng: random.Random, indel_rate: float) -> 
 
 
 def build_library(reads: list[tuple[str, str, str]], reference: str, truth: dict, p,
-                  rng: random.Random, indel_rate: float = 0.04) -> tuple[list, dict]:
+                  rng: random.Random, indel_rate: float = 0.04,
+                  qmap: dict | None = None) -> tuple[list, dict]:
     """Write the designed clones into the reads.
 
     Mutations are written at reference positions the read aligns (not deleted);
@@ -252,10 +338,23 @@ def build_library(reads: list[tuple[str, str, str]], reference: str, truth: dict
         fs = list(seq if hit.strand == 1 else seq.translate(_COMP)[::-1])
         fq = qual if hit.strand == 1 else qual[::-1]
         got = set()
+        fql = list(fq) if qmap else None
         for pos0, alt in muts:
             if pos0 in r2q and ref[pos0] != alt:
                 fs[r2q[pos0]] = alt
                 got.add((pos0, alt))
+                if qmap:
+                    q = ord(fql[r2q[pos0]]) - 33
+                    fql[r2q[pos0]] = chr(33 + qmap.get(q, q))
+        # PCR errors: written like mutations, but not the truth
+        for pos0, alt in truth.get("read_noise", {}).get(idx, ()):
+            if pos0 in r2q and ref[pos0] != alt and not any(m[0] == pos0 for m in muts):
+                fs[r2q[pos0]] = alt
+                if qmap:
+                    q = ord(fql[r2q[pos0]]) - 33
+                    fql[r2q[pos0]] = chr(33 + qmap.get(q, q))
+        if qmap:
+            fq = "".join(fql)
         fs = "".join(fs)
         has_j = False
         q0 = r2q.get(hit.r_st)
@@ -362,6 +461,10 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
         by_bin[_bin(k)][0] += m in called
     truth_set = set(support)
     tp, fp = len(called & truth_set), len(called - truth_set)
+    # planted copies the analysed read no longer aligns at (soft-clipped, or inside a deletion):
+    # lost before any test
+    lost = sum(1 for r in res["_aligned"] for m in carried.get(r.qname, {}).get("muts", ())
+               if lo <= m[0] <= hi and m[0] not in {rp for rp, base, _q in r.pairs if base})
     # what the high-allele-fraction ("germline") rule costs: planted mutations carried by at least the
     # threshold share of the reads covering them are removed before any test, however real they are
     depth_at = Counter()
@@ -392,6 +495,8 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
                                   "recall": round(v[0] / v[1], 3) if v[1] else None}
                               for k, v in sorted(by_bin.items(), key=lambda kv: _bin_order(kv[0]))},
         "true_calls": tp, "false_calls": fp,
+        "planted_copies": sum(support.values()),
+        "planted_copies_unaligned": lost,
         "planted_at_mask": len(at_mask),
         "planted_at_mask_called": len(at_mask & called),
         "planted_below_mask": len(truth_set - at_mask),
@@ -455,19 +560,34 @@ def _r(x):
 def run_one(control: str, peers: list[str], reference: str, contaminants: list[str],
             region: str, scenario: dict, seed: int, mode: str = "recommended",
             model_path: str | None = None, place_by_model: bool = True,
-            workdir: str | None = None, depth: int | None = None) -> dict:
-    """Build one library from `control` and score it, with `peers` as the null."""
-    p = project.build_params({"region": region, "mode": mode})
+            workdir: str | None = None, depth: int | None = None,
+            project_extra: dict | None = None, qmap: dict | None = None,
+            pcr: dict | None = None, max_reads: int | None = None) -> dict:
+    """Build one library from `control` and score it, with `peers` as the null.
+
+    `project_extra` adds project keys (platform, overrides, targeting_model) to the
+    run and to the parameters the library is built with. `qmap` and `pcr` (copies:
+    mean reads per molecule, skew, early_error) are the options in the module
+    docstring; `max_reads` takes that many of the control's reads first (by seed).
+    """
+    extra = dict(project_extra or {})
+    p = project.build_params({"region": region, "mode": mode, **extra})
     ref = read_fasta(reference)[0][1]
     lo, hi = pipeline._window(p, ref)
     lo, hi = max(lo, p.end_trim_bp), min(hi, len(ref) - 1 - p.end_trim_bp)
     model = targeting.load(model_path) if model_path else None
     rng = random.Random(seed)
     reads = list(read_fastq(control))
-    truth = design(len(reads), ref, lo, hi, scenario, rng,
+    if max_reads and len(reads) > max_reads:
+        reads = random.Random(seed).sample(reads, max_reads)
+    n_units = max(1, round(len(reads) / pcr["copies"])) if pcr else len(reads)
+    truth = design(n_units, ref, lo, hi, scenario, rng,
                    model if place_by_model else None, p.junction_length,
                    (p.junction_ref_start or 53) - 1)
-    lib, carried = build_library(reads, reference, truth, p, rng)
+    if pcr:
+        truth = amplify(truth, len(reads), rng, ref, lo, hi, pcr.get("skew", 1.0),
+                        pcr.get("early_error", 0.0))
+    lib, carried = build_library(reads, reference, truth, p, rng, qmap=qmap)
     workdir = workdir or tempfile.mkdtemp(prefix="shmtrace_lineage_")
     path = os.path.join(workdir, f"sim_{seed}.fastq")
     with open(path, "w") as fh:
@@ -478,6 +598,7 @@ def run_one(control: str, peers: list[str], reference: str, contaminants: list[s
             "samples": [{"name": "SIM", "path": path, "group": "SIM"}]
             + [{"name": f"C{i}", "path": c, "group": "CTRL", "control": True}
                for i, c in enumerate(peers)]}
+    proj.update(extra)
     if model_path:
         proj["targeting_model"] = model_path
     try:

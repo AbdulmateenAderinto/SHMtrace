@@ -120,6 +120,8 @@ clone's share of the reads, so the two can usually be told apart by inspection.
 
 ## Limits
 
+[`ACCURACY_BREADTH.md`](ACCURACY_BREADTH.md) tests three of these with options added to `lineage_sim`: planted-base quality (no effect), PCR duplication with early-cycle errors (the one that matters) and bushier trees (little effect).
+
 - **The planted side is idealised.** A planted base has the donor read's quality and no alignment artefact of its own. False calls are real; recall is an upper bound.
 - **The lineages are simple:** a trunk, one branch and one nested sub-branch, which is shallower than a real germinal-centre tree.
 - **No PCR.** There is no amplification bias or PCR error, and no chimeras. A clone's reads are independent draws.

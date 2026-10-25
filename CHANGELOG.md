@@ -79,6 +79,8 @@ this project uses [semantic versioning](https://semver.org/).
 See `docs/calibration/crm/CODE_AUDIT_CHANGES_2026-10-19.md` for scope,
 validation, limitations and reversal instructions.
 
+- **Less ideal simulated libraries** (`lineage_sim`, all off by default; existing results are unchanged): planted-base quality mapped onto that of real mutant bases (`qmap`, `quality_map`), PCR duplication with early-cycle errors outside the truth (`pcr`, `amplify`), bushier lineage trees (scenario key `levels`), and `run_one(project_extra=...)` for platform and overrides. Scores add `planted_copies_unaligned`. `docs/calibration/ACCURACY_BREADTH.md` uses them.
+
 ### Changed
 - **The UMI directional step is on only for dual UMIs** (`umi_directional`, default: +2 edits with UMIs at both
   ends, off with one). With a single 18-nt UMI it mixed molecules in 6–9% of groups at 1,000 molecules and
