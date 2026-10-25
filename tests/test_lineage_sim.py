@@ -70,3 +70,42 @@ def test_roc_counts_true_and_false_calls_at_each_threshold():
     assert pts[1e-6]["true_calls"] == 1 and pts[1e-6]["false_calls"] == 0
     assert pts[0.05]["true_calls"] == 2 and pts[0.05]["recall"] == round(2 / 3, 4)
     assert pts[0.5]["false_calls"] == 1
+
+
+def test_bushy_trees_nest_subclones_inside_their_parents():
+    ref = "ACGTGACTGGCTACGATCGGCTAGCTAGGCTAACGTAGCTAGCATCGACTAGCTAGCATCGATCGATCGA" * 4
+    sc = {"clones": 3, "zipf": 1.0, "dominant": 0.0, "trunk": 2.0, "branch": 1.5,
+          "private": 0.0, "levels": 3}
+    t = L.design(90, ref, 10, len(ref) - 10, sc, random.Random(4))
+    assert all(x["subclones"] >= 2 for x in t["lineages"] if x["reads"] >= 4)
+    # reads of one clone carry nested sets: any two either share a subclone's mutations or not
+    by_clone = {}
+    for r, c in t["read_clone"].items():
+        by_clone.setdefault(c, []).append(t["read_muts"].get(r, set()))
+    assert any(len({frozenset(s) for s in v}) > 2 for v in by_clone.values())
+
+
+def test_amplify_copies_a_molecules_mutations_and_keeps_pcr_errors_out_of_the_truth():
+    ref = "ACGTGACTGGCTACGATCGGCTAGCTAGGCTAACGTAGCTAGCATCGACTAGCTAGCATCGATCGATCGA" * 4
+    rng = random.Random(5)
+    t = L.design(40, ref, 10, len(ref) - 10, L.SCENARIOS["polyclonal"], rng)
+    a = L.amplify(t, 200, rng, ref, 10, len(ref) - 10, skew=1.0, early_error=0.01)
+    assert len(a["read_clone"]) == 200
+    for j, m in a["read_molecule"].items():
+        assert a["read_muts"][j] == t["read_muts"].get(m, set())
+        assert a["read_clone"][j] == t["read_clone"][m]
+        assert not {p for p, _ in a["read_noise"][j]} & {p for p, _ in a["read_muts"][j]}
+    # copies of one molecule share its PCR errors
+    mols = {}
+    for j, m in a["read_molecule"].items():
+        mols.setdefault(m, set()).add(frozenset(a["read_noise"][j]))
+    assert all(len(v) == 1 for v in mols.values())
+    assert sum(map(len, a["read_noise"].values())) > 0
+
+
+def test_quality_map_moves_qualities_by_quantile():
+    ref_q = [40] * 90 + [20] * 10
+    alt_q = [38] * 80 + [15] * 20
+    m = L.quality_map(ref_q, alt_q)
+    assert m[40] == 38 and m[20] == 15
+    assert L.quality_map([], alt_q) == {}

@@ -12,6 +12,7 @@ Every page names its data, its date and how to reproduce it.
 | [`SINGLE_READ.md`](SINGLE_READ.md) | Mutations carried by one read, estimated in aggregate against the control background |
 | [`INDELS.md`](INDELS.md) | Opt-in indel calling, and what it can and cannot see |
 | [`QUANT_ACCURACY.md`](QUANT_ACCURACY.md) | How accurately mutation frequency and densities are quantified on J꜀4 and N114 (168 truth-known libraries, 125–1,000 reads), and two bugs it found and fixed |
+| [`ACCURACY_BREADTH.md`](ACCURACY_BREADTH.md) | The same truth-known design on every public set with three or more mutation-free controls (Illumina J꜀4, CH12 and Ramos VDJ; nanopore Sμ, Pim1, OT1, OT2) at each study's own load, a null from another cell context, and which simulation idealisations flatter the numbers |
 | [`UMI.md`](UMI.md) | UMI consensus, one read per molecule: settings and validation on simulated UMI libraries built from real reads |
 | [`REPLICATES_AND_POWER.md`](REPLICATES_AND_POWER.md) | Group tests with the animal as the unit (calibrated false-positive rates) and the power calculator |
 | [`SWITCH.md`](SWITCH.md) | Class-switch junctions from long reads: breakpoints, microhomology, insertions; accuracy on simulated junction reads |
