@@ -87,9 +87,10 @@ def task(args):
         _write(nl, f)
         nulls.append(f)
     out = {"amplicon": amp, "scenario": scen, "control": k}
-    for mode in ["reads"] + [f"umi{d}" for d in dirs]:
-        over = ({"umi": "flank", "umi_ends": ends, "umi_directional": int(mode[3:])}
-                if mode != "reads" else {})
+    for mode, d in [("reads", None)] + [(_key(d, dirs), d) for d in dirs]:
+        over = {"umi": "flank", "umi_ends": ends} if mode != "reads" else {}
+        if d is not None:
+            over["umi_directional"] = d
         proj = {"name": "s", "region": a["region"], "mode": "recommended",
                 "reference": a["reference"], "contaminants": a["contaminants"],
                 "overrides": over,
@@ -112,6 +113,12 @@ def task(args):
             sc = L.score_umi_reads(res, row, carried, lo, hi)
         out[mode] = sc
     return out
+
+
+def _key(d, dirs):
+    """Results key for one directional setting: "umi" when only one is run (what
+    crm_numbers.py and the figures read), "umi0", "umi2"... when several are compared."""
+    return "umi" if len(dirs) == 1 else f"umi{'auto' if d is None else d}"
 
 
 def grouping_task(args):
@@ -189,8 +196,9 @@ def main():
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 2))
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--grouping", action="store_true", help="umi.group alone, at scale")
-    ap.add_argument("--directional", default="0",
-                    help="umi_directional settings to compare, e.g. 2,1,0")
+    ap.add_argument("--directional", default="auto",
+                    help="umi_directional settings to compare, e.g. 2,1,0; 'auto' is the "
+                         "pipeline's default (+2 with UMIs at both ends, off with one)")
     ap.add_argument("--amplicons", default="JH4,N114")
     ap.add_argument("--jh4-controls", nargs=3,
                     help="three J꜀4 control FASTQs in place of the lab's (e.g. examples_compare/KO*)")
@@ -199,7 +207,7 @@ def main():
     if a.grouping:
         grouping(a)
         return
-    dirs = [int(x) for x in a.directional.split(",")]
+    dirs = [None if x == "auto" else int(x) for x in a.directional.split(",")]
     amps = a.amplicons.split(",")
     tasks = [(amp, scen, k, 100 + 7 * k + 31 * j, dirs,
               a.jh4_controls if amp == "JH4" else None)
@@ -215,7 +223,7 @@ def main():
     for amp in amps:
         for scen in SCEN[amp]:
             rs = [r for r in runs if r["amplicon"] == amp and r["scenario"] == scen]
-            for mode in ["reads"] + [f"umi{d}" for d in dirs]:
+            for mode, d in [("reads", None)] + [(_key(d, dirs), d) for d in dirs]:
                 xs = [r[mode] for r in rs]
 
                 def m(key, xs=xs):
@@ -227,9 +235,9 @@ def main():
                     return f"{statistics.mean(v):.2f}" if v else "–"
                 f = lambda v, d=2: "–" if v is None else f"{v:.{d}f}"  # noqa: E731
                 units = m("reads_analysed") if mode == "reads" else m("molecules_analysed")
-                d = mode[3:]
                 label = ("every read" if mode == "reads" else "UMI consensus" if len(dirs) == 1
-                         else f"UMI, directional {'+' + d if d != '0' else 'off'}")
+                         else "UMI, directional default" if d is None
+                         else f"UMI, directional {'+' + str(d) if d else 'off'}")
                 lines.append(f"| {amp} | {scen} | {label} | "
                              f"{f(units, 0)} | {f(m('false_calls'), 1)} | {f(m('recall'))} | "
                              f"{f(m('recall_single_molecule'))} | "
