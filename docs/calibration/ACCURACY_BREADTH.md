@@ -51,11 +51,11 @@ Estimate ÷ truth: the mean over 6–8 libraries, with the range in brackets. "E
 
    Beyond clipping, at 5,000 reads this set calls nearly nothing carried by 2–10 reads (1 of 39), and 57 of 100 mutations carried by more than 10. I haven't established why its calling is this strict. These libraries are heavily PCR-duplicated ([`ILLUMINA.md`](ILLUMINA.md)), which is one candidate.
 
-2. **Ramos recovers almost nothing (recall 0.13).** Ramos carries a second IGH allele: at about 30 sites, 45–48% of reads differ from the reference in all three AID-KO clones. Phasing would separate it, but it refuses to drop more than 45% of reads (`phase_max_drop`). The high-allele-fraction rule removes only sites at 50% or more. So these sites stay in the test.
+2. **Ramos recovers almost nothing (recall 0.13).** Nothing is called in ten of the twelve Ramos libraries; only 2 got any calls (11–12 true calls each), both with AIDKO_1 held out. The control-based threshold is never met, because the leave-one-control-out calibration cannot be satisfied at all here: no inflation up to 50-fold, the largest the search tried, makes one AID-KO clone look like a control against the other two, so the rates are inflated to that ceiling and no candidate survives. **Why the clones are that inconsistent is not established here** — see [`CALLER_FIXES.md`](CALLER_FIXES.md), which also gives the calibration a warning for this case instead of reporting it as a satisfied fit.
 
-   The allele ratio differs by a point or two between clones. At these depths that difference is significant, so the controls' decoys produce hits and the control-based threshold is never met: nothing is called. Only 2 of the 12 Ramos libraries got any calls (11–12 true calls each), both with AIDKO_1 held out. The other ten got none.
+   Ramos does also carry a second IGH allele — 29 sites where 44–48% of reads differ from the reference in all three AID-KO clones. `phase_max_drop` is 0.45, so phasing drops the block from the clones below that and refuses for the one above it, and the high-allele-fraction rule removes only sites at 50% or more. These sites are *not* what blocks calling here: masking them (`mask_control_het`, [`CALLER_FIXES.md`](CALLER_FIXES.md)) removes 28 of the 915 candidates and leaves every library's score unchanged. They matter in the paper's own run, below, where the threshold is met and they become calls.
 
-3. **CH12 combined density overshoots (1.3×, and 5× at the low load).** These files carry Q30 on every base as distributed, so the single-read estimate, which counts bases at Q30 or more, has nothing to separate.
+3. **CH12 combined density overshoots (1.3×, and 5× at the low load).** Its base qualities take two values: Q30 where one mate covered the base and Q60 where both did (86% and 12% of the reference-matching bases the pipeline keeps). The level says whether the pair merged there, not how confident the basecall is, so the single-read estimate's quality cut sorts merged reads from unmerged ones rather than correct bases from errors. Illumina J꜀4 is worse: after read filtering it is a single value, Q60 on every base.
 
 ## The paper's own Ramos analysis has the same artefact
 
@@ -69,7 +69,7 @@ Removing calls at an allele fraction of 0.3 or more:
 | Calls per Wt or HMCES-KO clone | 52–99 | 45–99 |
 | G:C share in those clones | 86–97% | 90–97% |
 
-The manuscript describes AIDKO_3 as a noisy control and the effect as "control assignment materially affects the inferred substitution burden". AIDKO_3's excess is in fact an allele-ratio difference at heterozygous sites, which the noisy-control rule happened to route around.
+The manuscript describes AIDKO_3 as a noisy control and the effect as "control assignment materially affects the inferred substitution burden". AIDKO_3's excess is in fact its second IGH allele, kept where the other two clones' was removed: `phase_max_drop` is 0.45, clones 1 and 2 read the allele at 0.449 and 0.445 so phasing drops their block, and clone 3 reads 0.470 so phasing refuses. Masking the allele (`mask_control_het`) takes the other twelve clones' frequencies from a bimodal 0.4-0.8 and 3.8-8.2 per 10³ to 0.21-1.66, and leaves clone 3 untouched, because its two peers were phased clean. [`CALLER_FIXES.md`](CALLER_FIXES.md) has the full tables.
 
 ## A null from another cell context
 
@@ -117,15 +117,12 @@ The same libraries at the main depth, with the planted side changed one step at 
   - Illumina J꜀4 reads 22% low at its main load, and erratically at a quarter of it (read-start clipping, plus calling restricted to well-supported mutations).
   - Ramos substitution calling is unreliable while its second allele is unphased.
   - CH12's combined density is not interpretable on flat qualities.
-- Candidate fixes, none made here:
-  - phase or mask sites where the controls show a heterozygous allele;
-  - rescue or exclude bases within a few bp of each read's alignment ends;
-  - flag the single-read estimate on files with flat qualities.
+- All three problems now have an opt-in fix, measured in this same framework: [`CALLER_FIXES.md`](CALLER_FIXES.md) (`mask_control_het`, `read_end_margin_bp`, and a flag on qualities that carry no accuracy information). They are off by default, so the numbers on this page are the unfixed caller.
 
 ## Limits
 
 - **Small mutation counts.** Each library holds a few dozen planted mutations, so ratios have wide ranges; use the estimate-minus-truth column in `report.md`.
-- **Unchecked strictness.** The cause of Illumina J꜀4's strict calling at 5,000 reads is not established.
+- **Illumina J꜀4's strict calling: the proximate cause, not the reason.** Its published run satisfies the leave-one-control-out calibration only at 50-fold inflation of the quality-calibrated error rates — the largest factor the search tried — so only well-supported mutations survive. That is the mechanism; *why* this data needs 50-fold where the paper's own nanopore libraries need 10 is not established. The other two public sets settle at 20.0 (Ramos) and 1.0 (CH12). See [`CALLER_FIXES.md`](CALLER_FIXES.md).
 - **Context, not run.** Sμ "cross-context" swaps cell context. The run table has no flow-cell IDs, so it isn't known to be a cross-run test.
 - **No PCR model in breadth.** The breadth arm plants as QUANT_ACCURACY does: one read per molecule and donor qualities. The realism arm shows which of those choices matter.
 

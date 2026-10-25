@@ -268,6 +268,40 @@ def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int, with_indels: b
     return (pairs, indels) if with_indels else pairs
 
 
+def pair_span(read, margin: int) -> tuple[int, int]:
+    """The half-open range of `read.pairs` a pileup may count, less `margin`
+    aligned columns at each end of the read (Params.read_end_margin_bp).
+
+    minimap2 soft-clips a mismatch near a read's end rather than align it, so the
+    columns where reads begin and end are covered by fewer mutant reads than
+    mutation-free ones and read a lower frequency than the library carries.
+    Dropping the same number of columns from every read takes that deficit out of
+    the depth as well as out of the counts, at the cost of coverage there. A read
+    with nothing left over contributes no bases at all.
+
+    Every pileup that feeds a call applies this: the sample's (variants), the
+    controls' background and their decoys (null_model), the project-wide tallies
+    (project) and the single-read estimate (singletons). With margin 0 the span
+    is the whole read, as every published number had it.
+    """
+    n = len(read.pairs)
+    if margin <= 0:
+        return 0, n
+    return (margin, n - margin) if n > 2 * margin else (0, 0)
+
+
+def pair_window(read, margin: int):
+    """(the aligned columns a pileup may count, the index of the first in read.pairs).
+
+    `pair_span` as the pileups use it. With margin 0 this is the read's own list,
+    not a copy of it, so the hot loops pay nothing for the option being off.
+    """
+    if margin <= 0:
+        return read.pairs, 0
+    i0, i1 = pair_span(read, margin)
+    return read.pairs[i0:i1], i0
+
+
 def trim_messy_ends(read: AlignedRead, ref: str, window: int,
                     max_mismatch: int) -> AlignedRead | None:
     """Cut an aligned Sanger read back to where it is clean, from each end.

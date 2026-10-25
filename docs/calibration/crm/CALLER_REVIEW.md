@@ -434,8 +434,9 @@ sample and in the decoy controls alike, so the control-based threshold is
 re-derived on the survivors. The count removed is reported as
 `single_read_low_quality_removed`.
 
-It is **off by default**. Every published number was produced without it. 161
-tests pass unchanged. Commit `b37b41d`.
+It is **off by default**. Every published number was produced without it. The
+suite passed unchanged when it went in: 161 tests at commit `b37b41d`, and it
+still does as the suite has grown.
 
 Only `qcal` and `sanger` read base qualities, so it has no effect on the other
 models — which means it cannot be applied symmetrically to the Geneious

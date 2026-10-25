@@ -30,6 +30,7 @@ from __future__ import annotations
 import math
 from collections import Counter, defaultdict
 
+from .align import pair_window
 from .variants import gate_quality
 
 SLACK = 18      # bp either side of the J segment start that an alignment may begin
@@ -118,7 +119,7 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
         cover = Counter()
         carry = Counter()
         for n in names:
-            for pos, base, q in reads[n].pairs:
+            for pos, base, q in pair_window(reads[n], p.read_end_margin_bp)[0]:
                 if lo <= pos <= hi and base in "ACGT" and q >= minq:
                     cover[pos] += 1
                     if (pos, base) in called:
@@ -142,7 +143,7 @@ def call_clones(aligned, variants, p, lo: int, hi: int) -> dict | None:
         "clone_weighted_frequency_x1e3": round(1e3 * weighted, 4),
         # distinct mutations over clones, a mutation counting once per clone
         "clonal_mutation_events": sum(r["mutations"] for r in rows),
-        "sharing": sharing(reads, clone_of, called, minq=minq),
+        "sharing": sharing(reads, clone_of, called, minq=minq, margin=p.read_end_margin_bp),
         "rows": rows,
         # read name -> clone; the caller keeps it with the reads (airr.py), not in the summary
         "clone_of": clone_of,
@@ -161,7 +162,7 @@ def _pair(t: int, n: int) -> tuple[int, int]:
 
 
 def sharing(reads: dict, clone_of: dict, called: set, max_pairs: int = 40000,
-            minq: int = 0) -> dict:
+            minq: int = 0, margin: int = 0) -> dict:
     """Mutation sharing (Jaccard) between reads of one clone and of different clones.
 
     The check that the junction is a barcode at all. Within a real clone, reads
@@ -176,7 +177,8 @@ def sharing(reads: dict, clone_of: dict, called: set, max_pairs: int = 40000,
     """
     import itertools
     import random
-    muts = {n: {(p, b) for p, b, q in r.pairs if (p, b) in called and q >= minq}
+    muts = {n: {(p, b) for p, b, q in pair_window(r, margin)[0]
+                if (p, b) in called and q >= minq}
             for n, r in reads.items()}
     names = list(reads)
     n = len(names)

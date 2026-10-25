@@ -8,6 +8,9 @@
          R174E/R178E mutants and empty vector (controls); 5,000 reads per replicate
   hmces  PRJNA820976: Ramos IGH VDJ; Wt and HMCES-KO clones against AID-KO clones; indels on;
          20,000 reads per clone
+Two further keys re-run a set with one of the opt-in caller fixes, for the comparison in
+docs/calibration/CALLER_FIXES.md: hmces_het (mask_control_het) and ldha_margin
+(read_end_margin_bp 8). They write beside the others, under their own names.
 Settings are those of the original drivers (~/Nanoshm/public_data/run_prjna*.py), with the 5-mer
 targeting model. Writes out/public/<name>/ (project.json and the report).
 """
@@ -79,9 +82,37 @@ def hmces_k3():
     return proj
 
 
+def hmces_het():
+    """Ramos with mask_control_het on (docs/calibration/CALLER_FIXES.md).
+
+    The three AID-KO clones carry a second IGH allele read in 45-48% of their reads, just under
+    the 50% germline cut, so those sites stay in the test and a one-point difference in the
+    ratio between clones is significant at 20,000 reads. This run leaves them out, in the
+    samples and the decoys alike; everything else is `hmces()`.
+    """
+    proj = hmces()
+    proj["name"] += ", control heterozygous sites masked"
+    proj["overrides"] = {**proj["overrides"], "mask_control_het": True}
+    return proj
+
+
+def ldha_margin():
+    """J꜀4 Illumina with a read-end margin of 8 bp (docs/calibration/CALLER_FIXES.md).
+
+    These reads begin between positions 55 and 66, inside the 53-122 window, so a mutation in a
+    read's first bases is soft-clipped away while its mutation-free neighbours are still counted
+    there. Everything else is `ldha()`.
+    """
+    proj = ldha()
+    proj["name"] += ", 8-bp read-end margin"
+    proj["overrides"] = {**proj["overrides"], "read_end_margin_bp": 8}
+    return proj
+
+
 if __name__ == "__main__":
     for key in sys.argv[1:]:
-        proj = {"ldha": ldha, "ch12": ch12, "hmces": hmces, "hmces_k3": hmces_k3}[key]()
+        proj = {"ldha": ldha, "ch12": ch12, "hmces": hmces, "hmces_k3": hmces_k3,
+                "hmces_het": hmces_het, "ldha_margin": ldha_margin}[key]()
         proj["overrides"] = {**proj.get("overrides", {}), "jobs": 0}     # all but one core; same results
         res = project.run_project(proj)
         out = OUT / key

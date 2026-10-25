@@ -53,6 +53,16 @@ CACHE = Path.home() / "Nanoshm/public_data/accuracy_cache"
 OUT = HERE / "accuracy_breadth"
 PCR = {"pcr3": {"copies": 3, "skew": 1.0, "early_error": 1e-4},
        "pcr10": {"copies": 10, "skew": 1.0, "early_error": 1e-4}}
+# the opt-in caller fixes, as parameter overrides: the "fixes" arm runs each against
+# the same libraries as its own base, so the comparison is within one arm
+FIX = {"het": {"mask_control_het": True},
+       "margin4": {"read_end_margin_bp": 4},
+       "margin8": {"read_end_margin_bp": 8},
+       "margin8het": {"read_end_margin_bp": 8, "mask_control_het": True}}
+# which fix is worth measuring where: the second allele in the two cell lines, the
+# read-end margin where the reads begin inside the analysis window
+FIX_PLAN = {"hmces": ("het",), "ch12": ("het",), "su_ch12": ("het",),
+            "ldha": ("margin4", "margin8", "margin8het"), "jh4": ("margin4", "margin8")}
 SCEN = dict(lineage_sim.SCENARIOS, polyclonal_deep={**lineage_sim.SCENARIOS["polyclonal"], "levels": 4},
             subclonal_deep={**lineage_sim.SCENARIOS["subclonal"], "levels": 4})
 
@@ -270,8 +280,11 @@ def task(t):
     if variant == "all":
         kw["pcr"] = PCR["pcr3"]
     sc = scenario(key, scen, deep=variant in ("deep", "all"))
+    extra = dict(s["extra"])
+    if variant in FIX:
+        extra["overrides"] = {**extra.get("overrides", {}), **FIX[variant]}
     r = lineage_sim.run_one(str(cached(key, ctl)), peers, s["reference"], s["contaminants"], s["region"],
-                            sc, seed, "recommended", depth=depth, project_extra=s["extra"], **kw)
+                            sc, seed, "recommended", depth=depth, project_extra=extra, **kw)
     r.pop("roc", None)
     r.pop("lineages", None)
     r.update(set=key, arm=arm, variant=variant, scenario=scen, control=ctl, rep=rep, peers_from=peers_from)
@@ -297,6 +310,14 @@ def tasks(arm):
                         continue        # nothing planted: these change nothing
                     for k in range(len(s["controls"])):
                         out.append((key, arm, variant, sc, s["main"], k, 0, None))
+    elif arm == "fixes":
+        for key, variants in FIX_PLAN.items():
+            s = SETS[key]
+            for variant in ("base", *variants):
+                for scen in [x for x in s["scenarios"] if x != "low"]:
+                    for k in range(len(s["controls"])):
+                        for rep in (0, 1):
+                            out.append((key, arm, variant, scen, s["main"], k, rep, None))
     elif arm == "crossctx":
         for key, other in (("su_lps", "su_ch12"), ("su_ch12", "su_lps")):
             for scen in ("polyclonal" if key == "su_lps" else "subclonal", "null"):
@@ -339,6 +360,10 @@ def cmd_run(a):
 PAIRS = {"frequency": ("est_read_weighted_x1e3", "true_read_weighted_x1e3"),
          "unique": ("est_unique_density_x1e5", "true_unique_density_x1e5"),
          "combined": ("est_combined_density_x1e5", "true_unique_density_x1e5")}
+# the frequency on the bases the caller actually counted, truth and estimate both. The
+# fixed-window pair above is not matched when read_end_margin_bp trims columns, so the
+# fixes table reports this one beside it.
+COUNTED = ("est_observed_x1e3", "true_observed_x1e3")
 
 
 def _ratios(rs, m):
@@ -352,6 +377,11 @@ def _cell(v):
     if len(v) == 1:
         return f"{v[0]:.2f}"
     return f"{statistics.mean(v):.2f} ({min(v):.2f}–{max(v):.2f})"
+
+
+def _counted(rs):
+    e, t = COUNTED
+    return _cell([r[e] / r[t] for r in rs if r.get(e) is not None and r.get(t)])
 
 
 def _diff(rs):
@@ -427,6 +457,28 @@ def cmd_report(a):
             row += [_fc(rs), _recall(rs) if k[3] != "null" else "–"]
             out.append("| " + " | ".join(row) + " |")
         out.append("")
+    keys = [k for k in g if k[0] == "fixes"]
+    if keys:
+        out += ["## The opt-in caller fixes, against their own base", "",
+                "Each fix is off by default; `base` here is the same libraries called without it. "
+                "A read-end margin also puts the planted mutations in the trimmed columns out of reach, "
+                "so recall falls by about the share of the window it removes.", "",
+                "| Set | Scenario | Caller | Runs | Truth / error | Mutation frequency | "
+                "Frequency, counted bases | Unique density | "
+                "Combined density | False calls | Recall, 2+ reads |",
+                "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
+        order = ("base", "het", "margin4", "margin8", "margin8het")
+        for k in sorted(keys, key=lambda k: (list(SETS).index(k[1]), k[3], order.index(k[2]))):
+            rs = g[k]
+            row = [LABEL[k[1]], k[3], k[2], str(len(rs))]
+            if k[3] == "null":
+                row += ["–", "–", "–", f"{_null_density(rs)} (est)", "–"]
+            else:
+                row += [_diff(rs), _cell(_ratios(rs, "frequency")), _counted(rs)]
+                row += [_cell(_ratios(rs, m)) for m in ("unique", "combined")]
+            row += [_fc(rs), _recall(rs) if k[3] != "null" else "–"]
+            out.append("| " + " | ".join(row) + " |")
+        out.append("")
     md = "\n".join(out)
     open(OUT / "report.md", "w").write(md)
     print(md)
@@ -435,7 +487,7 @@ def cmd_report(a):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=("cache", "qmaps", "run", "report"))
-    ap.add_argument("arm", nargs="?", choices=("breadth", "realism", "crossctx"))
+    ap.add_argument("arm", nargs="?", choices=("breadth", "realism", "crossctx", "fixes"))
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 2))
     ap.add_argument("--limit", type=int, help="run only the first N outstanding tasks (a timing check)")
     a = ap.parse_args()

@@ -46,6 +46,8 @@ from dataclasses import dataclass, field
 
 from scipy.optimize import brentq
 
+from .align import pair_window
+
 BASES = "ACGT"
 # a site where a control shows an alt in at least this share of reads is a
 # haplotype or contaminant there, not error, and is left out (as in null_model)
@@ -54,6 +56,22 @@ POLYMORPHIC_IN_CONTROLS = 0.02
 # least this share of every library's correctly read bases
 MIN_EFFICIENCY = 0.5
 MIN_Q = 20
+# The estimate separates real bases from errors by quality, so it needs the
+# qualities to vary with how right the base is. Some files carry almost no such
+# variation and the correction then has nothing to work on; the estimate is
+# reported with a warning rather than silently. Two shapes count as that:
+#   * one quality on nearly every base (FLAT_QUALITY_SHARE), e.g. a constant Q30;
+#   * fewer than MIN_QUALITY_LEVELS values carrying any appreciable share
+#     (QUALITY_LEVEL_SHARE each). The two public Illumina sets are this shape:
+#     PRJNA973112 is 95% Q60 and 5% Q30, PRJNA918596 is 88% Q30 and 12% Q60. The
+#     level says whether both mates covered the base, not how confident the
+#     basecall is, so the quality cut sorts merged from unmerged reads rather
+#     than correct bases from errors.
+# A NovaSeq's four bins do vary with accuracy and are left alone.
+# See docs/calibration/ACCURACY_BREADTH.md.
+FLAT_QUALITY_SHARE = 0.99
+QUALITY_LEVEL_SHARE = 0.005
+MIN_QUALITY_LEVELS = 4
 
 
 def _list_by_key():
@@ -75,11 +93,11 @@ class Tally:
     ref_quals: dict = field(default_factory=lambda: defaultdict(_count_by_key))
 
 
-def tally(aligned, ref: str, lo: int, hi: int) -> Tally:
+def tally(aligned, ref: str, lo: int, hi: int, margin: int = 0) -> Tally:
     t = Tally()
     for r in aligned:
         s = getattr(r, "strand", 1)
-        for pos, base, q in r.pairs:
+        for pos, base, q in pair_window(r, margin)[0]:
             if not (lo <= pos <= hi) or base not in BASES:
                 continue
             rb = ref[pos].upper()
@@ -91,6 +109,33 @@ def tally(aligned, ref: str, lo: int, hi: int) -> Tally:
             else:
                 t.alts[pos][base].append((q, s))
     return t
+
+
+def quality_resolution(tallies: list[Tally]) -> dict:
+    """How far these libraries' base qualities vary at all.
+
+    The sample and its controls are pooled: the estimate is a difference between
+    them, so qualities that carry no information in any of them make the
+    difference unreliable in the same way. Only reference-matching bases are
+    counted, which is what the efficiency correction is measured on.
+
+    Returns the quality carrying the largest share of those bases, that share,
+    the number of qualities carrying at least QUALITY_LEVEL_SHARE each, and
+    whether that leaves the estimate without usable quality information.
+    """
+    hist: dict = defaultdict(int)
+    for t in tallies:
+        for h in t.ref_quals.values():
+            for q, n in h.items():
+                hist[q] += n
+    total = sum(hist.values())
+    if not total:
+        return {"bases": 0, "levels": 0, "top_quality": None, "top_share": 0.0, "flat": False}
+    top_q, top_n = max(hist.items(), key=lambda kv: kv[1])
+    levels = sorted(q for q, n in hist.items() if n / total >= QUALITY_LEVEL_SHARE)
+    flat = top_n / total >= FLAT_QUALITY_SHARE or len(levels) < MIN_QUALITY_LEVELS
+    return {"bases": total, "levels": len(levels), "level_values": levels,
+            "top_quality": top_q, "top_share": round(top_n / total, 4), "flat": flat}
 
 
 def excluded_sites(sample: Tally, controls: list[Tally], germline_freq: float) -> set[int]:
@@ -258,7 +303,7 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         for pos, alt, _q, _st in c["events"]:
             ctrl_cls[f"{ref[pos].upper()}>{alt}"] += 1
     exp_cls = {k: round(v * s["bases"] / nc, 3) for k, v in ctrl_cls.items()}
-    return {
+    out = {
         "q_min": q_min,
         "q_min_requested": asked,
         "observed": obs,
@@ -277,3 +322,14 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         "observed_by_class": dict(obs_cls),
         "expected_by_class": exp_cls,
     }
+    qres = quality_resolution([sample, *controls])
+    out["quality_levels"] = qres["levels"]
+    if qres["flat"]:
+        out["quality_flat"] = True
+        levels = ", ".join(f"Q{q}" for q in qres.get("level_values", ()))
+        out["warning"] = (
+            f"the reference-matching bases carry only {qres['levels']} quality value(s) "
+            f"({levels}; {qres['top_share']:.0%} at Q{qres['top_quality']}): the quality cut "
+            "cannot separate a real base from an error here, so this estimate, and any "
+            "density that includes it, is not interpretable")
+    return out

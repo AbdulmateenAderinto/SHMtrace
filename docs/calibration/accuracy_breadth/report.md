@@ -144,3 +144,36 @@ Estimate / truth: mean over held-out controls and draws, with the range in brack
 | ONT N114 (this study) | subclonal | pcr10 | 3 | 1.48 / +0.11 | 1.08 (1.07–1.08) | 1.12 (1.10–1.14) | 1.20 (1.14–1.25) | 17.7 (max 18) | 0.97 |
 | ONT N114 (this study) | subclonal | deep | 3 | 3.64 / +0.12 | 1.03 (1.02–1.04) | 0.99 (0.99–0.99) | 1.00 (0.99–1.01) | 14.3 (max 18) | 0.99 |
 | ONT N114 (this study) | subclonal | all | 3 | 2.81 / +0.15 | 1.06 (1.03–1.10) | 1.06 (1.04–1.11) | 1.08 (1.05–1.12) | 29.0 (max 33) | 0.98 |
+
+## The opt-in caller fixes, against their own base
+
+Each fix is off by default; `base` here is the same libraries called without it. A read-end margin also puts the planted mutations in the trimmed columns out of reach, so recall falls by about the share of the window it removes.
+
+| Set | Scenario | Caller | Runs | Truth / error | Mutation frequency | Frequency, counted bases | Unique density | Combined density | False calls | Recall, 2+ reads |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Illumina J꜀4 (PRJNA973112) | null | base | 8 | – | – | – | 0.00 (est) | – | 0.0 (max 0) | – |
+| Illumina J꜀4 (PRJNA973112) | null | margin4 | 8 | – | – | – | 0.00 (est) | – | 0.0 (max 0) | – |
+| Illumina J꜀4 (PRJNA973112) | null | margin8 | 8 | – | – | – | 0.21 (est) | – | 0.6 (max 3) | – |
+| Illumina J꜀4 (PRJNA973112) | null | margin8het | 8 | – | – | – | 0.21 (est) | – | 0.6 (max 3) | – |
+| Illumina J꜀4 (PRJNA973112) | polyclonal | base | 8 | 3.09 / -0.62 | 0.78 (0.47–0.94) | 0.81 (0.50–0.98) | 0.16 (0.05–0.30) | 0.58 (0.18–0.99) | 0.0 (max 0) | 0.43 |
+| Illumina J꜀4 (PRJNA973112) | polyclonal | margin4 | 8 | 3.09 / -0.84 | 0.71 (0.47–0.92) | 0.74 (0.50–0.93) | 0.12 (0.05–0.22) | 0.53 (0.18–0.99) | 0.0 (max 0) | 0.31 |
+| Illumina J꜀4 (PRJNA973112) | polyclonal | margin8 | 8 | 3.09 / -1.00 | 0.65 (0.36–0.83) | 0.80 (0.41–1.03) | 0.16 (0.05–0.35) | 0.59 (0.25–1.04) | 0.5 (max 2) | 0.39 |
+| Illumina J꜀4 (PRJNA973112) | polyclonal | margin8het | 8 | 3.09 / -1.00 | 0.65 (0.36–0.83) | 0.80 (0.41–1.03) | 0.16 (0.05–0.35) | 0.59 (0.25–1.04) | 0.5 (max 2) | 0.39 |
+| Illumina CH12 VDJ (PRJNA918596) | null | base | 8 | – | – | – | 0.04 (est) | – | 0.5 (max 2) | – |
+| Illumina CH12 VDJ (PRJNA918596) | null | het | 8 | – | – | – | 0.04 (est) | – | 0.5 (max 2) | – |
+| Illumina CH12 VDJ (PRJNA918596) | subclonal | base | 8 | 0.21 / +0.00 | 0.93 (0.47–1.40) | – | 0.16 (0.05–0.41) | 1.27 (0.99–1.70) | 1.1 (max 6) | 0.81 |
+| Illumina CH12 VDJ (PRJNA918596) | subclonal | het | 8 | 0.21 / +0.00 | 0.93 (0.47–1.40) | – | 0.16 (0.05–0.41) | 1.27 (0.99–1.70) | 1.1 (max 6) | 0.81 |
+| Illumina Ramos VDJ (PRJNA820976) | null | base | 6 | – | – | – | 0.00 (est) | – | 0.0 (max 0) | – |
+| Illumina Ramos VDJ (PRJNA820976) | null | het | 6 | – | – | – | 0.00 (est) | – | 0.0 (max 0) | – |
+| Illumina Ramos VDJ (PRJNA820976) | subclonal | base | 6 | 0.32 / -0.29 | 0.15 (0.00–0.88) | – | 0.02 (0.00–0.11) | 0.73 (0.57–0.87) | 0.0 (max 0) | 0.13 |
+| Illumina Ramos VDJ (PRJNA820976) | subclonal | het | 6 | 0.32 / -0.29 | 0.15 (0.00–0.88) | – | 0.02 (0.00–0.11) | 0.73 (0.57–0.87) | 0.0 (max 0) | 0.13 |
+| ONT Sμ, CH12 | null | base | 6 | – | – | – | 0.00 (est) | – | 0.0 (max 0) | – |
+| ONT Sμ, CH12 | null | het | 6 | – | – | – | 0.00 (est) | – | 0.0 (max 0) | – |
+| ONT Sμ, CH12 | subclonal | base | 6 | 1.36 / -0.06 | 0.95 (0.91–1.02) | – | 0.46 (0.25–0.77) | 0.89 (0.86–0.93) | 5.8 (max 15) | 0.86 |
+| ONT Sμ, CH12 | subclonal | het | 6 | 1.36 / -0.06 | 0.96 (0.94–1.02) | – | 0.47 (0.30–0.77) | 0.89 (0.84–0.93) | 6.2 (max 15) | 0.86 |
+| ONT J꜀4 (this study) | null | base | 6 | – | – | – | 0.25 (est) | – | 0.7 (max 2) | – |
+| ONT J꜀4 (this study) | null | margin4 | 6 | – | – | – | 0.25 (est) | – | 0.7 (max 2) | – |
+| ONT J꜀4 (this study) | null | margin8 | 6 | – | – | – | 0.25 (est) | – | 0.7 (max 2) | – |
+| ONT J꜀4 (this study) | polyclonal | base | 6 | 15.22 / +0.05 | 1.00 (0.99–1.02) | 1.01 (1.00–1.02) | 0.97 (0.94–1.02) | 0.99 (0.96–1.02) | 13.8 (max 22) | 0.98 |
+| ONT J꜀4 (this study) | polyclonal | margin4 | 6 | 15.22 / +0.05 | 1.00 (0.99–1.02) | 1.01 (1.00–1.02) | 0.97 (0.94–1.02) | 0.99 (0.96–1.02) | 13.8 (max 22) | 0.98 |
+| ONT J꜀4 (this study) | polyclonal | margin8 | 6 | 15.22 / +0.04 | 1.00 (0.99–1.02) | 1.01 (1.00–1.02) | 0.97 (0.94–1.02) | 0.99 (0.96–1.02) | 13.8 (max 22) | 0.98 |
