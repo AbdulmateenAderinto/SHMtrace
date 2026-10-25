@@ -68,8 +68,8 @@ import random
 import tempfile
 from collections import Counter, defaultdict
 
-from . import clones, metrics, pipeline, project, simulate, targeting
-from .align import build_index
+from . import clones, metrics, pipeline, project, simulate, targeting, variants
+from .align import build_index, pair_window
 from .io_utils import read_fasta, read_fastq
 
 BASES = "ACGT"
@@ -510,6 +510,25 @@ def score(res: dict, row: dict, cl: dict | None, carried: dict, p, lo: int, hi: 
         "est_clone_weighted_x1e3": row.get("clone_weighted_frequency_x1e3"),
         "true_clones_in_reads": len(members),
     }
+    # The same comparison on the bases the pileup actually counted, rather than on the
+    # whole window. The fixed-window frequency above credits every read with the window
+    # whether it covered it or not, so with read_end_margin_bp set it loses planted copies
+    # from its numerator and nothing from its denominator; this pair stays matched because
+    # both sides use the columns the caller counted. With the margin off the two agree
+    # wherever reads span the window.
+    minq = variants.gate_quality(p)
+    counted = 0
+    for r in res["_aligned"]:
+        muts = carried.get(r.qname, {}).get("muts", ())
+        if not muts:
+            continue
+        shown = {(rp, base) for rp, base, q in pair_window(r, p.read_end_margin_bp)[0]
+                 if q >= minq and lo <= rp <= hi}
+        counted += sum(1 for m in muts if m in shown)
+    observed = row.get("observed_bases")
+    out["planted_copies_counted"] = counted
+    out["true_observed_x1e3"] = _r(1e3 * counted / observed) if observed else None
+    out["est_observed_x1e3"] = row.get("mutation_frequency_observed_x1e3")
     # densities: distinct mutations per base sequenced, the manuscript's measure, on
     # the estimator's own denominator (analysed positions x mean depth)
     s_call = res["summary"]["calling"]

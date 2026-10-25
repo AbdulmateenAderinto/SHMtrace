@@ -89,11 +89,50 @@ class Params:
     # test already declines to call that. It applies to indels in the same way (indels.py). Leave it
     # off for physiological SHM.
     ancestral_reference: bool = False
+    # The frequency rule above removes a difference at 50% or more, which is a homozygous
+    # one. A heterozygous allele sits near 50% and can fall either side of it: in the Ramos
+    # IGH amplicon the second allele is read in 45-48% of reads, so it stays in the test, and
+    # a one-point difference in that ratio between a sample and its controls is significant at
+    # 20,000 reads. Those sites then dominate both the calls and the control-based threshold
+    # (docs/calibration/ACCURACY_BREADTH.md). With this on, a (position, alt) that any control
+    # library shows in control_het_band of its reads is a second allele there, not somatic, and
+    # is left out of the sample's candidates and of the decoys alike. Off by default: it needs
+    # control reads, and on a mutation-free control set it only ever removes sites.
+    mask_control_het: bool = False
+    # The band a control allele fraction must fall in to count as heterozygous: from this up to
+    # germline_freq_threshold (above which the frequency rule already applies). Sequencing error
+    # does not reach a quarter of the reads at a covered site, so the lower edge is set well
+    # clear of it.
+    control_het_min_frequency: float = 0.25
+    control_het_min_depth: int = 20         # control reads needed at the site to judge it
+    # The largest inflation the leave-one-control-out calibration may apply to the
+    # quality-calibrated error rates (null_model.calibrate_qscale). 50.0 was the whole of
+    # QSCALE_GRID until October 2026 and is every published run's ceiling, so it stays the
+    # default. It was also the last step, which meant a project needing more was given 50
+    # and reported no differently from one that fitted: now the calibration says so
+    # (qscale_warning, carried as a project note). Raising this lets the search find the
+    # factor such a project really needs -- the public Illumina J꜀4 set and simulated Ramos
+    # libraries are at or past the cap -- but a higher factor is a stricter test, and an ONT
+    # library analysed well below its sequenced depth loses a few true calls by it. See
+    # docs/calibration/CALLER_FIXES.md.
+    qscale_max: float = 50.0
     max_pvalue: float = 0.05               # keep variants with p <= this
     per_base_error: float = 0.001          # null error rate for the binomial variant test
     min_variant_reads: int = 1             # minimum supporting reads
     exclude_indels: bool = True            # SNVs only
     end_trim_bp: int = 0                   # drop calls within N bp of the reference ends (N114 = 20)
+    # Ignore this many aligned columns at each end of every read, in samples and controls
+    # alike. end_trim_bp above cuts the reference's ends; this cuts each read's own ends,
+    # which is where an aligner's soft clip falls. A mutation within a few bases of a read's
+    # start is cheaper for minimap2 to clip than to align, so that read contributes no base
+    # at those columns while its mutation-free neighbours do: the frequency there is biased
+    # down, and the bias survives into the library's estimate (J꜀4, where the reads begin
+    # inside the analysis window, loses 4.5% of planted copies this way; see
+    # docs/calibration/ACCURACY_BREADTH.md). Dropping the same number of columns from every
+    # read removes the clipped reads' deficit from the denominator as well as the numerator,
+    # at the cost of coverage where reads begin. 0 leaves every aligned column in, which is
+    # what every published number used.
+    read_end_margin_bp: int = 0
 
     # How each candidate is tested against sequencing error:
     #   "auto"     per-column read-quality Poisson, or the empirical null when

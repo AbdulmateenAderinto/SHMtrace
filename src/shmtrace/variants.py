@@ -26,6 +26,13 @@ Rules (mirrors the Geneious workflow used in the paper):
   * An optional strand filter drops calls whose support is lopsided between
     strands, and calls in homopolymers can be flagged or masked.
   * Variants within end_trim_bp of the reference ends are dropped (N114 = 20).
+  * With read_end_margin_bp, that many aligned columns at each end of every read
+    are left out of the pileup: a mutation near a read's end is soft-clipped
+    rather than aligned, so those columns are covered by fewer mutant reads than
+    mutation-free ones (align.pair_window, docs/calibration/CALLER_FIXES.md).
+  * With mask_control_het, a (position, allele) a control library carries as a
+    second allele is not a candidate, in the samples and the decoy controls
+    alike (null_model.fit_aligned).
   * Restricted to analysis_window if given.
 """
 from __future__ import annotations
@@ -38,6 +45,7 @@ from math import exp, lgamma
 import numpy
 from scipy.stats import betabinom, binom, chi2, poisson
 
+from .align import pair_window
 from .config import Params
 from .io_utils import read_fasta
 
@@ -72,14 +80,21 @@ def gate_quality(p: Params) -> int:
 
 
 def _candidate_exclusion(c, d, rpos, alt, alt_quals, p, *, single_q=0,
-                         germline_on=True, germline_min_depth=0):
+                         germline_on=True, germline_min_depth=0, het_sites=()):
     """One eligibility rule for sample calls and held-out-control candidates.
 
     Qualities are the effective qualities used by the test, including an
     optional recalibration. Return a reason so the caller can report exclusions.
+
+    `het_sites` are the (position, alt) pairs a control library carries as a
+    second allele (null_model.fit_aligned, Params.mask_control_het). They are
+    excluded here rather than by the test, so that the samples' candidates and
+    the controls' decoys drop exactly the same sites.
     """
     if c < p.min_variant_reads:
         return "support"
+    if (rpos, alt) in het_sites:
+        return "control_het"
     if single_q and c == 1:
         best = max((q for st in (1, -1)
                     for q in alt_quals.get((rpos, alt, st), ())), default=0)
@@ -313,13 +328,15 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     want_s_err = model == "strand"
     # the quality-calibrated test reads qualities through the null's recalibration, if it has one
     recal = getattr(null_rates, "recal", None) if model == "qcal" else None
+    margin = p.read_end_margin_bp
     for r in aligned_reads:
         if r.ctg != target_name:
             continue
         n_clones += 1
         s = getattr(r, "strand", 1)
         eq = recal.quals(r.pairs) if recal is not None else None
-        for i, (rpos, base, q) in enumerate(r.pairs):
+        cols, off = pair_window(r, margin)
+        for i, (rpos, base, q) in enumerate(cols, off):
             if base not in BASES or q < minq:
                 continue
             counts[rpos][base] += 1
@@ -354,8 +371,23 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
     pvals: list[float] = []
     germline_removed = 0
     single_q_removed = 0
+    het_removed = 0
     germline_sites: list = []
     n_hypotheses = 0
+    het_sites = getattr(null_rates, "het_sites", None) or set()
+    if het_sites:
+        notes.append(f"{len(het_sites)} (position, allele) pair(s) are carried as a second allele "
+                     "by a control library (mask_control_het) and were not tested")
+    if p.read_end_margin_bp:
+        # The fixed-window frequency credits every read with the whole callable window
+        # whether it covered it or not, so trimming columns takes mutations out of its
+        # numerator and nothing out of its denominator: it reads low by about the share
+        # of each read that was trimmed. The observed-base frequency divides by the bases
+        # each read actually showed, which is what the margin changed, so it stays right.
+        notes.append(f"read_end_margin_bp is {p.read_end_margin_bp}: {2 * p.read_end_margin_bp} "
+                     "aligned columns per read are not counted, so the fixed-window "
+                     "mutation_frequency_x1e3 reads low. Use mutation_frequency_observed_x1e3, "
+                     "and the densities, which divide by the bases actually counted")
     germline_on = not p.ancestral_reference
     germline_min_depth = 0
     if not germline_on:
@@ -384,10 +416,13 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
             c = counts[rpos].get(alt, 0)
             excluded = _candidate_exclusion(
                 c, d, rpos, alt, alt_quals, p, single_q=single_q,
-                germline_on=germline_on, germline_min_depth=germline_min_depth)
+                germline_on=germline_on, germline_min_depth=germline_min_depth,
+                het_sites=het_sites)
             if excluded:
                 if excluded == "single_quality":
                     single_q_removed += 1
+                elif excluded == "control_het":
+                    het_removed += 1
                 elif excluded == "germline":
                     germline_removed += 1
                     germline_sites.append([rpos + 1, alt, c, d])
@@ -484,6 +519,9 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
         "germline_sites": germline_sites,
         "candidates_tested": len(candidates),
         "single_read_low_quality_removed": single_q_removed,
+        # candidates at a (position, allele) a control carries heterozygously (mask_control_het)
+        "control_het_removed": het_removed,
+        "read_end_margin_bp": p.read_end_margin_bp,
         "hypotheses": n_hypotheses if p.bh_family == "all" else len(candidates),
         "multiple_testing": "none" if model == "sanger" else
                             ("control" if control_threshold is not None or (p.multiple_testing == "control" and decoys)
@@ -544,12 +582,15 @@ def qcal_pvalues_by_qscale(aligned_reads, target_ref_fasta: str, target_name: st
     s_depth = defaultdict(int)
     alt_quals = defaultdict(list)
     recal = getattr(null_rates, "recal", None)
+    margin = p.read_end_margin_bp
+    het_sites = getattr(null_rates, "het_sites", None) or set()
     for r in aligned_reads:
         if r.ctg != target_name:
             continue
         s = getattr(r, "strand", 1)
         eq = recal.quals(r.pairs) if recal is not None else None
-        for i, (rpos, base, q) in enumerate(r.pairs):
+        cols, off = pair_window(r, margin)
+        for i, (rpos, base, q) in enumerate(cols, off):
             # the candidate loop below reads the window only
             if base not in BASES or q < minq or not lo <= rpos <= hi:
                 continue
@@ -573,7 +614,7 @@ def qcal_pvalues_by_qscale(aligned_reads, target_ref_fasta: str, target_name: st
             if _candidate_exclusion(
                     c, d, rpos, alt, alt_quals, p,
                     single_q=p.single_read_call_min_quality or 0,
-                    germline_on=not p.ancestral_reference):
+                    germline_on=not p.ancestral_reference, het_sites=het_sites):
                 continue
             sites.append((rpos, refbase, alt))
     out = {}

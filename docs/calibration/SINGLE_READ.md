@@ -152,6 +152,14 @@ low-quality stretch. That cost is real and unmeasured.
   public data.
 - **The planted bases are idealised.** They keep the read's own quality, but
   not any alignment artefact a real mutation might bring.
+- **It needs qualities that vary with accuracy, and some files have none.**
+  The whole method rests on real bases being read at ordinary quality while
+  errors cluster low. Where a file carries one or two quality values, the cut
+  sorts nothing: both public Illumina mouse sets are of that shape, one at a
+  single value. The estimate now reports `quality_levels`, and `quality_flat`
+  with a warning, where that is the case; it is a flag, not a correction, since
+  with no quality information there is nothing to correct with. See
+  [`CALLER_FIXES.md`](CALLER_FIXES.md).
 - **It is a count, not a list.** There is no table of which one-read mutations
   are real, so spectra and hotspot targeting still come from the per-site
   calls. `single_read` in the result keeps each library's observed and

@@ -26,6 +26,7 @@ from .align import (
     build_index,
     diagnostic_sites,
     drop_contaminant_alleles,
+    pair_window,
     trim_messy_ends,
 )
 from .config import Params, load_preset, to_dict
@@ -191,7 +192,7 @@ def per_read_table(aligned: list, variants: list, p: Params, reflen: int) -> lis
     rows = []
     for r in aligned:
         n_mut, n_bases, where = 0, 0, []
-        for rpos, base, q in r.pairs:
+        for rpos, base, q in pair_window(r, p.read_end_margin_bp)[0]:
             if q < minq or base not in "ACGT" or rpos < lo or rpos > hi:
                 continue
             n_bases += 1
@@ -481,6 +482,19 @@ def main():
     ap.add_argument("--downsample-to", type=int)
     ap.add_argument("--max-ee-rate", type=float)
     ap.add_argument("--end-trim-bp", type=int)
+    ap.add_argument("--read-end-margin-bp", type=int, metavar="N",
+                    help="ignore N aligned columns at each end of every read, in samples and "
+                         "controls alike: a mutation near a read's end is soft-clipped rather "
+                         "than aligned, so those columns read low (default 0, off)")
+    ap.add_argument("--qscale-max", type=float, metavar="X",
+                    help="largest inflation the control calibration may apply to the "
+                         "quality-calibrated error rates (default 50, the published "
+                         "ceiling); raising it reports how far off an uncalibratable "
+                         "project is, and is a stricter test")
+    ap.add_argument("--mask-control-het", action="store_true",
+                    help="do not test a position/allele that a --null control carries as a "
+                         "second allele (25-50%% of its reads): a heterozygous site sits just "
+                         "under the 50%% germline cut and is not somatic")
     ap.add_argument("--plots", action="store_true", help="also write PNG figures")
     ap.add_argument("--null", action="append", default=[], metavar="FASTQ",
                     help="mutation-free control reads (e.g. AID-deficient) used to measure "
@@ -518,7 +532,10 @@ def main():
 
     overrides = dict(downsample_to=args.downsample_to, max_ee_rate=args.max_ee_rate,
                      end_trim_bp=args.end_trim_bp, fdr_alpha=args.fdr,
-                     phase_mode=args.phase_mode, min_base_quality=args.min_base_quality)
+                     phase_mode=args.phase_mode, min_base_quality=args.min_base_quality,
+                     read_end_margin_bp=args.read_end_margin_bp, qscale_max=args.qscale_max)
+    if args.mask_control_het:
+        overrides["mask_control_het"] = True
     if args.no_phasing:
         overrides["phase_mode"] = "off"
     if args.no_correction:

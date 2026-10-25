@@ -365,6 +365,11 @@ def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
         "combined_density_ci_high": round((called + max(0.0, est["ci_high"])) * f, 3),
         "combined_density_ci_scope": "single-read component only; called mutations held fixed",
     })
+    if est.get("warning"):
+        # the estimate, and the combined density that includes it, rest on base qualities
+        # that say nothing about accuracy here (singletons.quality_resolution)
+        m["single_read_quality_flat"] = True
+        m["warnings"] = "; ".join(x for x in [m.get("warnings"), est["warning"]] if x)
 
 
 def _slug(s: str) -> str:
@@ -480,11 +485,11 @@ def _fit_null(reads, ref, p, lo, hi, ref_name):
     return null_model.fit_aligned(reads, ref, p, lo, hi, calibrate=False, ref_name=ref_name)[0]
 
 
-def _tally(drawn, ref, lo, hi):
+def _tally(drawn, ref, lo, hi, margin):
     # every library at the analysed depth, drawn as analyse() draws it (by the caller): the
     # estimate is divided by the analysed reads' bases, so counting events in a deeper
     # library would inflate it by the ratio of the two
-    return singletons.tally(drawn, ref, lo, hi)
+    return singletons.tally(drawn, ref, lo, hi, margin)
 
 
 def _call_sample(t: dict) -> dict:
@@ -791,6 +796,11 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             qscale = null_model.DEFAULT_QSCALE
             calibration = {"qscale_source": "default (one control file)"}
         calibration = {"qscale": qscale, **calibration}
+        if calibration.get("qscale_warning"):
+            # the quality model could not be calibrated on these controls; say so where a
+            # reader will see it, not only in the calibration block. setup_notes, not
+            # `notes`: that name is rebound from setup_notes further down.
+            setup_notes.append(calibration["qscale_warning"])
 
     per_sample, details = [], {}
     project_germline = None           # Sanger: germline seen across all clones
@@ -858,7 +868,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         names = sorted({n for s in samples if peers_of[s["name"]] for n in (s["name"], *peers_of[s["name"]])})
         pd = replace(p, downsample_to=depth)
         # drawn here, tallied on workers: the analysed depth is all a worker needs to receive
-        tallies = dict(zip(names, pmap(_tally, [(downsample(b["reads"][n], pd)[0], ref, lo, hi) for n in names],
+        tallies = dict(zip(names, pmap(_tally, [(downsample(b["reads"][n], pd)[0], ref, lo, hi,
+                                                 p.read_end_margin_bp) for n in names],
                                        p.jobs), strict=True))
     if want_indels and not sanger:
         for pr in {pr for pr in peers_of.values() if pr}:

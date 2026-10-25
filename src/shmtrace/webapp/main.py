@@ -582,6 +582,8 @@ async def analyze(
     max_pvalue: str = Form(""),
     germline_freq_threshold: str = Form(""),
     end_trim_bp: str = Form(""),
+    read_end_margin_bp: str = Form(""),
+    mask_control_het: str = Form(""),
     analysis_window: str = Form(""),
 ):
     work = Path(tempfile.mkdtemp(prefix="shm_"))
@@ -606,6 +608,8 @@ async def analyze(
             max_pvalue=num(max_pvalue, float),
             germline_freq_threshold=num(germline_freq_threshold, float),
             end_trim_bp=num(end_trim_bp, int),
+            read_end_margin_bp=num(read_end_margin_bp, int),
+            mask_control_het=True if str(mask_control_het).strip() else None,
         )
         if analysis_window.strip():
             a, b = analysis_window.replace(" ", "").split("-")

@@ -26,6 +26,7 @@ from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import replace
 
+from .align import pair_window
 from .config import Params
 from .io_utils import read_fasta, read_fastq
 from .variants import gate_quality
@@ -36,6 +37,11 @@ QMAX = 60
 # polymorphic there (a haplotype or contaminant), so it is kept out of the
 # pooled quality model and judged on its own rate
 POLYMORPHIC_IN_CONTROLS = 0.02
+
+
+def _usable(read, margin: int):
+    """The read's aligned columns the pileup counts (align.pair_window)."""
+    return pair_window(read, margin)[0]
 
 
 def _first_header(fastq: str) -> str | None:
@@ -181,6 +187,12 @@ class NullModel(dict):
         self.decoys: dict = {}
         # base-quality recalibration fitted on the same control reads (recal.py), or None
         self.recal = None
+        # (pos0, alt) a control library carries as a second allele: an allele fraction
+        # between control_het_min_frequency and germline_freq_threshold, which the
+        # frequency rule is too high to catch (Params.mask_control_het). Empty unless
+        # that is on. variants._candidate_exclusion drops these from the samples'
+        # candidates and from the decoys alike.
+        self.het_sites: set = set()
 
     @property
     def has_qcal(self) -> bool:
@@ -220,6 +232,7 @@ class NullModel(dict):
                 "rates": [[k[0], k[1], v] for k, v in sorted(self.items())],
                 "strand_rates": [[k[0], k[1], k[2], v]
                                  for k, v in sorted(self.strand_rates.items())],
+                "het_sites": [[pos, alt] for pos, alt in sorted(self.het_sites)],
                 "recal": self.recal.to_json() if self.recal is not None else None}
 
     @classmethod
@@ -237,6 +250,7 @@ class NullModel(dict):
         # reports the BH fallback if control thresholding has no saved decoys.
         null.decoys = {name: (sorted(float(x) for x in pvalues), int(bases))
                        for name, pvalues, bases in data.get("decoys", [])}
+        null.het_sites = {(int(pos), alt) for pos, alt in data.get("het_sites", [])}
         return null
 
     def _with_recal(self, data):
@@ -292,16 +306,28 @@ def estimate_rho(per_file: list[dict], keys) -> float:
     return float(min(0.1, max(0.0, num / den)))
 
 
-QSCALE_GRID = (1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 50.0)
+# The inflation factors calibrate_qscale may search, smallest first. Params.qscale_max
+# caps which of them it actually tries, and defaults to 50.0 -- the grid's whole extent
+# until October 2026, and the published behaviour. The steps past 50 exist because 50 was
+# both the last step and the ceiling: a project that needed more was given 50 silently and
+# called almost nothing. Raising qscale_max lets such a project say how far off it is, at
+# the cost of being stricter than the published runs were; an ONT library analysed well
+# below its depth loses a few true calls that way, so it is not the default.
+QSCALE_GRID = (1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0)
+# above this the quality model is being stretched far beyond anything the nanopore
+# calibration needed, and the calls should be treated as unreliable rather than reported
+# plainly
+QSCALE_SUSPECT = 50.0
 DEFAULT_QSCALE = 10.0   # used with a single control file; see calibrate_qscale
 
 
-def window_bases(aligned, lo: int, hi: int, minq: int = 0) -> int:
+def window_bases(aligned, lo: int, hi: int, minq: int = 0, margin: int = 0) -> int:
     """Bases read inside the window (the denominator the decoy counts are scaled by).
 
     `minq` is the caller's base-quality gate, so the decoys' total counts the same
-    bases as the sample's (variants.call_variants, win_bases)."""
-    return sum(1 for r in aligned for rpos, base, q in r.pairs
+    bases as the sample's (variants.call_variants, win_bases). `margin` likewise
+    leaves out the read-end columns the pileup leaves out."""
+    return sum(1 for r in aligned for rpos, base, q in _usable(r, margin)
                if base in BASES and q >= minq and lo <= rpos <= hi)
 
 
@@ -317,9 +343,9 @@ def _fold(i, aligned_per_file, ref, p, lo, hi, depth, null=None):
     return test, null if null is not None else fit_aligned(others, ref, p, lo, hi, calibrate=False)[0]
 
 
-def _held_out_pvalues(test, ref_fasta, ref_name, pp, null):
+def _held_out_pvalues(test, ref_fasta, ref_name, pp, null, grid=QSCALE_GRID):
     from .variants import qcal_pvalues_by_qscale
-    return qcal_pvalues_by_qscale(test, ref_fasta, ref_name, pp, null, QSCALE_GRID)
+    return qcal_pvalues_by_qscale(test, ref_fasta, ref_name, pp, null, grid)
 
 
 def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: Params,
@@ -332,6 +358,12 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     is tested against a null fitted from the other controls; the smallest
     factor in QSCALE_GRID at which no more than `alpha` of its candidates reach
     p < alpha is used. On the JH4 Aicda-/- libraries this lands at 10.
+
+    The search is capped at `p.qscale_max` (default 50.0, the published ceiling).
+    A factor above QSCALE_SUSPECT, and the cap in particular, means the controls
+    could not be made to look like controls by any inflation the search tried;
+    `qscale_warning` says so, and the project carries it as a note. The calls from
+    such a run are not trustworthy, whichever way the search ended.
     """
     if len(aligned_per_file) < 2:
         return DEFAULT_QSCALE, {"qscale_source": "default (one control file)"}
@@ -345,17 +377,19 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
     pp = replace(p, error_model="qcal", multiple_testing="none", max_pvalue=1.0,
                  strand_filter="off", mask_homopolymers=False)
     trace = {}
+    grid = [c for c in QSCALE_GRID if c <= p.qscale_max] or [QSCALE_GRID[0]]
     tmp = tempfile.NamedTemporaryFile("w", suffix=".fasta", delete=False)
     tmp.write(f">{ref_name}\n{ref}\n")
     tmp.close()
     try:
         decoys = {}
-        bases = [window_bases(test, lo, hi, gate_quality(p)) for test, _null in folds]
+        bases = [window_bases(test, lo, hi, gate_quality(p), p.read_end_margin_bp)
+                 for test, _null in folds]
         # each held-out control is tallied once and tested at every margin (on its own
         # process, parallel.py); the margins are then read in order, as before
-        grids = pmap(_held_out_pvalues, [(test, tmp.name, ref_name, pp, null) for test, null in folds],
-                     p.jobs)
-        for c in QSCALE_GRID:
+        grids = pmap(_held_out_pvalues, [(test, tmp.name, ref_name, pp, null, grid)
+                                         for test, null in folds], p.jobs)
+        for c in grid:
             m = small = 0
             decoys = {}
             pvs = [g[c] for g in grids]
@@ -365,14 +399,28 @@ def calibrate_qscale(aligned_per_file: list[list], ref: str, ref_name: str, p: P
                 decoys[name] = (pv, nb)
             trace[c] = (small, m)
             if small <= alpha * m:
-                return c, {"qscale_source": "leave-one-control-out",
-                           "qscale_trace": {str(k): v for k, v in trace.items()},
-                           "decoys": decoys}
+                out = {"qscale_source": "leave-one-control-out",
+                       "qscale_trace": {str(k): v for k, v in trace.items()},
+                       "decoys": decoys}
+                if c > QSCALE_SUSPECT:
+                    out["qscale_warning"] = (
+                        f"the quality-calibrated error rates had to be inflated {c:g}-fold before "
+                        "the controls stopped looking like samples (the nanopore libraries this was "
+                        "calibrated on need 10-fold). The reported base qualities do not describe "
+                        "this data's errors; treat the calls as unreliable and compare libraries "
+                        "only with the same controls")
+                return c, out
     finally:
         os.remove(tmp.name)
-    return QSCALE_GRID[-1], {"qscale_source": "leave-one-control-out (grid maximum)",
-                             "qscale_trace": {str(k): v for k, v in trace.items()},
-                             "decoys": decoys}
+    return grid[-1], {"qscale_source": "leave-one-control-out (grid maximum)",
+                      "qscale_trace": {str(k): v for k, v in trace.items()},
+                      "qscale_warning": (
+                          f"no inflation up to {grid[-1]:g}-fold made the controls look like controls, "
+                          "so the rates are inflated to that maximum and little or nothing can be "
+                          "called. The quality model does not fit this data"
+                          + ("; raise qscale_max to see how far off it is"
+                             if grid[-1] < QSCALE_GRID[-1] else "")),
+                      "decoys": decoys}
 
 
 def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
@@ -391,6 +439,7 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
     class_k: dict = defaultdict(int)          # (ref, alt, strand) pooled, non-polymorphic
     class_n: dict = defaultdict(int)
     site_ref: dict = {}
+    het_sites: set = set()
     stats = {"control_files": len(aligned_per_file), "control_reads_used": 0,
              "germline_sites_excluded": 0}
     recal = None
@@ -413,7 +462,8 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
         for r in aligned:
             s = getattr(r, "strand", 1)
             eq = recal.quals(r.pairs) if recal is not None else None
-            for i, (rpos, base, q) in enumerate(r.pairs):
+            cols, off = pair_window(r, p.read_end_margin_bp)
+            for i, (rpos, base, q) in enumerate(cols, off):
                 # only the window is read below, so bases outside it are skipped
                 if base in BASES and q >= minq and lo <= rpos <= hi:
                     counts[rpos][base] += 1
@@ -442,6 +492,17 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
                     if not p.ancestral_reference:
                         stats["germline_sites_excluded"] += 1
                         continue
+                elif (p.mask_control_het and not p.ancestral_reference
+                      and d >= p.control_het_min_depth
+                      and k / d >= p.control_het_min_frequency):
+                    # Below the germline cut but far above error: a second allele this
+                    # control carries. One control is enough to establish it, so that a
+                    # variant private to one library is caught too. The site still gets
+                    # its rate fitted below, so the background model is unchanged; what
+                    # the mask does is stop the caller testing there at all.
+                    # Not under a declared ancestral reference, where a change driven
+                    # high is the point of the experiment.
+                    het_sites.add((pos, alt))
                 alt_counts[(pos, alt)] += k
                 trials[(pos, alt)] += d
                 polymorphic = k / d >= POLYMORPHIC_IN_CONTROLS
@@ -502,6 +563,11 @@ def fit_aligned(aligned_per_file: list[list], ref: str, p: Params,
                      site_quals={k: v for k, v in site_quals.items() if v},
                      site_depth=site_depth)
     null.recal = recal
+    null.het_sites = het_sites
+    if p.mask_control_het:
+        stats["control_het_sites"] = len(het_sites)
+        # (1-based position, allele) for the report
+        stats["control_het_alleles"] = sorted((pos + 1, alt) for pos, alt in het_sites)
     if calibrate:
         null.qscale, s_cal = calibrate_qscale(aligned_per_file, ref, ref_name, p, lo, hi,
                                               depth=p.downsample_to)

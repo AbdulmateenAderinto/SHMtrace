@@ -62,6 +62,8 @@
     <div class="row">
       <div><label>Max variant p-value</label><div class="rng"><input type="range" name="max_pvalue" min="0.001" max="0.1" step="0.001" value="0.05" oninput="pv.value=this.value"><output id="pv">0.05</output></div></div>
       <div><label>End-trim (bp)</label><input type="number" name="end_trim_bp" placeholder="preset" min="0" max="100"></div>
+      <div><label>Read-end margin (bp)</label><input type="number" name="read_end_margin_bp" placeholder="0" min="0" max="50"></div>
+      <div><label><input type="checkbox" name="mask_control_het" value="1"> Mask control heterozygous sites</label></div>
     </div>
     <label>Analysis window <small>start-end, 1-based</small></label><input type="text" name="analysis_window" placeholder="e.g. 101-629">
   </fieldset>
