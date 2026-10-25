@@ -26,3 +26,8 @@ def test_consensus_removes_substitution_errors_on_real_umi_reads():
     deep = s["by_reads_per_molecule"]["20-+"]
     assert deep["substitution_error_pct"] < 0.02
     assert s["consensus_matching_group_operon_pct"] >= 99
+    # dual 18-nt UMIs: the directional step (+2, the default) merges no different
+    # species and leaves fewer error-prone split-off groups than grouping without it
+    d = s["directional"]
+    assert d["+2"]["groups_mixing_species_pct"] == 0
+    assert d["+2"]["consensus_substitution_error_pct"] < d["off"]["consensus_substitution_error_pct"]

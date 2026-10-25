@@ -49,6 +49,42 @@ def test_grouping_tolerates_errors_but_keeps_molecules_apart():
     assert len(set(g.values())) == 30
 
 
+def test_a_truncated_or_indel_umi_joins_its_centroid():
+    # one base short (cut at the read end), one deleted inside, one inserted inside:
+    # each is within the tolerance of the centroid and must not become a molecule of
+    # its own, though the pieces it shares are shifted or of another length. Each is
+    # seen 3 times, so no directional step could rescue it.
+    keys = {f"c{i}": "ACGTACGTACGT" for i in range(4)}
+    for v in ("ACGTACGTACG", "ACGTACTACGT", "ACGTAACGTACGT"):
+        keys.update({f"{v}{i}": v for i in range(3)})
+    assert len(set(umi.group(keys, 2).values())) == 1
+    rng = random.Random(4)
+    u = "".join(rng.choice("ACGT") for _ in range(18))
+    keys = {f"c{i}": u for i in range(4)}
+    for v in (u[2:], u[:9] + u[10:], u[:-1]):
+        keys.update({f"{v}{i}": v for i in range(3)})
+    assert len(set(umi.group(keys, 3).values())) == 1
+
+
+def test_a_centroid_too_short_to_cut_is_still_found():
+    keys = {"a": "ACGTACG", "b": "ACGTACG", "c": "ACGTTCG", "d": "ACGTACGTAC"}
+    g = umi.group(keys, 3)            # pieces from the commonest length 7 are 1 nt
+    assert g["c"] == g["a"]
+    keys = {f"s{i}": "ACGTA" for i in range(3)} | {f"l{i}": "TTTTTTTTTTTT" for i in range(5)}
+    keys["s_err"] = "ACGTT"
+    g = umi.group(keys, 2)            # pieces of 4 from length 12; "ACGTA" can't be cut
+    assert g["s_err"] == g["s0"] and g["s0"] != g["l0"]
+
+
+def test_directional_step_is_off_unless_asked():
+    big = "AAAACCCCGGGGTTTTAC"
+    far = "AAAACCCCGGGGTTTTAC"[:13] + "ACGAG"      # 4 edits: beyond max_edits 3
+    keys = {f"b{i}": big for i in range(6)} | {"rare": far}
+    assert umi.group(keys, 3)["rare"] != umi.group(keys, 3)["b0"]
+    g = umi.group(keys, 3, directional=1)
+    assert g["rare"] == g["b0"]
+
+
 def test_consensus_outvotes_errors_and_keeps_a_shared_mutation():
     ref = REF[:60]
     reads = []
@@ -114,3 +150,11 @@ def test_umi_consensus_end_to_end(examples):
 def test_anchor_search_accepts_degenerate_primer_bases():
     ed, s, e = umi._semiglobal("NNNNAGAGTTTGATCATGGCTCAGNNN", "AGRGTTYGATYMTGGCTCAG")
     assert ed == 0 and s == 4 and e == 24
+
+
+def test_directional_step_is_on_for_dual_umis_only():
+    p = replace(Params(), umi="flank")
+    assert umi.directional(replace(p, umi_ends="both")) == 2
+    assert umi.directional(replace(p, umi_ends="right")) == 0
+    assert umi.directional(replace(p, umi="header")) == 0
+    assert umi.directional(replace(p, umi_ends="right", umi_directional=1)) == 1

@@ -12,7 +12,7 @@ A unique molecular identifier (UMI) is a random tag put on each template molecul
 1. **Reads each read's UMI.**
    - `flank`: the UMI is next to an anchor at a read end. By default the anchor is the first or last 20 reference bases (the primer), found with up to 6 edits. Use `umi_ends` = left, right or both for dual UMIs.
    - `header`: the UMI is in the read name, as umi_tools and similar tools write it.
-2. **Groups reads by UMI**, allowing `umi_max_edits` (3) edits per UMI end. Groups are built greedily by abundance against centroids. A UMI seen once or twice may join a group at least three times its size within two more edits, as UMI-tools' "directional" method allows, because it is far likelier an error copy than a molecule of its own.
+2. **Groups reads by UMI**, allowing `umi_max_edits` (3) edits per UMI end, among reads aligned to the same reference. Groups are built greedily by abundance against centroids. A UMI that lost or gained a base, or was cut short at the read end, still finds its centroid. With UMIs at both ends, a UMI seen once or twice may also join a group at least three times its size within two more edits, as UMI-tools' "directional" method allows, because it is likelier an error copy than a molecule of its own. With one UMI this step is off (see *Grouping* below).
 3. **Builds a consensus** for each group of `umi_min_reads` (3) or more reads. At each reference position the base or deletion with the highest quality-weighted likelihood wins, and its quality is the posterior against the runner-up, capped at Q60. A disputed base therefore gets a low quality and is not trusted as a mutation.
 
 Everything downstream (calling, controls, densities, clones, QC) then counts molecules. Controls must be UMI libraries prepared the same way.
@@ -28,6 +28,7 @@ Everything downstream (calling, controls, densities, clones, QC) then counts mol
 | `umi_anchor_length` | 20 | or give `umi_left_anchor` / `umi_right_anchor` |
 | `umi_anchor_edits` | 6 | |
 | `umi_max_edits` | 3 | per UMI end |
+| `umi_directional` | auto | extra edits for the directional step: 2 with UMIs at both ends, off with one |
 | `umi_min_reads` | 3 | |
 | `umi_header_regex` | `(?:_\|UMI[=:])([ACGTN]{6,})` | |
 
@@ -61,6 +62,56 @@ In this simulation, read-by-read analysis already benefits from about six copies
 - **Reads lost to filtering.** About two-thirds of raw reads fail the pipeline's filters. A design that counts on 3 or more copies per molecule needs about 3× more raw reads than molecules × 3.
 - **Errors in the UMI itself.** The UMI is read with nanopore errors, so copies of one molecule differ from each other by 0–6 edits. Plain centroid grouping split molecules; the directional rule fixed this. A UMI at the very end of a read had often lost a base and was rejected; now a UMI short by up to `umi_max_edits` bases is kept.
 
+## Grouping: indels and the directional step
+
+*24 October 2026.* Both problems were found while porting this module to VDJtrace.
+
+**Candidate lookup.** `umi.group` finds candidate centroids by exact pieces of the UMI. With at most *e* edits, one of *e* + 1 pieces is untouched. Pieces used to be cut from each UMI at its own length and compared position by position. A UMI one base short (cut at the read end, which extraction allows) or with an indel then shared no piece with its centroid and became a molecule of its own, even one edit away (`ACGTACGTACG` against `ACGTACGTACGT`). Only the directional step's full scan sometimes hid this. Now every centroid is cut into pieces of one length, set by the commonest UMI length, and every substring of the query is looked up. Centroids too short to cut are always checked. `tests/test_umi.py` covers truncated, deleted and inserted UMIs that the old lookup split off.
+
+**Per reference.** Reads are grouped only with reads aligned to the same reference: one molecule has one. VDJtrace does the same within one locus, V gene and J gene. On real Takara 12-nt UMIs, this cut the share of groups mixing rearrangements from 40% to 3.5% at 2 edits.
+
+**The directional step** lets a UMI seen once or twice join a group at least 3× its size up to `umi_directional` edits beyond `umi_max_edits`. VDJtrace found that at +2 edits it mixed different rearrangements in 95% of groups on real 12-nt Takara UMIs, which are T-rich. So it was measured here at +2, +1 and off.
+
+*Karst et al. R10 reads* (2 × 18-nt UMIs, 6 edits; `umi_karst.py`, `umi_karst/results.json` → `directional`):
+
+| Directional | UMI groups | Molecules (≥ 3 reads) | Reads in them | Molecules of 3–4 reads | Consensus error | Substitution error | Groups mixing species |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **+2** (default, dual UMIs) | 213 | 105 | 3,962 | 6 | 0.21% | 0.027% | 0% |
+| +1 | 272 | 107 | 3,901 | 8 | 0.26% | 0.048% | 0% |
+| off | 360 | 110 | 3,812 | 11 | 0.38% | 0.088% | 0% |
+
+Without the step, about 150 reads fall out of molecules and five more small molecules appear. These are most likely pieces split off real molecules. With 3–4 reads each they carry high error, so substitution error triples. The step merged no reads of different species at any setting. For comparison, the old lookup at +2 gave 216 UMI groups and 103 molecules.
+
+*Simulated UMIs at scale* (`umi_sim.py --grouping`, `umi_sim/grouping.md`). N molecules, each with 1 + Poisson(5) copies. The UMI is read at Q15 with 2% indels, and 5% of copies are cut 1–2 bases short. UMIs are uniform, or T-rich (35% T, as in the Takara UMIs).
+
+| Molecules | UMI | Composition | Directional | Groups mixing molecules | Purity | Molecules split | Reads in groups ≥ 3 |
+|---:|---|---|---|---:|---:|---:|---:|
+| 1,000 | 18 nt | uniform | +2 | 6.2% | 0.989 | 0.5% | 95.5% |
+| 1,000 | 18 nt | uniform | +1 | 0.5% | 0.999 | 0.6% | 94.9% |
+| 1,000 | 18 nt | uniform | **off** | 0.2% | 1.000 | 0.7% | 93.1% |
+| 1,000 | 18 nt | T-rich | +2 | 8.6% | 0.986 | 0.4% | 95.4% |
+| 1,000 | 18 nt | T-rich | **off** | 0.2% | 1.000 | 0.7% | 92.9% |
+| 3,000 | 18 nt | uniform | +2 | 15.9% | 0.972 | 0.3% | 95.6% |
+| 3,000 | 18 nt | uniform | +1 | 1.8% | 0.997 | 0.4% | 94.9% |
+| 3,000 | 18 nt | uniform | **off** | 0.5% | 0.999 | 0.5% | 93.1% |
+| 3,000 | 18 nt | T-rich | +2 | 22.4% | 0.958 | 0.3% | 95.9% |
+| 3,000 | 18 nt | T-rich | +1 | 3.0% | 0.995 | 0.4% | 94.8% |
+| 3,000 | 18 nt | T-rich | **off** | 1.0% | 0.998 | 0.5% | 93.0% |
+| 1,000 | 2 × 18 nt | T-rich | **+2** | 0.0% | 1.000 | 1.6% | 94.8% |
+| 1,000 | 2 × 18 nt | T-rich | off | 0.0% | 1.000 | 1.9% | 92.5% |
+| 3,000 | 2 × 18 nt | uniform | **+2** | 0.0% | 1.000 | 1.4% | 95.0% |
+| 3,000 | 2 × 18 nt | uniform | off | 0.0% | 1.000 | 1.8% | 92.7% |
+| 3,000 | 2 × 18 nt | T-rich | **+2** | 0.0% | 1.000 | 1.6% | 94.8% |
+| 3,000 | 2 × 18 nt | T-rich | off | 0.0% | 1.000 | 1.9% | 92.5% |
+
+Every row is a mean of three replicates; the full table, 150 molecules included, is in `umi_sim/grouping.md`. At 150 molecules a single UMI at +2 mixed molecules in under 1% of groups, and the other settings in none. In the pipeline simulation on the J꜀4 example controls (`examples_compare/KO1–3`, about 68 molecules), all three settings gave the same molecules, calls and purity (1.00).
+
+**Decision.**
+- With two 18-nt UMIs (36 nt, up to 8 edits at +2), the step recovers split molecules on real reads and mixed none in simulation, so it stays at +2.
+- With one 18-nt UMI (up to 5 edits at +2), it mixed molecules in 6–9% of groups at 1,000 molecules and 16–22% at 3,000. That is the failure VDJtrace saw on 12-nt UMIs, while the step gained only about 2% of reads, so it is off.
+
+`umi_directional` overrides either choice.
+
 ## On real nanopore UMI data
 
 `docs/calibration/umi_karst.py`, output in `umi_karst/results.json`.
@@ -75,16 +126,16 @@ In this simulation, read-by-read analysis already benefits from about six copies
 | | Raw reads | UMI consensus |
 |---|---:|---:|
 | Reads with both UMIs read | 4,082 of 4,259 | |
-| Molecules (3 or more reads; median 34) | | 103 |
-| Error per aligned base, all kinds | 9.5% | 0.17% (57-fold lower) |
+| Molecules (3 or more reads; median 33) | | 105 |
+| Error per aligned base, all kinds | 9.5% | 0.21% (46-fold lower) |
 | Consensus matching its own operon best | | 100% |
 
 **By reads per molecule:**
 
 | Reads per molecule | Molecules | All errors | Substitutions | Molecules with no substitution |
 |---|---:|---:|---:|---:|
-| 3–4 | 4 | 2.1% | 0.28% | 0% |
-| 5–9 | 7 | 0.47% | 0.033% | 29% |
+| 3–4 | 6 | 2.2% | 0.28% | 0% |
+| 5–9 | 7 | 0.45% | 0.023% | 43% |
 | 10–19 | 15 | 0.10% | 0.011% | 53% |
 | 20 or more | 77 | 0.053% | 0.010% | 56% |
 

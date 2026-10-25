@@ -72,6 +72,9 @@ class Params:
     umi_anchor_edits: int = 6
     umi_header_regex: str = r"(?:_|UMI[=:])([ACGTN]{6,})"
     umi_max_edits: int = 3           # per UMI end, when grouping
+    # a UMI seen once or twice may join a group 3x its size this many edits beyond
+    # umi_max_edits; None: 2 with UMIs at both ends, off with one (docs/calibration/UMI.md)
+    umi_directional: int | None = None
     umi_min_reads: int = 3           # smaller groups are dropped
 
     # ---- variant calling ----------------------------------------------------

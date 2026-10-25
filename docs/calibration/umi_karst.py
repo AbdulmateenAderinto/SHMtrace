@@ -75,6 +75,23 @@ def err_of(seq, aligner):
     return (h.NM, h.blen, h.ctg) if h else (None, None, None)
 
 
+def grouping_stats(gid, aligned, min_reads):
+    """Groups of `min_reads` or more and how pure they are: the share of a group's
+    reads on its commonest operon, and the share of groups mixing two operon
+    sequences that differ by more than near-identical copies of one genome do."""
+    groups = defaultdict(list)
+    for name, g in gid.items():
+        groups[g].append(aligned[name][0].ctg)
+    big = [ctgs for ctgs in groups.values() if len(ctgs) >= min_reads]
+    pur = [Counter(c).most_common(1)[0][1] / len(c) for c in big]
+    species = [{x.split("_")[0] for x in c} for c in big]
+    return {"umis": len(groups), "groups_3plus_reads": len(big),
+            "reads_in_groups_3plus": sum(len(c) for c in big),
+            "group_purity_mean": round(statistics.mean(pur), 4) if pur else None,
+            "groups_mixing_species_pct": round(100 * sum(len(s) > 1 for s in species)
+                                               / len(big), 2) if big else None}
+
+
 def main():
     refs = read_fasta(DATA / "zymo-ref-uniq_2019-10-28.fa")
     fa = DATA / "refs_clean_names.fa"           # kept with the data, not in the repository
@@ -98,40 +115,57 @@ def main():
         u = umi.extract(r, refs[r.ctg], p)
         if u and "N" not in u:
             keys[name] = u
-    gid = umi.group(keys, 2 * p.umi_max_edits)
-    groups = defaultdict(list)
-    for name, g in gid.items():
-        groups[g].append(name)
-
     raw_err = [(h.NM, h.blen) for _r, h in aligned.values()]
-    cons_rows = []
-    for g, names in groups.items():
-        if len(names) < p.umi_min_reads:
-            continue
-        ctg = Counter(aligned[n][0].ctg for n in names).most_common(1)[0][0]
-        purity = sum(aligned[n][0].ctg == ctg for n in names) / len(names)
-        members = []
-        for n in names:
-            r, h = aligned[n]
-            if r.ctg != ctg:             # realign to the group's operon
-                seq, qual = raw[n]
-                h2 = next((x for x in one[ctg].map(seq) if x.is_primary), None)
-                if h2 is None:
-                    continue
-                r = to_aligned(n, seq, qual, h2)
-                r.ctg = ctg
-            members.append(r)
-        c = umi._consensus(members, refs[ctg], f"umi{g}")
-        if c is None:
-            continue
-        # consensus as a sequence (deleted columns left out), measured like a raw read
-        cseq = "".join(b for _rp, b, _q in c.pairs)
-        nm, blen, best = err_of(cseq, al)
-        subs = sum(1 for rp, b, _q in c.pairs if b != refs[ctg][rp])
-        cons_rows.append({"reads": len(names), "operon": ctg, "best_operon": best,
-                          "purity": purity, "nm": nm, "blen": blen, "subs_vs_group_operon": subs,
-                          "span": c.r_en - c.r_st})
     raw_rate = sum(x[0] for x in raw_err) / sum(x[1] for x in raw_err)
+
+    def molecules(gid):
+        groups = defaultdict(list)
+        for name, g in gid.items():
+            groups[g].append(name)
+        cons_rows = []
+        for g, names in groups.items():
+            if len(names) < p.umi_min_reads:
+                continue
+            ctg = Counter(aligned[n][0].ctg for n in names).most_common(1)[0][0]
+            purity = sum(aligned[n][0].ctg == ctg for n in names) / len(names)
+            members = []
+            for n in names:
+                r, h = aligned[n]
+                if r.ctg != ctg:             # realign to the group's operon
+                    seq, qual = raw[n]
+                    h2 = next((x for x in one[ctg].map(seq) if x.is_primary), None)
+                    if h2 is None:
+                        continue
+                    r = to_aligned(n, seq, qual, h2)
+                    r.ctg = ctg
+                members.append(r)
+            c = umi._consensus(members, refs[ctg], f"umi{g}")
+            if c is None:
+                continue
+            # consensus as a sequence (deleted columns left out), measured like a raw read
+            cseq = "".join(b for _rp, b, _q in c.pairs)
+            nm, blen, best = err_of(cseq, al)
+            subs = sum(1 for rp, b, _q in c.pairs if b != refs[ctg][rp])
+            cons_rows.append({"reads": len(names), "operon": ctg, "best_operon": best,
+                              "purity": purity, "nm": nm, "blen": blen,
+                              "subs_vs_group_operon": subs, "span": c.r_en - c.r_st})
+        return groups, cons_rows
+
+    # the directional step at +2 (the default for dual UMIs) and +1 edits beyond
+    # umi_max_edits, and off
+    directional = {}
+    for d in (2, 1, 0):
+        gid = umi.group(keys, 2 * p.umi_max_edits, d)
+        _g, rows = molecules(gid)
+        st = grouping_stats(gid, aligned, p.umi_min_reads)
+        ok = [r for r in rows if r["nm"] is not None]
+        st["consensus_error_pct"] = round(100 * sum(r["nm"] for r in ok)
+                                          / sum(r["blen"] for r in ok), 4)
+        st["consensus_substitution_error_pct"] = round(
+            100 * sum(r["subs_vs_group_operon"] for r in ok) / sum(r["span"] for r in ok), 4)
+        st["molecules_3_4_reads"] = sum(r["reads"] <= 4 for r in ok)
+        directional[f"+{d}" if d else "off"] = st
+    groups, cons_rows = molecules(umi.group(keys, 2 * p.umi_max_edits, umi.directional(p)))
     cons = [r for r in cons_rows if r["nm"] is not None]
     cons_rate = sum(r["nm"] for r in cons) / sum(r["blen"] for r in cons) if cons else None
     by_depth = {}
@@ -157,6 +191,7 @@ def main():
         "by_reads_per_molecule": by_depth,
         "consensus_matching_group_operon_pct": round(
             100 * sum(r["best_operon"] == r["operon"] for r in cons) / len(cons), 1) if cons else None,
+        "directional": directional,
     }
     json.dump({"summary": summary, "molecules": cons_rows}, open(OUT / "results.json", "w"), indent=1)
     print(json.dumps(summary, indent=1))
