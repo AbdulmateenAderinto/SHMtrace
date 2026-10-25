@@ -270,9 +270,12 @@ METHODS = [
           "with that site's own control rate shrunk toward it and inflated by a margin fitted as the substitution "
           "margin is; candidates are corrected by Benjamini–Hochberg; indels are counted only at quality ≥ 30 at the "
           "inserted bases or the bases flanking a deletion, and those carried by fewer than three reads are not "
-          "called. UMI consensus groups reads by their tags, allowing up to 3 edits per tag end, greedily from the "
-          "most abundant tag and merging a neighbor only when it is at most half as abundant; groups of fewer than 3 "
-          "reads are dropped, and each remaining group becomes one quality-weighted consensus read. The single-read "
+          "called. UMI consensus groups reads aligned to the same reference by their tags, allowing up to 3 edits "
+          "per tag end, greedily from the most abundant tag against each group's founding tag; a tag that has lost "
+          "or gained a base still joins its group. With tags at both ends, a tag seen once or twice may also join a "
+          "group at least three times its size within two further edits; with a single tag this step is off, as it "
+          "merged distinct molecules in simulation. Groups of fewer than 3 reads are dropped, and each remaining "
+          "group becomes one quality-weighted consensus read. The single-read "
           "estimate divides the excess of single-read substitutions at quality ≥ 35 over the controls' rate by the "
           "share of that sample's correctly read bases reaching that quality, so that the estimate does not depend on "
           "the cutoff; that it does not between Q30 and Q40 is the check reported for J_{H}4."),
@@ -637,7 +640,7 @@ LEGENDS = [
      "R174E/R178E; n denotes calls, not replicates. Mutant calls cluster at positions {ch12_cluster}. (D) Ramos "
      "deletion/insertion events in Wt and HMCES-knockout clones (n=6 each) and AID-knockout controls (n=3), 20,000 "
      "reads per clone (PRJNA820976); bars, means. (E) UMI-consensus error in rRNA operons[@karst2021] by family size; "
-     "n, families. Dashed line, raw-read error; diamond, 103 pooled families with a bootstrap 95% interval from 2,000 "
+     "n, families. Dashed line, raw-read error; diamond, 105 pooled families with a bootstrap 95% interval from 2,000 "
      "family resamples, holding raw error fixed. (F) C:G transition shares in three mOrange experiments across empty, "
      "Ugi and UNG repair contexts (PRJNA170048): circles, SHMtrace; squares, raw Q>20 mismatches; crosses, dead-AID "
      "raw mismatches. Lines join repair arms within experiments. Calling uses empty-arm dead-AID controls; 4–40 called "
@@ -668,7 +671,7 @@ TABLE_S6 = [
      "4 empty-vector replicates", "replicate\u1d9c", "Figure 7"),
     ("PRJNA820976[@wu2022]", "Illumina", "IGH VDJ (421 bp)", "6 Wt, 6 HMCES-KO clones", "3 AID-KO clones",
      "clone", "Figure 7"),
-    ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "103 molecules", "known sequences",
+    ("Karst et al.[@karst2021]", "ONT R10, dual UMI", "rRNA operons (4.4 kb)", "105 molecules", "known sequences",
      "molecule", "Figure 7"),
     ("SW_{HEL} Sanger, published study[@thientosapol2018]", "Sanger (GenBank)", "SW_{HEL} V_{H}10 (558 bp)",
      "*Samhd1*, *Msh2* and double mutants, UGI arm; 1,795 clones", "none", "host animal", "Figure S10"),
