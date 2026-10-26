@@ -801,6 +801,107 @@ for _old, _new in MAIN_TEXT:
                 _hit += 1
     assert _hit == 1, (_hit, _old[:60])
 
+# 11. corrections after the Alberto review (25 October 2026). Three claims in V2 are wrong, and one option
+# the work since has added belongs in the Methods. The measurements behind each are in
+# docs/calibration/CALLER_FIXES.md; the Ramos numbers are from docs/calibration/crm/out/public/hmces and
+# .../hmces_het, the UMI numbers from docs/calibration/crm/out/figS7_umi.json after the UMI grouping fix.
+# Only the Results entry costs counted words; everything else is in the STAR Methods, which the limit excludes.
+CORRECTIONS = [
+    # The Ramos AID-null clone is not noisy. Its calls are a second IGH allele that phasing removed from its
+    # two peers (phase_max_drop 0.45; the clones read the allele at 0.449, 0.445 and 0.470) and kept in it.
+    # The paragraph said the opposite in its last sentence, and "noisy" in the two before it.
+    # The 277–413 sensitivity analysis went with it: it was reported to support that last sentence, and with
+    # the cause known it is a dangling number. Its removal pays for most of the explanation that replaces it.
+    ("Substitution calling in this deposit, however, depended strongly on one noisy AID-null library. After "
+     "inspecting this dataset, we developed a rule that excluded it from threshold selection while retaining "
+     "it for model fitting and reporting the exclusion. With this adjustment, Wt and HMCES-deficient clones "
+     "yielded 52–99 substitution calls each, whereas treating the noisy library as a sample instead yielded "
+     "277–413. Control assignment thus materially affects the inferred substitution burden here "
+     "(STAR Methods), and the same rule also acted in the mOrange analysis.",
+     "Substitution calling in this deposit, however, depended strongly on one AID-null library, which a rule "
+     "developed after inspecting this dataset excluded from threshold selection while retaining for model "
+     "fitting (STAR Methods). Wt and HMCES-deficient clones then yielded 52–99 substitution calls each. That "
+     "library's excess proved allelic rather than noise: every AID-null clone carries a second IGH allele "
+     "near half its reads, which the 50% germline filter retains and phasing stripped from two clones but "
+     "not the third. Masking such positions brings all twelve clones within 0.21–1.66 substitutions per "
+     "10^{3} bases, from a bimodal 0.4–0.8 and 3.8–8.2. The same rule also acted in the mOrange analysis."),
+    # The files as distributed are flat Q30, but merging writes Q60 where both mates agree, so the model sees
+    # two levels, not one. Measured on the merged reads with the pipeline's own io_utils.merge_pairs.
+    ("The PRJNA973112 and PRJNA918596 files as distributed carry a flat Q30 on every base, so for them the "
+     "error model has a single quality level; PRJNA820976 keeps binned qualities.",
+     "The PRJNA973112 and PRJNA918596 files as distributed carry a flat Q30 on every base; merging then "
+     "writes Q60 where both mates agree, so the error model sees two levels whose value records whether both "
+     "mates covered the base rather than how accurate the basecall is. Measured on the merged reads, "
+     "PRJNA973112 is 93% Q60 and its 70-bp window lies inside the mate overlap, while PRJNA918596 is 88% "
+     "Q30. Because quality carries no accuracy information in either, the single-read estimate reports the "
+     "number of quality levels and flags both of these sets (`quality_levels`, `quality_flat`), and their "
+     "single-read and combined densities are not interpretable. PRJNA820976 keeps binned qualities."),
+    # the Karst consensus numbers predate the UMI grouping fix (directional merging for dual UMIs only).
+    # src/figS8_downstream.py was rerun against the current umi_karst/results.json, so the S9H panel now
+    # plots these values too; its legend is corrected with them.
+    ("consensus reduced error 57-fold (95% CI 35–99) to 0.17%",
+     "consensus reduced error 46-fold (95% CI 30–83) to 0.21%"),
+    ("diamond, all 103 molecules of three or more reads pooled",
+     "diamond, all 105 molecules of three or more reads pooled"),
+    ("Consensus reduced error 57-fold, and at ten or more reads per molecule",
+     "Consensus reduced error 46-fold, and at ten or more reads per molecule"),
+    # the rule's origin: what that clone's excess actually was
+    ("in which a single *Aicda*^{−/−} clone suppressed every call;",
+     "in which a single *Aicda*^{−/−} clone suppressed every call — a clone whose excess was later traced to "
+     "a second IGH allele the phasing step removed from its two peers and retained in it, rather than to a "
+     "difference in sequencing noise;"),
+    # the opposite failure of the high-allele-fraction rule, and the option that addresses it
+    ("so a library with a large mutated clone can be recognized and its sites inspected.",
+     "so a library with a large mutated clone can be recognized and its sites inspected. The rule has the "
+     "opposite failure as well: a difference carried by one of two alleles sits near half the reads and can "
+     "fall either side of the threshold, so a clonal line heterozygous across the sequenced region can have "
+     "that second allele tested as if it were somatic. `mask_control_het` addresses this from the controls. A "
+     "position and alternative allele that any control library reads in at least `control_het_min_frequency` "
+     "(0.25) of its reads, up to the 50% rule, over at least `control_het_min_depth` (20) reads, is treated "
+     "as a second allele there and is left out of the samples' candidates and of the controls' decoys alike, "
+     "so both sides lose the same sites; the count is reported as `control_het_removed`. One control is "
+     "enough to establish a site, so a variant private to one library is caught, and sequencing error does "
+     "not reach a quarter of the reads at a covered position; what the rule can lose is a real mutation that "
+     "a control also carries at that level. It is off by default, so no result reported here uses it, and it "
+     "is off under `ancestral_reference`, where a change driven high is the experiment's subject. Run over "
+     "the controls of the ten sets that have three or more mutation-free controls, it sets aside sites in "
+     "two, the Illumina Ramos VDJ (29 sites) and the public nanopore Sμ CH12 libraries (2), and none in the "
+     "other eight, this study's own J_{H}4 and N114 V_{H} among them. On the Ramos deposit it removes 55 "
+     "calls from seven of the twelve Wt and HMCES-deficient clones, 42 of them carried by 43–49% of reads at "
+     "nine positions."),
+]
+for _old, _new in CORRECTIONS:
+    _hit = 0
+    for _o in ops:
+        for _j, _s in enumerate(_o[1]):
+            if isinstance(_s, str) and _old in _s:
+                _o[1][_j] = _s.replace(_old, _new)
+                _hit += 1
+    assert _hit == 1, (_hit, _old[:60])
+
+# 12. back under the limit (author, 25 Oct): the corrections above left the counted text 23 words over. Each cut
+# removes a statement the paper makes elsewhere, so no number, claim or caveat goes: an index of 1.22-1.36 is
+# itself 22-36% enrichment; "excluded sites are reported" is also in the filter's introduction and in the
+# Limitations; the shared engine is also in the Discussion.
+LIMIT_CUTS = [
+    ("ranged from 1.22 to 1.36, indicating 22–36% enrichment over the window average (permutation p ≤ 0.015)",
+     "ranged from 1.22 to 1.36 (permutation p ≤ 0.015)"),
+    (" Excluded sites are therefore reported for inspection.", ""),
+    (" The desktop and command-line interfaces share one analysis engine.", ""),
+]
+for _old, _new in LIMIT_CUTS:
+    _hit = 0
+    for _o in ops:
+        for _j, _s in enumerate(_o[1]):
+            if isinstance(_s, str) and _old in _s:
+                _o[1][_j] = _s.replace(_old, _new)
+                _hit += 1
+    assert _hit == 1, (_hit, _old[:60])
+
+# the title page still carried the v1.3 label the V2 document superseded (the footer already says V2)
+ops[0][1][0] = "SHMtrace: complete manuscript with supplemental information"
+ops[1][1][0] = "V2 – for Alberto review · 25 October 2026"
+
 (HERE / "document_operations.json").write_text(json.dumps(ops, indent=2, ensure_ascii=False))
 (HERE / "citation_remap_log.json").write_text(json.dumps(log, indent=1, ensure_ascii=False))
 print("operations:", len(ops), "; paragraphs remapped:", len(log))

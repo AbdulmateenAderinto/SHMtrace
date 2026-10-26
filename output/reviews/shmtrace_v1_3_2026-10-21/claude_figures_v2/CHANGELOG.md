@@ -313,3 +313,48 @@ The Figure 5 legend now reads "three Wt and three *Aicda*^{−/−} mice" (step 
 - **Summary describes the comparator instead of naming it (author, 23 Oct).** "relative to the uncorrected Geneious rule" is now "relative to an uncorrected rule from a general-purpose sequence-analysis platform not tuned for SHM". "GUI" was dropped on reflection: SHMtrace ships a desktop app of its own, so calling a comparator GUI-based would read inconsistently; the contrast is general-purpose versus SHM-specific. One redundant word in the Introduction ("In the configurations evaluated here") pays for it. The Results, Discussion and Table S1 still name Geneious (18 mentions in the rendered PDF), so nothing is hidden; the abstract makes the general point and the body gives the specifics. The description matches that tool's own cited title, "an integrated and extendable desktop software platform for the organization and analysis of sequence data"[@kearse2012].
   - **Paid for by four Summary trims:** "mutations, recalled at observed false-discovery proportions 0.050 and 0.045," → "mutations (false-discovery proportions 0.050 and 0.045),"; "the stated zero-call convention" → "the zero-call convention"; "compare mutation profiles" → "compare profiles"; "preserved mutation linkage" → "preserved linkage"; "Further datasets covered" → "Datasets covered".
   - **Checks.** 6,999 of 7,000 words; Summary 149 of 150; PDF 86 pp. The previous docx is in `scratch/V2_before_abstract_comparator.docx`.
+
+## 12. Corrections after the Alberto review (25 October 2026)
+
+Four claims in V2 were wrong. The measurements behind each are in
+`docs/calibration/CALLER_FIXES.md`; the Ramos numbers come from
+`docs/calibration/crm/out/public/hmces` and `.../hmces_het`, the UMI numbers from
+`docs/calibration/umi_karst/results.json` after the UMI grouping fix. Only the first costs
+counted words.
+
+| Where | Was | Now |
+|---|---|---|
+| Results, Ramos (Figure 7D) | "Control assignment thus materially affects the inferred substitution burden here", and the library called "noisy" | The excess is allelic: every AID-null clone carries a second IGH allele near half its reads, which the 50% germline filter retains and phasing stripped from two clones but not the third. Masking those positions brings all twelve clones within 0.21–1.66 per 10³ bases, from a bimodal 0.4–0.8 and 3.8–8.2 |
+| STAR Methods, margin rule | the origin clone's excess left unexplained | traced to that second allele rather than to sequencing noise |
+| STAR Methods, public Illumina | "flat Q30 ... so for them the error model has a single quality level" | flat Q30 as distributed, but merging writes Q60 where both mates agree, so the model sees two levels; measured on the merged reads PRJNA973112 is 93% Q60 and PRJNA918596 88% Q30, and the single-read estimate flags both |
+| STAR Methods and Figure S9H | UMI consensus "57-fold (95% CI 35–99) to 0.17%", 103 molecules | 46-fold (95% CI 30–83) to 0.21%, 105 molecules |
+
+**`mask_control_het` added to the STAR Methods** high-allele-fraction paragraph: its thresholds, that it is
+off by default so no result reported here uses it, and what it removes set by set (29 sites in the Ramos VDJ,
+2 in the public nanopore Sμ CH12 libraries, none in the other eight, this study's own two among them).
+
+**Figure S9H was redrawn** (`src/figS8_downstream.py` against the current `umi_karst/results.json`), so the
+panel and its legend agree. Page 1 is unchanged: its numeric labels are identical.
+
+**The 277–413 sensitivity analysis was removed** from the Results. It was reported to support the sentence
+above it, and with the cause known it is a dangling number. Its removal pays for most of the explanation.
+
+**Word count: 7,022, which is 23 over.** Results went 3,712 → 3,735. The correction replaces a false
+causal claim and cannot be made much shorter without dropping either the mechanism or the 52–99 default
+result; 23 words still need to come from somewhere in the counted text.
+
+**Preserved:** `SHMtrace_CellReportsMethods_V2_as-sent_2026-10-23.docx` is the document as Alberto received
+it, byte-for-byte.
+
+**Back under the limit (step 12 in `revise_operations.py`).** Three cuts in the Results remove exactly the 23
+words: each repeats something the paper says elsewhere, so no number, claim or caveat is lost.
+- S5F targeting: "ranged from 1.22 to 1.36, indicating 22–36% enrichment over the window average" → "ranged
+  from 1.22 to 1.36" (an index of 1.22–1.36 is itself 22–36% enrichment).
+- The ≥50% filter: "Excluded sites are therefore reported for inspection." removed; the filter's introduction
+  says "every excluded site is reported", and the Limitations say "Excluded sites are reported for review".
+- "The desktop and command-line interfaces share one analysis engine." removed; the Discussion says "one engine
+  behind the desktop and command-line interfaces".
+
+Word count 6,999 of 7,000; Summary 150 of 150; Results 3,712. The PDF is re-rendered (87 pp.). The docx before
+these cuts is in `scratch/V2_before_limit_cuts_2026-10-25.docx`.
+
