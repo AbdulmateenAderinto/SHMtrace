@@ -77,8 +77,8 @@ shmtrace-screen = "shmtrace.demux:main"
 shmtrace-app = "shmtrace.desktop:main"
 
 [project.urls]
-Homepage = "https://github.com/martinlab/shmtrace"
-Issues = "https://github.com/martinlab/shmtrace/issues"
+Homepage = "https://github.com/AbdulmateenAderinto/SHMtrace"
+Issues = "https://github.com/AbdulmateenAderinto/SHMtrace/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/shmtrace", "src/nanoshm"]   # nanoshm: the old name, an import alias

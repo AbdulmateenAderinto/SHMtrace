@@ -17,15 +17,23 @@ Aderinto & Martin. Indels are ignored throughout; this is a substitution assay.
 
 ### The built app
 
-There is a built application for macOS and for Windows. It contains everything
-it needs, including Python, so nothing else has to be installed.
+The app contains everything it needs, including Python, so nothing else has to
+be installed. It is built on the platform it runs on; there is no cross-building
+(`packaging/BUILD.md`).
 
-- **macOS:** drag `shmtrace.app` to Applications. The first time you open it,
+- **macOS:** a built installer is available (`SHMtrace-<version>-arm64.dmg`).
+  Open it and drag `SHMtrace.app` to Applications. The first time you open it,
   right-click (or control-click) the icon and choose **Open**, then confirm.
   The app is not signed by Apple, so a double-click on the first launch is
   refused. After that first time it opens normally.
-- **Windows:** unzip the folder anywhere and run `shmtrace.exe` inside it. Keep
-  the whole folder together; the `.exe` needs the files beside it.
+- **Windows:** there is no prebuilt app. Build one on a Windows machine with
+  `packaging/BUILD.md`, which writes `dist/shmtrace/shmtrace.exe`; keep the whole
+  folder together, since the `.exe` needs the files beside it. Note that
+  installing from source on Windows is itself the hard part: SHMtrace depends on
+  `mappy`, which publishes no Windows package and does not build with Microsoft's
+  compiler. **The supported route on Windows is WSL** — run `wsl --install` in an
+  administrator PowerShell, then follow the pip instructions below inside Ubuntu,
+  where `mappy` builds normally.
 
 The app opens one window. Inside that window is a page served by the app itself
 on `127.0.0.1`, which is your own machine. Nothing listens on the network and no

@@ -145,7 +145,10 @@ class Sheet:
         .seq, .gb), "ont" for reads (FASTQ, BAM, or pooled rows with a barcode). FASTA files
         are neutral (Sanger clones are often exported as FASTA) and follow the other files; a
         sheet of FASTA files only is Sanger, as before. A sheet mixing chromatograms and reads,
-        or with files of neither kind, raises SheetError."""
+        or with files of neither kind, raises SheetError.
+
+        Reads are reported as "ont" because a FASTQ does not say which sequencer wrote it, so
+        Illumina and PacBio reads need --platform (or the project's own "platform") to say so."""
         kinds = {}
         for r in self.used:
             kinds.setdefault("ont" if r.barcode else _file_kind(r.file), []).append(r.file)
@@ -481,8 +484,11 @@ def main(argv=None):
     r.add_argument("sheet")
     r.add_argument("--reference", required=True)
     r.add_argument("--region", required=True, help="preset name, e.g. jh4_intron")
-    r.add_argument("--platform", default=None, choices=("sanger", "ont", "illumina"),
-                   help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont)")
+    # pipeline.PLATFORMS is the source of truth; repeated as a literal so that checking or drafting a
+    # sheet does not need the aligner that importing pipeline pulls in
+    r.add_argument("--platform", default=None, choices=("sanger", "ont", "pacbio", "illumina"),
+                   help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont); give "
+                        "pacbio or illumina explicitly, since a FASTQ does not say which it is")
     r.add_argument("--contaminant", action="append", default=[])
     r.add_argument("--target", action="append", default=[], metavar="NAME=FASTA[:REGION]",
                    help="a second locus the same primers amplify (a paralogue, say), analysed in its own "
