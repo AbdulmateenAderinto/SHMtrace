@@ -8,3 +8,12 @@ dist/
 .pytest_cache/
 .ruff_cache/
 .coverage
+
+# Manuscript text, notes and review material: kept on this machine only
+output/reviews/
+docs/calibration/crm/manuscript/
+docs/calibration/crm/backups/
+docs/calibration/crm/*.md
+docs/calibration/crm/*.txt
+docs/calibration/manuscript_corrected/*.md
+*.docx
