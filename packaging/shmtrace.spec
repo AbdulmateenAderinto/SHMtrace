@@ -9,6 +9,8 @@ datas = [
     ("../src/shmtrace/webapp/static", "shmtrace/webapp/static"),
     ("../src/shmtrace/presets", "shmtrace/presets"),
     ("../src/shmtrace/references", "shmtrace/references"),
+    # the six-library JH4 example behind the set-up guide's "Try it with example data"
+    ("../examples_compare", "examples_compare"),
 ]
 datas += collect_data_files("mappy", include_py_files=False)
 

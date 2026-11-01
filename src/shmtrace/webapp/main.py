@@ -7,7 +7,9 @@ export is a download from it.
 
 Endpoints
   GET  /                      the app
-  GET  /api/options           presets, platforms, modes, version
+  GET  /api/options           presets (with what each does), platforms, modes, version
+  GET  /api/example           a ready-made six-library project (the set-up guide's example)
+  POST /api/check-reads       read count, length and quality of one sample, for the guide
   POST /api/files             upload files, returns server-side paths
   POST /api/local-scan        list a folder on this machine (desktop app)
   POST /api/run               start a project; returns {"job": id}
@@ -101,6 +103,75 @@ def _bundled_references() -> list[dict]:
     return out
 
 
+def _preset_details() -> dict:
+    """What each region preset will do, in the terms the set-up guide shows."""
+    out = {}
+    for name in available_presets():
+        try:
+            p = load_preset(name)
+        except Exception:                       # noqa: BLE001 - a broken preset is just not described
+            continue
+        out[name] = {"description": " ".join(str(p.description or "").split()),
+                     "window": list(p.analysis_window) if p.analysis_window else None,
+                     "depth": p.downsample_to, "min_align_len": p.min_align_len,
+                     "max_total_len": p.max_total_len, "end_trim_bp": p.end_trim_bp}
+    return out
+
+
+def _example_dir() -> Path | None:
+    """The six-library JH4 example: the repository's, or the copy inside the built app."""
+    import sys
+    roots = [APP_DIR.parents[2] / "examples_compare"]
+    if getattr(sys, "_MEIPASS", None):
+        roots.insert(0, Path(sys._MEIPASS) / "examples_compare")
+    return next((r for r in roots if (r / "samples.csv").is_file()), None)
+
+
+@app.get("/api/example")
+def example():
+    """A ready-made project for the "try it with example data" button."""
+    import csv
+    d = _example_dir()
+    if d is None:
+        raise HTTPException(404, "the example data is not installed with this copy of SHMtrace")
+    rows = list(csv.DictReader(open(d / "samples.csv")))
+    return {"name": "Example: JH4, 3 wild-type vs 3 Aicda-/- mice",
+            "region": "jh4_intron", "platform": "ont",
+            "reference": {"name": "JH4 intron (example)", "path": str(d / "JH4_reference.fasta")},
+            "contaminant": {"name": "JH4 contaminant (example)", "path": str(d / "JH4_contaminant.fasta")},
+            "samples": [{"name": r["sample"], "path": str(d / r["fastq"]),
+                         "group": "Aicda-/-" if r["null"] == "yes" else "Wt",
+                         "control": r["null"] == "yes"} for r in rows]}
+
+
+@app.post("/api/check-reads")
+def check_reads(payload: dict):
+    """A quick look at one sample's reads, so the guide can flag problems before a run.
+
+    Reads at most `limit` records: enough for the length and quality, and a count
+    that is exact for small files and a lower bound for big ones.
+    """
+    import statistics
+    from ..io_utils import read_fastq
+    path = payload.get("path", "")
+    limit = int(payload.get("limit", 20000))
+    n, lengths, quals = 0, [], []
+    try:
+        for _name, seq, qual in read_fastq(path):
+            n += 1
+            if len(lengths) < 2000:
+                lengths.append(len(seq))
+                if qual:
+                    quals.append(sum(ord(c) - 33 for c in qual) / len(qual))
+            if n >= limit:
+                break
+    except Exception as e:                      # noqa: BLE001 - shown to the user
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+    return {"ok": True, "reads": n, "more": n >= limit,
+            "median_length": int(statistics.median(lengths)) if lengths else 0,
+            "mean_quality": round(statistics.mean(quals), 1) if quals else None}
+
+
 @app.get("/api/options")
 def options():
     return {
@@ -117,6 +188,13 @@ def options():
             "igh_smu": "Mouse IgH Sμ switch region.",
             "generic_amplicon": "Any other region: JH6, Sγ, a V gene, an AID off-target.",
             "sanger_clones": "Sanger traces, one clone per read.",
+        },
+        "preset_details": _preset_details(),
+        "platform_help": {
+            "ont": "Oxford Nanopore long reads, one FASTQ (or BAM) per sample.",
+            "pacbio": "PacBio HiFi reads. Accurate enough that the error model changes little.",
+            "illumina": "Paired short reads (R1/R2), merged on their overlap. Choose a window the reads cover.",
+            "sanger": "Sanger traces (.ab1): one clone per trace, a folder of traces per sample.",
         },
         "mode_help": {
             "recommended": "Quality-calibrated against your controls. The default.",

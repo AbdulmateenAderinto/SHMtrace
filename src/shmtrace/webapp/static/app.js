@@ -893,7 +893,7 @@ async function saveLocal() {
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
   if (S.result) { $("figs").dataset.job = ""; drawFigures(); }
 });
-init();
+const READY = init();
 
 
 /* ── reads: the alignment, before and after processing ────── */
