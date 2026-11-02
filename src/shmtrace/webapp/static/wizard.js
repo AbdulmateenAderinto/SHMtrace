@@ -7,9 +7,9 @@
 const W = { step: 1, ref: null, checks: {}, queue: [], busy: false };
 
 const REGION_TITLES = {
-  jh4_intron: "JH4 intron (mouse)", n114_vregion: "N114 V region (hybridoma)",
+  generic_amplicon: "My own amplicon", jh4_intron: "JH4 intron (mouse)",
   igh_smu: "Sμ switch region (mouse)", jh4_paralogue: "JH4 paralogue",
-  generic_amplicon: "Another amplicon", sanger_clones: "Sanger clones",
+  n114_vregion: "N114 V region (one hybridoma)", sanger_clones: "Sanger clones",
 };
 const PLATFORM_TITLES = { ont: "Oxford Nanopore", pacbio: "PacBio HiFi", illumina: "Illumina", sanger: "Sanger" };
 const fmt = (n) => Number(n).toLocaleString("en-GB");
@@ -32,20 +32,32 @@ function presetMeta(name) {
   parts.push(d.depth ? `${fmt(d.depth)} reads per sample` : "every read");
   return parts.join(" · ");
 }
+// The general case comes first and is the default; the built-in assays are options, never assumed.
+const GENERIC = "generic_amplicon";
+const OWN_REFERENCE = [GENERIC, "sanger_clones"];   // regions with no bundled reference
 function wizPickRegion(v) {
   $("region").value = v; $("region").onchange && $("region").onchange();
   wizCards($("region-cards"), regionItems(), v, wizPickRegion);
+  // until a reference is chosen, step 2 opens on the likely source: your file, or the built-in one
+  if (!S.reference) {
+    const mode = OWN_REFERENCE.includes(v) ? "own" : "builtin";
+    document.querySelector(`input[name="ref-mode"][value="${mode}"]`).checked = true;
+    wizRefMode();
+  }
   wizRefresh();
 }
 function wizPickPlatform(v) {
+  const was = $("platform").value;
   $("platform").value = v; $("platform").onchange && $("platform").onchange();
   wizCards($("platform-cards"), platformItems(), v, wizPickPlatform);
   if (v === "sanger" && $("region").value !== "sanger_clones" && S.options.presets.includes("sanger_clones")) {
     wizPickRegion("sanger_clones");
+  } else if (was === "sanger" && v !== "sanger" && $("region").value === "sanger_clones") {
+    wizPickRegion(GENERIC);
   }
   wizRefresh();
 }
-const REGION_ORDER = ["jh4_intron", "n114_vregion", "igh_smu", "jh4_paralogue", "sanger_clones", "generic_amplicon"];
+const REGION_ORDER = [GENERIC, "jh4_intron", "igh_smu", "jh4_paralogue", "n114_vregion", "sanger_clones"];
 const firstSentence = (t) => (t.match(/^.*?\.(\s|$)/) || [t])[0].trim();
 const regionItems = () => [...S.options.presets]
   .sort((a, b) => (REGION_ORDER.indexOf(a) + 99) % 99 - (REGION_ORDER.indexOf(b) + 99) % 99)
@@ -133,7 +145,7 @@ function wizIssues(step) {
     else if (W.ref && W.ref.length != null) {
       if (d.window && W.ref.length < d.window[1] && !$("window").value.trim()) {
         warn.push(`The reference is ${fmt(W.ref.length)} bp, but this region analyses positions ${d.window[0]}–${d.window[1]}. `
-          + "Pick “Another amplicon” in step 1, or set your own window under More options.");
+          + "Pick “My own amplicon” in step 1, or set your own window under More options.");
       }
       if (W.ref.records > 1) warn.push(`The FASTA has ${W.ref.records} records; only the first, ${W.ref.name}, is used.`);
     }
@@ -228,9 +240,11 @@ function renderReview() {
   const others = Object.keys(groups).filter(g => !ctrlGroups.includes(g));
   const known = S.samples.map(s => W.checks[s.path]).filter(c => c && c.ok && !c.more).map(c => c.reads);
   const depth = +$("depth").value || d.depth;
-  const win = $("window").value.trim() || (d.window ? `${d.window[0]}–${d.window[1]}` : "the whole amplicon");
+  const win = $("window").value.trim() || (d.window ? `${d.window[0]}–${d.window[1]}` : "");
+  const span = win ? `positions ${win}`
+    : `the whole amplicon${d.end_trim_bp ? ` less ${d.end_trim_bp} bp at each end` : ""}`;
   const rows = [
-    ["Region", `${REGION_TITLES[region] || region}: positions ${win}${depth ? `, up to ${fmt(depth)} reads per sample` : ""}`],
+    ["Region", `${REGION_TITLES[region] || region}: ${span}${depth ? `, up to ${fmt(depth)} reads per sample` : ""}`],
     ["Platform", `${PLATFORM_TITLES[platform] || platform}, calling mode ${$("mode").value}`],
     ["Reference", S.reference ? `${S.reference.name}${W.ref && W.ref.length ? ` (${fmt(W.ref.length)} bp)` : ""}` : "none"],
     ["Set aside", [S.contaminant && `reads that match ${S.contaminant.name}`, S.germlineVcf && `germline variants in ${S.germlineVcf.name}`]

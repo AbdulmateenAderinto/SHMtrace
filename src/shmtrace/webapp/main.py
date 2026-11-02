@@ -183,10 +183,11 @@ def options():
         "modes": ["recommended", "sensitive", "geneious", "v0.1", "strand", "pbinom", "qcal+filter",
                   "sanger"],
         "preset_help": {
+            "generic_amplicon": "Any region you amplified: a V gene, JH6, Sγ, an AID off-target. "
+                                "You give the reference; the whole amplicon is analysed.",
             "jh4_intron": "Mouse JH4 downstream intron, the neutral polyclonal assay.",
-            "n114_vregion": "N114 hybridoma V region; the parental sequence is known.",
             "igh_smu": "Mouse IgH Sμ switch region.",
-            "generic_amplicon": "Any other region: JH6, Sγ, a V gene, an AID off-target.",
+            "n114_vregion": "Only for the N114 hybridoma's V region, whose parental sequence is known.",
             "sanger_clones": "Sanger traces, one clone per read.",
         },
         "preset_details": _preset_details(),
@@ -652,7 +653,7 @@ async def analyze(
     reference: UploadFile = File(...),
     contaminant: UploadFile | None = File(None),
     null: list[UploadFile] | None = File(None),
-    preset: str = Form("jh4_intron"),
+    preset: str = Form("generic_amplicon"),
     mode: str = Form("recommended"),
     platform: str = Form("ont"),
     downsample_to: str = Form(""),
@@ -724,7 +725,7 @@ async def compare_groups(
     case: list[UploadFile] = File(...),
     reference: UploadFile = File(...),
     contaminant: UploadFile | None = File(None),
-    preset: str = Form("jh4_intron"),
+    preset: str = Form("generic_amplicon"),
     subregion: str = Form(""),
     mode: str = Form("recommended"),
 ):

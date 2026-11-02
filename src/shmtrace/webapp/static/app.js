@@ -31,7 +31,7 @@ async function init() {
   const r = await fetch("/api/options");
   S.options = await r.json();
   $("version").textContent = "v" + S.options.version;
-  fill($("region"), S.options.presets, "jh4_intron");
+  fill($("region"), S.options.presets, "generic_amplicon");
   $("region").onchange = () => $("region-hint").textContent = S.options.preset_help[$("region").value] || "";
   $("region").onchange();
   buildReferencePicker();
@@ -76,9 +76,13 @@ function buildReferencePicker() {
     const r = refs.find(x => x.id === $("ref-pick").value);
     S.reference = r ? { name: r.name, path: r.path } : null;
     $("ref-name").textContent = r ? "Reference: " + r.name : "No reference chosen.";
+    // a contaminant added for the previous built-in reference goes with it; one you chose stays
+    if (S.contaminant && S.contaminant.auto) {
+      S.contaminant = null; $("contam-name").textContent = "";
+    }
     const c = (S.options.contaminants || []).find(x => r && r.id.startsWith(x.for));
     if (c && !S.contaminant) {
-      S.contaminant = { name: c.name, path: c.path };
+      S.contaminant = { name: c.name, path: c.path, auto: true };
       $("contam-name").textContent = "Contaminant: " + c.name + " (added for you)";
     }
   };

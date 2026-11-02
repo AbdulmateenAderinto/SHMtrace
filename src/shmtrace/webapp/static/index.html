@@ -49,7 +49,8 @@
   <div class="wstep card" data-step="1">
     <h3 class="q">Which region did you amplify?</h3>
     <p class="hint">The region sets the analysis window, the reads per sample and how long an
-      alignment must be. Pick <b>Another amplicon</b> if yours is not listed.</p>
+      alignment must be. <b>My own amplicon</b> works for any region; the others are tuned settings
+      for specific assays, worth picking only if one is exactly what you ran.</p>
     <div class="choices" id="region-cards"></div>
     <select id="region" hidden></select>
     <p class="hint" id="region-hint" hidden></p>
@@ -128,12 +129,12 @@
       Only the first record of a FASTA is used.</p>
     <div class="choices two">
       <label class="choice" id="ref-mode-builtin">
-        <input type="radio" name="ref-mode" value="builtin" checked onchange="wizRefMode()">
-        <b>A built-in reference</b><span>Mouse JH4 intron, N114 V region, Sμ and others,
+        <input type="radio" name="ref-mode" value="builtin" onchange="wizRefMode()">
+        <b>A built-in reference</b><span>The sequences for the built-in assays in step 1,
           shipped with SHMtrace.</span>
       </label>
       <label class="choice" id="ref-mode-own">
-        <input type="radio" name="ref-mode" value="own" onchange="wizRefMode()">
+        <input type="radio" name="ref-mode" value="own" checked onchange="wizRefMode()">
         <b>My own FASTA</b><span>Any amplicon. Give the exact sequence you amplified.</span>
       </label>
     </div>
