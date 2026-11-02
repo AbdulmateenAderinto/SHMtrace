@@ -509,6 +509,9 @@ def _call_sample(t: dict) -> dict:
             if a.qname not in analysed:
                 fates.setdefault(a.qname, {"fate": "not sampled"})
         alignment = browse.alignment(res["_aligned"], fates, reference, res["variants"])
+    # the analysed reads alone cost nothing more (they are already aligned) and are
+    # what a person checking a call needs to see, so they are always kept
+    call_reads = alignment or browse.alignment(res["_aligned"], {}, reference, res["variants"])
     if t["saturation_depths"]:
         # the whole depth curve, not just the one analysed point. Opt-in:
         # it re-calls variants at every depth.
@@ -559,7 +562,7 @@ def _call_sample(t: dict) -> dict:
     m["null_from"] = "+".join(peers) if null is not None else "none"
     m["null_matching"] = t.get("null_matching", "pooled") if null is not None else "none"
     return {"metrics": m, "res": res, "clones": cl, "coverage": cov, "single_read": sr,
-            "indel_rows": rows, "alignment": alignment}
+            "indel_rows": rows, "alignment": alignment, "call_reads": call_reads}
 
 
 def _sample_files(path) -> list[str]:
@@ -810,6 +813,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     single_read: dict = {}
     control_background: dict = {}
     alignments: dict = {}
+    call_reads: dict = {}
     coverage: dict = {}
     clone_results: dict = {}
     # project["saturation"]: True for a sensible ladder up to the analysed
@@ -937,6 +941,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             control_background.update(per_pos)
         if out["alignment"] is not None:
             alignments[name] = out["alignment"]
+        if out.get("call_reads") is not None:
+            call_reads[name] = out["call_reads"]
         if out["clones"]:
             clone_results[name] = out["clones"]
         if out["coverage"]:
@@ -1183,6 +1189,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "group_order": list(dict.fromkeys(gmap[s["name"]] for s in samples)),
         "_details": details,
         "_alignments": alignments,
+        # the analysed reads of every sample, for checking calls (webapp /api/call-reads)
+        "_call_reads": call_reads,
     }
 
 

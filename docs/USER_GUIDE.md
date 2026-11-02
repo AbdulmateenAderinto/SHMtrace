@@ -147,6 +147,34 @@ statistics, Every mutation, Mutations per position, and Substitution spectrum.
 The filter box matches text anywhere in a row. Clicking a column heading sorts
 by it, and clicking again reverses. **Download CSV** saves the table you are
 looking at. The table shows at most 3,000 rows; the CSV has all of them.
+Headings are in words; hovering over one says what the column means and gives
+the column's name in the CSV. The Samples, Groups and Group tests tables open on
+their main columns; tick **Show all columns** for the rest.
+
+### Check calls
+
+Every called mutation, one at a time, with the reads behind it. Pick a sample
+(or every sample) on the left and click a call, or move with the arrow keys or
+J and K. The right side shows:
+
+- the supporting reads, depth, frequency, strand split and P;
+- the sequence context, and whether the call sits in a homopolymer or a WRC/GYW
+  hotspot;
+- the error rate the controls showed at that position, as reads expected at this
+  depth;
+- the same change in any other sample, controls included;
+- plain-language warnings, for example a call in a control, supporting bases of
+  quality below 20, or reads that end within 10 bp of the call;
+- the reads themselves, as text: the reads carrying the change first, then a
+  spread of the reads covering the position without it. A dot is a match, a
+  letter a mismatch (fainter for a lower base quality), a dash a deletion.
+
+Mark each call with **A** (accepted), **R** (rejected) or **U** (unsure); marking
+moves on to the next call. **0** clears a mark. A note can be saved with each
+mark. The marks are kept with the run and added to `variants.csv` (columns
+`review` and `review_note`) and to the Geneious-style tables. They do not change
+the analysis: densities and P values are those of the calls as made. The marks
+are lost if the app is closed before they are exported.
 
 ### Export
 
@@ -154,6 +182,14 @@ looking at. The table shows at most 3,000 rows; the CSV has all of them.
 seven figures as PNG, a standalone `report.html`, `project.json` with every
 number and the settings that produced them, and `tables.xlsx` if the Excel
 writer is installed.
+
+The zip also holds a `geneious/` folder: one `<sample> SHMtrace Annotations.csv`
+per sample, laid out like a Geneious *Find Variations/SNPs* annotation export
+(Name, Minimum, Maximum, Change, Polymorphism Type, Coverage, Variant Frequency,
+Variant Raw Frequency, Variant P-Value (approximate)), followed by SHMtrace's
+own evidence and the review mark. Positions are 1-based on the reference you
+analysed against; only substitutions are listed. **Geneious-style calls (.zip)**
+gives these files on their own, and Check calls can leave out the rejected calls.
 
 Single buttons give each table on its own, and each figure as PNG, SVG or PDF.
 In the built app only, a **Save to a folder on this computer** box appears at

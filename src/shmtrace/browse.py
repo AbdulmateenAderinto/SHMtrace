@@ -108,3 +108,32 @@ def window(data: dict, start: int = 1, end: int | None = None,
         "counts": data["counts"], "truncated": data["truncated"],
         "called": [c for c in data["called"] if start <= c["pos"] <= end],
     }
+
+
+def call_reads(data: dict, pos: int, alt: str, flank: int = 20, others: int = 40) -> dict:
+    """The reads behind one call: every analysed read carrying `alt` at `pos`, then a
+    sample of the reads that cover `pos` without it, for a person to judge the call by.
+
+    The reads without the change are spread over the pileup (every k-th), not the first
+    few, so they show the coverage's own error pattern rather than one corner of it.
+    """
+    lo, hi = max(1, pos - flank), min(len(data["reference"]), pos + flank)
+    covering = [r for r in data["reads"] if r["fate"] == "kept" and r["start"] <= pos <= r["end"]]
+    carrying, rest = [], []
+    for r in covering:
+        hit = next((d for d in r["diffs"] if d[0] == pos), None)
+        (carrying if hit and hit[1] == alt else rest).append(r)
+    step = max(1, len(rest) // max(1, others))
+    shown = rest[::step][:others]
+
+    def trim(r):
+        return {"name": r["name"], "start": r["start"], "end": r["end"], "strand": r["strand"],
+                "diffs": [d for d in r["diffs"] if lo <= d[0] <= hi],
+                "indels": [d for d in r.get("indels", []) if lo <= d[0] <= hi]}
+    other_alt = sum(1 for r in rest if any(d[0] == pos for d in r["diffs"]))
+    return {"start": lo, "end": hi, "pos": pos, "alt": alt,
+            "sequence": data["reference"][lo - 1:hi],
+            "covering": len(covering), "carrying": [trim(r) for r in carrying],
+            "others": [trim(r) for r in shown], "others_total": len(rest),
+            "other_alt_reads": other_alt,
+            "called": [c for c in data["called"] if lo <= c["pos"] <= hi]}

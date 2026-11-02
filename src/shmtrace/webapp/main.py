@@ -559,7 +559,7 @@ def result(job_id: str):
 
 
 @app.get("/api/export/{job_id}/{what}")
-def export(job_id: str, what: str):
+def export(job_id: str, what: str, drop_rejected: bool = False):
     res = _result(job_id)
     if what == "report.html":
         return HTMLResponse(report.html_report(res),
@@ -567,6 +567,12 @@ def export(job_id: str, what: str):
     if what == "bundle.zip":
         return Response(report.zip_bytes(res), media_type="application/zip",
                         headers={"Content-Disposition": "attachment; filename=shmtrace_results.zip"})
+    if what == "geneious.zip":
+        from .. import geneious
+        # one Geneious-style annotation table per sample; drop_rejected leaves out
+        # the calls a review rejected
+        return Response(geneious.zip_bytes(res, drop_rejected=drop_rejected), media_type="application/zip",
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_geneious_annotations.zip"})
     if what == "tables.xlsx":
         try:
             blob = report.workbook(res)
@@ -614,6 +620,50 @@ def alignment(job_id: str, sample: str, start: int = 1, end: int | None = None,
     want = {f for f in fates.split(",") if f} if fates else None
     return browse.window(data, start=max(1, start), end=end, fates=want,
                          offset=max(0, offset), limit=min(2000, max(1, limit)))
+
+
+@app.get("/api/call-reads/{job_id}/{sample}")
+def call_reads(job_id: str, sample: str, pos: int, alt: str, flank: int = 20, others: int = 40):
+    """The reads behind one call, for the call review: those carrying it, then a sample of the rest."""
+    res = _result(job_id)
+    data = (res.get("_alignments") or {}).get(sample) or (res.get("_call_reads") or {}).get(sample)
+    if data is None:
+        raise HTTPException(404, f"no reads recorded for {sample}")
+    return browse.call_reads(data, pos=pos, alt=alt.upper(), flank=max(3, min(60, flank)),
+                             others=max(0, min(200, others)))
+
+
+REVIEW_MARKS = ("accepted", "rejected", "unsure", "")
+
+
+@app.get("/api/review/{job_id}")
+def review_get(job_id: str):
+    return _result(job_id).get("review") or {}
+
+
+@app.post("/api/review/{job_id}")
+def review_set(job_id: str, payload: dict):
+    """Record marks on calls: {"marks": {"<sample>|<pos>|<ref>><alt>": {"mark": ..., "note": ...}}}.
+
+    A blank mark with no note removes the entry. The marks go into variants.csv and the
+    Geneious tables, and the counts come back so the page can show progress.
+    """
+    res = _result(job_id)
+    review = res.setdefault("review", {})
+    from .. import geneious
+    known = {geneious.review_key(v) for v in res.get("variants") or []}
+    for key, val in (payload.get("marks") or {}).items():
+        if key not in known:
+            raise HTTPException(400, f"no call {key}")
+        mark, note = (val or {}).get("mark", ""), str((val or {}).get("note", ""))[:500]
+        if mark not in REVIEW_MARKS:
+            raise HTTPException(400, f"mark must be one of {', '.join(m for m in REVIEW_MARKS if m)}")
+        if not mark and not note:
+            review.pop(key, None)
+        else:
+            review[key] = {"mark": mark, "note": note}
+    counts = {m: sum(1 for v in review.values() if v["mark"] == m) for m in REVIEW_MARKS if m}
+    return {"reviewed": sum(counts.values()), "calls": len(known), **counts}
 
 
 @app.get("/api/alignment/{job_id}")

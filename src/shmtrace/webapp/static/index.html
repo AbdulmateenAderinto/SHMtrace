@@ -15,6 +15,7 @@
     <button role="tab" id="tab-setup" aria-selected="true" onclick="showTab('setup')">Set up</button>
     <button role="tab" id="tab-results" aria-selected="false" onclick="showTab('results')" disabled>Results</button>
     <button role="tab" id="tab-tables" aria-selected="false" onclick="showTab('tables')" disabled>Tables</button>
+    <button role="tab" id="tab-calls" aria-selected="false" onclick="showTab('calls')" disabled title="Click through the called mutations and mark each one">Check calls</button>
     <button role="tab" id="tab-reads" aria-selected="false" onclick="showTab('reads')" disabled>Reads</button>
     <button role="tab" id="tab-export" aria-selected="false" onclick="showTab('export')" disabled>Export</button>
     <button role="tab" id="tab-switch" aria-selected="false" onclick="showTab('switch')" title="Class-switch junctions">Switching</button>
@@ -85,7 +86,8 @@
       <p class="hint">Re-calls variants at a ladder of depths, so you can see whether the
         analysed depth is on the plateau. Adds a few minutes.</p>
       <label class="check"><input type="checkbox" id="keep-alignment"> Keep the read alignment</label>
-      <p class="hint">Lets the Reads tab show the pile-up before and after processing.</p>
+      <p class="hint">Lets the Reads tab show the reads that were dropped as well as those analysed.
+        The analysed reads are always kept, for Check calls.</p>
       <label for="umi" style="margin-top:12px">UMI consensus</label>
       <select id="umi" onchange="$('umi-opts').hidden = this.value === 'off'">
         <option value="off">Off: every read is analysed</option>
@@ -240,6 +242,40 @@
 </section>
 
 <!-- ───────────────────────── reads ───────────────────────── -->
+<!-- ───────────────────────── check calls ───────────────────────── -->
+<section class="page" id="page-calls">
+  <div class="card">
+    <div class="row" style="align-items:flex-end">
+      <div><label for="rv-sample">Sample</label>
+        <select id="rv-sample" onchange="rvList()" style="max-width:220px"></select></div>
+      <div><label for="rv-show">Show</label>
+        <select id="rv-show" onchange="rvList()" style="max-width:200px">
+          <option value="">Every call</option><option value="todo">Not yet reviewed</option>
+          <option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+          <option value="unsure">Unsure</option>
+        </select></div>
+      <div><label for="rv-sort">Order</label>
+        <select id="rv-sort" onchange="rvList()" style="max-width:200px">
+          <option value="pos">By position</option><option value="reads">Fewest reads first</option>
+          <option value="p">Weakest P first</option>
+        </select></div>
+      <span class="spacer"></span>
+      <span class="hint" id="rv-progress"></span>
+      <button class="btn small ghost" style="flex:0 0 auto" onclick="rvDownload(false)"
+              title="One Geneious-style annotation table per sample, with each call's review mark">Geneious CSVs</button>
+      <button class="btn small ghost" style="flex:0 0 auto" onclick="rvDownload(true)"
+              title="As Geneious CSVs, without the calls you rejected">… without rejected</button>
+    </div>
+    <p class="hint" style="margin-top:8px">Keys: <b>↑ ↓</b> or <b>J K</b> move, <b>A</b> accept, <b>R</b> reject,
+      <b>U</b> unsure, <b>0</b> clear. Marks go into variants.csv and the Geneious tables; the analysis
+      itself is not re-run.</p>
+  </div>
+  <div class="rv">
+    <div class="rv-list card" id="rv-list" tabindex="0"></div>
+    <div class="rv-detail card" id="rv-detail"><p class="hint">Choose a call.</p></div>
+  </div>
+</section>
+
 <section class="page" id="page-reads">
   <div class="card">
     <div class="row" style="align-items:flex-end">
@@ -313,6 +349,8 @@
       <button class="btn" onclick="dl('tables.xlsx')">Tables (.xlsx)</button>
       <button class="btn" onclick="dl('airr_rearrangements.tsv')"
               title="Every analysed read in the AIRR Community format, for Immcantation and other AIRR tools">AIRR table (.tsv)</button>
+      <button class="btn" onclick="dl('geneious.zip')"
+              title="One table per sample in the shape of a Geneious Find Variations/SNPs export, with any review marks">Geneious-style calls (.zip)</button>
     </div>
     <h3>Tables</h3>
     <div class="row" id="export-tables"></div>
@@ -500,5 +538,6 @@
 
 <script src="/static/app.js"></script>
 <script src="/static/wizard.js"></script>
+<script src="/static/review.js"></script>
 </body>
 </html>

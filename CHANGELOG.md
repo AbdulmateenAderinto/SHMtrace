@@ -6,6 +6,16 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Check calls tab: click through every called mutation with its reads, the
+  controls' error rate at that position, the same change in other samples and
+  plain-language warnings, and mark it accepted, rejected or unsure. The marks go
+  into `variants.csv` and the Geneious-style tables; the analysis is not re-run.
+  The analysed reads of every sample are now always kept for this.
+- Geneious-style annotation tables, one `<sample> SHMtrace Annotations.csv` per
+  sample, in the results zip, the folder export and on their own
+  (`/api/export/<job>/geneious.zip`, optionally without rejected calls).
+
 ### Fixed
 - Use the same substitution-candidate eligibility rules for samples and held-out
   controls, including the optional singleton quality floor and ancestral-reference

@@ -14,17 +14,18 @@ const plural = (n, word) => `${fmtInt(n)} ${word}${n === 1 ? "" : "s"}`;
 
 /* ── tabs ─────────────────────────────────────────────────── */
 function showTab(name) {
-  for (const t of ["setup", "results", "reads", "tables", "export", "switch", "repair", "power", "screen"]) {
+  for (const t of ["setup", "results", "reads", "tables", "calls", "export", "switch", "repair", "power", "screen"]) {
     $("page-" + t).classList.toggle("active", t === name);
     $("tab-" + t).setAttribute("aria-selected", String(t === name));
   }
   if (name === "results") drawFigures();
   if (name === "reads") rdInit();
+  if (name === "calls") rvInit();
   if (name === "repair") rpInit();
   if (name === "power") pwInit();
 }
 function enableResultTabs(on) {
-  for (const t of ["results", "tables", "export", "repair", "screen"]) $("tab-" + t).disabled = !on;
+  for (const t of ["results", "tables", "calls", "export", "repair", "screen"]) $("tab-" + t).disabled = !on;
   $("tab-reads").disabled = !(on && S.result && S.result.has_alignments);
 }
 
@@ -881,7 +882,7 @@ const COLS = {
   combined_density_ci_scope: ["CI covers"], null_from: ["Background from"], null_matching: ["Controls matched by"],
   pos: ["Position"], ref: ["Ref"], alt: ["Alt"], depth: ["Depth"], frequency: ["Frequency", "share of reads carrying it"],
   p_value: ["P"], plus_reads: ["Forward reads"], minus_reads: ["Reverse reads"], context: ["Context"],
-  homopolymer: ["In a homopolymer"], WRC_GYW: ["At WRC/GYW"],
+  homopolymer: ["Homopolymer run (bp)", "longest run of one base touching the position"], WRC_GYW: ["At WRC/GYW"],
   mutated_reads: ["Mutated reads"], frequency_pct: ["Reads mutated (%)"],
   mutations_per_read: ["Mutations per read"], substitution: ["Substitution"], count: ["Count"],
   metric: ["Measure"], animals_case: ["Animals"], animals_control: ["Control animals"],

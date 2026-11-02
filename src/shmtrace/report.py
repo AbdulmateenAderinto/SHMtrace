@@ -48,6 +48,17 @@ def _rows_csv(rows: list[dict], columns: list[str] | None = None) -> str:
     return buf.getvalue()
 
 
+def _variants_csv(res: dict) -> str:
+    """variants.csv, with the review mark of each call once anything has been reviewed."""
+    review = res.get("review") or {}
+    if not review:
+        return _rows_csv(res["variants"], VARIANT_COLUMNS)
+    from .geneious import review_key
+    rows = [{**v, "review": (review.get(review_key(v)) or {}).get("mark", ""),
+             "review_note": (review.get(review_key(v)) or {}).get("note", "")} for v in res["variants"]]
+    return _rows_csv(rows, VARIANT_COLUMNS + ["review", "review_note"])
+
+
 def tables(res: dict) -> dict[str, str]:
     """Every table as CSV text, keyed by file name."""
     spec_rows = []
@@ -68,7 +79,7 @@ def tables(res: dict) -> dict[str, str]:
     return {
         "samples.csv": _rows_csv(res["samples"], SAMPLE_COLUMNS),
         "groups.csv": _rows_csv(res["groups"]),
-        "variants.csv": _rows_csv(res["variants"], VARIANT_COLUMNS),
+        "variants.csv": _variants_csv(res),
         **({"indels.csv": _rows_csv(res["indels"])} if res.get("indels") else {}),
         "spectrum.csv": _rows_csv(spec_rows),
         "positional_frequency.csv": _rows_csv(res["positional"]),
@@ -232,6 +243,13 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
     with open(path, "w") as fh:
         fh.write(html_report(res, fmt="png"))
     written.append(path)
+    from . import geneious
+    os.makedirs(os.path.join(out_dir, "geneious"), exist_ok=True)
+    for name, text in geneious.files(res).items():
+        path = os.path.join(out_dir, "geneious", name)
+        with open(path, "w", newline="") as fh:
+            fh.write(text)
+        written.append(path)
     from . import airr
     rows = airr.project_rows(res)
     if rows:
@@ -242,7 +260,7 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
         written.append(path)
     path = os.path.join(out_dir, "project.json")
     with open(path, "w") as fh:
-        json.dump({k: v for k, v in res.items() if k not in ("reference", "_details")},
+        json.dump({k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads")},
                   fh, indent=2, default=str)
     written.append(path)
     if excel:
@@ -265,8 +283,11 @@ def zip_bytes(res: dict, fmt: str = "png") -> bytes:
         for name, blob in figures(res, fmt=fmt).items():
             z.writestr(name, blob)
         z.writestr("report.html", html_report(res, fmt="png"))
+        from . import geneious
+        for name, text in geneious.files(res).items():
+            z.writestr("geneious/" + name, text)
         z.writestr("project.json", json.dumps(
-            {k: v for k, v in res.items() if k not in ("reference", "_details")},
+            {k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads")},
             indent=2, default=str))
         try:
             z.writestr("tables.xlsx", workbook(res))
