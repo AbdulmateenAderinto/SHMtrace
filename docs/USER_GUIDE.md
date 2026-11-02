@@ -217,8 +217,9 @@ as Geneious does: ▶ (blue) for a read sequenced along the reference, ◀ (red)
 one sequenced against it and reverse-complemented to align; the bar itself takes
 the same colour and its leading end points the way the read was sequenced.
 Reads that reach SHMtrace already turned to the reference (Geneious exports the
-reads it has assembled that way, as in the nanopore sample data) all show ▶; the
-run notes say so when every read of a library runs one way.
+reads it has assembled that way) all show ▶; the run notes say so when every read
+of a library runs one way. Give SHMtrace the reads as sequenced, as the nanopore
+sample data are.
 Clicking a read highlights it and shows its name, orientation, aligned span, the
 called mutations it carries (each opens its call), the mismatches that were not
 called, and its indels. **Copy name** copies the read's name; **Extract read**
@@ -538,6 +539,14 @@ works out which from what you drop in.
 Set the platform to `sanger` and the region to `sanger_clones` (or your usual
 region preset). Leaving the mode on `recommended` is correct: with the Sanger
 platform, `recommended` means the Sanger caller.
+
+**Try it with nanopore sample data** on the Set up tab loads six J<sub>H</sub>4
+nanopore libraries (three wild-type, three *Aicda*<sup>−/−</sup> mice) as they came
+off the sequencer: about 5,000 reads each, unfiltered and in both orientations,
+with the bundled reference and contaminant set. The Reads tab then shows what
+SHMtrace set aside and why: reads too short or noisy, paralogue and off-target
+reads, and the usable reads downsampling did not draw. `examples_nanopore/README.txt`
+gives the numbers to expect.
 
 **Try it with Sanger sample data**, next to *Try it with nanopore sample data* on the Set up tab, loads
 290 J<sub>H</sub>4 clones from 12 mice (wild type, *Maea*<sup>fl/fl</sup>

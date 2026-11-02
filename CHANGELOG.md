@@ -28,6 +28,14 @@ this project uses [semantic versioning](https://semver.org/).
   `contaminant_germline_frac` is now 0.5, the caller's own germline cut. The bundled
   nanopore and Sanger sample data give the same results as before.
 
+### Changed
+- The nanopore sample data (**Try it with nanopore sample data**, `examples_nanopore/`)
+  are now the six J꜀4 libraries as sequenced, about 5,000 raw reads each, with the
+  bundled reference and contaminant set, in place of the 500-read Geneious exports;
+  SHMtrace does the filtering, competitive alignment and downsampling itself. Wild type
+  221 / 344 / 73 unique mutations, *Aicda*−/− 0 / 2 / 0. The exports stay in
+  `examples_compare/` for the tests and the Geneious benchmark.
+
 ### Added
 - Phasing reads the V(D)J junction where the amplicon has one (J꜀4): a block carried by
   reads of many unrelated junctions cannot be hypermutation and is dropped even when no
@@ -39,8 +47,8 @@ this project uses [semantic versioning](https://semver.org/).
   `depth_all_usable`), and the read strip can show those reads, faded, after the
   analysed ones (**Reads left out by downsampling**).
 - A run note when every read of a library runs the same way along the reference: the
-  reads were oriented before SHMtrace saw them (the nanopore sample data are Geneious
-  exports of assembled reads), so the orientation shown is not the sequenced one.
+  reads were oriented before SHMtrace saw them (Geneious exports the reads it has
+  assembled that way), so the orientation shown is not the sequenced one.
 - Hand edits to Sanger base calls (`edits.py`, `/api/edits/<job>`): click a base
   in a trace, correct it with a note, and run again; the edited clones are read
   from corrected copies of their base calls, and the new run lists the edits.

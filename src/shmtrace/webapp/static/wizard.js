@@ -174,10 +174,22 @@ function wizIssues(step) {
       warn.push("No group is made only of controls, so the groups table will have no p-values.");
     }
     const need = requiredLength();
-    const short = S.samples.filter(s => W.checks[s.path]?.ok && need && W.checks[s.path].median_length < need);
-    if (short.length) warn.push(`Most reads in ${short.map(s => s.name).join(", ")} are shorter than the ${fmt(need)} bp `
-      + "this region needs. Check the region and the platform in step 1.");
     const depth = +$("depth").value || d.depth;
+    // reads long enough for the region, estimated from the checked lengths
+    const longEnough = (c) => {
+      const pc = c.length_percentiles || [];
+      return pc.length ? Math.round(c.reads * pc.filter(x => x >= need).length / pc.length) : 0;
+    };
+    const short = S.samples.filter(s => W.checks[s.path]?.ok && need && W.checks[s.path].median_length < need);
+    // a raw library holds short off-target reads that will be set aside; that is only a problem
+    // when too few long reads are left
+    const tooShort = short.filter(s => !depth || longEnough(W.checks[s.path]) < depth);
+    const shortOk = short.filter(s => !tooShort.includes(s));
+    if (tooShort.length) warn.push(`Most reads in ${tooShort.map(s => s.name).join(", ")} are shorter than the ${fmt(need)} bp `
+      + "this region needs. Check the region and the platform in step 1.");
+    if (shortOk.length) warn.push(`Most reads in ${shortOk.map(s => `${s.name} (about ${fmt(longEnough(W.checks[s.path]))} long enough)`).join(", ")} `
+      + `are shorter than the ${fmt(need)} bp this region needs. They will be set aside; the long reads left, `
+      + `before the quality and contaminant filters, should be enough for the ${fmt(depth)} analysed per sample.`);
     const few = S.samples.filter(s => W.checks[s.path]?.ok && !W.checks[s.path].more && depth && W.checks[s.path].reads < depth);
     if (few.length && !sanger) warn.push(`${few.map(s => `${s.name} (${fmt(W.checks[s.path].reads)})`).join(", ")} `
       + `${few.length === 1 ? "has" : "have"} fewer than ${fmt(depth)} reads in the file. Every sample is analysed at the same depth, `

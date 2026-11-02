@@ -19,14 +19,16 @@ def test_options_describe_every_preset_and_platform():
     assert set(o["platform_help"]) == set(o["platforms"])
 
 
-@pytest.mark.skipif(not (ROOT / "examples_compare" / "samples.csv").is_file(), reason="no example data")
+@pytest.mark.skipif(not (ROOT / "examples_nanopore" / "samples.csv").is_file(), reason="no example data")
 def test_example_project_is_three_against_three_with_readable_files():
     ex = client.get("/api/example").json()
     assert ex["region"] == "jh4_intron"
     assert sum(s["control"] for s in ex["samples"]) == 3
     assert all(Path(s["path"]).is_file() for s in ex["samples"])
+    assert Path(ex["reference"]["path"]).is_file() and Path(ex["contaminant"]["path"]).is_file()
+    # the reads as sequenced: the whole library, not a pre-sorted subset
     check = client.post("/api/check-reads", json={"path": ex["samples"][0]["path"]}).json()
-    assert check["ok"] and check["reads"] == 500 and check["median_length"] > 1000
+    assert check["ok"] and check["reads"] >= 1000
 
 
 def test_read_check_reports_a_missing_file_instead_of_failing(tmp_path):

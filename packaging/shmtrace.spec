@@ -9,8 +9,8 @@ datas = [
     ("../src/shmtrace/webapp/static", "shmtrace/webapp/static"),
     ("../src/shmtrace/presets", "shmtrace/presets"),
     ("../src/shmtrace/references", "shmtrace/references"),
-    # the six-library JH4 example behind the set-up guide's "Try it with example data"
-    ("../examples_compare", "examples_compare"),
+    # the six JH4 nanopore libraries, as sequenced, behind "Try it with nanopore sample data"
+    ("../examples_nanopore", "examples_nanopore"),
     ("../examples_sanger", "examples_sanger"),
 ]
 datas += collect_data_files("mappy", include_py_files=False)

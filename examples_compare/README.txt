@@ -14,8 +14,10 @@ calling threshold, which is why they are marked control=yes in sheet.csv.
   Preset:      jh4_intron
 
 The reads are a Geneious export of reads assembled to J꜀4, so Geneious has
-already turned every read to the reference: they all show as forward in Check
-calls, and the run notes say so. Raw reads come in both orientations.
+already filtered them and turned every read to the reference: they all show as
+forward, and the run notes say so. They are kept for the tests and the benchmark
+against Geneious. The app's nanopore sample data is the same six libraries as
+sequenced, in examples_nanopore/.
 
 Two sheets, for two different tools:
 

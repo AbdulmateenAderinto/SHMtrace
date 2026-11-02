@@ -76,12 +76,12 @@ def _finite(x):
 # ---- pages ------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return (STATIC / "index.html").read_text()
+    return HTMLResponse((STATIC / "index.html").read_text(), headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/classic", response_class=HTMLResponse)
 def classic():
-    return (STATIC / "classic.html").read_text()
+    return HTMLResponse((STATIC / "classic.html").read_text(), headers={"Cache-Control": "no-cache"})
 
 
 def _contaminant_references() -> list[dict]:
@@ -120,11 +120,12 @@ def _preset_details() -> dict:
 
 
 def _example_dir() -> Path | None:
-    """The six-library JH4 example: the repository's, or the copy inside the built app."""
+    """The six-library JH4 nanopore reads, as sequenced: the repository's, or the copy inside the
+    built app. (examples_compare/ holds the 500-read Geneious exports the tests and benchmark use.)"""
     import sys
-    roots = [APP_DIR.parents[2] / "examples_compare"]
+    roots = [APP_DIR.parents[2] / "examples_nanopore"]
     if getattr(sys, "_MEIPASS", None):
-        roots.insert(0, Path(sys._MEIPASS) / "examples_compare")
+        roots.insert(0, Path(sys._MEIPASS) / "examples_nanopore")
     return next((r for r in roots if (r / "samples.csv").is_file()), None)
 
 
@@ -159,13 +160,15 @@ def example(set: str = ""):
     if d is None:
         raise HTTPException(404, "the example data is not installed with this copy of SHMtrace")
     rows = list(csv.DictReader(open(d / "samples.csv")))
-    return {"name": "Example: JH4, 3 wild-type vs 3 Aicda-/- mice",
+    refs = APP_DIR.parent / "references"
+    return {"name": "Example: JH4 nanopore reads, 3 wild-type vs 3 Aicda-/- mice",
             "region": "jh4_intron", "platform": "ont",
-            "reference": {"name": "JH4 intron (example)", "path": str(d / "JH4_reference.fasta")},
-            "contaminant": {"name": "JH4 contaminant (example)", "path": str(d / "JH4_contaminant.fasta")},
-            "samples": [{"name": r["sample"], "path": str(d / r["fastq"]),
-                         "group": "Aicda-/-" if r["null"] == "yes" else "Wt",
-                         "control": r["null"] == "yes"} for r in rows]}
+            # the bundled contaminant set: the deposit's contaminant and the J꜀4-like paralogue,
+            # both of which reads as sequenced contain
+            "reference": {"name": "JH4 intron", "path": str(refs / "mouse_jh4_intron.fasta")},
+            "contaminant": {"name": "JH4 contaminant", "path": str(refs / "mouse_jh4_contaminant.fasta")},
+            "samples": [{"name": r["sample"], "path": str(d / r["file"]), "group": r["group"],
+                         "control": r["control"] == "yes"} for r in rows]}
 
 
 @app.post("/api/check-reads")
@@ -191,8 +194,12 @@ def check_reads(payload: dict):
                 break
     except Exception as e:                      # noqa: BLE001 - shown to the user
         return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+    srt = sorted(lengths)
     return {"ok": True, "reads": n, "more": n >= limit,
             "median_length": int(statistics.median(lengths)) if lengths else 0,
+            # the read lengths at every percentile, so the guide can tell a library of short reads
+            # from one whose short off-target reads will simply be set aside
+            "length_percentiles": [srt[min(len(srt) - 1, len(srt) * k // 100)] for k in range(101)] if srt else [],
             "mean_quality": round(statistics.mean(quals), 1) if quals else None}
 
 
@@ -1141,4 +1148,14 @@ def builtin_reference(name: str):
     return FileResponse(path, media_type="text/plain")
 
 
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+class _Revalidated(StaticFiles):
+    """The page's scripts and styles, checked with the server on every load (a cheap 304 when
+    unchanged), so a browser or the app's window never runs a stale copy after an update."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
+app.mount("/static", _Revalidated(directory=STATIC), name="static")
