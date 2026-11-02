@@ -40,7 +40,11 @@
             title="Six JH4 nanopore libraries: three wild-type and three Aicda-/- mice, 500 reads each">Try it with nanopore sample data</button>
     <button class="btn" id="wiz-example-sanger" onclick="wizExample('sanger')"
             title="290 JH4 Sanger clones from 12 mice (wild type, Maea-fl/fl Mb1cre, Aicda-/-), Barbulescu et al., Nat Commun 2024">Try it with Sanger sample data</button>
+    <button class="btn ghost" onclick="$('pj-file').click()"
+            title="Open a .shmtrace file saved from SHMtrace, here or on another computer">Open a project file…</button>
+    <input type="file" id="pj-file" accept=".shmtrace,application/zip" hidden onchange="pjUpload(this)">
   </div>
+  <div class="card pj-recent" id="pj-recent" hidden></div>
   <ol class="stepper" id="stepper">
     <li data-step="1"><b>1</b><span>What you sequenced</span></li>
     <li data-step="2"><b>2</b><span>Reference</span></li>
@@ -569,5 +573,6 @@
 <script src="/static/app.js"></script>
 <script src="/static/wizard.js"></script>
 <script src="/static/review.js"></script>
+<script src="/static/projects.js"></script>
 </body>
 </html>

@@ -7,6 +7,10 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Saved projects (`session.py`): every finished run is kept on this computer
+  with its inputs and the reads Check calls draws, and each review mark is
+  written as it is made. Recent projects on the Set up tab reopens them; Save
+  project file and Open a project file move a run as one `.shmtrace` file.
 - Sanger sample data (`examples_sanger/`, and a **Try it with Sanger sample data** button on the Set up
   tab): 290 J<sub>H</sub>4 clones from 12 mice of Barbulescu et al., Nat Commun
   2024, shared with the authors' agreement, as a sample sheet with order and well

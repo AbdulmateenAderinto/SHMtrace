@@ -209,8 +209,24 @@ Mark each call with **A** (accepted), **R** (rejected) or **U** (unsure); markin
 moves on to the next call. **0** clears a mark. A note can be saved with each
 mark. The marks are kept with the run and added to `variants.csv` (columns
 `review` and `review_note`) and to the Geneious-style tables. They do not change
-the analysis: densities and P values are those of the calls as made. The marks
-are lost if the app is closed before they are exported.
+the analysis: densities and P values are those of the calls as made.
+
+### Saved projects
+
+Every finished run is saved on this computer as a project, and every review mark
+is written to it the moment it is made, so closing the app loses nothing. **Recent
+projects** on the Set up tab lists them, newest first, with how many calls have
+been reviewed; click one to reopen it where you left off. **Save project file** at
+the top of the Results tab saves the run as one `.shmtrace` file, to keep, move to
+another computer or send to a colleague; **Open a project file…** on Set up opens
+one. A reopened project has its results, tables, exports, Check calls and review
+marks. Extracting reads needs the original input files where they were when the
+run was made. The AIRR table and the diagnostic figures that draw individual
+reads need the run's in-memory detail and are not available after reopening.
+
+Projects are kept in `~/Library/Application Support/SHMtrace/projects` on a Mac
+(`%APPDATA%\SHMtrace\projects` on Windows, `~/.shmtrace/projects` elsewhere, or
+`$SHMTRACE_HOME/projects` if that is set), one folder per run.
 
 ### Export
 

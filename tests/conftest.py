@@ -28,3 +28,9 @@ def reference(examples) -> Path:
 @pytest.fixture(scope="session")
 def contaminant(examples) -> Path:
     return examples / "JH4_contaminant.fasta"
+
+
+@pytest.fixture(autouse=True)
+def _saved_projects_in_tmp(tmp_path, monkeypatch):
+    """Runs the web app finishes are saved as projects (session.py); keep them out of the real home."""
+    monkeypatch.setenv("SHMTRACE_HOME", str(tmp_path / "shmtrace_home"))

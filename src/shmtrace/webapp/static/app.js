@@ -373,6 +373,7 @@ async function loadResult() {
   buildTablePicker();
   buildExport();
   showTab("results");
+  if (typeof pjAfterLoad === "function") pjAfterLoad();
 }
 
 /* ── results ──────────────────────────────────────────────── */
@@ -470,7 +471,10 @@ function buildHeadline() {
   const platformName = (typeof PLATFORM_TITLES !== "undefined" && PLATFORM_TITLES[p.platform]) || p.platform;
   const modeHelp = (S.options.mode_help || {})[p.mode] || "";
   $("headline").innerHTML = `
-    <h2>${esc(r.name)}</h2>
+    <div class="pj-head"><h2>${esc(r.name)}</h2>
+      <span class="hint" id="pj-saved"></span>
+      <button class="btn small ghost" onclick="pjSave()"
+              title="The run, its review marks and the reads Check calls draws, as one .shmtrace file">Save project file</button></div>
     ${verdict || '<p class="hint">No control group, so there is nothing to compare against.</p>'}
     <dl class="kv">
       <dt>Region</dt><dd><span title="preset ${esc(p.region)}">${esc(regionName)}</span> · reference ${esc(p.reference_name)} ·

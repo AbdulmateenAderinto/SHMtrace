@@ -333,6 +333,7 @@ def _run_job(job_id: str, proj: dict):
             res["notes"] = proj["_demux_notes"] + res.get("notes", [])
             res["demux"] = proj.get("_demux_stats")
         job["result"] = res
+        _autosave(job_id)
         job["state"] = "done"
         job["progress"] = 1.0
         job["message"] = "finished"
@@ -340,6 +341,77 @@ def _run_job(job_id: str, proj: dict):
         job["state"] = "error"
         job["error"] = f"{type(exc).__name__}: {exc}"
         job["message"] = "failed"
+
+
+def _autosave(job_id: str) -> None:
+    """Keep a finished run as a saved project, so it survives the app closing (session.py)."""
+    from .. import session
+    job = JOBS[job_id]
+    try:
+        folder = job.get("folder") or session.home() / session.folder_name(job["result"].get("name"), job_id)
+        session.write(Path(folder), job["result"], job.get("project") or {})
+        job["folder"] = str(folder)
+    except OSError as exc:                     # a full or read-only disk must not lose the run itself
+        job["result"].setdefault("notes", []).append(f"The project could not be saved on this computer: {exc}")
+
+
+def _open_project(folder: Path) -> str:
+    """A saved project back as a finished job; returns its id."""
+    from .. import session
+    try:
+        res, proj = session.read(folder)
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(400, f"could not open the project: {exc}") from None
+    job_id = uuid.uuid4().hex[:12]
+    with _LOCK:
+        JOBS[job_id] = {"state": "done", "progress": 1.0, "message": "opened", "error": None,
+                        "result": res, "project": proj, "folder": str(folder)}
+    return job_id
+
+
+@app.get("/api/projects")
+def projects_recent():
+    """Saved projects on this computer, newest first."""
+    from .. import session
+    return {"folder": str(session.home()), "projects": session.recent()}
+
+
+@app.post("/api/projects/open")
+def projects_open(payload: dict):
+    """Reopen a saved project by its folder name (from /api/projects)."""
+    from .. import session
+    name = str(payload.get("folder", ""))
+    folder = session.home() / name
+    if not name or "/" in name or "\\" in name or name.startswith(".") or not folder.is_dir():
+        raise HTTPException(404, "no such saved project")
+    return {"job": _open_project(folder)}
+
+
+@app.post("/api/projects/upload")
+async def projects_upload(file: UploadFile = File(...)):
+    """Open a .shmtrace file: it is copied into the saved projects, then opened."""
+    from .. import session
+    blob = await file.read()
+    try:
+        folder = session.unpack(blob, session.home())
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from None
+    return {"job": _open_project(folder)}
+
+
+@app.get("/api/project-file/{job_id}")
+def project_file(job_id: str):
+    """The run as one .shmtrace file, to keep, move to another computer or send."""
+    from .. import session
+    _result(job_id)
+    job = JOBS[job_id]
+    if not job.get("folder"):
+        _autosave(job_id)
+    if not job.get("folder"):
+        raise HTTPException(500, "the project could not be saved")
+    name = re.sub(r"[^A-Za-z0-9._-]+", "_", job["result"].get("name") or "project").strip("_") or "project"
+    return Response(session.pack(Path(job["folder"])), media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="{name}.shmtrace"'})
 
 
 def _demultiplex(job_id: str, proj: dict, pooled: dict) -> None:
@@ -565,7 +637,7 @@ def job_status(job_id: str):
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(404, "no such job")
-    return {k: job[k] for k in ("state", "progress", "message", "error")}
+    return {**{k: job[k] for k in ("state", "progress", "message", "error")}, "saved": bool(job.get("folder"))}
 
 
 def _result(job_id: str) -> dict:
@@ -771,7 +843,15 @@ def review_set(job_id: str, payload: dict):
         else:
             review[key] = {"mark": mark, "note": note}
     counts = {m: sum(1 for v in review.values() if v["mark"] == m) for m in REVIEW_MARKS if m}
-    return {"reviewed": sum(counts.values()), "calls": len(known), **counts}
+    folder = (JOBS.get(job_id) or {}).get("folder")
+    if folder:                                 # every mark is on disk as soon as it is made
+        from .. import session
+        try:
+            session.write_review(Path(folder), res)
+        except OSError:
+            pass
+    return {"reviewed": sum(counts.values()), "calls": len(known), **counts,
+            "saved": bool(folder)}
 
 
 @app.get("/api/alignment/{job_id}")
