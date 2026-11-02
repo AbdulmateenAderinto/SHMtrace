@@ -288,6 +288,13 @@ into a GraphPad Prism column table. `data_dictionary.csv` explains every column.
 Nothing in them is recalculated. The **Data** button under each chart on the
 Results tab saves that chart's table on its own.
 
+**Read alignment (.zip)** gives every sample's analysed reads aligned to the
+reference as SAM, and as a sorted, indexed BAM when pysam is installed, to open in
+IGV, Geneious or samtools. The reads are taken from your input files and aligned
+again with the run's aligner and preset, so they carry their own bases and
+qualities; ends the analysis trimmed before aligning (Sanger's quality trim) are
+soft-clipped instead. It needs the input files where they were.
+
 Single buttons give each table on its own, and each figure as PNG, SVG or PDF.
 In the built app only, a **Save to a folder on this computer** box appears at
 the bottom: type a folder path and everything is written there directly instead

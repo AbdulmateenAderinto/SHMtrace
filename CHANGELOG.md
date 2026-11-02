@@ -7,6 +7,9 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Read alignment export (`samout.py`, `alignment.zip`): every sample's analysed
+  reads as SAM, plus sorted and indexed BAM where pysam is installed, for IGV,
+  Geneious or samtools.
 - Reading frame and named regions for coding amplicons (`coding.py`,
   `/api/annotation/<job>`): codons, amino acids and regions in the read strip,
   replacement / silent / stop for every call, R/S by sample and region

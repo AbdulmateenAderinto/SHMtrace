@@ -663,6 +663,27 @@ def export(job_id: str, what: str, drop_rejected: bool = False):
     if what == "bundle.zip":
         return Response(report.zip_bytes(res), media_type="application/zip",
                         headers={"Content-Disposition": "attachment; filename=shmtrace_results.zip"})
+    if what == "alignment.zip":
+        # the analysed reads of every sample, aligned again from the input files (samout.py)
+        from .. import samout
+        proj = (JOBS.get(job_id) or {}).get("project") or {}
+        reference = proj.get("reference")
+        if not reference or not Path(reference).is_file():
+            raise HTTPException(404, "the run's reference file is no longer where it was")
+        texts = {}
+        for s in proj.get("samples") or []:
+            data = (res.get("_alignments") or {}).get(s["name"]) or (res.get("_call_reads") or {}).get(s["name"])
+            names = {r["name"] for r in (data or {}).get("reads", []) if r.get("fate") == "kept"}
+            if names:
+                try:
+                    texts[s["name"]], _n = samout.sam(reference, s["path"], names,
+                                                      (res.get("params") or {}).get("platform", "ont"), s["name"])
+                except (OSError, ValueError) as exc:
+                    raise HTTPException(404, f"could not read {s['name']}'s input: {exc}") from None
+        if not texts:
+            raise HTTPException(404, "no analysed reads to export")
+        return Response(samout.zip_bytes(texts), media_type="application/zip",
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_alignment.zip"})
     if what == "plot_data.zip":
         from .. import plotdata
         return Response(plotdata.zip_bytes(res), media_type="application/zip",
