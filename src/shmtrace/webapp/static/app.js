@@ -482,9 +482,19 @@ function buildHeadline() {
     ${(r.notes || []).map(n => `<div class="msg${n.startsWith("UMI consensus:") ? "" : " err"}" style="margin-top:10px">${esc(n)}</div>`).join("")}`;
 }
 
+// each chart's numbers as a tidy CSV (plotdata.py), to draw it another way
+const FIG_DATA = {
+  "f-density": "density_by_group.csv", "f-freq": "mutation_frequency_by_group.csv",
+  "f-matrix": "substitution_matrix.csv", "f-spectrum": "spectrum_by_sample.csv",
+  "f-load": "mutations_per_read.csv", "f-map": "positional_by_sample.csv",
+  "f-mutated": "mutated_reads_by_group.csv", "f-hot": "hotspot_targeting.csv",
+};
 function figShell(id, title, note) {
+  const data = FIG_DATA[id];
   return `<div class="fig"><div class="cap"><h4>${esc(title)}</h4>
-      <span class="hint">${esc(note || "")}</span></div>
+      <span class="hint">${esc(note || "")}</span>
+      ${data ? `<button class="btn small ghost fig-data" onclick="dl('plot_data/${data}')"
+        title="The numbers behind this chart, one row per value, to graph however you like (${data})">Data</button>` : ""}</div>
     <div class="plot" id="${id}"></div><p class="hint fig-note" id="${id}-note" hidden></p></div>`;
 }
 // a chart drawn from a handful of mutations shows noise as a pattern: below this many

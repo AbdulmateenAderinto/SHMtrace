@@ -243,13 +243,14 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
     with open(path, "w") as fh:
         fh.write(html_report(res, fmt="png"))
     written.append(path)
-    from . import geneious
-    os.makedirs(os.path.join(out_dir, "geneious"), exist_ok=True)
-    for name, text in geneious.files(res).items():
-        path = os.path.join(out_dir, "geneious", name)
-        with open(path, "w", newline="") as fh:
-            fh.write(text)
-        written.append(path)
+    from . import geneious, plotdata
+    for folder, texts in (("geneious", geneious.files(res)), ("plot_data", plotdata.files(res))):
+        for name, text in texts.items():
+            path = os.path.join(out_dir, folder, name)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", newline="") as fh:
+                fh.write(text)
+            written.append(path)
     from . import airr
     rows = airr.project_rows(res)
     if rows:
@@ -283,9 +284,11 @@ def zip_bytes(res: dict, fmt: str = "png") -> bytes:
         for name, blob in figures(res, fmt=fmt).items():
             z.writestr(name, blob)
         z.writestr("report.html", html_report(res, fmt="png"))
-        from . import geneious
+        from . import geneious, plotdata
         for name, text in geneious.files(res).items():
             z.writestr("geneious/" + name, text)
+        for name, text in plotdata.files(res).items():
+            z.writestr("plot_data/" + name, text)
         z.writestr("project.json", json.dumps(
             {k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads")},
             indent=2, default=str))

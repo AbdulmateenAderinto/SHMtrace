@@ -558,7 +558,7 @@ def result(job_id: str):
     return JSONResponse(_finite(json.loads(json.dumps(project.public(_result(job_id)), default=str))))
 
 
-@app.get("/api/export/{job_id}/{what}")
+@app.get("/api/export/{job_id}/{what:path}")
 def export(job_id: str, what: str, drop_rejected: bool = False):
     res = _result(job_id)
     if what == "report.html":
@@ -567,6 +567,19 @@ def export(job_id: str, what: str, drop_rejected: bool = False):
     if what == "bundle.zip":
         return Response(report.zip_bytes(res), media_type="application/zip",
                         headers={"Content-Disposition": "attachment; filename=shmtrace_results.zip"})
+    if what == "plot_data.zip":
+        from .. import plotdata
+        return Response(plotdata.zip_bytes(res), media_type="application/zip",
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_plot_data.zip"})
+    if what.startswith("plot_data/"):
+        # one figure's numbers, from its Data button
+        from .. import plotdata
+        files = plotdata.files(res)
+        name = what[len("plot_data/"):]
+        if name not in files:
+            raise HTTPException(404, f"no plot data {name}")
+        return Response(files[name], media_type="text/csv",
+                        headers={"Content-Disposition": f"attachment; filename={name.replace('/', '_')}"})
     if what == "geneious.zip":
         from .. import geneious
         # one Geneious-style annotation table per sample; drop_rejected leaves out

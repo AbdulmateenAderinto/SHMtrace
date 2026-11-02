@@ -130,6 +130,7 @@ thead th[title] { text-decoration: underline dotted var(--line); text-underline-
             flex-wrap: wrap; margin-bottom: 4px; }
 .fig .cap h4 { margin: 0; font-size: 15px; font-weight: 600; }
 .fig .fig-note { margin: 4px 0 0; }
+.fig .cap .fig-data { flex: 0 0 auto; padding: 2px 10px; font-size: 12px; margin-left: auto; }
 .msg { padding: 10px 12px; border-radius: 8px; font-size: 14px; }
 .msg.err { background: #9A343914; color: var(--bad); border: 1px solid #9A343933; }
 .msg.ok { background: #2d7a4b14; color: var(--ok); border: 1px solid #2d7a4b33; }

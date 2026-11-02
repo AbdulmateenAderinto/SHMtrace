@@ -12,6 +12,11 @@ this project uses [semantic versioning](https://semver.org/).
   plain-language warnings, and mark it accepted, rejected or unsure. The marks go
   into `variants.csv` and the Geneious-style tables; the analysis is not re-run.
   The analysed reads of every sample are now always kept for this.
+- Plot data: the numbers behind every figure as tidy tables (one row per value,
+  units in the column names), a long per-sample table of every measure, the
+  groups table one statistic per row, Prism-ready one-column-per-group copies and
+  a data dictionary. In the results zip as `plot_data/`, as `plot_data.zip`, and
+  per chart from a Data button on the Results tab.
 - Geneious-style annotation tables, one `<sample> SHMtrace Annotations.csv` per
   sample, in the results zip, the folder export and on their own
   (`/api/export/<job>/geneious.zip`, optionally without rejected calls).

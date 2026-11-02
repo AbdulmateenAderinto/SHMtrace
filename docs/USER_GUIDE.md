@@ -191,6 +191,18 @@ own evidence and the review mark. Positions are 1-based on the reference you
 analysed against; only substitutions are listed. **Geneious-style calls (.zip)**
 gives these files on their own, and Check calls can leave out the rejected calls.
 
+**Plot data (.zip)**, also in the results zip as `plot_data/`, is for drawing your
+own figures. Each figure's numbers are a tidy table named after it, one row per
+value, with the unit in the column name: `density_by_group.csv`,
+`spectrum_by_sample.csv`, `positional_by_sample.csv` and so on.
+`per_sample_long.csv` stacks every per-sample measure (sample, group, control,
+measure, value, unit), so any measure can be plotted against any grouping, and
+`group_statistics_long.csv` has the groups table one statistic per row. The
+`prism/` folder has one file per measure with one column per group, ready to paste
+into a GraphPad Prism column table. `data_dictionary.csv` explains every column.
+Nothing in them is recalculated. The **Data** button under each chart on the
+Results tab saves that chart's table on its own.
+
 Single buttons give each table on its own, and each figure as PNG, SVG or PDF.
 In the built app only, a **Save to a folder on this computer** box appears at
 the bottom: type a folder path and everything is written there directly instead
