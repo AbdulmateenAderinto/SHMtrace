@@ -338,9 +338,17 @@ function alSort() {
     : by === "strand" ? (a, b) => (b.strand || 1) - (a.strand || 1) || a.start - b.start
     : (a, b) => alCarries(b, v) - alCarries(a, v) || calledIn(b) - calledIn(a) || a.start - b.start);
   const n = v ? AL.rows.filter(r => alCarries(r, v)).length : 0;
+  // what to show: a name search and a filter, both narrowing the reads already ordered
+  const q = ($("al-name").value || "").trim().toLowerCase(), f = $("al-filter").value;
+  const hasCall = (r) => r.diffs.some(d => AL.called.get(d[0])?.has(d[1]));
+  const all = AL.rows.length;
+  AL.rows = AL.rows.filter(r => (!q || r.name.toLowerCase().includes(q))
+    && (f === "called" ? hasCall(r) : f === "clean" ? !hasCall(r) : f === "focus" ? alCarries(r, v)
+      : f === "fwd" ? (r.strand || 1) > 0 : f === "rev" ? r.strand < 0 : true));
   const fwd = AL.rows.filter(r => (r.strand || 1) > 0).length;
-  $("al-status").innerHTML = `${fmtInt(AL.rows.length)} analysed reads of ${fmtInt(AL.data.total)}`
-    + (AL.data.total > AL.rows.length ? " (the first 2,000 by position)" : "")
+  $("al-status").innerHTML = (AL.rows.length < all ? `Showing ${fmtInt(AL.rows.length)} of ` : "")
+    + `${fmtInt(all)} analysed reads${AL.data.total > all ? ` of ${fmtInt(AL.data.total)}` : ""}`
+    + (AL.data.total > all ? " (the first 2,000 by position)" : "")
     + ` · <span class="al-key" style="color:${STRAND[1].colour}">▶ ${fmtInt(fwd)} forward</span>`
     + ` · <span class="al-key" style="color:${STRAND[-1].colour}">◀ ${fmtInt(AL.rows.length - fwd)} reverse</span>`
     + (v ? ` · ${fmtInt(n)} carry ${esc(v.ref)}${v.pos}${esc(v.alt)}` : "")
@@ -348,6 +356,13 @@ function alSort() {
     + "click a shaded column in the ruler to open its call.";
   $("al-extract-call").disabled = !n;
   $("al-extract-call").textContent = n ? `Extract the ${fmtInt(n)} read${n === 1 ? "" : "s"} carrying this call` : "Extract the reads carrying this call";
+}
+function alGoTo() {
+  const p = +$("al-goto").value, d = AL.data;
+  if (!d || !p) return;
+  const sc = $("al-scroll"), at = Math.max(d.start, Math.min(d.end, p));
+  sc.scrollLeft = Math.max(0, (at - d.start + 0.5) * AL.cw - (sc.clientWidth - AL.gutter) / 2);
+  AL.mark = at; alDraw();
 }
 function alZoom() {
   const sc = $("al-scroll"), mid = (sc.scrollLeft + (sc.clientWidth - AL.gutter) / 2) / AL.cw;
@@ -392,6 +407,10 @@ function alDraw() {
   }
   if (v && v.pos >= p0 && v.pos <= p1) {
     ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.strokeRect(x(v.pos) + 0.5, 1, cw - 1, H - 2);
+  }
+  if (AL.mark && AL.mark >= p0 && AL.mark <= p1) {        // where Go to went
+    ctx.strokeStyle = muted; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+    ctx.strokeRect(x(AL.mark) + 0.5, 1, cw - 1, H - 2); ctx.setLineDash([]);
   }
   // the reads: each bar in its orientation's colour, its mismatches on top
   ctx.save(); ctx.beginPath(); ctx.rect(G, head - 2, W - G, H); ctx.clip();

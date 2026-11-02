@@ -295,8 +295,23 @@
         <option value="4">Far</option><option value="7">Medium</option>
         <option value="11" selected>Bases</option><option value="15">Close</option></select></label>
       <label class="hint"><input type="checkbox" id="al-noise" checked onchange="alDraw()"> Uncalled mismatches</label>
+    </div>
+    <div class="row al-find" style="align-items:center;margin-top:8px">
+      <label class="hint">Go to <input type="number" id="al-goto" min="1" placeholder="position" style="width:100px"
+        onkeydown="if (event.key === 'Enter') alGoTo()"></label>
+      <label class="hint">Find read <input type="search" id="al-name" placeholder="name contains…" style="width:200px"
+        oninput="alSort(); alSize(); alDraw()"></label>
+      <label class="hint">Show <select id="al-filter" onchange="alSort(); alSize(); alDraw()" style="max-width:240px">
+        <option value="">Every analysed read</option>
+        <option value="called">Reads with a called mutation</option>
+        <option value="clean">Reads with no called mutation</option>
+        <option value="focus">Reads carrying the selected call</option>
+        <option value="fwd">Forward reads only</option><option value="rev">Reverse reads only</option></select></label>
+      <span class="spacer"></span>
       <button class="btn small ghost" id="al-extract-call" onclick="alExtractCall()" disabled
               title="The reads carrying the selected call, as they are in the input file (.fastq)">Extract the reads carrying this call</button>
+      <button class="btn small ghost" onclick="alExtract(AL.rows.map(r => r.name))"
+              title="Every read the strip is showing, after the search and filter (.fastq)">Extract the reads shown</button>
     </div>
     <div class="al-scroll" id="al-scroll"><div id="al-inner"><canvas id="al-canvas"></canvas></div></div>
     <p class="hint" id="al-status"></p>

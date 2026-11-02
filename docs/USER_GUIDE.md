@@ -178,6 +178,12 @@ outlined. Clicking a shaded column in the ruler opens that call. The reads can b
 ordered with the selected call's reads first, the most mutated first, by start, or
 forward reads then reverse.
 
+Under the strip's controls, **Go to** scrolls to a position (Enter) and marks
+it; **Find read** narrows the strip to reads whose name contains the text; and
+**Show** keeps only the reads with a called mutation, those without one, those
+carrying the selected call, or one orientation. **Extract the reads shown**
+saves whatever the strip is showing after those choices.
+
 Two graphs sit under the reference, as in Geneious: **coverage**, the analysed
 reads covering each position, and **identity**, the share of them that read the
 reference base there (green at 99% or more, amber from 90%, red below). A column
