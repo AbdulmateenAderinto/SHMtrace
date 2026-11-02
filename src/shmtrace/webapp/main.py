@@ -138,7 +138,7 @@ def _sanger_example() -> Path | None:
 
 @app.get("/api/example")
 def example(set: str = ""):
-    """A ready-made project for the "try it with example data" buttons.
+    """A ready-made project for the "Try it with nanopore / Sanger sample data" buttons.
 
     set="sanger": the JH4 Sanger clones of Barbulescu et al. (2024), as a sample sheet.
     """

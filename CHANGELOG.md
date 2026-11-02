@@ -7,7 +7,7 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Sanger example (`examples_sanger/`, and a **Sanger example** button on the Set up
+- Sanger sample data (`examples_sanger/`, and a **Try it with Sanger sample data** button on the Set up
   tab): 290 J<sub>H</sub>4 clones from 12 mice of Barbulescu et al., Nat Commun
   2024, shared with the authors' agreement, as a sample sheet with order and well
   for each clone. It reproduces the curated analysis (wild type 4.66-fold above

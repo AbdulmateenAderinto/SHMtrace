@@ -13,7 +13,7 @@ J<sub>H</sub>4 mutation analysis of
 | *Maea*<sup>fl/fl</sup> *Mb1*<sup>cre</sup> (`Maea_KO`) | 2k1–2k4 | 58, 30, 50, 42 |
 | *Aicda*<sup>−/−</sup> (`Aicda_KO`, the controls) | 2a1–2a4 | 4, 2, 9, 4 |
 
-Shared with the authors' agreement. In the app, **Sanger example** on the Set up tab
+Shared with the authors' agreement. In the app, **Try it with Sanger sample data** on the Set up tab
 loads it; from Python:
 
 ```python

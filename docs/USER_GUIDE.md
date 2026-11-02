@@ -450,7 +450,7 @@ Set the platform to `sanger` and the region to `sanger_clones` (or your usual
 region preset). Leaving the mode on `recommended` is correct: with the Sanger
 platform, `recommended` means the Sanger caller.
 
-**Sanger example**, next to *Try it with example data* on the Set up tab, loads
+**Try it with Sanger sample data**, next to *Try it with nanopore sample data* on the Set up tab, loads
 290 J<sub>H</sub>4 clones from 12 mice (wild type, *Maea*<sup>fl/fl</sup>
 *Mb1*<sup>cre</sup> and *Aicda*<sup>−/−</sup>) from Barbulescu et al., *Nature
 Communications* 2024, as a sample sheet with each clone's order and well. It
