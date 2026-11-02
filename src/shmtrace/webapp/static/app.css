@@ -278,3 +278,10 @@ label.check input { width: auto; }
 .rv-suggest .rv-w { flex: 0 0 2.4em; font-weight: 700; }
 .rv-suggest li.pos .rv-w { color: var(--ok); } .rv-suggest li.neg .rv-w { color: var(--bad); }
 .rv-suggest li.neu .rv-w { color: var(--muted); }
+.al-read { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.al-read .hint { margin: 0; }
+.al-read-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 8px; }
+.al-read-head .btn { flex: 0 0 auto; }
+.al-name { font-size: 12px; padding: 2px 6px; border-radius: 4px; background: var(--accent-soft); user-select: all;
+           word-break: break-all; }
+.al-key { font-weight: 600; }

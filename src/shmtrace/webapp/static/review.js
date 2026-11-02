@@ -213,13 +213,17 @@ async function rvApplySuggestions() {
 }
 
 /* ── the alignment strip: every analysed read of a sample, base by base, scrolling sideways ── */
-const AL = { sample: null, data: null, rows: [], cw: 11, rh: 12, head: 40, called: new Map(), focus: null };
+const AL = { sample: null, data: null, rows: [], cw: 11, rh: 13, head: 40, gutter: 232,
+             called: new Map(), focus: null, picked: null };
 const BASE_COLOUR = { A: "#1b9e3e", C: "#1f6fb4", G: "#d68a00", T: "#c0392b" };
+// a read's orientation against the reference, as Geneious colours it: forward and reverse
+const STRAND = { 1: { arrow: "▶", word: "forward", colour: "#4a90d9" }, [-1]: { arrow: "◀", word: "reverse", colour: "#d9694a" } };
+const strandOf = (r) => STRAND[r.strand < 0 ? -1 : 1];
 
 async function alShow(v) {
   AL.focus = v;
   if (AL.sample !== v.sample) {
-    AL.sample = v.sample; AL.data = null;
+    AL.sample = v.sample; AL.data = null; AL.picked = null; alReadPanel();
     $("al-title").textContent = `${v.sample}: reads against the reference`;
     $("al-status").textContent = "Loading the reads…";
     const len = S.result.params.reference_length;
@@ -236,37 +240,42 @@ async function alShow(v) {
   if (!AL.data) { $("al-status").textContent = "No reads were recorded for this sample."; return; }
   alSort(); alSize();               // the scroll box must have its full size before it can scroll
   const sc = $("al-scroll");
-  sc.scrollLeft = Math.max(0, (v.pos - AL.data.start + 0.5) * AL.cw - sc.clientWidth / 2);
+  sc.scrollLeft = Math.max(0, (v.pos - AL.data.start + 0.5) * AL.cw - (sc.clientWidth - AL.gutter) / 2);
   sc.scrollTop = 0;
-  alDraw();
+  alDraw(); alReadPanel();
 }
 
+const alCarries = (r, v) => v && r.diffs.some(d => d[0] === v.pos && d[1] === v.alt);
 function alSort() {
   if (!AL.data) return;
   const v = AL.focus, by = $("al-sort").value;
-  const carries = (r) => v && r.diffs.some(d => d[0] === v.pos && d[1] === v.alt);
   const calledIn = (r) => r.diffs.filter(d => AL.called.get(d[0])?.has(d[1])).length;
   AL.rows = [...AL.data.reads].sort(by === "start" ? (a, b) => a.start - b.start
     : by === "most" ? (a, b) => calledIn(b) - calledIn(a) || a.start - b.start
-    : (a, b) => carries(b) - carries(a) || calledIn(b) - calledIn(a) || a.start - b.start);
-  const n = v ? AL.rows.filter(carries).length : 0;
-  $("al-status").textContent = `${fmtInt(AL.rows.length)} analysed reads of ${fmtInt(AL.data.total)}`
+    : by === "strand" ? (a, b) => (b.strand || 1) - (a.strand || 1) || a.start - b.start
+    : (a, b) => alCarries(b, v) - alCarries(a, v) || calledIn(b) - calledIn(a) || a.start - b.start);
+  const n = v ? AL.rows.filter(r => alCarries(r, v)).length : 0;
+  const fwd = AL.rows.filter(r => (r.strand || 1) > 0).length;
+  $("al-status").innerHTML = `${fmtInt(AL.rows.length)} analysed reads of ${fmtInt(AL.data.total)}`
     + (AL.data.total > AL.rows.length ? " (the first 2,000 by position)" : "")
-    + ` over ${AL.data.start}–${AL.data.end}`
-    + (v ? ` · ${fmtInt(n)} carry ${v.ref}${v.pos}${v.alt}` : "")
-    + ". Coloured: a called mutation; grey: a mismatch SHMtrace did not call (sequencing error or background). "
-    + "Shaded columns hold calls; click one to open it.";
+    + ` · <span class="al-key" style="color:${STRAND[1].colour}">▶ ${fmtInt(fwd)} forward</span>`
+    + ` · <span class="al-key" style="color:${STRAND[-1].colour}">◀ ${fmtInt(AL.rows.length - fwd)} reverse</span>`
+    + (v ? ` · ${fmtInt(n)} carry ${esc(v.ref)}${v.pos}${esc(v.alt)}` : "")
+    + ". Coloured base: a called mutation; grey: a mismatch SHMtrace did not call. Click a read to see it and extract it; "
+    + "click a shaded column in the ruler to open its call.";
+  $("al-extract-call").disabled = !n;
+  $("al-extract-call").textContent = n ? `Extract the ${fmtInt(n)} read${n === 1 ? "" : "s"} carrying this call` : "Extract the reads carrying this call";
 }
 function alZoom() {
-  const sc = $("al-scroll"), mid = (sc.scrollLeft + sc.clientWidth / 2) / AL.cw;
+  const sc = $("al-scroll"), mid = (sc.scrollLeft + (sc.clientWidth - AL.gutter) / 2) / AL.cw;
   AL.cw = +$("al-zoom").value;
-  alSize(); sc.scrollLeft = Math.max(0, mid * AL.cw - sc.clientWidth / 2); alDraw();
+  alSize(); sc.scrollLeft = Math.max(0, mid * AL.cw - (sc.clientWidth - AL.gutter) / 2); alDraw();
 }
 function alSize() {
   if (!AL.data) return;
   const span = AL.data.end - AL.data.start + 1;
   const inner = $("al-inner");
-  inner.style.width = `${span * AL.cw + 20}px`;
+  inner.style.width = `${AL.gutter + span * AL.cw + 20}px`;
   inner.style.height = `${AL.head + AL.rows.length * AL.rh + 8}px`;
 }
 let alPending = false;
@@ -284,14 +293,16 @@ function alDraw() {
   const css = getComputedStyle(document.body);
   const fg = css.getPropertyValue("--fg").trim() || "#111", panel = css.getPropertyValue("--panel").trim() || "#fff";
   const line = css.getPropertyValue("--line").trim() || "#ddd", accent = css.getPropertyValue("--accent").trim() || "#1F6F8B";
+  const muted = css.getPropertyValue("--muted").trim() || "#888";
   ctx.fillStyle = panel; ctx.fillRect(0, 0, W, H);
-  const cw = AL.cw, rh = AL.rh, head = AL.head;
-  const p0 = d.start + Math.floor(sc.scrollLeft / cw), p1 = Math.min(d.end, p0 + Math.ceil(W / cw) + 1);
-  const x = (p) => (p - d.start) * cw - sc.scrollLeft;
+  const cw = AL.cw, rh = AL.rh, head = AL.head, G = AL.gutter;
+  const p0 = d.start + Math.floor(sc.scrollLeft / cw), p1 = Math.min(d.end, p0 + Math.ceil((W - G) / cw) + 1);
+  const x = (p) => G + (p - d.start) * cw - sc.scrollLeft;
   const r0 = Math.floor(sc.scrollTop / rh), r1 = Math.min(AL.rows.length, r0 + Math.ceil((H - head) / rh) + 1);
   const y = (i) => head + i * rh - sc.scrollTop;
   const letters = cw >= 7, v = AL.focus, noise = $("al-noise").checked;
 
+  ctx.save(); ctx.beginPath(); ctx.rect(G, 0, W - G, H); ctx.clip();
   // columns holding calls, then the one being looked at
   for (let p = p0; p <= p1; p++) if (AL.called.has(p)) {
     ctx.fillStyle = accent; ctx.globalAlpha = 0.10; ctx.fillRect(x(p), head - 4, cw, H); ctx.globalAlpha = 1;
@@ -299,13 +310,20 @@ function alDraw() {
   if (v && v.pos >= p0 && v.pos <= p1) {
     ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.strokeRect(x(v.pos) + 0.5, 1, cw - 1, H - 2);
   }
-  // the reads
-  ctx.save(); ctx.beginPath(); ctx.rect(0, head - 2, W, H); ctx.clip();
+  // the reads: each bar in its orientation's colour, its mismatches on top
+  ctx.save(); ctx.beginPath(); ctx.rect(G, head - 2, W - G, H); ctx.clip();
   ctx.font = `${Math.min(12, cw)}px ui-monospace, Menlo, monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (let i = r0; i < r1; i++) {
-    const r = AL.rows[i], yy = y(i);
+    const r = AL.rows[i], yy = y(i), st = strandOf(r);
+    if (AL.picked === r.name) { ctx.fillStyle = accent; ctx.globalAlpha = 0.22; ctx.fillRect(G, yy, W - G, rh); ctx.globalAlpha = 1; }
     const a = Math.max(r.start, p0), b = Math.min(r.end, p1);
-    if (b >= a) { ctx.fillStyle = line; ctx.fillRect(x(a), yy + 1, (b - a + 1) * cw, rh - 2); }
+    if (b >= a) {
+      ctx.fillStyle = st.colour; ctx.globalAlpha = 0.28; ctx.fillRect(x(a), yy + 1, (b - a + 1) * cw, rh - 2); ctx.globalAlpha = 1;
+      // the read's leading end points the way it was sequenced
+      ctx.fillStyle = st.colour;
+      if (r.strand < 0 && r.start >= p0) { ctx.beginPath(); ctx.moveTo(x(r.start) - 5, yy + rh / 2); ctx.lineTo(x(r.start), yy + 1); ctx.lineTo(x(r.start), yy + rh - 1); ctx.fill(); }
+      if (r.strand >= 0 && r.end <= p1) { ctx.beginPath(); ctx.moveTo(x(r.end + 1) + 5, yy + rh / 2); ctx.lineTo(x(r.end + 1), yy + 1); ctx.lineTo(x(r.end + 1), yy + rh - 1); ctx.fill(); }
+    }
     for (const [p, base, q] of r.diffs) {
       if (p < p0 || p > p1) continue;
       const called = AL.called.get(p)?.has(base);
@@ -325,7 +343,7 @@ function alDraw() {
   }
   ctx.restore();
   // the reference and a ruler, pinned at the top
-  ctx.fillStyle = panel; ctx.fillRect(0, 0, W, head - 4);
+  ctx.fillStyle = panel; ctx.fillRect(G, 0, W - G, head - 4);
   ctx.fillStyle = fg; ctx.font = "10px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   const step = cw >= 7 ? 10 : 50;
   for (let p = Math.ceil(p0 / step) * step; p <= p1; p += step) {
@@ -338,14 +356,98 @@ function alDraw() {
     else { ctx.fillStyle = BASE_COLOUR[b] || fg; ctx.globalAlpha = 0.6; ctx.fillRect(x(p), 24, cw, 6); }
     ctx.globalAlpha = 1;
   }
+  ctx.restore();
   ctx.fillStyle = line; ctx.fillRect(0, head - 5, W, 1);
+
+  // the side column: which read, in which orientation, under which name (stays put while scrolling)
+  ctx.fillStyle = panel; ctx.fillRect(0, 0, G, H);
+  ctx.fillStyle = muted; ctx.font = "600 10px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillText("#", 6, 28); ctx.fillText("read", 64, 28);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, head - 2, G, H); ctx.clip();
+  ctx.textBaseline = "middle";
+  for (let i = r0; i < r1; i++) {
+    const r = AL.rows[i], yy = y(i), st = strandOf(r), picked = AL.picked === r.name;
+    if (picked) { ctx.fillStyle = accent; ctx.globalAlpha = 0.22; ctx.fillRect(0, yy, G, rh); ctx.globalAlpha = 1; }
+    else if (v && alCarries(r, v)) { ctx.fillStyle = accent; ctx.globalAlpha = 0.08; ctx.fillRect(0, yy, G, rh); ctx.globalAlpha = 1; }
+    ctx.font = "10px ui-monospace, Menlo, monospace";
+    ctx.fillStyle = muted; ctx.fillText(String(i + 1), 6, yy + rh / 2);
+    ctx.fillStyle = st.colour; ctx.font = "11px system-ui, sans-serif"; ctx.fillText(st.arrow, 46, yy + rh / 2);
+    ctx.fillStyle = picked ? fg : muted; ctx.font = `${picked ? "600 " : ""}10px ui-monospace, Menlo, monospace`;
+    let name = r.name;
+    while (name.length > 4 && ctx.measureText(name).width > G - 70) name = name.slice(0, -2);
+    ctx.fillText(name === r.name ? name : name + "…", 62, yy + rh / 2);
+  }
+  ctx.restore();
+  ctx.fillStyle = line; ctx.fillRect(G - 1, 0, 1, H);
 }
 
 function alAt(ev) {
   const sc = $("al-scroll"), box = $("al-canvas").getBoundingClientRect();
-  const p = AL.data.start + Math.floor((ev.clientX - box.left + sc.scrollLeft) / AL.cw);
-  const i = Math.floor((ev.clientY - box.top - AL.head + sc.scrollTop) / AL.rh);
-  return { p, r: ev.clientY - box.top >= AL.head ? AL.rows[i] : null };
+  const cx = ev.clientX - box.left, cy = ev.clientY - box.top;
+  const p = AL.data.start + Math.floor((cx - AL.gutter + sc.scrollLeft) / AL.cw);
+  const i = Math.floor((cy - AL.head + sc.scrollTop) / AL.rh);
+  return { p, inGutter: cx < AL.gutter, inHead: cy < AL.head, i, r: cy >= AL.head ? AL.rows[i] : null };
+}
+
+/* the read picked in the strip: its name, orientation and evidence, and ways to take it away */
+function alReadPanel() {
+  const el = $("al-read");
+  const r = AL.picked && AL.data && AL.rows.find(x => x.name === AL.picked);
+  if (!r) { el.innerHTML = '<p class="hint">Click a read in the strip to see its name, orientation and mismatches, and to extract it.</p>'; return; }
+  const st = strandOf(r), i = AL.rows.indexOf(r) + 1;
+  const calls = r.diffs.filter(d => AL.called.get(d[0])?.has(d[1]));
+  const other = r.diffs.filter(d => !AL.called.get(d[0])?.has(d[1]));
+  const sanger = S.result.params.platform === "sanger";
+  const callLinks = calls.map(([p, b, q]) => {
+    const ref = AL.data.sequence[p - AL.data.start] || "?";
+    return `<a href="#" onclick="alOpenCall(${p}, '${b}');return false">${p} ${esc(ref)}→${esc(b)}</a> <span class="muted">Q${q}</span>`;
+  }).join(", ");
+  el.innerHTML = `
+    <div class="al-read-head">
+      <b>Read ${fmtInt(i)} of ${fmtInt(AL.rows.length)}</b>
+      <code class="al-name" title="the read's name in the input file">${esc(r.name)}</code>
+      <button class="btn small ghost" onclick="alCopyName()">Copy name</button>
+      <button class="btn small ghost" onclick="alExtract([AL.picked], 'fastq')">Extract read (.fastq)</button>
+      <button class="btn small ghost" onclick="alExtract([AL.picked], 'fasta')">.fasta</button>
+      ${sanger ? `<a class="btn small ghost" href="/api/trace/${S.job}/${encodeURIComponent(AL.sample)}?clone=${encodeURIComponent(r.name)}">Original trace (.ab1)</a>` : ""}
+    </div>
+    <dl class="kv rv-kv">
+      <dt>Orientation</dt><dd><span style="color:${st.colour};font-weight:700">${st.arrow} ${st.word}</span>
+        ${r.strand < 0 ? "· sequenced against the reference; reverse-complemented to align" : "· sequenced along the reference"}</dd>
+      <dt>Aligned span</dt><dd>${fmtInt(r.start)}–${fmtInt(r.end)} (${fmtInt(r.end - r.start + 1)} bp of the reference)</dd>
+      <dt>Called mutations</dt><dd>${calls.length ? callLinks : "none"}</dd>
+      <dt>Not called</dt><dd>${other.length ? `${fmtInt(other.length)} mismatch${other.length === 1 ? "" : "es"}: `
+        + other.slice(0, 30).map(([p, b, q]) => `${p}${esc(b)} <span class="muted">Q${q}</span>`).join(", ")
+        + (other.length > 30 ? " …" : "") : "none"}</dd>
+      ${(r.indels || []).length ? `<dt>Indels</dt><dd>${r.indels.map(([p, op, x]) => op === "D" ? `${p} deletion of ${x}` : `${p} insertion of ${esc(x)}`).join(", ")}</dd>` : ""}
+    </dl>`;
+}
+function alOpenCall(p, alt) {
+  let i = RV.shown.findIndex(x => x.sample === AL.sample && x.pos === p && x.alt === alt);
+  if (i < 0) { $("rv-show").value = ""; $("rv-sample").value = AL.sample; rvList();
+               i = RV.shown.findIndex(x => x.sample === AL.sample && x.pos === p && x.alt === alt); }
+  if (i >= 0) rvOpen(i);
+}
+async function alCopyName() {
+  try { await navigator.clipboard.writeText(AL.picked); $("al-status").textContent = `Copied ${AL.picked}.`; }
+  catch { $("al-status").textContent = "The browser would not copy; select the name and copy it."; }
+}
+// the reads as they are in the input file, by name (webapp /api/extract-reads)
+async function alExtract(names, format = "fastq") {
+  const r = await fetch(`/api/extract-reads/${S.job}/${encodeURIComponent(AL.sample)}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ names, format }) });
+  if (!r.ok) { $("al-status").textContent = (await r.json().catch(() => ({}))).detail || "could not extract the reads"; return; }
+  const blob = await r.blob(), a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (r.headers.get("Content-Disposition") || "").match(/filename="([^"]+)"/)?.[1] || `reads.${format}`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  const miss = +r.headers.get("X-Reads-Missing") || 0;
+  $("al-status").textContent = `Extracted ${r.headers.get("X-Reads-Found")} read(s) to ${a.download}`
+    + (miss ? `; ${miss} could not be found in the input file.` : ".");
+}
+function alExtractCall() {
+  const v = AL.focus;
+  if (v) alExtract(AL.rows.filter(r => alCarries(r, v)).map(r => r.name));
 }
 
 function rvDownload(dropRejected) {
@@ -368,20 +470,20 @@ $("al-scroll").addEventListener("scroll", alSchedule);
 window.addEventListener("resize", alSchedule);
 $("al-canvas").addEventListener("mousemove", (ev) => {
   if (!AL.data) return;
-  const { p, r } = alAt(ev), d = r && r.diffs.find(x => x[0] === p);
+  const { p, r, inGutter } = alAt(ev), d = r && r.diffs.find(x => x[0] === p);
   const calls = AL.called.get(p);
-  $("al-canvas").title = `position ${p} · reference ${AL.data.sequence[p - AL.data.start] || "?"}`
-    + (calls ? ` · called: ${[...calls].join(", ")}` : "")
-    + (r ? `\nread ${r.name} (${r.start}–${r.end})` + (d ? ` reads ${d[1]}, quality ${d[2]}${AL.called.get(p)?.has(d[1]) ? "" : " (not called)"}` : "") : "");
+  $("al-canvas").title = r && inGutter ? `read ${AL.rows.indexOf(r) + 1}: ${r.name}\n${strandOf(r).word}, ${r.start}–${r.end}`
+    : `position ${p} · reference ${AL.data.sequence[p - AL.data.start] || "?"}`
+      + (calls ? ` · called: ${[...calls].join(", ")}` : "")
+      + (r ? `\nread ${AL.rows.indexOf(r) + 1}: ${r.name} (${strandOf(r).word}, ${r.start}–${r.end})`
+        + (d ? `\nreads ${d[1]}, quality ${d[2]}${AL.called.get(p)?.has(d[1]) ? "" : " (not called)"}` : "") : "");
 });
 $("al-canvas").addEventListener("click", (ev) => {
   if (!AL.data) return;
-  const { p, r } = alAt(ev);
-  if (!AL.called.has(p)) return;
-  const base = r && r.diffs.find(x => x[0] === p)?.[1];
-  const alt = base && AL.called.get(p).has(base) ? base : [...AL.called.get(p)][0];
-  let i = RV.shown.findIndex(x => x.sample === AL.sample && x.pos === p && x.alt === alt);
-  if (i < 0) { $("rv-show").value = ""; $("rv-sample").value = AL.sample; rvList();
-               i = RV.shown.findIndex(x => x.sample === AL.sample && x.pos === p && x.alt === alt); }
-  if (i >= 0) rvOpen(i);
+  const { p, r, inHead, inGutter } = alAt(ev);
+  if (inHead && !inGutter && AL.called.has(p)) {          // the ruler: open that column's call
+    const alts = [...AL.called.get(p)];
+    return alOpenCall(p, alts.includes(AL.focus?.alt) && AL.focus.pos === p ? AL.focus.alt : alts[0]);
+  }
+  if (r) { AL.picked = AL.picked === r.name ? null : r.name; alDraw(); alReadPanel(); }
 });

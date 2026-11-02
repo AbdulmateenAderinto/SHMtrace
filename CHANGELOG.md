@@ -22,7 +22,10 @@ this project uses [semantic versioning](https://semver.org/).
   in grey. Each call has a suggested verdict (accept, reject, check by eye)
   with its reasons (`review.py`, `/api/suggestions/<job>`), also written to the
   Geneious tables; the results now carry the controls' rate per position and
-  base (`control_background_alt`).
+  base (`control_background_alt`). The strip numbers each read and shows its
+  orientation and name in a side column; a picked read can be copied by name,
+  extracted from the input file (`/api/extract-reads/<job>/<sample>`) or, for
+  Sanger, downloaded as its original trace (`/api/trace/<job>/<sample>`).
 - Plot data: the numbers behind every figure as tidy tables (one row per value,
   units in the column names), a long per-sample table of every measure, the
   groups table one statistic per row, Prism-ready one-column-per-group copies and

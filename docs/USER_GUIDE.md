@@ -174,8 +174,20 @@ against the reference, base by base, scrolling sideways along the whole amplicon
 and down through the reads. A called mutation is drawn in its base's colour; a
 mismatch SHMtrace did not call (a sequencing error or background) is grey and
 can be hidden. Columns holding calls are shaded and the selected call is
-outlined. Clicking a shaded column opens that call. The reads can be ordered
-with the selected call's reads first, the most mutated first, or by start.
+outlined. Clicking a shaded column in the ruler opens that call. The reads can be
+ordered with the selected call's reads first, the most mutated first, by start, or
+forward reads then reverse.
+
+A column on the left numbers the reads and gives each one's orientation and name,
+as Geneious does: ▶ (blue) for a read sequenced along the reference, ◀ (red) for
+one sequenced against it and reverse-complemented to align; the bar itself takes
+the same colour and its leading end points the way the read was sequenced.
+Clicking a read highlights it and shows its name, orientation, aligned span, the
+called mutations it carries (each opens its call), the mismatches that were not
+called, and its indels. **Copy name** copies the read's name; **Extract read**
+saves it as it is in your input file (FASTQ or FASTA), with its orientation in the
+header; for Sanger clones, **Original trace** downloads the .ab1. **Extract the
+reads carrying this call** saves every read behind the selected call at once.
 
 Each call has a **suggested verdict**, accept, reject or check by eye, with its
 reasons, worked out from what the run already holds. Decisive reasons to reject:

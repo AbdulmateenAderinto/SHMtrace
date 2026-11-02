@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import shutil
 import tempfile
 import threading
@@ -668,6 +669,69 @@ def call_reads(job_id: str, sample: str, pos: int, alt: str, flank: int = 20, ot
         raise HTTPException(404, f"no reads recorded for {sample}")
     return browse.call_reads(data, pos=pos, alt=alt.upper(), flank=max(3, min(60, flank)),
                              others=max(0, min(200, others)))
+
+
+def _sample_input(job_id: str, sample: str):
+    """What the run read for one sample: a file, a folder, a pair, or a list of (trace, clone)."""
+    job = JOBS.get(job_id) or {}
+    for s in (job.get("project") or {}).get("samples") or []:
+        if s.get("name") == sample:
+            return s.get("path")
+    raise HTTPException(404, f"no sample {sample} in this run")
+
+
+@app.post("/api/extract-reads/{job_id}/{sample}")
+def extract_reads(job_id: str, sample: str, payload: dict):
+    """Named reads of one sample, as they are in its input files: {"names": [...], "format": fastq|fasta}.
+
+    Each record's header gives the read's orientation against the reference. A read the input
+    no longer holds under that name (a UMI consensus, say) comes from the analysed read instead,
+    as FASTA, and its header says so.
+    """
+    from ..io_utils import read_fastq
+    res = _result(job_id)
+    names = list(dict.fromkeys(str(n) for n in payload.get("names") or []))[:20000]
+    if not names:
+        raise HTTPException(400, "name at least one read")
+    fasta = payload.get("format") == "fasta"
+    strand = {}
+    for src in (res.get("_alignments") or {}, res.get("_call_reads") or {}):
+        for r in (src.get(sample) or {}).get("reads", []):
+            strand.setdefault(r["name"], r.get("strand", 1))
+    want, found = set(names), {}
+    for qname, seq, qual in read_fastq(_sample_input(job_id, sample)):
+        if qname in want and qname not in found:
+            found[qname] = (seq, qual)
+            if len(found) == len(want):
+                break
+    analysed = {a.qname: a for a in ((res.get("_details") or {}).get(sample) or {}).get("_aligned", [])}
+    out, missing = [], []
+    for n in names:
+        o = {1: "+", -1: "-"}.get(strand.get(n), "?")
+        tag = f"sample={sample} orientation={o}"
+        if n in found:
+            seq, qual = found[n]
+            out.append(f">{n} {tag}\n{seq}\n" if fasta else f"@{n} {tag}\n{seq}\n+\n{qual}\n")
+        elif n in analysed and getattr(analysed[n], "seq", None):
+            out.append(f">{n} {tag} source=analysed-read\n{analysed[n].seq}\n")
+        else:
+            missing.append(n)
+    name = re.sub(r"[^A-Za-z0-9._-]", "_", sample)
+    return Response("".join(out), media_type="text/plain", headers={
+        "Content-Disposition": f'attachment; filename="{name}_{len(out)}_reads.{"fasta" if fasta else "fastq"}"',
+        "X-Reads-Found": str(len(out)), "X-Reads-Missing": str(len(missing))})
+
+
+@app.get("/api/trace/{job_id}/{sample}")
+def sanger_trace(job_id: str, sample: str, clone: str):
+    """A Sanger clone's original trace file, to open in a trace viewer."""
+    from ..io_utils import _list_item
+    path = _sample_input(job_id, sample)
+    for item in path if isinstance(path, (list, tuple)) else []:
+        f, rid = _list_item(item)
+        if rid == clone or Path(f).stem == clone:
+            return FileResponse(f, filename=Path(f).name)
+    raise HTTPException(404, f"no trace for {clone}")
 
 
 REVIEW_MARKS = ("accepted", "rejected", "unsure", "")

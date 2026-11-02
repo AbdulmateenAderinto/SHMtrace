@@ -94,3 +94,41 @@ def test_review_endpoint_records_clears_and_refuses_unknown_calls():
     z = c.get("/api/export/t-review/geneious.zip")
     assert z.status_code == 200 and z.headers["content-type"] == "application/zip"
     main.JOBS.pop("t-review")
+
+
+def test_reads_are_extracted_from_the_input_by_name_with_their_orientation(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from shmtrace.webapp import main
+    fq = tmp_path / "WT1.fastq"
+    fq.write_text("@r1 extra\nACGTACGT\n+\nIIIIIIII\n@r2\nTTTTGGGG\n+\nHHHHHHHH\n@r3\nCCCC\n+\nIIII\n")
+    res = _res()
+    res["_call_reads"] = {"WT1": {"reads": [{"name": "r1", "fate": "kept", "strand": 1, "start": 1, "end": 8, "diffs": []},
+                                            {"name": "r2", "fate": "kept", "strand": -1, "start": 1, "end": 8, "diffs": []}]}}
+    main.JOBS["t-reads"] = {"state": "done", "result": res, "progress": 1, "message": "", "error": None,
+                            "project": {"samples": [{"name": "WT1", "path": str(fq)}]}}
+    c = TestClient(main.app)
+    r = c.post("/api/extract-reads/t-reads/WT1", json={"names": ["r2", "r1", "missing"]})
+    assert r.status_code == 200 and r.headers["x-reads-found"] == "2" and r.headers["x-reads-missing"] == "1"
+    assert r.text == ("@r2 sample=WT1 orientation=-\nTTTTGGGG\n+\nHHHHHHHH\n"
+                      "@r1 sample=WT1 orientation=+\nACGTACGT\n+\nIIIIIIII\n")
+    fa = c.post("/api/extract-reads/t-reads/WT1", json={"names": ["r1"], "format": "fasta"})
+    assert fa.text == ">r1 sample=WT1 orientation=+\nACGTACGT\n"
+    assert c.post("/api/extract-reads/t-reads/WT1", json={"names": []}).status_code == 400
+    assert c.post("/api/extract-reads/t-reads/KO9", json={"names": ["r1"]}).status_code == 404
+    main.JOBS.pop("t-reads")
+
+
+def test_a_sanger_clones_original_trace_can_be_downloaded(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from shmtrace.webapp import main
+    ab1 = tmp_path / "7-2.1-user_added.ab1"
+    ab1.write_bytes(b"ABIF-placeholder")
+    main.JOBS["t-trace"] = {"state": "done", "result": _res(), "progress": 1, "message": "", "error": None,
+                            "project": {"samples": [{"name": "WT1", "path": [[str(ab1), "391861-7"]]}]}}
+    c = TestClient(main.app)
+    r = c.get("/api/trace/t-trace/WT1", params={"clone": "391861-7"})
+    assert r.status_code == 200 and r.content == b"ABIF-placeholder"
+    assert c.get("/api/trace/t-trace/WT1", params={"clone": "nope"}).status_code == 404
+    main.JOBS.pop("t-trace")
