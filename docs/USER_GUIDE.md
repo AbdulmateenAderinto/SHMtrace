@@ -178,6 +178,13 @@ outlined. Clicking a shaded column in the ruler opens that call. The reads can b
 ordered with the selected call's reads first, the most mutated first, by start, or
 forward reads then reverse.
 
+Two graphs sit under the reference, as in Geneious: **coverage**, the analysed
+reads covering each position, and **identity**, the share of them that read the
+reference base there (green at 99% or more, amber from 90%, red below). A column
+where identity drops without a call is where the reads disagree for reasons
+SHMtrace set aside: a germline difference, a sequencing error hotspot, or a
+mutation too rare to call.
+
 A column on the left numbers the reads and gives each one's orientation and name,
 as Geneious does: ▶ (blue) for a read sequenced along the reference, ◀ (red) for
 one sequenced against it and reverse-complemented to align; the bar itself takes

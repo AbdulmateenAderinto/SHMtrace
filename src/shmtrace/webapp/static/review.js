@@ -282,7 +282,8 @@ async function rvApplySuggestions() {
 }
 
 /* ── the alignment strip: every analysed read of a sample, base by base, scrolling sideways ── */
-const AL = { sample: null, data: null, rows: [], cw: 11, rh: 13, head: 40, gutter: 232,
+// head: ruler (0-16), reference (20-34), coverage (36-52), identity (54-64)
+const AL = { sample: null, data: null, rows: [], cw: 11, rh: 13, head: 70, gutter: 232, cov: [], mis: [],
              called: new Map(), focus: null, picked: null };
 const BASE_COLOUR = { A: "#1b9e3e", C: "#1f6fb4", G: "#d68a00", T: "#c0392b" };
 // a read's orientation against the reference, as Geneious colours it: forward and reverse
@@ -300,6 +301,7 @@ async function alShow(v) {
     const r = await fetch(`/api/alignment/${S.job}/${encodeURIComponent(v.sample)}?${q}`);
     if (AL.sample !== v.sample) return;
     AL.data = r.ok ? await r.json() : null;
+    if (AL.data) alTracks();
     AL.called = new Map();
     for (const c of RV.calls.filter(x => x.sample === v.sample)) {
       if (!AL.called.has(c.pos)) AL.called.set(c.pos, new Set());
@@ -314,6 +316,18 @@ async function alShow(v) {
   alDraw(); alReadPanel();
 }
 
+// coverage and identity per position, over the analysed reads, as Geneious's graphs above an alignment
+function alTracks() {
+  const d = AL.data, n = d.end - d.start + 1;
+  AL.cov = new Array(n).fill(0); AL.mis = new Array(n).fill(0);
+  for (const r of d.reads) {
+    for (let p = Math.max(r.start, d.start); p <= Math.min(r.end, d.end); p++) AL.cov[p - d.start]++;
+    for (const [p] of r.diffs) if (p >= d.start && p <= d.end) AL.mis[p - d.start]++;
+    for (const [p, op, len] of r.indels || []) if (op === "D")
+      for (let q = p; q < p + (+len || 1); q++) if (q >= d.start && q <= d.end) AL.mis[q - d.start]++;
+  }
+  AL.covMax = Math.max(1, ...AL.cov);
+}
 const alCarries = (r, v) => v && r.diffs.some(d => d[0] === v.pos && d[1] === v.alt);
 function alSort() {
   if (!AL.data) return;
@@ -425,13 +439,24 @@ function alDraw() {
     else { ctx.fillStyle = BASE_COLOUR[b] || fg; ctx.globalAlpha = 0.6; ctx.fillRect(x(p), 24, cw, 6); }
     ctx.globalAlpha = 1;
   }
+  for (let p = p0; p <= p1; p++) {                // coverage, then identity: green full, amber, red
+    const k = p - d.start, c = AL.cov[k] || 0, id = c ? 1 - (AL.mis[k] || 0) / c : null;
+    const hgt = 15 * c / AL.covMax;
+    ctx.fillStyle = muted; ctx.globalAlpha = 0.55; ctx.fillRect(x(p), 52 - hgt, cw, hgt); ctx.globalAlpha = 1;
+    if (id != null) {
+      ctx.fillStyle = id >= 0.99 ? "#2d9a5a" : id >= 0.9 ? "#d6a400" : "#c0392b";
+      ctx.globalAlpha = id >= 0.99 ? 0.55 : 0.9; ctx.fillRect(x(p), 55, cw, 9); ctx.globalAlpha = 1;
+    }
+  }
   ctx.restore();
   ctx.fillStyle = line; ctx.fillRect(0, head - 5, W, 1);
 
   // the side column: which read, in which orientation, under which name (stays put while scrolling)
   ctx.fillStyle = panel; ctx.fillRect(0, 0, G, H);
   ctx.fillStyle = muted; ctx.font = "600 10px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.fillText("#", 6, 28); ctx.fillText("read", 64, 28);
+  ctx.fillText("ruler", 6, 11); ctx.fillText("reference", 6, 31);
+  ctx.fillText(`coverage (max ${fmtInt(AL.covMax || 0)})`, 6, 48); ctx.fillText("identity", 6, 63);
+
   ctx.save(); ctx.beginPath(); ctx.rect(0, head - 2, G, H); ctx.clip();
   ctx.textBaseline = "middle";
   for (let i = r0; i < r1; i++) {
