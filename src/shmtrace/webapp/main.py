@@ -626,7 +626,8 @@ def alignment(job_id: str, sample: str, start: int = 1, end: int | None = None,
     `fates` is a comma-separated filter ("kept,contaminant"); omit it for all.
     """
     res = _result(job_id)
-    data = (res.get("_alignments") or {}).get(sample)
+    # the analysed reads are always kept (for Check calls); the dropped ones only on request
+    data = (res.get("_alignments") or {}).get(sample) or (res.get("_call_reads") or {}).get(sample)
     if data is None:
         raise HTTPException(404, "this run did not record read alignments; "
                                  "tick 'Keep the read alignment' and run again")
@@ -647,6 +648,13 @@ def call_reads(job_id: str, sample: str, pos: int, alt: str, flank: int = 20, ot
 
 
 REVIEW_MARKS = ("accepted", "rejected", "unsure", "")
+
+
+@app.get("/api/suggestions/{job_id}")
+def suggestions(job_id: str):
+    """A suggested verdict and its reasons for every call (review.py); worked out once per run."""
+    from .. import review
+    return review.cached(_result(job_id))
 
 
 @app.get("/api/review/{job_id}")

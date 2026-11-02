@@ -253,6 +253,9 @@
           <option value="">Every call</option><option value="todo">Not yet reviewed</option>
           <option value="accepted">Accepted</option><option value="rejected">Rejected</option>
           <option value="unsure">Unsure</option>
+          <option value="s-accept">Suggested: accept</option><option value="s-reject">Suggested: reject</option>
+          <option value="s-check">Suggested: check by eye</option>
+          <option value="differs">Marked against the suggestion</option>
         </select></div>
       <div><label for="rv-sort">Order</label>
         <select id="rv-sort" onchange="rvList()" style="max-width:200px">
@@ -261,6 +264,8 @@
         </select></div>
       <span class="spacer"></span>
       <span class="hint" id="rv-progress"></span>
+      <button class="btn small ghost" style="flex:0 0 auto" onclick="rvApplySuggestions()"
+              title="Mark every call not yet reviewed as its suggestion says, where it says accept or reject">Apply suggestions</button>
       <button class="btn small ghost" style="flex:0 0 auto" onclick="rvDownload(false)"
               title="One Geneious-style annotation table per sample, with each call's review mark">Geneious CSVs</button>
       <button class="btn small ghost" style="flex:0 0 auto" onclick="rvDownload(true)"
@@ -268,7 +273,24 @@
     </div>
     <p class="hint" style="margin-top:8px">Keys: <b>↑ ↓</b> or <b>J K</b> move, <b>A</b> accept, <b>R</b> reject,
       <b>U</b> unsure, <b>0</b> clear. Marks go into variants.csv and the Geneious tables; the analysis
-      itself is not re-run.</p>
+      itself is not re-run. Each call has a suggested verdict worked out from the run's own evidence; your
+      mark is what counts.</p>
+  </div>
+  <div class="card al-card">
+    <div class="row" style="align-items:center">
+      <b id="al-title">Reads against the reference</b>
+      <span class="spacer"></span>
+      <label class="hint">Order <select id="al-sort" onchange="alSort(); alDraw()" style="max-width:250px">
+        <option value="carry">Reads with the selected call first</option>
+        <option value="most">Most mutated reads first</option>
+        <option value="start">By start position</option></select></label>
+      <label class="hint">Zoom <select id="al-zoom" onchange="alZoom()" style="max-width:110px">
+        <option value="4">Far</option><option value="7">Medium</option>
+        <option value="11" selected>Bases</option><option value="15">Close</option></select></label>
+      <label class="hint"><input type="checkbox" id="al-noise" checked onchange="alDraw()"> Uncalled mismatches</label>
+    </div>
+    <div class="al-scroll" id="al-scroll"><div id="al-inner"><canvas id="al-canvas"></canvas></div></div>
+    <p class="hint" id="al-status"></p>
   </div>
   <div class="rv">
     <div class="rv-list card" id="rv-list" tabindex="0"></div>

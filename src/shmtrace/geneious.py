@@ -23,7 +23,7 @@ COLUMNS = ["Name", "Minimum", "Maximum", "Length", "Change", "Polymorphism Type"
            "Reference Nucleotide(s)", "Variant Nucleotide(s)", "Coverage",
            "Variant Frequency", "Variant Raw Frequency", "Variant P-Value (approximate)",
            "Forward Reads", "Reverse Reads", "Context", "Homopolymer Run", "WRC/GYW Hotspot",
-           "Sample", "Group", "Review"]
+           "Sample", "Group", "Suggestion", "Suggestion Reasons", "Review"]
 TRANSITIONS = {"AG", "GA", "CT", "TC"}
 
 
@@ -42,6 +42,8 @@ def _p(v) -> str:
 def rows(res: dict, sample: str, review: dict | None = None, drop_rejected: bool = False) -> list[dict]:
     """One sample's substitution calls as Geneious annotation rows, by position."""
     review = review or {}
+    from .review import cached
+    sug = cached(res)
     out = []
     for v in sorted((x for x in res.get("variants") or [] if x["sample"] == sample),
                     key=lambda x: (x["pos"], x["alt"])):
@@ -58,7 +60,11 @@ def rows(res: dict, sample: str, review: dict | None = None, drop_rejected: bool
             "Forward Reads": v.get("plus_reads", ""), "Reverse Reads": v.get("minus_reads", ""),
             "Context": v.get("context", ""), "Homopolymer Run": v.get("homopolymer", ""),
             "WRC/GYW Hotspot": "yes" if v.get("WRC_GYW") else "",
-            "Sample": sample, "Group": v.get("group", ""), "Review": mark,
+            "Sample": sample, "Group": v.get("group", ""),
+            "Suggestion": (sug.get(review_key(v)) or {}).get("suggestion", ""),
+            "Suggestion Reasons": " ".join(r["text"] for r in (sug.get(review_key(v)) or {}).get("reasons", [])
+                                           if r["weight"]),
+            "Review": mark,
         })
     return out
 

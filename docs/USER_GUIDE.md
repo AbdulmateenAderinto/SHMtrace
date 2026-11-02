@@ -169,6 +169,30 @@ J and K. The right side shows:
   spread of the reads covering the position without it. A dot is a match, a
   letter a mismatch (fainter for a lower base quality), a dash a deletion.
 
+Above the list, a strip draws every analysed read of the selected call's sample
+against the reference, base by base, scrolling sideways along the whole amplicon
+and down through the reads. A called mutation is drawn in its base's colour; a
+mismatch SHMtrace did not call (a sequencing error or background) is grey and
+can be hidden. Columns holding calls are shaded and the selected call is
+outlined. Clicking a shaded column opens that call. The reads can be ordered
+with the selected call's reads first, the most mutated first, or by start.
+
+Each call has a **suggested verdict**, accept, reject or check by eye, with its
+reasons, worked out from what the run already holds. Decisive reasons to reject:
+the call is in a control; the controls' own error rate for this change predicts
+as many supporting reads at this depth as the call has; or a control has the
+same change. Reasons against: low-quality supporting bases, reads that end
+within 10 bp of the call, a homopolymer run, one strand only when the library
+has both, and a one-read call in a sample whose one-read events are mostly
+background by the single-read estimate. Reasons for: three or more reads, every
+supporting base at quality 30 or better, support well above the controls' rate,
+and a P far past the threshold. Whether the call sits in an AID hotspot, and
+whether other samples share it, are deliberately left out, because those are
+what the analysis goes on to measure. **Apply suggestions** marks every
+unreviewed call that has an accept or reject suggestion, with the note "as
+suggested"; calls for checking by eye are left for you. The list can be
+filtered by suggestion, or to the calls you marked against it.
+
 Mark each call with **A** (accepted), **R** (rejected) or **U** (unsure); marking
 moves on to the next call. **0** clears a mark. A note can be saved with each
 mark. The marks are kept with the run and added to `variants.csv` (columns

@@ -46,7 +46,7 @@ def test_review_marks_reach_the_tables_and_can_drop_rejected_calls():
     assert [r["Review"] for r in geneious.rows(res, "WT1", res["review"])] == ["rejected", "accepted"]
     assert [r["Minimum"] for r in geneious.rows(res, "WT1", res["review"], drop_rejected=True)] == [12]
     text = report.tables(res)["variants.csv"]
-    assert text.splitlines()[0].endswith("review,review_note")
+    assert text.splitlines()[0].endswith("review,review_note,suggestion")
     assert "one read, end of read" in text
     z = zipfile.ZipFile(io.BytesIO(geneious.zip_bytes(res, drop_rejected=True)))
     assert sorted(z.namelist()) == ["KO1 SHMtrace Annotations.csv", "WT1 SHMtrace Annotations.csv"]

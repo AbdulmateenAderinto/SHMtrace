@@ -256,3 +256,25 @@ label.check input { width: auto; }
 .rv-col { background: var(--accent-soft); }
 .rv-sep { color: var(--muted); font-size: 12px; margin: 6px 0 2px; font-family: system-ui, sans-serif; }
 @media (max-width: 860px) { .rv { grid-template-columns: 1fr; } .rv-list { max-height: 34vh; } }
+/* the alignment strip: a scroll box whose canvas stays put and redraws what is in view */
+.al-card { margin-top: 16px; }
+.al-card .row label { display: flex; align-items: center; gap: 6px; margin: 0; }
+.al-scroll { position: relative; overflow: auto; height: 46vh; min-height: 240px; margin-top: 10px;
+             border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+#al-inner { position: relative; }
+#al-canvas { position: sticky; top: 0; left: 0; display: block; cursor: crosshair; }
+#al-status { margin: 8px 0 0; }
+/* suggested verdicts */
+.rv-sug { grid-column: 2; grid-row: 1; justify-self: end; font-size: 12px; font-weight: 700; width: 1.4em;
+          text-align: center; border-radius: 4px; }
+.rv-item .rv-chip { grid-row: 2; }
+.rv-sug.accept { color: var(--ok); } .rv-sug.reject { color: var(--bad); } .rv-sug.check { color: var(--warn); }
+.rv-suggest { margin: 12px 0 4px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
+              border-left: 4px solid var(--warn); background: var(--bg); }
+.rv-suggest.accept { border-left-color: var(--ok); } .rv-suggest.reject { border-left-color: var(--bad); }
+.rv-suggest-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.rv-suggest ul { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.rv-suggest li { display: flex; gap: 8px; margin: 3px 0; }
+.rv-suggest .rv-w { flex: 0 0 2.4em; font-weight: 700; }
+.rv-suggest li.pos .rv-w { color: var(--ok); } .rv-suggest li.neg .rv-w { color: var(--bad); }
+.rv-suggest li.neu .rv-w { color: var(--muted); }

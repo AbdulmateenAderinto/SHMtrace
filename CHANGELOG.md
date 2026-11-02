@@ -11,7 +11,13 @@ this project uses [semantic versioning](https://semver.org/).
   controls' error rate at that position, the same change in other samples and
   plain-language warnings, and mark it accepted, rejected or unsure. The marks go
   into `variants.csv` and the Geneious-style tables; the analysis is not re-run.
-  The analysed reads of every sample are now always kept for this.
+  The analysed reads of every sample are now always kept for this. A strip
+  draws all of a sample's reads against the reference at base resolution,
+  scrolling sideways, with called mutations in colour and uncalled mismatches
+  in grey. Each call has a suggested verdict (accept, reject, check by eye)
+  with its reasons (`review.py`, `/api/suggestions/<job>`), also written to the
+  Geneious tables; the results now carry the controls' rate per position and
+  base (`control_background_alt`).
 - Plot data: the numbers behind every figure as tidy tables (one row per value,
   units in the column names), a long per-sample table of every measure, the
   groups table one statistic per row, Prism-ready one-column-per-group copies and

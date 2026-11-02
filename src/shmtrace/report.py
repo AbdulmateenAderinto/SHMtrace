@@ -54,9 +54,12 @@ def _variants_csv(res: dict) -> str:
     if not review:
         return _rows_csv(res["variants"], VARIANT_COLUMNS)
     from .geneious import review_key
+    from .review import cached
+    sug = cached(res)
     rows = [{**v, "review": (review.get(review_key(v)) or {}).get("mark", ""),
-             "review_note": (review.get(review_key(v)) or {}).get("note", "")} for v in res["variants"]]
-    return _rows_csv(rows, VARIANT_COLUMNS + ["review", "review_note"])
+             "review_note": (review.get(review_key(v)) or {}).get("note", ""),
+             "suggestion": (sug.get(review_key(v)) or {}).get("suggestion", "")} for v in res["variants"]]
+    return _rows_csv(rows, VARIANT_COLUMNS + ["review", "review_note", "suggestion"])
 
 
 def tables(res: dict) -> dict[str, str]:
@@ -261,7 +264,7 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
         written.append(path)
     path = os.path.join(out_dir, "project.json")
     with open(path, "w") as fh:
-        json.dump({k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads")},
+        json.dump({k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads", "_suggestions")},
                   fh, indent=2, default=str)
     written.append(path)
     if excel:
@@ -290,7 +293,7 @@ def zip_bytes(res: dict, fmt: str = "png") -> bytes:
         for name, text in plotdata.files(res).items():
             z.writestr("plot_data/" + name, text)
         z.writestr("project.json", json.dumps(
-            {k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads")},
+            {k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads", "_suggestions")},
             indent=2, default=str))
         try:
             z.writestr("tables.xlsx", workbook(res))

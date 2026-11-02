@@ -812,6 +812,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     tallies: dict = {}
     single_read: dict = {}
     control_background: dict = {}
+    control_background_alt: dict = {}
     alignments: dict = {}
     call_reads: dict = {}
     coverage: dict = {}
@@ -935,9 +936,10 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             # the fitted background a non-control sample is judged against:
             # the highest per-alt error rate at each position (viz_project)
             per_pos: dict = {}
-            for (pos0, _alt), rate in null.items():
+            for (pos0, alt), rate in null.items():
                 if lo <= pos0 <= hi:
                     per_pos[pos0 + 1] = max(per_pos.get(pos0 + 1, 0.0), rate)
+                    control_background_alt[f"{pos0 + 1}{alt}"] = round(rate, 8)
             control_background.update(per_pos)
         if out["alignment"] is not None:
             alignments[name] = out["alignment"]
@@ -1161,6 +1163,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "indels": indel_rows,
         # position -> fitted control error rate, for the background diagnostic
         "control_background": {str(k): round(v, 8) for k, v in sorted(control_background.items())},
+        # the same per position and base ("102T"): the rate a call of that change was tested against
+        "control_background_alt": control_background_alt,
         # Sanger only: the error the control clones themselves show (sanger_background)
         "sanger_background": sanger_bg or None,
         "groups": groups,
