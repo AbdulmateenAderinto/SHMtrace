@@ -73,6 +73,10 @@ COLUMNS = {
     "wrc_gyw_hotspot": ("yes/no", "the position is in a WRC/GYW motif"),
     "compared_with": ("", "control group the P values test against"),
     "statistic": ("", "mean, sd, or a test: welch, welch_log (Welch on log10), mann_whitney, and sensitivity variants"),
+    "region": ("", "named region of the reference (all: the whole coding stretch and beyond)"),
+    "replacement": ("count", "calls that change the amino acid"), "silent": ("count", "calls that keep it"),
+    "stop": ("count", "calls that make a stop codon"), "non_coding": ("count", "calls outside the coding stretch"),
+    "rs_ratio": ("ratio", "replacement / silent"),
 }
 
 LOAD_CLASSES = [("0", 0, 0), ("1-3", 1, 3), ("4-10", 4, 10), ("11-20", 11, 20), ("20+", 21, 10 ** 9)]
@@ -241,6 +245,8 @@ def tables(res: dict) -> dict[str, list[dict]]:
         "positional_by_sample.csv": positional_by_sample(res),
         "per_sample_long.csv": per_sample_long(res),
         "group_statistics_long.csv": group_statistics_long(res),
+        # replacement and silent calls per sample and region, once a reading frame is given
+        "rs_by_region.csv": res.get("rs_by_region") or [],
     }
     return {k: v for k, v in t.items() if v}
 

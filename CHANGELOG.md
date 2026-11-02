@@ -7,6 +7,10 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Reading frame and named regions for coding amplicons (`coding.py`,
+  `/api/annotation/<job>`): codons, amino acids and regions in the read strip,
+  replacement / silent / stop for every call, R/S by sample and region
+  (`rs_by_region.csv`), and Geneious's codon columns in the Geneious tables.
 - Sanger traces in Check calls (`chromatogram.py`, `/api/chromatogram/<job>/<sample>`):
   the peaks of the clones carrying a call, along the reference, around the call.
 - Saved projects (`session.py`): every finished run is kept on this computer

@@ -178,6 +178,19 @@ outlined. Clicking a shaded column in the ruler opens that call. The reads can b
 ordered with the selected call's reads first, the most mutated first, by start, or
 forward reads then reverse.
 
+For a coding amplicon such as a V region, **Reading frame and regions** (above
+the strip) takes the coding stretch of the reference, given as start-end with
+its first base starting codon 1, and optional named regions, one per line
+(`CDR1 97-120`). The strip then shows the amino acids on their codons and the
+regions as coloured bars; each call shows its codon change, amino-acid change and
+whether it is **replacement**, **silent** or a **stop**; Tables gains
+*Replacement and silent, by region* (also `rs_by_region.csv` in the exports and
+plot data), with the R/S ratio per sample and region; and the Geneious tables
+gain Geneious's Codon Change, Amino Acid Change and Protein Effect columns plus
+the region. Each call is judged against the reference codon on its own, as
+Geneious does. SHMtrace does not find the frame or the CDRs itself; they are
+saved with the project.
+
 Under the strip's controls, **Go to** scrolls to a position (Enter) and marks
 it; **Find read** narrows the strip to reads whose name contains the text; and
 **Show** keeps only the reads with a called mutation, those without one, those

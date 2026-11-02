@@ -831,6 +831,7 @@ const TABLES = {
   spectrum: ["Substitution spectrum", r => Object.entries(r.spectrum_group).flatMap(([g, c]) =>
     Object.entries(c).map(([k, v]) => ({ group: g, substitution: k, count: v })))],
   animal_tests: ["Group tests (animal as the unit)", r => r.animal_tests || []],
+  rs_by_region: ["Replacement and silent, by region", r => r.rs_by_region || []],
   qc: ["QC flags (Sanger)", r => (r.qc || {}).flags || []],
   excluded: ["Clones not analysed (Sanger)", r => (r.qc || {}).excluded || []],
 };
@@ -900,6 +901,8 @@ const COLS = {
   homopolymer: ["Homopolymer run (bp)", "longest run of one base touching the position"], WRC_GYW: ["At WRC/GYW"],
   mutated_reads: ["Mutated reads"], frequency_pct: ["Reads mutated (%)"],
   mutations_per_read: ["Mutations per read"], substitution: ["Substitution"], count: ["Count"],
+  region: ["Region"], replacement: ["Replacement"], silent: ["Silent"], stop: ["Stop"],
+  non_coding: ["Non-coding"], rs_ratio: ["R/S", "replacement calls per silent call"],
   metric: ["Measure"], animals_case: ["Animals"], animals_control: ["Control animals"],
   rate_case: ["Rate"], rate_control: ["Control rate"], dispersion: ["Dispersion"], fold: ["Fold"],
   fold_control_zero_one_event: ["Fold, zero control at one event"], p_welch_log: ["P, Welch on log"],
@@ -1005,7 +1008,7 @@ function downloadCurrentTable() {
   const map = { samples: "samples.csv", groups: "groups.csv", variants: "variants.csv",
     indels: "indels.csv",
     positional: "positional_frequency.csv", spectrum: "spectrum.csv",
-    mutation_load: "mutation_load.csv", animal_tests: "animal_tests.csv",
+    mutation_load: "mutation_load.csv", animal_tests: "animal_tests.csv", rs_by_region: "rs_by_region.csv",
     qc: "qc_flags.csv", excluded: "excluded.csv" };
   dl(map[$("table-pick").value]);
 }

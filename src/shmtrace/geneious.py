@@ -24,6 +24,8 @@ COLUMNS = ["Name", "Minimum", "Maximum", "Length", "Change", "Polymorphism Type"
            "Variant Frequency", "Variant Raw Frequency", "Variant P-Value (approximate)",
            "Forward Reads", "Reverse Reads", "Context", "Homopolymer Run", "WRC/GYW Hotspot",
            "Sample", "Group", "Suggestion", "Suggestion Reasons", "Review"]
+# Geneious's own columns for coding sequence, written when the user has given a reading frame
+CODING_COLUMNS = ["Codon Change", "Amino Acid Change", "Protein Effect", "Region"]
 TRANSITIONS = {"AG", "GA", "CT", "TC"}
 
 
@@ -66,12 +68,21 @@ def rows(res: dict, sample: str, review: dict | None = None, drop_rejected: bool
                                            if r["weight"]),
             "Review": mark,
         })
+        c = (res.get("coding") or {}).get(review_key(v))
+        if c is not None:
+            out[-1].update({
+                "Codon Change": f"{c['codon_ref']} -> {c['codon_alt']}" if "codon_ref" in c else "",
+                "Amino Acid Change": f"{c['aa_ref']}{c['codon_number']}{c['aa_alt']}" if "aa_ref" in c else "",
+                "Protein Effect": {"silent": "None", "replacement": "Substitution", "stop": "Truncation",
+                                   "non-coding": ""}[c["effect"]],
+                "Region": c.get("region", "")})
     return out
 
 
 def csv_text(rows_: list[dict]) -> str:
     buf = io.StringIO()
-    w = csv.DictWriter(buf, fieldnames=COLUMNS)
+    coding = rows_ and "Protein Effect" in rows_[0]
+    w = csv.DictWriter(buf, fieldnames=COLUMNS[:-3] + CODING_COLUMNS + COLUMNS[-3:] if coding else COLUMNS)
     w.writeheader()
     w.writerows(rows_)
     return buf.getvalue()

@@ -11,6 +11,7 @@ On disk a project is a folder:
     project.json    the project as run: reference, samples and their input paths, settings
     result.json.gz  the result, with the analysed reads under "_call_reads"
     review.json     the review marks, rewritten on its own each time a mark changes
+    annotation.json the coding stretch and named regions, when given (coding.py)
 
 and it travels as a `.shmtrace` file, a zip of that folder. Reopened, everything the app
 shows and exports comes back, except what needs the per-read detail a run keeps only in
@@ -32,6 +33,7 @@ FORMAT = "shmtrace-project"
 VERSION = 1
 # kept beyond the public result: what Check calls draws, and the dropped reads when kept
 KEEP_PRIVATE = ("_call_reads", "_alignments")
+FILES = ("manifest.json", "project.json", "result.json.gz", "review.json", "annotation.json")
 
 
 def home() -> Path:
@@ -72,9 +74,19 @@ def write(folder: Path, res: dict, proj: dict) -> Path:
     name = res.get("name") or proj.get("name") or "project"
     (folder / "project.json").write_text(json.dumps(proj, indent=1, default=str))
     with gzip.open(folder / "result.json.gz", "wt") as fh:
-        json.dump(_jsonable({k: v for k, v in res.items() if k != "review"}), fh)
+        json.dump(_jsonable({k: v for k, v in res.items()
+                             if k not in ("review", "annotation", "coding", "rs_by_region")}), fh)
     write_review(folder, res)
+    write_annotation(folder, res)
     return folder
+
+
+def write_annotation(folder: Path, res: dict) -> None:
+    f = folder / "annotation.json"
+    if res.get("annotation"):
+        f.write_text(json.dumps(res["annotation"], indent=1))
+    elif f.exists():
+        f.unlink()
 
 
 def write_review(folder: Path, res: dict) -> None:
@@ -94,6 +106,11 @@ def read(folder: Path) -> tuple[dict, dict]:
         res = json.load(fh)
     review = folder / "review.json"
     res["review"] = json.loads(review.read_text()) if review.is_file() else {}
+    ann = folder / "annotation.json"
+    if ann.is_file():
+        from . import coding
+        res["annotation"] = json.loads(ann.read_text())
+        coding.apply(res)
     proj = json.loads((folder / "project.json").read_text())
     return res, proj
 
@@ -109,7 +126,7 @@ def pack(folder: Path) -> bytes:
     """The project folder as one .shmtrace file (a zip)."""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        for name in ("manifest.json", "project.json", "result.json.gz", "review.json"):
+        for name in FILES:
             if (folder / name).is_file():
                 z.write(folder / name, name)
     return buf.getvalue()
@@ -128,7 +145,7 @@ def unpack(blob: bytes, into: Path) -> Path:
     _check(man)
     folder = into / folder_name(man.get("name", "project"), f"opened{int(time.time())}")
     folder.mkdir(parents=True, exist_ok=True)
-    for name in ("manifest.json", "project.json", "result.json.gz", "review.json"):
+    for name in FILES:
         if name in names:
             (folder / name).write_bytes(z.read(name))
     return folder

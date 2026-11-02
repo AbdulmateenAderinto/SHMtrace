@@ -22,6 +22,7 @@ async function rvInit() {
   RV.job = S.job; RV.reads = {}; RV.sug = {}; AL.sample = null;
   const r = await fetch(`/api/suggestions/${S.job}`);
   if (r.ok) RV.sug = await r.json();
+  anFill();
   S.result.review = S.result.review || {};
   RV.calls = S.result.variants || [];
   const counts = {};
@@ -86,6 +87,36 @@ async function rvOpen(i) {
   if (RV.current === v) rvDetail(v, RV.reads[key]);
 }
 
+/* ── reading frame and regions (coding.py): codons, amino acids, replacement or silent ── */
+const EFFECT = { silent: "silent", replacement: "replacement", stop: "stop (nonsense)", "non-coding": "outside the coding stretch" };
+function rvCodon(v) {
+  const c = (S.result.coding || {})[rvKey(v)];
+  if (!c) return "";
+  const codon = c.codon_ref ? `${esc(c.codon_ref)} → ${esc(c.codon_alt)}, ${esc(c.aa_ref)}${c.codon_number}${esc(c.aa_alt)} · ` : "";
+  return `<dt>Codon</dt><dd>${codon}<b>${EFFECT[c.effect]}</b>${c.region ? ` · in ${esc(c.region)}` : ""}</dd>`;
+}
+function anFill() {
+  const a = S.result.annotation;
+  $("an-cds").value = a && a.cds ? `${a.cds[0]}-${a.cds[1]}` : "";
+  $("an-regions").value = a ? (a.regions || []).map(r => `${r.name} ${r.start}-${r.end}`).join("\n") : "";
+  $("an-summary").textContent = a ? [a.cds && `coding ${a.cds[0]}-${a.cds[1]}`, (a.regions || []).map(r => r.name).join(", ")]
+    .filter(Boolean).join(" · ") : "none: give them for a coding amplicon (a V region) to see codons, amino acids and replacement or silent calls";
+}
+async function anApply(clear) {
+  const body = clear ? {} : { cds: $("an-cds").value.trim() || null, regions: $("an-regions").value };
+  const r = await fetch(`/api/annotation/${S.job}`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                     body: JSON.stringify(body) });
+  const d = await r.json();
+  if (!r.ok) { $("an-msg").textContent = typeof d.detail === "string" ? d.detail : "could not use that"; return; }
+  S.result.annotation = d.annotation; S.result.coding = d.coding; S.result.rs_by_region = d.rs_by_region;
+  const n = Object.values(d.coding).filter(c => c.effect !== "non-coding");
+  const rr = n.filter(c => c.effect === "replacement").length, ss = n.filter(c => c.effect === "silent").length;
+  $("an-msg").textContent = d.annotation ? `${fmtInt(n.length)} calls in the coding stretch: ${fmtInt(rr)} replacement, `
+    + `${fmtInt(ss)} silent, ${fmtInt(n.length - rr - ss)} stop. Saved with the project; see also Tables → Replacement and silent.` : "Cleared.";
+  anFill(); alSize(); alDraw();
+  if (RV.current) rvDetail(RV.current, RV.reads[rvKey(RV.current)]);
+}
+
 /* the facts the detail lists; the verdict and its reasons come from the server (review.py) */
 function rvContext(v) {
   // the controls' rate for this change; older runs recorded only the highest at the position
@@ -133,6 +164,7 @@ function rvDetail(v, d) {
       <dt>Context</dt><dd class="mono">${ctxHtml}${rvHomopolymer(v) ? ` · ${v.homopolymer}-base homopolymer` : ""}${v.WRC_GYW ? " · WRC/GYW" : ""}</dd>
       <dt>Controls here</dt><dd>${bg ? `error rate ${pct(bg, 3)}, about ${(bg * v.depth).toFixed(1)} reads expected` : "no rate recorded"}</dd>
       <dt>Base quality</dt><dd>${q.length ? q.join(", ") : d ? "—" : "loading…"}</dd>
+      ${rvCodon(v)}
       <dt>Same change</dt><dd>${elsewhere.length ? elsewhere.map(x => `${esc(x.sample)} (${x.reads})`).join(", ") : "in no other sample"}</dd>
     </dl>
     ${S.result.params.platform === "sanger" ? '<div id="rv-traces" class="rv-traces"></div>' : ""}
@@ -285,6 +317,10 @@ async function rvApplySuggestions() {
 // head: ruler (0-16), reference (20-34), coverage (36-52), identity (54-64)
 const AL = { sample: null, data: null, rows: [], cw: 11, rh: 13, head: 70, gutter: 232, cov: [], mis: [],
              called: new Map(), focus: null, picked: null };
+// the standard genetic code, as coding.py has it
+const CODON_JS = (() => { const b = "TCAG", aa = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG", o = {};
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) for (let k = 0; k < 4; k++) o[b[i] + b[j] + b[k]] = aa[16 * i + 4 * j + k];
+  return o; })();
 const BASE_COLOUR = { A: "#1b9e3e", C: "#1f6fb4", G: "#d68a00", T: "#c0392b" };
 // a read's orientation against the reference, as Geneious colours it: forward and reverse
 const STRAND = { 1: { arrow: "▶", word: "forward", colour: "#4a90d9" }, [-1]: { arrow: "◀", word: "reverse", colour: "#d9694a" } };
@@ -371,6 +407,8 @@ function alZoom() {
 }
 function alSize() {
   if (!AL.data) return;
+  // two more rows under the identity graph once a reading frame or regions are given
+  AL.head = S.result.annotation ? 98 : 70;
   const span = AL.data.end - AL.data.start + 1;
   const inner = $("al-inner");
   inner.style.width = `${AL.gutter + span * AL.cw + 20}px`;
@@ -467,6 +505,28 @@ function alDraw() {
       ctx.globalAlpha = id >= 0.99 ? 0.55 : 0.9; ctx.fillRect(x(p), 55, cw, 9); ctx.globalAlpha = 1;
     }
   }
+  const ann = S.result.annotation;
+  if (ann) {                                      // amino acids on their codons, then the named regions
+    const ref = S.result.reference || "";
+    if (ann.cds) {
+      ctx.font = "600 10px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      for (let s = ann.cds[0] + 3 * Math.max(0, Math.floor((p0 - ann.cds[0]) / 3)); s + 2 <= Math.min(ann.cds[1], p1 + 2); s += 3) {
+        const aa = CODON_JS[(ref.slice(s - 1, s + 2) || "").toUpperCase()] || "?";
+        const k = (s - ann.cds[0]) / 3;
+        ctx.fillStyle = aa === "*" ? "#c0392b" : accent; ctx.globalAlpha = k % 2 ? 0.16 : 0.28;
+        ctx.fillRect(x(s), 67, 3 * cw, 12); ctx.globalAlpha = 1;
+        ctx.fillStyle = fg; if (cw * 3 >= 9) ctx.fillText(aa, x(s) + 1.5 * cw, 73);
+      }
+    }
+    const pal = ["#6a4c93", "#2a7f8f", "#b07a1e", "#3c7d4f", "#c2185b", "#5d6d7e"];
+    (ann.regions || []).forEach((rg, i) => {
+      const a = Math.max(rg.start, p0), b = Math.min(rg.end, p1);
+      if (b < a) return;
+      ctx.fillStyle = pal[i % pal.length]; ctx.globalAlpha = 0.75; ctx.fillRect(x(a), 81, (b - a + 1) * cw, 11); ctx.globalAlpha = 1;
+      ctx.fillStyle = "#fff"; ctx.font = "600 9px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.fillText(rg.name, x(a) + 3, 86.5);
+    });
+  }
   ctx.restore();
   ctx.fillStyle = line; ctx.fillRect(0, head - 5, W, 1);
 
@@ -475,6 +535,7 @@ function alDraw() {
   ctx.fillStyle = muted; ctx.font = "600 10px system-ui, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   ctx.fillText("ruler", 6, 11); ctx.fillText("reference", 6, 31);
   ctx.fillText(`coverage (max ${fmtInt(AL.covMax || 0)})`, 6, 48); ctx.fillText("identity", 6, 63);
+  if (S.result.annotation) { ctx.fillText("amino acids", 6, 76); ctx.fillText("regions", 6, 90); }
 
   ctx.save(); ctx.beginPath(); ctx.rect(0, head - 2, G, H); ctx.clip();
   ctx.textBaseline = "middle";

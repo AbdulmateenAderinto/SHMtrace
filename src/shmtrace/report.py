@@ -83,6 +83,7 @@ def tables(res: dict) -> dict[str, str]:
         "samples.csv": _rows_csv(res["samples"], SAMPLE_COLUMNS),
         "groups.csv": _rows_csv(res["groups"]),
         "variants.csv": _variants_csv(res),
+        **({"rs_by_region.csv": _rows_csv(res["rs_by_region"])} if res.get("rs_by_region") else {}),
         **({"indels.csv": _rows_csv(res["indels"])} if res.get("indels") else {}),
         "spectrum.csv": _rows_csv(spec_rows),
         "positional_frequency.csv": _rows_csv(res["positional"]),

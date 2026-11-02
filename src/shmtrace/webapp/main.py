@@ -826,6 +826,28 @@ def chromatogram_window(job_id: str, sample: str, clone: str, pos: int, flank: i
         raise HTTPException(400, str(exc)) from None
 
 
+@app.post("/api/annotation/{job_id}")
+def annotation_set(job_id: str, payload: dict):
+    """The coding stretch and named regions of the reference (coding.py): {"cds": "1-366",
+    "regions": "FR1 1-75\\nCDR1 76-99"}; an empty payload clears them. Saved with the project."""
+    from .. import coding
+    res = _result(job_id)
+    try:
+        res["annotation"] = coding.parse(payload, len(res.get("reference") or ""))
+    except (ValueError, TypeError, KeyError) as exc:
+        raise HTTPException(400, str(exc)) from None
+    coding.apply(res)
+    folder = (JOBS.get(job_id) or {}).get("folder")
+    if folder:
+        from .. import session
+        try:
+            session.write_annotation(Path(folder), res)
+        except OSError:
+            pass
+    return {"annotation": res.get("annotation"), "coding": res.get("coding") or {},
+            "rs_by_region": res.get("rs_by_region") or []}
+
+
 REVIEW_MARKS = ("accepted", "rejected", "unsure", "")
 
 

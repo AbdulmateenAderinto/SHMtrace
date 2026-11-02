@@ -313,6 +313,20 @@
       <button class="btn small ghost" onclick="alExtract(AL.rows.map(r => r.name))"
               title="Every read the strip is showing, after the search and filter (.fastq)">Extract the reads shown</button>
     </div>
+    <details class="an-box" id="an-box">
+      <summary>Reading frame and regions <span class="hint" id="an-summary">none: give them for a coding amplicon
+        (a V region) to see codons, amino acids and replacement or silent calls</span></summary>
+      <div class="row" style="align-items:flex-start;margin-top:8px">
+        <div><label for="an-cds">Coding stretch (its first base starts codon 1)</label>
+          <input type="text" id="an-cds" placeholder="e.g. 22-381" style="width:160px"></div>
+        <div style="flex:1;min-width:220px"><label for="an-regions">Named regions, one per line</label>
+          <textarea id="an-regions" rows="4" placeholder="FR1 22-96&#10;CDR1 97-120&#10;FR2 121-171"></textarea></div>
+        <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:6px">
+          <button class="btn small" onclick="anApply()">Apply</button>
+          <button class="btn small ghost" onclick="anApply(true)">Clear</button></div>
+      </div>
+      <p class="hint" id="an-msg"></p>
+    </details>
     <div class="al-scroll" id="al-scroll"><div id="al-inner"><canvas id="al-canvas"></canvas></div></div>
     <p class="hint" id="al-status"></p>
     <div id="al-read" class="al-read"></div>
