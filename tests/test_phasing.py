@@ -133,3 +133,69 @@ def test_flag_mode_never_drops():
     known = [[(pos, alt) for pos, alt in BLOCK.items()]]
     kept, stats = partition(reads, REF, Params(phase_mode="flag"), 0, 199, known_blocks=known)
     assert len(kept) == 100
+
+
+def test_the_cap_is_weighed_block_by_block():
+    """One block over the cap no longer keeps another, clearer one in the library."""
+    big = {i: "T" for i in range(10, 130, 10)}            # 12 sites, 30% of reads
+    small = {135: "A", 145: "A", 155: "A", 165: "A", 175: "A"}   # 5 sites, 25%
+    reads = [read({}) for _ in range(450)] + [read(big) for _ in range(300)] + [read(small) for _ in range(250)]
+    kept, stats = partition(reads, REF, DROP, 0, 199)
+    assert stats["reads_dropped_minor"] == 300, stats["reason"]
+    assert len(kept) == 700
+    acts = {b["n_sites"]: b["action"] for b in stats["blocks"]}
+    assert acts == {12: "drop", 5: "kept (cap)"}, acts
+    assert "cap" in stats["reason"]
+
+
+def test_partial_carriers_of_a_large_dropped_block_go_too():
+    """A chimera with half of a 20-site block is under the carrier score, not real."""
+    block = {i: "T" for i in range(10, 200, 10)}         # 19 sites
+    half = {k: v for j, (k, v) in enumerate(block.items()) if j < 11}
+    reads = [read({}) for _ in range(380)] + [read(block) for _ in range(100)] + [read(half) for _ in range(20)]
+    kept, stats = partition(reads, REF, DROP, 0, 199)
+    assert len(kept) == 380, stats
+
+
+@dataclass
+class JRead:
+    """A read that reads into the V(D)J junction just 5' of reference position 1."""
+    pairs: list
+    qname: str
+    seq: str
+    r_st: int = 0
+    q_st: int = 20
+
+
+def _jread(i, alts, junction):
+    return JRead(read(alts).pairs, f"r{i}", junction + REF)
+
+
+def _junction(k):
+    # twenty bases, each one far (> 3 edits) from every other k
+    import random
+    rnd = random.Random(k)
+    return "".join(rnd.choice("ACGT") for _ in range(20))
+
+
+def test_a_block_carried_by_many_junctions_is_dropped_in_auto_mode():
+    block = {10: "T", 20: "T", 30: "T", 40: "T", 50: "T"}
+    p = Params(phase_mode="auto", junction_ref_start=1)
+    reads = [_jread(i, {}, _junction(1000 + i)) for i in range(160)] + \
+            [_jread(200 + i, block, _junction(i)) for i in range(40)]
+    kept, stats = partition(reads, REF, p, 0, 199)
+    assert len(kept) == 160, stats
+    assert stats["blocks"][0]["junctions"]["junctions"] >= 30
+    assert "junctions" in stats["blocks"][0]["why"]
+
+
+def test_a_block_held_by_one_clone_is_kept_and_named_a_clone():
+    block = {10: "T", 20: "T", 30: "T", 40: "T", 50: "T"}
+    p = Params(phase_mode="auto", junction_ref_start=1)
+    clone = _junction(7)
+    reads = [_jread(i, {}, _junction(1000 + i)) for i in range(160)] + \
+            [_jread(200 + i, block, clone) for i in range(40)]
+    kept, stats = partition(reads, REF, p, 0, 199)
+    assert len(kept) == 200
+    b = stats["blocks"][0]
+    assert b["action"] == "flag" and "expanded clone" in b["why"], b

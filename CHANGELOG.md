@@ -6,7 +6,41 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- The desktop app showed one Dock icon per worker process (ten while a run was going).
+  The app was built with argv emulation, which registers every process started from
+  the bundle as an app; SHMtrace opens no documents from Finder, so it is now off.
+- Phasing let a confirmed non-hypermutation block through in three ways, each now closed:
+  - the `phase_max_drop` cap (45%) was applied to all of a library's blocks together, so
+    one large block kept every other in. It is now weighed block by block, the block
+    with the most sites first, and a block that would pass the cap is kept and says so.
+    On a raw J꜀4 run a control kept a 58-site paralogue block in a quarter of its reads
+    this way, and its background hid every call in the run;
+  - a block confirmed as not hypermutation but kept for the cap now has its own sites
+    left out of calling, as germline (it had been called at about 44% of reads);
+  - a read carrying ten or more sites of a dropped block (a chimera, or a read too short
+    for most of them) is dropped with it.
+- Block search counted sites already in a found block against its ten seeds, so a block
+  of ten or more sites hid every rarer one in the library.
+- The contaminant-allele check ignored every site where a fifth of a library's reads
+  carried the contaminant base, so a library a fifth or more paralogue (four Sanger clones
+  in twenty, or 26% of one raw nanopore control) kept all its paralogue reads.
+  `contaminant_germline_frac` is now 0.5, the caller's own germline cut. The bundled
+  nanopore and Sanger sample data give the same results as before.
+
 ### Added
+- Phasing reads the V(D)J junction where the amplicon has one (J꜀4): a block carried by
+  reads of many unrelated junctions cannot be hypermutation and is dropped even when no
+  other sample has it; a block held by one clone is kept and named as an expanded clone.
+  Every block's junction spread is in its phasing record, and the run notes say when a
+  block was dropped for this or kept because of the cap.
+- The reads downsampling left out: each call in Check calls also gives its count over
+  every usable read (and `variants.csv` gains `reads_all_usable` and
+  `depth_all_usable`), and the read strip can show those reads, faded, after the
+  analysed ones (**Reads left out by downsampling**).
+- A run note when every read of a library runs the same way along the reference: the
+  reads were oriented before SHMtrace saw them (the nanopore sample data are Geneious
+  exports of assembled reads), so the orientation shown is not the sequenced one.
 - Hand edits to Sanger base calls (`edits.py`, `/api/edits/<job>`): click a base
   in a trace, correct it with a note, and run again; the edited clones are read
   from corrected copies of their base calls, and the new run lists the edits.

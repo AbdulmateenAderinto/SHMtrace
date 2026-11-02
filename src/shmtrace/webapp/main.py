@@ -753,7 +753,7 @@ def alignment(job_id: str, sample: str, start: int = 1, end: int | None = None,
                                  "tick 'Keep the read alignment' and run again")
     want = {f for f in fates.split(",") if f} if fates else None
     return browse.window(data, start=max(1, start), end=end, fates=want,
-                         offset=max(0, offset), limit=min(2000, max(1, limit)))
+                         offset=max(0, offset), limit=min(10000, max(1, limit)))
 
 
 @app.get("/api/call-reads/{job_id}/{sample}")

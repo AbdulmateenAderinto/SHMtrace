@@ -13,6 +13,10 @@ calling threshold, which is why they are marked control=yes in sheet.csv.
   Contaminant: JH4_contaminant.fasta
   Preset:      jh4_intron
 
+The reads are a Geneious export of reads assembled to J꜀4, so Geneious has
+already turned every read to the reference: they all show as forward in Check
+calls, and the run notes say so. Raw reads come in both orientations.
+
 Two sheets, for two different tools:
 
   sheet.csv    the SHMtrace sample sheet (file,sample,group,control), read by

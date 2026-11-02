@@ -18,6 +18,8 @@ reads cheap enough to send to a browser.
 """
 from __future__ import annotations
 
+from collections import Counter
+
 from .io_utils import read_fasta
 
 # how a read left the pipeline, in the order the stages run. The browser
@@ -47,6 +49,30 @@ def _diffs(pairs, ref: str, minq: int = 0) -> list:
     return out
 
 
+def read_rows(aligned, ref: str, fate: str = "kept") -> list[dict]:
+    """Aligned reads as the browser draws them: span, orientation, differences, indels."""
+    return [{"name": a.qname, "fate": fate, "start": a.r_st + 1,
+             "end": a.r_en, "strand": getattr(a, "strand", 1),
+             "diffs": _diffs(a.pairs, ref),
+             "indels": [[pos + 1, op, (x if isinstance(x, str) else int(x))]
+                        for pos, op, x, _q in getattr(a, "indels", ())]}
+            for a in aligned]
+
+
+# reads left out by downsampling that are kept for a person to look at, per sample
+UNDRAWN_MAX = 8000
+
+
+def add_undrawn(data: dict, undrawn, ref: str) -> None:
+    """Put the usable reads that downsampling did not draw into a sample's alignment as
+    "not sampled" rows with their differences, in place of any recorded without them."""
+    rows = read_rows(undrawn[:UNDRAWN_MAX], ref, "not sampled")
+    data["reads"] = [r for r in data["reads"] if r["fate"] != "not sampled"] + rows
+    data["reads"].sort(key=lambda r: (FATE_ORDER.get(r["fate"], 99), r["start"], r["name"]))
+    data["counts"] = dict(Counter(r["fate"] for r in data["reads"]))
+    data["undrawn_truncated"] = max(0, len(undrawn) - UNDRAWN_MAX)
+
+
 def alignment(aligned, fates: dict, reference: str, variants=None,
               max_reads: int = 4000) -> dict:
     """One sample's reads, kept and dropped, ready to draw.
@@ -58,13 +84,7 @@ def alignment(aligned, fates: dict, reference: str, variants=None,
     read is evidence about the result.
     """
     ref_name, ref = read_fasta(reference)[0]
-    rows = []
-    for a in aligned:
-        rows.append({"name": a.qname, "fate": "kept", "start": a.r_st + 1,
-                     "end": a.r_en, "strand": getattr(a, "strand", 1),
-                     "diffs": _diffs(a.pairs, ref),
-                     "indels": [[pos + 1, op, (x if isinstance(x, str) else int(x))]
-                                for pos, op, x, _q in getattr(a, "indels", ())]})
+    rows = read_rows(aligned, ref)
     for name, rec in fates.items():
         row = {"name": name, "fate": rec.get("fate", "dropped"),
                "start": (rec.get("r_st", 0) or 0) + 1, "end": rec.get("r_en") or 0,

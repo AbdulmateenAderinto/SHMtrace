@@ -296,6 +296,8 @@
         <option value="4">Far</option><option value="7">Medium</option>
         <option value="11" selected>Bases</option><option value="15">Close</option></select></label>
       <label class="hint"><input type="checkbox" id="al-noise" checked onchange="alDraw()"> Uncalled mismatches</label>
+      <label class="hint" id="al-undrawn-wrap" hidden
+             title="The usable reads that downsampling to a common depth did not draw. They are not part of the analysis; they are shown, faded and after the analysed reads, for what more they say about a call."><input type="checkbox" id="al-undrawn" onchange="alSort(); alSize(); alDraw(); alReadPanel()"> Reads left out by downsampling</label>
     </div>
     <div class="row al-find" style="align-items:center;margin-top:8px">
       <label class="hint">Go to <input type="number" id="al-goto" min="1" placeholder="position" style="width:100px"

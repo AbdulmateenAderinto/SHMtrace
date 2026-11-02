@@ -657,6 +657,61 @@ def run_matched_peers(samples: list[dict], controls: set, run_check: dict | None
     return peers, how
 
 
+def full_counts(reads, variants, p) -> dict:
+    """{"<pos><alt>": [reads carrying it, reads covering pos]} over `reads`, counted as the
+    pileup counts (bases at or above the quality gate, read ends trimmed by read_end_margin_bp),
+    so that over the analysed reads it gives each call's own reads and depth."""
+    from .align import pair_window
+    from .variants import gate_quality
+    want = {(v.pos - 1, v.alt) for v in variants}
+    at = {k[0] for k in want}
+    minq = gate_quality(p)
+    depth, carry = Counter(), Counter()
+    for r in reads:
+        for rp, base, q in pair_window(r, p.read_end_margin_bp)[0]:
+            if rp in at and base in "ACGT" and q >= minq:
+                depth[rp] += 1
+                if (rp, base) in want:
+                    carry[(rp, base)] += 1
+    return {f"{pos + 1}{alt}": [carry[(pos, alt)], depth[pos]] for pos, alt in sorted(want)}
+
+
+def phasing_notes(stats: dict, reads: dict) -> list[str]:
+    """What phasing removed and kept that a reader should know: a block dropped for being
+    carried by many clones, and a block it could not drop without passing phase_max_drop."""
+    out = []
+    for name, st in stats.items():
+        for bl in st.get("blocks") or []:
+            jx = bl.get("junctions") or {}
+            if bl.get("action") == "drop" and "junctions" in bl.get("why", "") and jx:
+                out.append(f"{name}: {bl['reads']} reads sharing a {bl['n_sites']}-site block were removed; "
+                           f"they come from {jx['junctions']} different V(D)J junctions, so the block is "
+                           "a second haplotype, paralogue or contaminant, not hypermutation.")
+            elif bl.get("action") == "kept (cap)":
+                n = st.get("aligned_before_phasing") or (len(reads.get(name) or []) + st.get("reads_dropped_minor", 0))
+                out.append(f"{name}: a {bl['n_sites']}-site block in {bl['reads']} of {n} reads is not "
+                           "hypermutation but was kept, since removing it would take the library past the "
+                           "phasing cap; its sites are not called. Check the library for a second allele "
+                           "or contamination.")
+    return out
+
+
+def orientation_notes(reads: dict, min_reads: int = 50) -> list[str]:
+    """Libraries whose reads all run one way. An amplicon library as sequenced comes in both
+    orientations (about half each on Nanopore); all one way means the reads were turned to the
+    reference before SHMtrace saw them (Geneious exports the reads it assembled like that),
+    so the orientation shown is not the one they were sequenced in, and strand checks have
+    nothing to compare."""
+    one = sorted(n for n, al in reads.items()
+                 if len(al) >= min_reads and len({getattr(a, "strand", 1) for a in al}) == 1)
+    if not one:
+        return []
+    return [f"Every read of {', '.join(one)} runs the same way along the reference. Reads as sequenced "
+            "come in both orientations, so these were probably oriented before they reached SHMtrace "
+            "(Geneious exports reads it has assembled that way): the orientation shown in Check calls "
+            "is not the sequenced one, and strand-bias checks cannot be made."]
+
+
 def run_notes(run_check: dict, per_sample: list[dict]) -> list[str]:
     """Project notes from run_compatibility; marks each mismatched case's own warnings."""
     notes: list[str] = []
@@ -911,6 +966,14 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         for v in vcfs:
             germ |= vcf_sites(v)
         germ_src = ("the germline VCF " + " and ".join(os.path.basename(v) for v in vcfs)) if vcfs else germ_from
+        # a block phasing found not to be hypermutation but had to keep (phase_max_drop): its
+        # reads stay in, and its own sites are not called, as a second allele's would not be
+        capped = {(pos - 1, alt) for bl in b["stats"][name].get("blocks") or []
+                  if bl.get("action") == "kept (cap)" for pos, alt in bl["sites"]}
+        if capped:
+            germ |= capped
+            germ_src = " and ".join(x for x in (germ_src, "a co-occurring block phasing could not remove "
+                                                "without taking more than the cap of the reads") if x)
         null = nulls.get(peers) if (p.error_model != "geneious" and not sanger and peers) else None
         reads, drawn = b["reads"][name], None
         if not saturation_depths:
@@ -955,8 +1018,26 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         per_sample.append(out["metrics"])
         details[name] = out["res"]
 
+    # the usable reads downsampling did not draw: kept for Check calls to show beside the
+    # analysed ones, and every call counted over all of them as well (full_counts)
+    full_set: dict = {}
+    if not sanger and depth:
+        for s in samples:
+            name = s["name"]
+            usable = b["reads"][name]
+            analysed = {a.qname for a in details[name]["_aligned"]}
+            if len(usable) <= len(analysed):
+                continue
+            undrawn = [a for a in usable if a.qname not in analysed]
+            for data in (call_reads.get(name), alignments.get(name)):
+                if data is not None:
+                    browse.add_undrawn(data, undrawn, ref)
+            full_set[name] = {"usable": len(usable), "analysed": len(analysed),
+                              "calls": full_counts(usable, details[name]["variants"], p)}
+
     progress(0.92, "summarising")
-    notes = setup_notes + list(vcf_notes)
+    notes = setup_notes + list(vcf_notes) + phasing_notes(b["stats"], b["reads"]) \
+        + ([] if sanger else orientation_notes(b["reads"]))
     # Sanger: what the AID-null clones say the background is, and how much of each library's
     # calls it accounts for. The calls are not changed by this; it is the scale against which
     # they should be read, as the nanopore path measures its background from the same controls.
@@ -1191,6 +1272,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "reference": ref,
         "hotspots": hotspots,
         "group_order": list(dict.fromkeys(gmap[s["name"]] for s in samples)),
+        # per downsampled sample: every call counted over all its usable reads too
+        "full_set": full_set,
         "_details": details,
         "_alignments": alignments,
         # the analysed reads of every sample, for checking calls (webapp /api/call-reads)

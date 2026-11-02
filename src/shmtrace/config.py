@@ -55,7 +55,10 @@ class Params:
     # 11-62 (docs/calibration/QUANT_ACCURACY.md).
     contaminant_allele_frac: float = 0.5
     contaminant_min_alleles: int = 10
-    contaminant_germline_frac: float = 0.2
+    # Raised from 0.2 in November 2026: a library a fifth or more paralogue (a control on
+    # a raw J꜀4 run, 26%; four clones in twenty) ignored every paralogue site as germline and
+    # kept every paralogue read. 0.5 is the germline cut the caller itself applies.
+    contaminant_germline_frac: float = 0.5
 
     # ---- UMI consensus (umi.py) --------------------------------------------
     # "off", "flank" (UMI next to an anchor at a read end) or "header" (in the

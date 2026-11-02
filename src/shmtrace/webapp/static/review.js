@@ -161,6 +161,7 @@ function rvDetail(v, d) {
     <dl class="kv rv-kv">
       <dt>Supporting reads</dt><dd>${fmtInt(v.reads)} of ${fmtInt(v.depth)} (${pct(v.frequency)}) ·
         ${v.plus_reads} forward, ${v.minus_reads} reverse</dd>
+      ${rvFullSet(v)}
       <dt>P</dt><dd>${v.p_value == null ? "—" : v.p_value < 1e-4 ? v.p_value.toExponential(1) : v.p_value.toFixed(4)}</dd>
       <dt>Context</dt><dd class="mono">${ctxHtml}${rvHomopolymer(v) ? ` · ${v.homopolymer}-base homopolymer` : ""}${v.WRC_GYW ? " · WRC/GYW" : ""}</dd>
       <dt>Controls here</dt><dd>${bg ? `error rate ${pct(bg, 3)}, about ${(bg * v.depth).toFixed(1)} reads expected` : "no rate recorded"}</dd>
@@ -395,6 +396,15 @@ async function rvApplySuggestions() {
   rvList();
 }
 
+// the call over every usable read, where downsampling drew only some of them (project.full_counts)
+function rvFullSet(v) {
+  const f = (S.result.full_set || {})[v.sample], c = f && f.calls[`${v.pos}${v.alt}`];
+  if (!c) return "";
+  return `<dt>All usable reads</dt><dd>${fmtInt(c[0])} of ${fmtInt(c[1])}${c[1] ? ` (${pct(c[0] / c[1])})` : ""}
+    <span class="muted">· the analysis drew ${fmtInt(f.analysed)} of the ${fmtInt(f.usable)} usable reads;
+    the call and its test rest on those; this counts every usable read, for comparison</span></dd>`;
+}
+
 /* ── the alignment strip: every analysed read of a sample, base by base, scrolling sideways ── */
 // head: ruler (0-16), reference (20-34), coverage (36-52), identity (54-64)
 const AL = { sample: null, data: null, rows: [], cw: 11, rh: 13, head: 70, gutter: 232, cov: [], mis: [],
@@ -415,7 +425,10 @@ async function alShow(v) {
     $("al-title").textContent = `${v.sample}: reads against the reference`;
     $("al-status").textContent = "Loading the reads…";
     const len = S.result.params.reference_length;
-    const q = new URLSearchParams({ start: 1, end: len, fates: "kept", limit: 2000 });
+    // with the reads downsampling left out, where the run kept them (full_set), shown on request
+    const full = (S.result.full_set || {})[v.sample];
+    $("al-undrawn-wrap").hidden = !full;
+    const q = new URLSearchParams({ start: 1, end: len, fates: full ? "kept,not sampled" : "kept", limit: 10000 });
     const r = await fetch(`/api/alignment/${S.job}/${encodeURIComponent(v.sample)}?${q}`);
     if (AL.sample !== v.sample) return;
     AL.data = r.ok ? await r.json() : null;
@@ -439,6 +452,7 @@ function alTracks() {
   const d = AL.data, n = d.end - d.start + 1;
   AL.cov = new Array(n).fill(0); AL.mis = new Array(n).fill(0);
   for (const r of d.reads) {
+    if (r.fate !== "kept") continue;          // the graphs describe the analysed reads
     for (let p = Math.max(r.start, d.start); p <= Math.min(r.end, d.end); p++) AL.cov[p - d.start]++;
     for (const [p] of r.diffs) if (p >= d.start && p <= d.end) AL.mis[p - d.start]++;
     for (const [p, op, len] of r.indels || []) if (op === "D")
@@ -451,10 +465,14 @@ function alSort() {
   if (!AL.data) return;
   const v = AL.focus, by = $("al-sort").value;
   const calledIn = (r) => r.diffs.filter(d => AL.called.get(d[0])?.has(d[1])).length;
-  AL.rows = [...AL.data.reads].sort(by === "start" ? (a, b) => a.start - b.start
+  const undrawn = $("al-undrawn").checked && !$("al-undrawn-wrap").hidden;
+  const order = by === "start" ? (a, b) => a.start - b.start
     : by === "most" ? (a, b) => calledIn(b) - calledIn(a) || a.start - b.start
     : by === "strand" ? (a, b) => (b.strand || 1) - (a.strand || 1) || a.start - b.start
-    : (a, b) => alCarries(b, v) - alCarries(a, v) || calledIn(b) - calledIn(a) || a.start - b.start);
+    : (a, b) => alCarries(b, v) - alCarries(a, v) || calledIn(b) - calledIn(a) || a.start - b.start;
+  // the analysed reads first, then (when asked for) the ones downsampling did not draw
+  AL.rows = AL.data.reads.filter(r => r.fate === "kept" || undrawn)
+    .sort((a, b) => (a.fate !== "kept") - (b.fate !== "kept") || order(a, b));
   const n = v ? AL.rows.filter(r => alCarries(r, v)).length : 0;
   // what to show: a name search and a filter, both narrowing the reads already ordered
   const q = ($("al-name").value || "").trim().toLowerCase(), f = $("al-filter").value;
@@ -464,9 +482,13 @@ function alSort() {
     && (f === "called" ? hasCall(r) : f === "clean" ? !hasCall(r) : f === "focus" ? alCarries(r, v)
       : f === "fwd" ? (r.strand || 1) > 0 : f === "rev" ? r.strand < 0 : true));
   const fwd = AL.rows.filter(r => (r.strand || 1) > 0).length;
+  const nk = AL.data.reads.filter(r => r.fate === "kept").length, nu = AL.data.reads.length - nk;
+  const shownU = AL.rows.filter(r => r.fate !== "kept").length;
   $("al-status").innerHTML = (AL.rows.length < all ? `Showing ${fmtInt(AL.rows.length)} of ` : "")
-    + `${fmtInt(all)} analysed reads${AL.data.total > all ? ` of ${fmtInt(AL.data.total)}` : ""}`
-    + (AL.data.total > all ? " (the first 2,000 by position)" : "")
+    + `${fmtInt(nk)} analysed reads` + (nu ? (undrawn ? ` + ${fmtInt(nu)} left out by downsampling`
+      : ` (${fmtInt(nu)} more left out by downsampling can be shown)`) : "")
+    + (AL.data.total > AL.data.reads.length ? ` (the first ${fmtInt(AL.data.reads.length)} of ${fmtInt(AL.data.total)})` : "")
+    + (shownU ? `, those faded and after the analysed ones` : "")
     + ` · <span class="al-key" style="color:${STRAND[1].colour}">▶ ${fmtInt(fwd)} forward</span>`
     + ` · <span class="al-key" style="color:${STRAND[-1].colour}">◀ ${fmtInt(AL.rows.length - fwd)} reverse</span>`
     + (v ? ` · ${fmtInt(n)} carry ${esc(v.ref)}${v.pos}${esc(v.alt)}` : "")
@@ -536,11 +558,11 @@ function alDraw() {
   ctx.save(); ctx.beginPath(); ctx.rect(G, head - 2, W - G, H); ctx.clip();
   ctx.font = `${Math.min(12, cw)}px ui-monospace, Menlo, monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (let i = r0; i < r1; i++) {
-    const r = AL.rows[i], yy = y(i), st = strandOf(r);
+    const r = AL.rows[i], yy = y(i), st = strandOf(r), fade = r.fate === "kept" ? 1 : 0.4;
     if (AL.picked === r.name) { ctx.fillStyle = accent; ctx.globalAlpha = 0.22; ctx.fillRect(G, yy, W - G, rh); ctx.globalAlpha = 1; }
     const a = Math.max(r.start, p0), b = Math.min(r.end, p1);
     if (b >= a) {
-      ctx.fillStyle = st.colour; ctx.globalAlpha = 0.28; ctx.fillRect(x(a), yy + 1, (b - a + 1) * cw, rh - 2); ctx.globalAlpha = 1;
+      ctx.fillStyle = st.colour; ctx.globalAlpha = 0.28 * fade; ctx.fillRect(x(a), yy + 1, (b - a + 1) * cw, rh - 2); ctx.globalAlpha = 1;
       // the read's leading end points the way it was sequenced
       ctx.fillStyle = st.colour;
       if (r.strand < 0 && r.start >= p0) { ctx.beginPath(); ctx.moveTo(x(r.start) - 5, yy + rh / 2); ctx.lineTo(x(r.start), yy + 1); ctx.lineTo(x(r.start), yy + rh - 1); ctx.fill(); }
@@ -550,7 +572,7 @@ function alDraw() {
       if (p < p0 || p > p1) continue;
       const called = AL.called.get(p)?.has(base);
       if (!called && !noise) continue;
-      ctx.globalAlpha = called ? 1 : 0.35 + 0.4 * Math.min(1, q / 40);
+      ctx.globalAlpha = fade * (called ? 1 : 0.35 + 0.4 * Math.min(1, q / 40));
       ctx.fillStyle = called ? BASE_COLOUR[base] || fg : "#8a919c";
       ctx.fillRect(x(p), yy + 1, cw, rh - 2);
       if (letters) { ctx.fillStyle = "#fff"; ctx.fillText(base, x(p) + cw / 2, yy + rh / 2 + 0.5); }
@@ -626,7 +648,9 @@ function alDraw() {
     if (picked) { ctx.fillStyle = accent; ctx.globalAlpha = 0.22; ctx.fillRect(0, yy, G, rh); ctx.globalAlpha = 1; }
     else if (v && alCarries(r, v)) { ctx.fillStyle = accent; ctx.globalAlpha = 0.08; ctx.fillRect(0, yy, G, rh); ctx.globalAlpha = 1; }
     ctx.font = "10px ui-monospace, Menlo, monospace";
-    ctx.fillStyle = muted; ctx.fillText(String(i + 1), 6, yy + rh / 2);
+    ctx.fillStyle = muted;
+    if (r.fate === "kept") ctx.fillText(String(i + 1), 6, yy + rh / 2);
+    else { ctx.font = "italic 8px system-ui, sans-serif"; ctx.fillText("not drawn", 4, yy + rh / 2); }
     ctx.fillStyle = st.colour; ctx.font = "11px system-ui, sans-serif"; ctx.fillText(st.arrow, 46, yy + rh / 2);
     ctx.fillStyle = picked ? fg : muted; ctx.font = `${picked ? "600 " : ""}10px ui-monospace, Menlo, monospace`;
     let name = r.name;
@@ -650,7 +674,7 @@ function alReadPanel() {
   const el = $("al-read");
   const r = AL.picked && AL.data && AL.rows.find(x => x.name === AL.picked);
   if (!r) { el.innerHTML = '<p class="hint">Click a read in the strip to see its name, orientation and mismatches, and to extract it.</p>'; return; }
-  const st = strandOf(r), i = AL.rows.indexOf(r) + 1;
+  const st = strandOf(r), i = AL.rows.indexOf(r) + 1, drawn = r.fate === "kept";
   const calls = r.diffs.filter(d => AL.called.get(d[0])?.has(d[1]));
   const other = r.diffs.filter(d => !AL.called.get(d[0])?.has(d[1]));
   const sanger = S.result.params.platform === "sanger";
@@ -660,7 +684,7 @@ function alReadPanel() {
   }).join(", ");
   el.innerHTML = `
     <div class="al-read-head">
-      <b>Read ${fmtInt(i)} of ${fmtInt(AL.rows.length)}</b>
+      <b>${drawn ? `Read ${fmtInt(i)} of ${fmtInt(AL.rows.length)}` : "A read downsampling did not draw: not part of the analysis"}</b>
       <code class="al-name" title="the read's name in the input file">${esc(r.name)}</code>
       <button class="btn small ghost" onclick="alCopyName()">Copy name</button>
       <button class="btn small ghost" onclick="alExtract([AL.picked], 'fastq')">Extract read (.fastq)</button>

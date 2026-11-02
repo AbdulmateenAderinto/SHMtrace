@@ -197,6 +197,14 @@ it; **Find read** narrows the strip to reads whose name contains the text; and
 carrying the selected call, or one orientation. **Extract the reads shown**
 saves whatever the strip is showing after those choices.
 
+Where the run downsampled a library to a common depth, a call also gives **All
+usable reads**: how many of every usable read of the library carry it, beside the
+analysed reads the call and its test rest on. Ticking **Reads left out by
+downsampling** adds those reads to the strip, faded, marked *not drawn* and after
+the analysed ones; the coverage and identity graphs stay those of the analysed
+reads. `variants.csv` has the same counts as `reads_all_usable` and
+`depth_all_usable`.
+
 Two graphs sit under the reference, as in Geneious: **coverage**, the analysed
 reads covering each position, and **identity**, the share of them that read the
 reference base there (green at 99% or more, amber from 90%, red below). A column
@@ -208,6 +216,9 @@ A column on the left numbers the reads and gives each one's orientation and name
 as Geneious does: ▶ (blue) for a read sequenced along the reference, ◀ (red) for
 one sequenced against it and reverse-complemented to align; the bar itself takes
 the same colour and its leading end points the way the read was sequenced.
+Reads that reach SHMtrace already turned to the reference (Geneious exports the
+reads it has assembled that way, as in the nanopore sample data) all show ▶; the
+run notes say so when every read of a library runs one way.
 Clicking a read highlights it and shows its name, orientation, aligned span, the
 called mutations it carries (each opens its call), the mismatches that were not
 called, and its indels. **Copy name** copies the read's name; **Extract read**
@@ -771,11 +782,15 @@ without controls or without indel calling simply shows fewer of them.
   control besides the sample, and it cannot see 1-bp deletions inside
   homopolymers or indels carried by fewer than three reads. See
   `docs/calibration/INDELS.md`.
-- **Clonality and lineage.** There is no clone calling, no lineage tree and no
-  mutation-sharing analysis. The app flags a block of co-occurring positions
-  that could be a second haplotype or an expanded clone, and leaves it in unless
-  the same block also appears in a control or in another animal, but it does not
-  tell you how many clones there are or how they are related.
+- **Clonality and lineage.** There is no lineage tree and no mutation-sharing
+  analysis. A block of co-occurring positions that could be a second haplotype or
+  an expanded clone is dropped when the same block also appears in a control or
+  another animal, or (where the amplicon reads into the V(D)J junction, as J꜀4
+  does) when its reads come from many different junctions; a block held by one
+  junction is kept as an expanded clone. Without a junction, a block seen in one
+  animal only is kept and flagged. Phasing never removes more than 45% of a
+  library's reads: a confirmed block it cannot remove within that is kept, its
+  sites are not called, and the run notes say so.
 - **AIRR export.** There is no AIRR Community rearrangement output, and no V, D
   or J gene assignment. The reference is whatever FASTA you supply, not a
   germline database.

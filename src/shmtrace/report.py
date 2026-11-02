@@ -51,15 +51,24 @@ def _rows_csv(rows: list[dict], columns: list[str] | None = None) -> str:
 def _variants_csv(res: dict) -> str:
     """variants.csv, with the review mark of each call once anything has been reviewed."""
     review = res.get("review") or {}
+    full = res.get("full_set") or {}
+    rows, cols = list(res["variants"]), list(VARIANT_COLUMNS)
+    if full:
+        # where downsampling drew only some reads: the call over every usable read as well
+        def whole(v):
+            c = ((full.get(v["sample"]) or {}).get("calls") or {}).get(f"{v['pos']}{v['alt']}")
+            return {"reads_all_usable": c[0], "depth_all_usable": c[1]} if c else {}
+        rows = [{**v, **whole(v)} for v in rows]
+        cols += ["reads_all_usable", "depth_all_usable"]
     if not review:
-        return _rows_csv(res["variants"], VARIANT_COLUMNS)
+        return _rows_csv(rows, cols)
     from .geneious import review_key
     from .review import cached
     sug = cached(res)
     rows = [{**v, "review": (review.get(review_key(v)) or {}).get("mark", ""),
              "review_note": (review.get(review_key(v)) or {}).get("note", ""),
-             "suggestion": (sug.get(review_key(v)) or {}).get("suggestion", "")} for v in res["variants"]]
-    return _rows_csv(rows, VARIANT_COLUMNS + ["review", "review_note", "suggestion"])
+             "suggestion": (sug.get(review_key(v)) or {}).get("suggestion", "")} for v in rows]
+    return _rows_csv(rows, cols + ["review", "review_note", "suggestion"])
 
 
 def tables(res: dict) -> dict[str, str]:

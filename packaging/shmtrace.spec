@@ -35,7 +35,7 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="shmtrace",
-          console=False, disable_windowed_traceback=False, argv_emulation=sys.platform == "darwin")
+          console=False, disable_windowed_traceback=False, argv_emulation=False)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name="shmtrace")
 
 if sys.platform == "darwin":
