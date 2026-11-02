@@ -189,6 +189,13 @@ saves it as it is in your input file (FASTQ or FASTA), with its orientation in t
 header; for Sanger clones, **Original trace** downloads the .ab1. **Extract the
 reads carrying this call** saves every read behind the selected call at once.
 
+For Sanger clones, a call also shows the **traces** of the clones carrying it
+(up to six): the four channels over ten bases either side of the call, along the
+reference (a clone read against the reference is reversed and complemented, as
+Geneious shows it), with the call's column shaded and each base's quality above
+it. A clean call has one tall peak there; a shoulder or a second peak argues
+against it. The picked read's trace at the selected call appears in its panel.
+
 Each call has a **suggested verdict**, accept, reject or check by eye, with its
 reasons, worked out from what the run already holds. Decisive reasons to reject:
 the call is in a control; the controls' own error rate for this change predicts

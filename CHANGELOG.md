@@ -7,6 +7,8 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Sanger traces in Check calls (`chromatogram.py`, `/api/chromatogram/<job>/<sample>`):
+  the peaks of the clones carrying a call, along the reference, around the call.
 - Saved projects (`session.py`): every finished run is kept on this computer
   with its inputs and the reads Check calls draws, and each review mark is
   written as it is made. Recent projects on the Set up tab reopens them; Save

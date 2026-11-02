@@ -135,7 +135,76 @@ function rvDetail(v, d) {
       <dt>Base quality</dt><dd>${q.length ? q.join(", ") : d ? "—" : "loading…"}</dd>
       <dt>Same change</dt><dd>${elsewhere.length ? elsewhere.map(x => `${esc(x.sample)} (${x.reads})`).join(", ") : "in no other sample"}</dd>
     </dl>
+    ${S.result.params.platform === "sanger" ? '<div id="rv-traces" class="rv-traces"></div>' : ""}
     <div id="rv-pile">${d ? rvPile(v, d) : '<p class="hint">Loading the reads…</p>'}</div>`;
+  if (d && d.carrying && S.result.params.platform === "sanger") rvTraces(v, d);
+}
+
+/* ── Sanger chromatograms: the peaks under a call, clone by clone ── */
+const TRACE_COLOUR = { A: "#1b9e3e", C: "#1f6fb4", G: "#d68a00", T: "#c0392b" };
+const TRACES = {};
+async function traceWindow(sample, clone, pos) {
+  const key = `${sample}|${clone}|${pos}`;
+  if (!(key in TRACES)) {
+    const q = new URLSearchParams({ clone, pos, flank: 10 });
+    const r = await fetch(`/api/chromatogram/${S.job}/${encodeURIComponent(sample)}?${q}`);
+    TRACES[key] = r.ok ? await r.json() : { error: (await r.json().catch(() => ({}))).detail || "no trace" };
+  }
+  return TRACES[key];
+}
+function drawTrace(cv, w, alt) {
+  // as wide as the row allows, so the call column sits mid-view without scrolling
+  const room = (cv.parentElement?.clientWidth || 600) - (cv.previousElementSibling?.offsetWidth || 0) - 16;
+  const per = Math.max(12, Math.min(24, Math.floor(room / w.columns.length))), W = w.columns.length * per, H = 96, top = 16, bottom = 18, dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.body), fg = css.getPropertyValue("--fg").trim(), accent = css.getPropertyValue("--accent").trim();
+  ctx.clearRect(0, 0, W, H);
+  // spread the peaks evenly, one column per reference position, and draw each channel between them
+  const cols = w.columns, known = cols.map((c, i) => [i, c.peak]).filter(([, p]) => p != null);
+  const xOfSample = (s) => {                     // piecewise-linear: sample index -> pixel
+    for (let k = 1; k < known.length; k++) {
+      const [i0, p0] = known[k - 1], [i1, p1] = known[k];
+      if (s <= p1) return ((i0 + (s - p0) / Math.max(1, p1 - p0) * (i1 - i0)) + 0.5) * per;
+    }
+    const [iL, pL] = known[known.length - 1], [iF, pF] = known[0];
+    return s < pF ? (iF + 0.5 - (pF - s) / per) * per : (iL + 0.5 + (s - pL) / 12) * per;
+  };
+  const max = Math.max(1, ...Object.values(w.channels).flat());
+  const ci = cols.findIndex(c => c.pos === w.pos);
+  if (ci >= 0) { ctx.fillStyle = accent; ctx.globalAlpha = 0.16; ctx.fillRect(ci * per, 0, per, H); ctx.globalAlpha = 1; }
+  for (const [base, ys] of Object.entries(w.channels)) {
+    ctx.strokeStyle = TRACE_COLOUR[base] || fg; ctx.lineWidth = 1.3; ctx.beginPath();
+    ys.forEach((y, s) => { const x = xOfSample(s), yy = H - bottom - (y / max) * (H - top - bottom);
+                           s ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy); });
+    ctx.stroke();
+  }
+  ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.textAlign = "center";
+  cols.forEach((c, i) => {
+    if (!c.base) return;
+    ctx.fillStyle = TRACE_COLOUR[c.base] || fg; ctx.globalAlpha = c.pos === w.pos ? 1 : 0.8;
+    ctx.font = `${c.pos === w.pos ? "700 " : ""}11px ui-monospace, Menlo, monospace`;
+    ctx.fillText(c.base, (i + 0.5) * per, H - 5);
+    ctx.globalAlpha = 0.5; ctx.fillStyle = fg; ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText(String(c.quality ?? ""), (i + 0.5) * per, 9);
+    ctx.globalAlpha = 1;
+  });
+}
+async function rvTraces(v, d) {
+  const el = $("rv-traces"); if (!el) return;
+  const clones = d.carrying.slice(0, 6).map(r => r.name);
+  el.innerHTML = `<p class="hint">Traces of the clone${clones.length === 1 ? "" : "s"} carrying ${esc(v.ref)}${v.pos}${esc(v.alt)}`
+    + `${d.carrying.length > 6 ? ` (6 of ${d.carrying.length})` : ""}, along the reference; the shaded column is the call,
+      the small numbers the base qualities. A clean call has one tall peak there; a shoulder or a second peak argues against it.</p>`
+    + clones.map((c, k) => `<div class="rv-trace"><span class="hint">${esc(c)}</span><canvas id="rv-tr-${k}"></canvas></div>`).join("");
+  for (const [k, c] of clones.entries()) {
+    const w = await traceWindow(v.sample, c, v.pos);
+    if (RV.current !== v) return;
+    const cv = $(`rv-tr-${k}`); if (!cv) return;
+    if (w.error) { cv.replaceWith(Object.assign(document.createElement("span"), { className: "hint", textContent: ` — ${w.error}` })); continue; }
+    drawTrace(cv, w, v.alt);
+    if (w.reverse) cv.title = "read against the reference; shown reversed and complemented";
+  }
 }
 
 /* the reads at the call as text: · where a read matches, the base where it does not */
@@ -420,7 +489,18 @@ function alReadPanel() {
         + other.slice(0, 30).map(([p, b, q]) => `${p}${esc(b)} <span class="muted">Q${q}</span>`).join(", ")
         + (other.length > 30 ? " …" : "") : "none"}</dd>
       ${(r.indels || []).length ? `<dt>Indels</dt><dd>${r.indels.map(([p, op, x]) => op === "D" ? `${p} deletion of ${x}` : `${p} insertion of ${esc(x)}`).join(", ")}</dd>` : ""}
-    </dl>`;
+    </dl>
+    ${sanger && AL.focus && r.start <= AL.focus.pos && AL.focus.pos <= r.end
+      ? `<div class="rv-trace"><span class="hint">trace at ${AL.focus.pos}</span><canvas id="al-read-trace"></canvas></div>` : ""}`;
+  if (sanger && AL.focus && $("al-read-trace")) {
+    const v = AL.focus, name = r.name;
+    traceWindow(AL.sample, name, v.pos).then(w => {
+      const cv = $("al-read-trace");
+      if (!cv || AL.picked !== name) return;
+      if (w.error) cv.replaceWith(Object.assign(document.createElement("span"), { className: "hint", textContent: w.error }));
+      else drawTrace(cv, w, v.alt);
+    });
+  }
 }
 function alOpenCall(p, alt) {
   let i = RV.shown.findIndex(x => x.sample === AL.sample && x.pos === p && x.alt === alt);

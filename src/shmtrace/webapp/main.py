@@ -797,13 +797,33 @@ def extract_reads(job_id: str, sample: str, payload: dict):
 @app.get("/api/trace/{job_id}/{sample}")
 def sanger_trace(job_id: str, sample: str, clone: str):
     """A Sanger clone's original trace file, to open in a trace viewer."""
+    f = _clone_file(job_id, sample, clone)
+    return FileResponse(f, filename=Path(f).name)
+
+
+def _clone_file(job_id: str, sample: str, clone: str) -> str:
     from ..io_utils import _list_item
     path = _sample_input(job_id, sample)
     for item in path if isinstance(path, (list, tuple)) else []:
         f, rid = _list_item(item)
         if rid == clone or Path(f).stem == clone:
-            return FileResponse(f, filename=Path(f).name)
+            return f
     raise HTTPException(404, f"no trace for {clone}")
+
+
+@app.get("/api/chromatogram/{job_id}/{sample}")
+def chromatogram_window(job_id: str, sample: str, clone: str, pos: int, flank: int = 10):
+    """A Sanger clone's trace around one reference position, in reference orientation."""
+    from .. import chromatogram
+    _result(job_id)
+    reference = (JOBS[job_id].get("project") or {}).get("reference")
+    if not reference or not Path(reference).is_file():
+        raise HTTPException(404, "the run's reference file is no longer where it was")
+    try:
+        return chromatogram.window(_clone_file(job_id, sample, clone), reference, pos,
+                                   flank=max(3, min(30, flank)))
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from None
 
 
 REVIEW_MARKS = ("accepted", "rejected", "unsure", "")
