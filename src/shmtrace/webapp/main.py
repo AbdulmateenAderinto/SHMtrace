@@ -127,10 +127,33 @@ def _example_dir() -> Path | None:
     return next((r for r in roots if (r / "samples.csv").is_file()), None)
 
 
+def _sanger_example() -> Path | None:
+    """The Maea Sanger clones' sample sheet: the repository's, or the copy inside the built app."""
+    import sys
+    roots = [APP_DIR.parents[2] / "examples_sanger"]
+    if getattr(sys, "_MEIPASS", None):
+        roots.insert(0, Path(sys._MEIPASS) / "examples_sanger")
+    return next((r / "samples.csv" for r in roots if (r / "samples.csv").is_file()), None)
+
+
 @app.get("/api/example")
-def example():
-    """A ready-made project for the "try it with example data" button."""
+def example(set: str = ""):
+    """A ready-made project for the "try it with example data" buttons.
+
+    set="sanger": the JH4 Sanger clones of Barbulescu et al. (2024), as a sample sheet.
+    """
     import csv
+    if set == "sanger":
+        sheet = _sanger_example()
+        if sheet is None:
+            raise HTTPException(404, "the Sanger example is not installed with this copy of SHMtrace")
+        refs = APP_DIR.parent / "references"
+        return {"name": "Example: JH4 Sanger clones, Wt vs Maea-fl/fl Mb1cre vs Aicda-/- (Barbulescu et al. 2024)",
+                # the JH4 preset (positions 101-629), as in the curated run that matches the paper
+                "region": "jh4_intron", "platform": "sanger",
+                "reference": {"name": "JH4 intron", "path": str(refs / "mouse_jh4_intron.fasta")},
+                "contaminant": {"name": "JH4 contaminant", "path": str(refs / "mouse_jh4_contaminant.fasta")},
+                "sheet": str(sheet)}
     d = _example_dir()
     if d is None:
         raise HTTPException(404, "the example data is not installed with this copy of SHMtrace")

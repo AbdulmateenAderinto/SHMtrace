@@ -239,7 +239,8 @@ function renderReview() {
   const ctrlGroups = Object.entries(groups).filter(([, xs]) => xs.length && xs.every(s => s.control)).map(([g]) => g);
   const others = Object.keys(groups).filter(g => !ctrlGroups.includes(g));
   const known = S.samples.map(s => W.checks[s.path]).filter(c => c && c.ok && !c.more).map(c => c.reads);
-  const depth = +$("depth").value || d.depth;
+  // Sanger clones are each analysed; there is no depth to normalise to
+  const depth = platform === "sanger" ? null : (+$("depth").value || d.depth);
   const win = $("window").value.trim() || (d.window ? `${d.window[0]}–${d.window[1]}` : "");
   const span = win ? `positions ${win}`
     : `the whole amplicon${d.end_trim_bp ? ` less ${d.end_trim_bp} bp at each end` : ""}`;
@@ -268,17 +269,23 @@ function renderReview() {
 }
 
 /* ── example project ──────────────────────────────────────── */
-async function wizExample() {
-  const r = await fetch("/api/example");
+// set: "" for the nanopore JH4 libraries, "sanger" for the Maea Sanger clones (a sample sheet)
+async function wizExample(set = "") {
+  const r = await fetch("/api/example" + (set ? `?set=${set}` : ""));
   if (!r.ok) { $("wiz-issues").innerHTML = `<div class="msg err">${esc((await r.json()).detail)}</div>`; return; }
   const ex = await r.json();
-  wizPickRegion(ex.region); wizPickPlatform(ex.platform);
+  wizPickPlatform(ex.platform); wizPickRegion(ex.region);
   document.querySelector('input[name="ref-mode"][value="own"]').checked = true; wizRefMode();
   S.reference = ex.reference; $("ref-name").textContent = "Reference: " + ex.reference.name;
   S.contaminant = ex.contaminant; $("contam-name").textContent = "Contaminant: " + ex.contaminant.name;
-  S.samples = ex.samples.map(s => ({ ...s, control_kind: s.control ? "aid_null" : "" }));
+  if (ex.sheet) await loadSheet(ex.sheet);
+  else {
+    S.sheet = null;
+    S.samples = ex.samples.map(s => ({ ...s, control_kind: s.control ? "aid_null" : "" }));
+    renderSamples();
+  }
   $("proj-name").value = ex.name;
-  renderSamples(); wizCheckRef();
+  wizCheckRef();
   wizGo(4);
 }
 

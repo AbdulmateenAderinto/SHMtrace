@@ -450,6 +450,14 @@ Set the platform to `sanger` and the region to `sanger_clones` (or your usual
 region preset). Leaving the mode on `recommended` is correct: with the Sanger
 platform, `recommended` means the Sanger caller.
 
+**Sanger example**, next to *Try it with example data* on the Set up tab, loads
+290 J<sub>H</sub>4 clones from 12 mice (wild type, *Maea*<sup>fl/fl</sup>
+*Mb1*<sup>cre</sup> and *Aicda*<sup>−/−</sup>) from Barbulescu et al., *Nature
+Communications* 2024, as a sample sheet with each clone's order and well. It
+runs in well under a minute and reproduces the curated analysis: wild type 4.66-fold
+above *Maea*-deficient (4.7-fold in the paper). `examples_sanger/README.md` says
+how the clones were assigned to mice and what to expect.
+
 `.ab1` and `.abi` traces are read directly, including the per-base quality
 values stored in the file, and `.seq` text files are read too. Each read is
 trimmed to its best-quality segment, and every mismatch of quality 20 or better

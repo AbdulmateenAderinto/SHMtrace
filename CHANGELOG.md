@@ -7,6 +7,11 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Sanger example (`examples_sanger/`, and a **Sanger example** button on the Set up
+  tab): 290 J<sub>H</sub>4 clones from 12 mice of Barbulescu et al., Nat Commun
+  2024, shared with the authors' agreement, as a sample sheet with order and well
+  for each clone. It reproduces the curated analysis (wild type 4.66-fold above
+  *Maea*-deficient). Bundled in the desktop app.
 - Check calls tab: click through every called mutation with its reads, the
   controls' error rate at that position, the same change in other samples and
   plain-language warnings, and mark it accepted, rejected or unsure. The marks go

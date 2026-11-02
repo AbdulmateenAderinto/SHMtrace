@@ -219,7 +219,8 @@ function clearSamples() { S.samples = []; S.sheet = null; $("sheet-msg").innerHT
 // A sample sheet names every file's sample, group and control status, and where
 // each clone came from (order, well, label), which the Sanger QC reports with
 // every flag. See shmtrace.samplesheet.
-async function loadSheet() {
+async function loadSheet(given) {
+  if (given) $("sheet-path").value = given;
   const path = $("sheet-path").value.trim();
   if (!path) return;
   const r = await fetch("/api/samplesheet", {
