@@ -222,6 +222,16 @@ Geneious shows it), with the call's column shaded and each base's quality above
 it. A clean call has one tall peak there; a shoulder or a second peak argues
 against it. The picked read's trace at the selected call appears in its panel.
 
+To **correct a base call**, as in Geneious, click the base in a clone's trace,
+choose the base it should be (or N) and say why. The edit is recorded with the
+base the trace called and the time, and listed above the strip; the trace marks
+it ✎. Edits change nothing until you press **Run again with the edits**: the
+project then runs again with each edited clone read from a copy of its base calls
+with the edits made (its qualities as the trace gave them). The new run lists
+every edit in its notes, keeps your review marks for the calls that still exist,
+the reading frame and regions, and the edits themselves; the old run stays under
+Recent projects.
+
 Each call has a **suggested verdict**, accept, reject or check by eye, with its
 reasons, worked out from what the run already holds. Decisive reasons to reject:
 the call is in a control; the controls' own error rate for this change predicts

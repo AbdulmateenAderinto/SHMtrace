@@ -7,6 +7,9 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Hand edits to Sanger base calls (`edits.py`, `/api/edits/<job>`): click a base
+  in a trace, correct it with a note, and run again; the edited clones are read
+  from corrected copies of their base calls, and the new run lists the edits.
 - Read alignment export (`samout.py`, `alignment.zip`): every sample's analysed
   reads as SAM, plus sorted and indexed BAM where pysam is installed, for IGV,
   Geneious or samtools.

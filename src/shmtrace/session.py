@@ -12,6 +12,7 @@ On disk a project is a folder:
     result.json.gz  the result, with the analysed reads under "_call_reads"
     review.json     the review marks, rewritten on its own each time a mark changes
     annotation.json the coding stretch and named regions, when given (coding.py)
+    edits.json      hand edits to Sanger base calls, applied by re-running (edits.py)
 
 and it travels as a `.shmtrace` file, a zip of that folder. Reopened, everything the app
 shows and exports comes back, except what needs the per-read detail a run keeps only in
@@ -33,7 +34,7 @@ FORMAT = "shmtrace-project"
 VERSION = 1
 # kept beyond the public result: what Check calls draws, and the dropped reads when kept
 KEEP_PRIVATE = ("_call_reads", "_alignments")
-FILES = ("manifest.json", "project.json", "result.json.gz", "review.json", "annotation.json")
+FILES = ("manifest.json", "project.json", "result.json.gz", "review.json", "annotation.json", "edits.json")
 
 
 def home() -> Path:
@@ -75,10 +76,19 @@ def write(folder: Path, res: dict, proj: dict) -> Path:
     (folder / "project.json").write_text(json.dumps(proj, indent=1, default=str))
     with gzip.open(folder / "result.json.gz", "wt") as fh:
         json.dump(_jsonable({k: v for k, v in res.items()
-                             if k not in ("review", "annotation", "coding", "rs_by_region")}), fh)
+                             if k not in ("review", "annotation", "coding", "rs_by_region", "base_edits")}), fh)
     write_review(folder, res)
     write_annotation(folder, res)
+    write_edits(folder, res)
     return folder
+
+
+def write_edits(folder: Path, res: dict) -> None:
+    f = folder / "edits.json"
+    if res.get("base_edits"):
+        f.write_text(json.dumps(res["base_edits"], indent=1))
+    elif f.exists():
+        f.unlink()
 
 
 def write_annotation(folder: Path, res: dict) -> None:
@@ -106,6 +116,8 @@ def read(folder: Path) -> tuple[dict, dict]:
         res = json.load(fh)
     review = folder / "review.json"
     res["review"] = json.loads(review.read_text()) if review.is_file() else {}
+    if (folder / "edits.json").is_file():
+        res["base_edits"] = json.loads((folder / "edits.json").read_text())
     ann = folder / "annotation.json"
     if ann.is_file():
         from . import coding

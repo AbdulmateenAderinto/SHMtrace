@@ -316,7 +316,8 @@ def load_samplesheet(payload: dict):
 
 
 # ---- running a project -------------------------------------------------------
-def _run_job(job_id: str, proj: dict):
+def _run_job(job_id: str, proj: dict, after=None):
+    """Run a project as a job. `after(res)` may finish the result before the job is done."""
     job = JOBS[job_id]
 
     def progress(frac, msg):
@@ -332,6 +333,8 @@ def _run_job(job_id: str, proj: dict):
         if proj.get("_demux_notes"):
             res["notes"] = proj["_demux_notes"] + res.get("notes", [])
             res["demux"] = proj.get("_demux_stats")
+        if after:
+            after(res)
         job["result"] = res
         _autosave(job_id)
         job["state"] = "done"
@@ -823,12 +826,16 @@ def sanger_trace(job_id: str, sample: str, clone: str):
 
 
 def _clone_file(job_id: str, sample: str, clone: str) -> str:
+    """A clone's .ab1. After a re-run with edits, the edited clones read FASTQ copies; their
+    trace is still the original, in the samples as first given."""
     from ..io_utils import _list_item
-    path = _sample_input(job_id, sample)
-    for item in path if isinstance(path, (list, tuple)) else []:
-        f, rid = _list_item(item)
-        if rid == clone or Path(f).stem == clone:
-            return f
+    proj = (JOBS.get(job_id) or {}).get("project") or {}
+    for samples in (proj.get("samples") or [], proj.get("original_samples") or []):
+        s = next((x for x in samples if x.get("name") == sample), None)
+        for item in (s or {}).get("path") or [] if isinstance((s or {}).get("path"), (list, tuple)) else []:
+            f, rid = _list_item(item)
+            if (rid == clone or Path(f).stem == clone) and not f.endswith(".edited.fastq"):
+                return f
     raise HTTPException(404, f"no trace for {clone}")
 
 
@@ -867,6 +874,71 @@ def annotation_set(job_id: str, payload: dict):
             pass
     return {"annotation": res.get("annotation"), "coding": res.get("coding") or {},
             "rs_by_region": res.get("rs_by_region") or []}
+
+
+@app.get("/api/edits/{job_id}")
+def edits_get(job_id: str):
+    res = _result(job_id)
+    applied = (JOBS[job_id].get("project") or {}).get("base_edits") or []
+    return {"edits": res.get("base_edits") or [], "applied": applied}
+
+
+@app.post("/api/edits/{job_id}")
+def edits_set(job_id: str, payload: dict):
+    """Record a hand edit to a Sanger base call: {"sample", "clone", "pos", "to", "note"};
+    to="" removes it. Edits take effect when the project is run again (edits.py)."""
+    from .. import edits
+    res = _result(job_id)
+    proj = JOBS[job_id].get("project") or {}
+    if (res.get("params") or {}).get("platform") != "sanger":
+        raise HTTPException(400, "base calls can be edited for Sanger clones only")
+    sample, clone = str(payload.get("sample", "")), str(payload.get("clone", ""))
+    try:
+        pos = int(payload.get("pos"))
+        trace = _clone_file(job_id, sample, clone) if payload.get("to") else ""
+        res["base_edits"] = edits.record(res.get("base_edits") or [], sample, clone, trace,
+                                         proj.get("reference", ""), res.get("reference") or "", pos,
+                                         str(payload.get("to") or ""), str(payload.get("note") or ""))
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, str(exc) or "could not record the edit") from None
+    folder = (JOBS.get(job_id) or {}).get("folder")
+    if folder:
+        from .. import session
+        try:
+            session.write_edits(Path(folder), res)
+        except OSError:
+            pass
+    return edits_get(job_id)
+
+
+@app.post("/api/edits/{job_id}/rerun")
+def edits_rerun(job_id: str):
+    """Run the project again with its edited clones; the marks, regions and edits carry over."""
+    from .. import edits, session
+    res = _result(job_id)
+    proj = JOBS[job_id].get("project") or {}
+    todo = res.get("base_edits") or []
+    new_id = uuid.uuid4().hex[:12]
+    folder = session.home() / session.folder_name(res.get("name"), new_id)
+    try:
+        new_proj = edits.edited_project(proj, todo, folder / "edited")
+    except (ValueError, OSError, KeyError) as exc:
+        raise HTTPException(400, f"could not apply the edits: {exc}") from None
+    with _LOCK:
+        JOBS[new_id] = {"state": "queued", "progress": 0.0, "message": "queued", "error": None,
+                        "result": None, "project": new_proj, "folder": str(folder)}
+
+    def carry(new):
+        new["notes"] = edits.notes(todo) + (new.get("notes") or [])
+        new["base_edits"] = list(todo)
+        known = {f"{v['sample']}|{v['pos']}|{v['ref']}>{v['alt']}" for v in new.get("variants") or []}
+        new["review"] = {k: m for k, m in (res.get("review") or {}).items() if k in known}
+        if res.get("annotation"):
+            from .. import coding
+            new["annotation"] = res["annotation"]
+            coding.apply(new)
+    threading.Thread(target=_run_job, args=(new_id, new_proj, carry), daemon=True).start()
+    return {"job": new_id}
 
 
 REVIEW_MARKS = ("accepted", "rejected", "unsure", "")

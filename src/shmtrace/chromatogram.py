@@ -61,30 +61,32 @@ def _ref_to_query(hit) -> dict[int, int]:
     return out
 
 
+def mapping(seq: str, reference: str) -> tuple[dict[int, int], bool]:
+    """(1-based reference position -> 0-based index in `seq` as read, read reverse?)."""
+    hit = max((h for h in _aligner(reference).map(seq) if h.is_primary), key=lambda h: h.mlen, default=None)
+    if hit is None:
+        raise ValueError("the clone's base calls do not align to the reference")
+    rev, n = hit.strand == -1, len(seq)
+    # minimap2 reports query coordinates on the read as given; for a reverse hit the
+    # reference-forward query is the reverse complement, so remap onto it
+
+    class _H:                                   # the hit, with its start on the forward query
+        q_st, r_st, cigar = (n - hit.q_en if rev else hit.q_st), hit.r_st, hit.cigar
+    return {r + 1: (n - 1 - q if rev else q) for r, q in _ref_to_query(_H).items()}, rev
+
+
 def window(path: str, reference: str, pos: int, flank: int = 10) -> dict:
     """The trace over reference positions pos-flank..pos+flank (1-based), in reference orientation."""
     tr = read_trace(path)
     seq = tr["bases"]
-    hit = max((h for h in _aligner(reference).map(seq) if h.is_primary), key=lambda h: h.mlen, default=None)
-    if hit is None:
-        raise ValueError("the clone's base calls do not align to the reference")
-    rev = hit.strand == -1
-    n = len(seq)
-    # minimap2 reports query coordinates on the read as given; for a reverse hit the
-    # reference-forward query is the reverse complement, so remap onto it
-    fwd_q_st = n - hit.q_en if rev else hit.q_st
-
-    class _H:                                   # the hit, with its start on the forward query
-        q_st, r_st, cigar = fwd_q_st, hit.r_st, hit.cigar
-    r2q = _ref_to_query(_H)
+    r2i, rev = mapping(seq, reference)
     lo, hi = pos - flank, pos + flank
     cols = []
     for p in range(lo, hi + 1):
-        qf = r2q.get(p - 1)
-        if qf is None:
+        i = r2i.get(p)                          # index into the read's own base calls
+        if i is None:
             cols.append({"pos": p, "base": None, "quality": None, "peak": None})
             continue
-        i = n - 1 - qf if rev else qf           # index into the read's own base calls
         b = seq[i]
         cols.append({"pos": p, "base": _COMPLEMENT.get(b, b) if rev else b,
                      "quality": tr["quals"][i], "peak": tr["peaks"][i]})

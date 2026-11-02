@@ -23,6 +23,7 @@ async function rvInit() {
   const r = await fetch(`/api/suggestions/${S.job}`);
   if (r.ok) RV.sug = await r.json();
   anFill();
+  edLoad();
   S.result.review = S.result.review || {};
   RV.calls = S.result.variants || [];
   const counts = {};
@@ -184,7 +185,7 @@ async function traceWindow(sample, clone, pos) {
   }
   return TRACES[key];
 }
-function drawTrace(cv, w, alt) {
+function drawTrace(cv, w, alt, edits = []) {
   // as wide as the row allows, so the call column sits mid-view without scrolling
   const room = (cv.parentElement?.clientWidth || 600) - (cv.previousElementSibling?.offsetWidth || 0) - 16;
   const per = Math.max(12, Math.min(24, Math.floor(room / w.columns.length))), W = w.columns.length * per, H = 96, top = 16, bottom = 18, dpr = window.devicePixelRatio || 1;
@@ -220,6 +221,11 @@ function drawTrace(cv, w, alt) {
     ctx.globalAlpha = 0.5; ctx.fillStyle = fg; ctx.font = "8px system-ui, sans-serif";
     ctx.fillText(String(c.quality ?? ""), (i + 0.5) * per, 9);
     ctx.globalAlpha = 1;
+    const e = edits.find(x => x.pos === c.pos);
+    if (e) {                                       // a hand edit: the corrected base over the called one
+      ctx.fillStyle = "#c0392b"; ctx.font = "700 11px ui-monospace, Menlo, monospace";
+      ctx.fillText("✎" + e.to, (i + 0.5) * per, 21);
+    }
   });
 }
 async function rvTraces(v, d) {
@@ -234,9 +240,85 @@ async function rvTraces(v, d) {
     if (RV.current !== v) return;
     const cv = $(`rv-tr-${k}`); if (!cv) return;
     if (w.error) { cv.replaceWith(Object.assign(document.createElement("span"), { className: "hint", textContent: ` — ${w.error}` })); continue; }
-    drawTrace(cv, w, v.alt);
-    if (w.reverse) cv.title = "read against the reference; shown reversed and complemented";
+    drawTrace(cv, w, v.alt, edFor(v.sample, c));
+    cv.classList.add("editable");
+    cv.title = (w.reverse ? "read against the reference; shown reversed and complemented. " : "")
+      + "Click a base to correct its call.";
+    cv.onclick = (ev) => edPick(v.sample, c, w, ev, cv);
   }
+}
+
+/* ── hand edits to Sanger base calls (edits.py): recorded here, applied by running again ── */
+const ED = { list: [], applied: [], form: null };
+const edFor = (sample, clone) => ED.list.filter(e => e.sample === sample && e.clone === clone);
+async function edLoad() {
+  if (S.result.params.platform !== "sanger") { $("ed-bar").hidden = true; return; }
+  const r = await fetch(`/api/edits/${S.job}`);
+  if (r.ok) edTake(await r.json());
+  edBar();
+}
+const edTake = (d) => { ED.list = d.edits || []; ED.applied = d.applied || []; };
+const edKey = (e) => `${e.sample}|${e.clone}|${e.pos}|${e.to}`;
+function edBar() {
+  const el = $("ed-bar"), applied = new Set(ED.applied.map(edKey));
+  const pending = ED.list.filter(e => !applied.has(edKey(e))).length + ED.applied.filter(e => !ED.list.some(x => edKey(x) === edKey(e))).length;
+  el.hidden = !ED.list.length && !ED.applied.length;
+  if (el.hidden) return;
+  el.innerHTML = `<b>Hand edits to base calls: ${fmtInt(ED.list.length)}</b>
+    ${pending ? `<span class="hint"> · ${fmtInt(pending)} not yet in the analysis</span>
+      <button class="btn small" style="margin-left:8px" onclick="edRerun()">Run again with the edits</button>`
+      : '<span class="hint"> · all in this analysis</span>'}
+    <ul>${ED.list.map(e => `<li>${esc(e.sample)} ${esc(e.clone)} position ${e.pos}: trace called ${esc(e.called)}, corrected to
+      <b>${esc(e.to)}</b>${e.note ? ` — ${esc(e.note)}` : ""} <span class="muted">${esc(e.when)}</span>
+      ${applied.has(edKey(e)) ? "" : " <i class='muted'>(not yet applied)</i>"}
+      <a href="#" onclick="edSave('${esc(e.sample)}','${esc(e.clone)}',${e.pos},'');return false">remove</a></li>`).join("")}</ul>
+    <p class="hint" id="ed-msg" style="margin:0"></p>`;
+}
+function edPick(sample, clone, w, ev, cv) {
+  const box = cv.getBoundingClientRect(), per = box.width / w.columns.length;
+  const c = w.columns[Math.floor((ev.clientX - box.left) / per)];
+  if (!c || !c.base) return;
+  const cur = edFor(sample, clone).find(e => e.pos === c.pos);
+  let form = $("ed-form");
+  if (!form) { form = document.createElement("div"); form.id = "ed-form"; form.className = "ed-form"; }
+  cv.closest(".rv-trace").after(form);
+  form.innerHTML = `<span><b>${esc(clone)}</b>, position ${c.pos}: the trace calls <b>${esc(c.base)}</b> (Q${c.quality ?? "?"})${cur ? `, corrected to <b>${esc(cur.to)}</b>` : ""}.</span>
+    <span>Correct to ${["A", "C", "G", "T", "N"].filter(b => b !== c.base).map(b =>
+      `<button class="btn small ${cur && cur.to === b ? "" : "ghost"}" onclick="edSave('${esc(sample)}','${esc(clone)}',${c.pos},'${b}')">${b}</button>`).join(" ")}</span>
+    <input type="text" id="ed-note" placeholder="why (kept with the edit)" value="${esc(cur ? cur.note : "")}">
+    ${cur ? `<button class="btn small ghost" onclick="edSave('${esc(sample)}','${esc(clone)}',${c.pos},'')">Remove edit</button>` : ""}
+    <button class="btn small ghost" onclick="this.parentElement.remove()">Close</button>`;
+}
+async function edSave(sample, clone, pos, to) {
+  const note = ($("ed-note") || {}).value || "";
+  const r = await fetch(`/api/edits/${S.job}`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                               body: JSON.stringify({ sample, clone, pos, to, note }) });
+  const d = await r.json();
+  if (!r.ok) { const f = $("ed-form"); if (f) f.insertAdjacentHTML("beforeend", `<span class="msg err">${esc(d.detail)}</span>`); return; }
+  edTake(d); $("ed-form")?.remove(); edBar();
+  if (RV.current) rvTraces(RV.current, RV.reads[rvKey(RV.current)]);
+}
+// a status line under the edits, made if the bar was redrawn without one
+function edStatus(text) {
+  let el = $("ed-msg");
+  if (!el) { $("ed-bar").hidden = false; $("ed-bar").insertAdjacentHTML("beforeend", '<p class="hint" id="ed-msg" style="margin:0"></p>'); el = $("ed-msg"); }
+  el.textContent = text;
+}
+async function edRerun() {
+  if (!confirm("Run the project again with the edited base calls? The new run keeps your review marks for calls that "
+    + "still exist, the reading frame and regions, and the list of edits; this run stays as it is under Recent projects.")) return;
+  const r = await fetch(`/api/edits/${S.job}/rerun`, { method: "POST" });
+  const d = await r.json();
+  if (!r.ok) { edStatus(d.detail || "could not start"); return; }
+  S.job = d.job;
+  const tick = async () => {
+    const j = await (await fetch("/api/job/" + S.job)).json();
+    edStatus(`Running again with the edits: ${j.message} (${Math.round(100 * j.progress)}%)`);
+    if (j.state === "done") { RV.job = null; await loadResult(); showTab("calls"); return; }
+    if (j.state === "error") { edStatus(j.error); return; }
+    setTimeout(tick, 800);
+  };
+  tick();
 }
 
 /* the reads at the call as text: · where a read matches, the base where it does not */
