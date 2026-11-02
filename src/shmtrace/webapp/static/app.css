@@ -95,6 +95,12 @@ thead th {
 thead th:hover { color: var(--accent); }
 tbody tr:hover { background: var(--accent-soft); }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+/* the first column (sample, group, position) stays in view while the table scrolls sideways */
+#table th:first-child, #table td:first-child { position: sticky; left: 0; background: var(--panel); z-index: 1;
+                                               box-shadow: 1px 0 0 var(--line); }
+#table thead th:first-child { z-index: 3; }
+#table tbody tr:hover td:first-child { background: var(--accent-soft); }
+thead th[title] { text-decoration: underline dotted var(--line); text-underline-offset: 3px; }
 .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--accent-soft); color: var(--accent); }
 .pill.ctrl { background: #0000000d; color: var(--muted); }
 
@@ -115,11 +121,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .status { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); }
 
 /* figures */
-.figs { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
-.fig { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; }
+/* min(): one column on a narrow window instead of a card wider than the screen */
+.figs { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }
+.fig { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px;
+       min-width: 0; overflow: hidden; }
 .fig .plot { width: 100%; min-height: 320px; }
-.fig .cap { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
-.fig .cap h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.fig .cap { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px;
+            flex-wrap: wrap; margin-bottom: 4px; }
+.fig .cap h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.fig .fig-note { margin: 4px 0 0; }
 .msg { padding: 10px 12px; border-radius: 8px; font-size: 14px; }
 .msg.err { background: #9A343914; color: var(--bad); border: 1px solid #9A343933; }
 .msg.ok { background: #2d7a4b14; color: var(--ok); border: 1px solid #2d7a4b33; }

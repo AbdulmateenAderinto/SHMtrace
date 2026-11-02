@@ -293,6 +293,8 @@
     <div class="row">
       <select id="table-pick" onchange="renderTable()" style="max-width:260px"></select>
       <input type="text" id="table-filter" placeholder="Filter rows…" oninput="renderTable()" style="max-width:260px">
+      <label class="hint" id="table-all-box" hidden><input type="checkbox" id="table-all" onchange="renderTable()">
+        Show all columns <span id="table-all-n"></span></label>
       <span class="spacer"></span>
       <span class="hint" id="table-count"></span>
       <button class="btn small" onclick="downloadCurrentTable()">Download CSV</button>

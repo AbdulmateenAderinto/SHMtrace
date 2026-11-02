@@ -9,6 +9,8 @@ const S = {                       // everything the page knows
 };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtInt = (n) => Number(n).toLocaleString("en-GB");
+const plural = (n, word) => `${fmtInt(n)} ${word}${n === 1 ? "" : "s"}`;
 
 /* ── tabs ─────────────────────────────────────────────────── */
 function showTab(name) {
@@ -461,23 +463,39 @@ function buildHeadline() {
     </div>`;
   }).join("");
 
+  // the names the set-up guide uses; the internal ones stay in a tooltip for anyone matching files
+  const regionName = (typeof REGION_TITLES !== "undefined" && REGION_TITLES[p.region]) || p.region;
+  const platformName = (typeof PLATFORM_TITLES !== "undefined" && PLATFORM_TITLES[p.platform]) || p.platform;
+  const modeHelp = (S.options.mode_help || {})[p.mode] || "";
   $("headline").innerHTML = `
     <h2>${esc(r.name)}</h2>
     ${verdict || '<p class="hint">No control group, so there is nothing to compare against.</p>'}
     <dl class="kv">
-      <dt>Region</dt><dd>${esc(p.region)} · ${esc(p.reference_name)} ·
-        window ${p.analysis_window[0]}–${p.analysis_window[1]} of ${p.reference_length} bp</dd>
-      <dt>Data</dt><dd>${esc(p.platform)} · mode ${esc(p.mode)} (${esc(p.error_model)})${p.depth ? " · " + p.depth + (p.umi && p.umi !== "off" ? " molecules per sample (UMI consensus)" : " reads per sample") : ""}</dd>
-      <dt>Samples</dt><dd>${r.samples.length} in ${r.group_order.length} group(s), ${ctrls.length} control(s)</dd>
+      <dt>Region</dt><dd><span title="preset ${esc(p.region)}">${esc(regionName)}</span> · reference ${esc(p.reference_name)} ·
+        positions ${p.analysis_window[0]}–${p.analysis_window[1]} of ${fmtInt(p.reference_length)} bp</dd>
+      <dt>Data</dt><dd>${esc(platformName)} ·
+        <span title="${esc(`${modeHelp} Mode ${p.mode}, error model ${p.error_model}.`.trim())}">${esc(p.mode)} calling</span>${p.depth ? " · " + fmtInt(p.depth) + (p.umi && p.umi !== "off" ? " molecules per sample (UMI consensus)" : " reads per sample") : ""}</dd>
+      <dt>Samples</dt><dd>${plural(r.samples.length, "sample")} in ${plural(r.group_order.length, "group")},
+        ${ctrls.length ? `${ctrls.length} of them ${ctrls.length === 1 ? "a control" : "controls"}` : "no controls"}</dd>
     </dl>
     ${(r.notes || []).map(n => `<div class="msg${n.startsWith("UMI consensus:") ? "" : " err"}" style="margin-top:10px">${esc(n)}</div>`).join("")}`;
 }
 
 function figShell(id, title, note) {
-  return `<div class="fig"><div class="plot" id="${id}"></div>
-    <div class="cap"><h4>${esc(title)}</h4>
-      <span class="hint">${esc(note || "")}</span></div></div>`;
+  return `<div class="fig"><div class="cap"><h4>${esc(title)}</h4>
+      <span class="hint">${esc(note || "")}</span></div>
+    <div class="plot" id="${id}"></div><p class="hint fig-note" id="${id}-note" hidden></p></div>`;
 }
+// a chart drawn from a handful of mutations shows noise as a pattern: below this many
+// calls a group (or, for a per-sample rate, a sample) is left out and named underneath
+const MIN_CALLS = 20, MIN_SAMPLE_CALLS = 10;
+function figNote(id, text) {
+  const el = $(id + "-note");
+  if (el) { el.textContent = text || ""; el.hidden = !text; }
+}
+// draws ahead of a layout change (a tab shown, a window narrowed) and would keep the old width
+const plotResizer = typeof ResizeObserver !== "undefined"
+  ? new ResizeObserver(es => es.forEach(e => e.target.data && Plotly.Plots.resize(e.target))) : null;
 
 function drawFigures() {
   if (!S.result || $("figs").dataset.job === S.job) return;
@@ -498,21 +516,36 @@ function drawFigures() {
   plotSpectrum();
   plotLoad();
   plotMap();
-  plotDots("f-mutated", "mutated_reads_pct", "% of reads mutated");
-  plotDots("f-hot", "pct_GC_in_WRC_GYW", "% of G:C mutations at WRC/GYW");
+  plotDots("f-mutated", "mutated_reads_pct", "% of reads mutated", { pct: true });
+  plotDots("f-hot", "pct_GC_in_WRC_GYW", "% of G:C mutations at WRC/GYW",
+           { pct: true, countKey: "gc_mutations", countWord: "G:C mutations" });
+  if (plotResizer) document.querySelectorAll("#figs .plot").forEach(el => plotResizer.observe(el));
 }
 
-function plotDots(el, key, title) {
+// pct: a percentage, drawn on a linear 0–100 axis. countKey: the calls a sample's value rests on;
+// a sample with fewer than MIN_SAMPLE_CALLS is left out and named under the chart.
+function plotDots(el, key, title, opts = {}) {
   const r = S.result, traces = [], shapes = [], annotations = [];
-  const per = {};
+  const per = {}, left = [];
   r.group_order.forEach(g => {
-    per[g] = r.samples.filter(s => s.group === g && s[key] != null)
-      .map(s => ({ name: s.sample, ...valueOf(s, key) }));
+    per[g] = r.samples.filter(s => s.group === g && s[key] != null).filter(s => {
+      if (!opts.countKey || (s[opts.countKey] || 0) >= MIN_SAMPLE_CALLS) return true;
+      left.push(`${s.sample} (${s[opts.countKey] || 0})`);
+      return false;
+    }).map(s => ({ name: s.sample, ...valueOf(s, key) }));
   });
+  figNote(el, left.length ? `Not shown, fewer than ${MIN_SAMPLE_CALLS} ${opts.countWord}: ${left.join(", ")}.` : "");
   const all = Object.values(per).flat().map(x => x.v);
-  if (!all.length) { $(el).parentElement.style.display = "none"; return; }
+  if (!all.length) {
+    if (left.length) $(el).style.minHeight = "0";      // keep the card: the note says why it is empty
+    else $(el).parentElement.style.display = "none";
+    return;
+  }
   const pos = all.filter(v => v > 0);
-  const log = pos.length > 0 && (Math.max(...pos) / Math.min(...pos) > 8 || all.some(v => v <= 0));
+  // the test follows the data's spread, whatever the axis: a percentage spanning a 30-fold range is
+  // still compared on the log scale, as the groups table does, and drawn on a linear 0–100 axis
+  const logTest = pos.length > 0 && (Math.max(...pos) / Math.min(...pos) > 8 || all.some(v => v <= 0));
+  const log = logTest && !opts.pct;
   const floor = pos.length ? Math.min(...pos) / 3 : 1e-3;
   const centre = {};
 
@@ -531,7 +564,8 @@ function plotDots(el, key, title) {
       const sd = vals.length > 1 ? Math.sqrt(vals.reduce((a, v) => a + (v - m) ** 2, 0) / (vals.length - 1)) : 0;
       [lo, hi] = [m - sd, m + sd];
     }
-    centre[g] = m;
+    // the fold beside the P is on the scale of the test (zeros at the floor, as a log axis draws them)
+    centre[g] = log || !logTest ? m : geoMean(vals.map(v => Math.max(v, floor)));
     traces.push({                       // the mean, drawn as a wide horizontal tick
       type: "scatter", mode: "markers", x: [g], y: [m], showlegend: false,
       marker: { symbol: "line-ew", size: 44, color: colourOf(g),
@@ -545,7 +579,7 @@ function plotDots(el, key, title) {
       text: rows.map(x => x.name + (x.censored ? " (no mutations called)" : "")),
       hovertemplate: "%{text}: %{y:.3g}<extra></extra>", showlegend: false,
       marker: {
-        size: 11, color: rows.map(x => x.censored ? "#ffffff" : colourOf(g)),
+        size: 11, color: rows.map(x => x.censored ? (dark() ? "#1b1f26" : "#ffffff") : colourOf(g)),
         line: { color: colourOf(g), width: 2 },
       },
       jitter: 0.5, pointpos: 0,
@@ -557,8 +591,8 @@ function plotDots(el, key, title) {
   let step = 0;
   const top = Math.max(...all.map(v => Math.max(v, log ? floor : v)));
   r.group_order.forEach(g => {
-    const st = pFor(r, g, key, log);
-    if (!st || idx(st.ctrl) < 0) return;
+    const st = pFor(r, g, key, logTest);
+    if (!st || idx(st.ctrl) < 0 || !(per[g] || []).length || !(per[st.ctrl] || []).length) return;
     const a2 = Math.min(idx(g), idx(st.ctrl)), b2 = Math.max(idx(g), idx(st.ctrl));
     const y = log ? top * Math.pow(2.0, 1 + step) : top * (1.12 + 0.14 * step);
     const yl = log ? y / 1.3 : y - top * 0.04;
@@ -581,7 +615,10 @@ function plotDots(el, key, title) {
   const L = { ...layoutBase(), shapes, annotations, margin: { l: 64, r: 16, t: 34, b: 44 } };
   L.yaxis = { ...L.yaxis, title, type: log ? "log" : "linear" };
   L.xaxis = { ...L.xaxis, type: "category" };
-  if (log) L.yaxis.range = [Math.log10(floor / 2), Math.log10(top * Math.pow(2.0, step + 1.6))];
+  // a label at each power of ten only: Plotly's default also labels the 2s and 5s between them
+  if (log) L.yaxis = { ...L.yaxis, range: [Math.log10(floor / 2), Math.log10(top * Math.pow(2.0, step + 1.6))],
+                       dtick: 1, tickformat: "~g" };
+  if (opts.pct) L.yaxis.range = [0, Math.max(100, step ? top * (1.12 + 0.14 * step) * 1.08 : 0)];
   Plotly.newPlot(el, traces, L, CONFIG);
 }
 
@@ -592,8 +629,8 @@ function plotSpectrum() {
   const counts = {};
   r.group_order.forEach(g => counts[g] = Object.values(r.spectrum_group[g] || {}).reduce((a, b) => a + b, 0));
   // 1 of 4 calls is "25%": a group with a handful of calls has no spectrum
-  let shown = r.group_order.filter(g => counts[g] >= 20);
-  const dropped = r.group_order.filter(g => counts[g] < 20);
+  let shown = r.group_order.filter(g => counts[g] >= MIN_CALLS);
+  const dropped = r.group_order.filter(g => counts[g] < MIN_CALLS);
   if (!shown.length) shown = r.group_order;
 
   const traces = [];
@@ -625,31 +662,34 @@ function plotSpectrum() {
   });
   const L = withLegend({ ...layoutBase(), barmode: "group" });
   L.yaxis.title = "% of unique mutations";
-  if (dropped.length && dropped.length < r.group_order.length) {
-    L.annotations = [{
-      xref: "paper", yref: "paper", x: 0, y: -0.26, showarrow: false, font: { size: 11 },
-      text: "Not shown, too few calls for a spectrum: " +
-        dropped.map(g => `${g} (n = ${counts[g]})`).join(", "),
-    }];
-    L.margin = { ...L.margin, b: 76 };
-  }
+  figNote("f-spectrum", dropped.length && dropped.length < r.group_order.length
+    ? "Not shown, too few calls for a spectrum: " + dropped.map(g => `${g} (n = ${counts[g]})`).join(", ") + "." : "");
   Plotly.newPlot("f-spectrum", traces, L, CONFIG);
 }
 
 function plotMatrix() {
   const r = S.result, bb = ["A", "T", "C", "G"];
   const rows = bb.slice().reverse();   // drawn bottom-up, so A ends up on top
-  const n = r.group_order.length;
+  const total = (g) => Object.values(r.spectrum_group[g] || {}).reduce((a, b) => a + b, 0);
+  // the same rule as the spectrum: two calls make a "100%" cell, not a pattern
+  let shown = r.group_order.filter(g => total(g) >= MIN_CALLS);
+  const dropped = r.group_order.filter(g => total(g) < MIN_CALLS);
+  if (!shown.length) shown = r.group_order;
+  figNote("f-matrix", dropped.length && shown.length < r.group_order.length
+    ? "Not shown, too few calls for a matrix: " + dropped.map(g => `${g} (n = ${total(g)})`).join(", ") + "." : "");
+  const n = shown.length;
+  // light: white to blue; dark: the panel colour to blue, so an empty cell is not a white box
+  const scale = dark() ? [[0, "#232a35"], [1, "#3d8fe0"]] : [[0, "#ffffff"], [0.5, "#6baed6"], [1, "#08306b"]];
   const traces = [], annotations = [];
-  r.group_order.forEach((g, gi) => {
+  shown.forEach((g, gi) => {
     const c = r.spectrum_group[g] || {};
-    const tot = Object.values(c).reduce((a, b) => a + b, 0);
+    const tot = total(g);
     const pct = (a, b) => a === b ? null : 100 * (c[`${a}>${b}`] || 0) / (tot || 1);
     const z = rows.map(a => bb.map(b => pct(a, b)));
     const zmax = Math.max(20, ...z.flat().map(v => v || 0));
     traces.push({
       type: "heatmap", z, x: bb, y: rows, xaxis: `x${gi + 1}`, yaxis: `y${gi + 1}`,
-      colorscale: "Blues", reversescale: true, showscale: false, zmin: 0, zmax,
+      colorscale: scale, showscale: false, zmin: 0, zmax,
       xgap: 2, ygap: 2,
       hovertemplate: `${g}  %{y}→%{x}: %{z:.1f}%<extra></extra>`,
     });
@@ -659,7 +699,7 @@ function plotMatrix() {
         xref: `x${gi + 1}`, yref: `y${gi + 1}`, x: b, y: a, showarrow: false,
         text: v === null ? "—"
           : `<b>${v}</b><br><span style="font-size:9px">${(pct(a, b)).toFixed(1)}%</span>`,
-        font: { size: 12, color: (pct(a, b) || 0) > 0.55 * zmax ? "#fff" : (dark() ? "#dfe4ec" : "#222") },
+        font: { size: 12, color: dark() || (pct(a, b) || 0) > 0.55 * zmax ? "#fff" : "#222" },
       });
     }));
     annotations.push({
@@ -682,6 +722,8 @@ function plotMatrix() {
 
 const LOAD_CLASSES = [["0", 0, 0], ["1–3", 1, 3], ["4–10", 4, 10], ["11–20", 11, 20], ["20+", 21, 1e9]];
 const LOAD_SHADES = ["#F4F7FB", "#D6E6F4", "#A8CBE8", "#5B9BD5", "#1F4E79"];
+// on a dark page the unmutated share is the darkest slice, so most of a control's donut is not a white ring
+const LOAD_SHADES_DARK = ["#2b313b", "#29476a", "#33679b", "#4f8fd0", "#9cc3ee"];
 
 function plotLoad() {
   const r = S.result, byGroup = {};
@@ -699,7 +741,7 @@ function plotLoad() {
       type: "pie", hole: 0.52, values: vals, labels: LOAD_CLASSES.map(c => c[0]),
       name: g, sort: false, direction: "clockwise", rotation: 0,
       domain: { row: 0, column: i },
-      marker: { colors: LOAD_SHADES, line: { color: dark() ? "#555" : "#333", width: 1 } },
+      marker: { colors: dark() ? LOAD_SHADES_DARK : LOAD_SHADES, line: { color: dark() ? "#1b1f26" : "#333", width: 1 } },
       textinfo: "percent", texttemplate: "%{percent:.0%}",
       textposition: "inside", insidetextorientation: "horizontal",
       hovertemplate: `${g}: %{label} mutations — %{value} reads (%{percent})<extra></extra>`,
@@ -795,31 +837,151 @@ function currentRows() {
   }
   return rows;
 }
-function fmtNum(col, v) {
-  if (Number.isInteger(v)) return v;
-  // a p-value that underflowed to zero is not zero, it is smaller than a double
-  if (col === "p_value" && v === 0) return "&lt;1e-308";
-  if (v !== 0 && (Math.abs(v) < 1e-4 || Math.abs(v) >= 1e6)) return v.toExponential(3);
-  return String(parseFloat(v.toPrecision(4)));
+/* Column names for people. The CSV keeps the raw keys; each header's tooltip gives its key.
+   [label, what it means] */
+const COLS = {
+  sample: ["Sample"], group: ["Group"], control: ["Control"], n: ["Animals"],
+  compared_with: ["Compared with", "the control group these P values test against"],
+  reads: ["Reads", "reads analysed, after filtering and downsampling"],
+  unique_mutations: ["Unique mutations", "each distinct position and base counted once"],
+  unique_density_x1e5: ["Unique mutations per 10⁵ bp", "unique mutations per 100,000 analysed bases"],
+  one_event_density_x1e5: ["Detection floor per 10⁵ bp", "the density one mutation would give; where a sample with none is drawn"],
+  mutation_frequency_x1e3: ["Mutations per 10³ bp", "every mutated base in every read, per 1,000 bases sequenced"],
+  mutation_frequency_observed_x1e3: ["Mutations per 10³ observed bp", "as above, over the bases actually read at each position"],
+  observed_bases: ["Observed bases"],
+  mutated_reads_pct: ["Reads mutated (%)", "reads carrying at least one mutation"],
+  mean_mutations_per_read: ["Mutations per read"],
+  pct_GC: ["At G:C (%)", "unique mutations at a G or C"],
+  pct_transitions: ["Transitions (%)", "A↔G and C↔T, of unique mutations"],
+  pct_CT_GA: ["C→T and G→A (%)"],
+  pct_GC_in_WRC_GYW: ["G:C in WRC/GYW (%)", "G:C mutations at AID's WRC/GYW hotspots"],
+  gc_mutations: ["G:C mutations"],
+  pct_AT_in_WA_TW: ["A:T in WA/TW (%)", "A:T mutations at Pol η's WA/TW hotspots"],
+  analysed_bp: ["Window (bp)", "length of the analysed window"],
+  mutations_total: ["Mutations, all reads", "every mutated base in every read"],
+  frequency_bases: ["Bases (frequency)", "denominator of the mutation frequency"],
+  density_bases: ["Bases (density)", "denominator of the unique-mutation density"],
+  model_used: ["Error model"],
+  clustered_calls: ["Clustered calls", "calls removed for sitting in a cluster of mismatches"],
+  high_fraction_sites_removed: ["Germline-like sites removed", "positions mutated in most reads, set aside as germline"],
+  high_fraction_sites: ["Germline-like sites"],
+  warnings: ["Warnings"],
+  reads_with_junction: ["Reads with a junction"], clones: ["Clones"],
+  largest_clone_pct: ["Largest clone (%)", "share of the reads with a junction"],
+  clone_weighted_frequency_x1e3: ["Clone-weighted mutations per 10³ bp", "each clone counted once, so one large clone cannot dominate"],
+  multi_read_mutations: ["Mutations in 2+ reads"],
+  single_read_observed: ["One-read mutations seen"],
+  single_read_background: ["One-read background", "one-read events the controls predict for this sample"],
+  single_read_estimate: ["One-read mutations, net", "seen minus background"],
+  single_read_density_x1e5: ["One-read mutations per 10⁵ bp"],
+  single_read_density_ci_low: ["One-read per 10⁵ bp, 95% CI low"],
+  single_read_density_ci_high: ["One-read per 10⁵ bp, 95% CI high"],
+  combined_density_x1e5: ["All mutations per 10⁵ bp", "called mutations plus the one-read estimate"],
+  combined_density_ci_low: ["All per 10⁵ bp, 95% CI low"], combined_density_ci_high: ["All per 10⁵ bp, 95% CI high"],
+  combined_density_ci_scope: ["CI covers"], null_from: ["Background from"], null_matching: ["Controls matched by"],
+  pos: ["Position"], ref: ["Ref"], alt: ["Alt"], depth: ["Depth"], frequency: ["Frequency", "share of reads carrying it"],
+  p_value: ["P"], plus_reads: ["Forward reads"], minus_reads: ["Reverse reads"], context: ["Context"],
+  homopolymer: ["In a homopolymer"], WRC_GYW: ["At WRC/GYW"],
+  mutated_reads: ["Mutated reads"], frequency_pct: ["Reads mutated (%)"],
+  mutations_per_read: ["Mutations per read"], substitution: ["Substitution"], count: ["Count"],
+  metric: ["Measure"], animals_case: ["Animals"], animals_control: ["Control animals"],
+  rate_case: ["Rate"], rate_control: ["Control rate"], dispersion: ["Dispersion"], fold: ["Fold"],
+  fold_control_zero_one_event: ["Fold, zero control at one event"], p_welch_log: ["P, Welch on log"],
+  zero_count_convention: ["Zero-count rule"], p_welch_log_half_event: ["P, log, zeros at half an event"],
+  p_welch_log_third_of_smallest: ["P, log, zeros at a third of the smallest"],
+  fold_geometric: ["Fold (geometric)"], fold_ci: ["Fold, 95% CI"], p_permutation: ["P, permutation"],
+  lrt_negbinomial: ["LRT, negative binomial"], p_negbinomial: ["P, negative binomial"],
+  p_pooled_reads: ["P, reads pooled", "treats reads, not animals, as replicates: shown for comparison only"],
+};
+// the groups table's statistics are "<measure><suffix>"; the control's name is sanitised in the key
+const STAT_SUFFIXES = [
+  [/^_mean$/, "mean"], [/^_sd$/, "SD"],
+  [/^_p_welch_vs_/, "P, Welch"], [/^_p_welch_log_vs_/, "P, Welch on log"],
+  [/^_sensitivity_p_welch_log_half_event_vs_/, "P, log, zeros at half an event"],
+  [/^_sensitivity_p_welch_log_third_of_smallest_vs_/, "P, log, zeros at a third of the smallest"],
+  [/^_p_mwu_vs_/, "P, Mann–Whitney"],
+];
+function colInfo(c) {
+  if (COLS[c]) return { label: COLS[c][0], note: COLS[c][1] || "" };
+  const base = Object.keys(COLS).filter(k => c.startsWith(k + "_")).sort((a, b) => b.length - a.length)[0];
+  const stat = base && STAT_SUFFIXES.find(([re]) => re.test(c.slice(base.length)));
+  if (stat) return { label: `${COLS[base][0]}: ${stat[1]}`, note: COLS[base][1] || "", stat: stat[1], base };
+  return { label: c.replace(/_/g, " "), note: "" };
+}
+// the columns most people want; the rest are one tick away
+const KEY_COLS = {
+  samples: ["sample", "group", "control", "reads", "unique_mutations", "unique_density_x1e5",
+            "mutation_frequency_x1e3", "mutated_reads_pct", "mean_mutations_per_read", "pct_GC_in_WRC_GYW",
+            "pct_transitions", "clones", "largest_clone_pct", "warnings"],
+  groups: (c) => ["group", "n", "control", "compared_with"].includes(c) || (() => {
+    const i = colInfo(c);
+    return ["unique_density_x1e5", "mutation_frequency_x1e3", "mutated_reads_pct"].includes(i.base)
+      && ["mean", "SD", "P, Welch on log", "P, Mann–Whitney"].includes(i.stat);
+  })(),
+  animal_tests: ["metric", "group", "control", "animals_case", "animals_control", "rate_case", "rate_control",
+                 "fold", "fold_ci", "p_welch_log", "p_permutation", "p_negbinomial"],
+};
+const isP = (c) => /(^|_)p_|^p$|^p_value$/.test(c);
+// one number format per column, chosen from the column's own values, so its decimals line up
+function colFormat(c, rows) {
+  const vals = rows.map(r => r[c]).filter(v => typeof v === "number" && Number.isFinite(v));
+  if (!vals.length) return null;
+  if (isP(c)) return (v) => v === 0 ? "&lt;1e-308"    // underflowed: smaller than a double, not zero
+    : v < 1e-4 ? v.toExponential(1) : v.toFixed(4);
+  if (vals.every(Number.isInteger)) return fmtInt;
+  let d;
+  if (/(^|_)pct(_|$)|\(%\)/.test(c) || /\(%\)/.test(colInfo(c).label)) d = 1;
+  else {
+    const nz = vals.filter(v => v !== 0).map(Math.abs).sort((a, b) => a - b);
+    const med = nz.length ? nz[Math.floor(nz.length / 2)] : 1;
+    d = Math.max(0, Math.min(4, 2 - Math.floor(Math.log10(med))));
+  }
+  // a value the column's decimals would round to zero keeps its size
+  return (v) => v !== 0 && Math.abs(v) < 0.5 * 10 ** -d ? v.toExponential(1)
+    : v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function fmtCell(v, f) {
+  if (v === true) return "<span class='pill'>yes</span>";
+  if (v === false || v == null) return "";
+  if (typeof v === "number") return f ? f(v) : String(v);
+  // an interval: two numbers
+  if (Array.isArray(v) && v.length === 2 && v.every(x => typeof x === "number"))
+    return v.map(x => Math.abs(x) >= 1000 ? fmtInt(Math.round(x)) : String(+x.toPrecision(3))).join("–");
+  if (Array.isArray(v)) return esc(v.map(x => x && typeof x === "object"
+    ? (x.pos != null ? `${x.pos}${x.alt ? " " + x.alt : ""}${x.frequency != null ? ` (${Math.round(100 * x.frequency)}%)` : ""}` : JSON.stringify(x))
+    : x).join(", "));
+  if (typeof v === "object") return esc(JSON.stringify(v));
+  return esc(v);
 }
 
 function renderTable() {
   const rows = currentRows();
   const thead = $("table").tHead, tbody = $("table").tBodies[0];
-  if (!rows.length) { thead.innerHTML = ""; tbody.innerHTML = "<tr><td class=muted>No rows.</td></tr>"; return; }
+  if (!rows.length) {
+    thead.innerHTML = ""; tbody.innerHTML = "<tr><td class=muted>No rows.</td></tr>";
+    $("table-all-box").hidden = true; $("table-count").textContent = ""; return;
+  }
   // every column any row has: a control without peers lacks the estimates
-  const cols = [...new Set(rows.flatMap(r => Object.keys(r)))];
-  thead.innerHTML = "<tr>" + cols.map(c =>
-    `<th onclick="sortBy('${c}')" class="${typeof rows[0][c] === "number" ? "num" : ""}">${esc(c.replace(/_/g, " "))}${S.sort === c ? (S.sortDir > 0 ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr>";
-  tbody.innerHTML = rows.slice(0, 3000).map(r => "<tr>" + cols.map(c => {
-    let v = r[c];
-    if (v === true) v = "<span class='pill'>yes</span>";
-    else if (v === false) v = "";
-    else if (v == null) v = "";
-    else if (typeof v === "number") v = fmtNum(c, v);
-    else v = esc(v);
-    return `<td class="${typeof r[c] === "number" ? "num" : ""}">${v}</td>`;
-  }).join("") + "</tr>").join("");
+  const every = [...new Set(rows.flatMap(r => Object.keys(r)))];
+  const key = KEY_COLS[$("table-pick").value];
+  const keep = !key ? () => true : typeof key === "function" ? key : (c) => key.includes(c);
+  const fewer = every.filter(keep);
+  const trimmed = key && fewer.length < every.length;
+  $("table-all-box").hidden = !trimmed;
+  $("table-all-n").textContent = trimmed ? `(${every.length})` : "";
+  const cols = trimmed && !$("table-all").checked ? fewer : every;
+  // the control's name in a groups key is sanitised; show the real one
+  const ctl = rows.find(r => r.compared_with)?.compared_with;
+  const fmts = Object.fromEntries(cols.map(c => [c, colFormat(c, rows)]));
+  const num = (c) => rows.some(r => typeof r[c] === "number");
+  thead.innerHTML = "<tr>" + cols.map(c => {
+    const i = colInfo(c);
+    const label = i.stat && i.stat.startsWith("P") && ctl ? `${i.label} vs ${ctl}` : i.label;
+    const tip = `${i.note ? i.note + "\n" : ""}CSV column: ${c}`;
+    return `<th onclick="sortBy('${c}')" title="${esc(tip)}" class="${num(c) ? "num" : ""}">${esc(label)}${S.sort === c ? (S.sortDir > 0 ? " ▲" : " ▼") : ""}</th>`;
+  }).join("") + "</tr>";
+  tbody.innerHTML = rows.slice(0, 3000).map(r => "<tr>" + cols.map(c =>
+    `<td class="${typeof r[c] === "number" ? "num" : ""}">${fmtCell(r[c], fmts[c])}</td>`).join("") + "</tr>").join("");
   $("table-count").textContent = `${rows.length} row${rows.length === 1 ? "" : "s"}${rows.length > 3000 ? " (showing 3000)" : ""}`;
 }
 function sortBy(c) { S.sortDir = S.sort === c ? -S.sortDir : 1; S.sort = c; renderTable(); }
