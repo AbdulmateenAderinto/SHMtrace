@@ -7,6 +7,12 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- `shmtrace-sheet --platform` accepts `pacbio` (26 October). The engine always supported PacBio HiFi
+  reads (`map-hifi`, with the preset's length and expected-error gates); only the sample-sheet command's
+  choices left it out, so that one entry point could not select it. It is still given explicitly: a FASTQ
+  does not say which platform made it.
+- `pyproject.toml`'s Homepage and Issues links pointed at a repository that does not exist; they point at
+  `AbdulmateenAderinto/SHMtrace` (26 October).
 - A deep Illumina project could run out of memory. Every aligned read held one
   (position, base, quality) tuple per base, about 90 bytes a base, and a project keeps every
   usable read of every library at once: 15 Ramos libraries of 100,000 reads reached 44 GB on
