@@ -88,6 +88,11 @@
       <label class="check"><input type="checkbox" id="call-indels"> Call insertions and deletions</label>
       <p class="hint">Tested against your controls' own indel rate; needs two or more
         controls (or Sanger clones). Reported in their own table, not in the substitution density.</p>
+      <label class="check"><input type="checkbox" id="short-reads"> Keep short reads that align well</label>
+      <p class="hint">A read whose alignment is shorter than the region's minimum is kept when
+        most of it aligns, it diverges no more than SHM and sequencing error explain, and it shows
+        enough target-specific bases to be told from each contaminant. Off by default; with it on,
+        read the observed-base mutation frequency rather than the fixed-window one.</p>
       <label class="check"><input type="checkbox" id="saturation"> Measure the saturation curve</label>
       <p class="hint">Re-calls variants at a ladder of depths, so you can see whether the
         analysed depth is on the plateau. Adds a few minutes.</p>

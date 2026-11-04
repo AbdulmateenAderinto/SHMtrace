@@ -7,7 +7,7 @@ user overrides is the whole configuration story.
 """
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from importlib import resources
 from pathlib import Path
 
@@ -29,6 +29,13 @@ class Params:
     minimap2_preset: str = "map-ont"      # long noisy reads (Nanopore)
     min_align_len: int = 800              # read must align at least this long to target
     max_total_len: int = 2000             # discard over-length concatemers/chimeras
+    # Or give the two as multiples of the reference's length, for a preset that does not
+    # know its amplicon (generic_amplicon: 0.65 and 1.5). scale_lengths() sets min_align_len
+    # to min_align_frac of the reference and max_total_len to max_total_frac of it plus
+    # ADAPTER_ALLOWANCE_BP once the reference is read. A length given outright (a project
+    # override, or the Illumina and Sanger platforms) clears its fraction and is used as given.
+    min_align_frac: float | None = None
+    max_total_frac: float | None = None
     max_ee_rate: float = 0.01             # expected errors / base  (Q20-equivalent)
     drop_supplementary: bool = True       # remove structural chimeras
     downsample_to: int | None = 500    # equalise depth across samples; None = keep all
@@ -42,6 +49,32 @@ class Params:
     # Bases below this Phred are left out of the pileup (depth, calls and
     # per-read counts). 0 = use every base; the Sanger profile uses 20.
     min_base_quality: int = 0
+
+    # ---- short reads (opt-in) ------------------------------------------------
+    # min_align_len drops every read whose alignment spans less than it, however well the
+    # alignment matches. With rescue_short_reads on, such a read is kept, as "kept (short)",
+    # when its alignment is as trustworthy as a full-length one (align.short_read_flaw,
+    # align.drop_unspecific_short_reads):
+    #   - it spans at least short_read_min_fraction of min_align_len, and covers at least
+    #     that fraction of the analysis window (or of min_align_len, if that is smaller)
+    #   - at least short_read_min_query_cover of the read aligned: a chimera, or a junk read
+    #     with a little target in it, leaves a long stretch unaligned
+    #   - its edit distance per aligned base is at most short_read_max_divergence: SHM and
+    #     sequencing error stay well below it, the J꜀4 paralogue (11% divergent) does not
+    #   - it has one primary alignment and none supplementary, whatever drop_supplementary says
+    #   - against every contaminant record its span overlaps, at least short_read_min_margin
+    #     more of the record's diagnostic sites read the reference base than the contaminant's.
+    #     A short read crosses fewer of the sites that tell target from paralogue, so the
+    #     contaminant-allele check (contaminant_min_alleles) cannot catch it; it must show
+    #     evidence for the target instead of merely too little against it
+    # A partial read is credited with the whole window by mutation_frequency_x1e3, which then
+    # reads low: use mutation_frequency_observed_x1e3 and the densities, which count the bases
+    # each read showed. Off by default: every published number used the fixed floor.
+    rescue_short_reads: bool = False
+    short_read_min_fraction: float = 0.5
+    short_read_min_query_cover: float = 0.8
+    short_read_max_divergence: float = 0.05
+    short_read_min_margin: int = 5
 
     # ---- competitive contaminant handling ----------------------------------
     # A read is assigned to whichever indexed sequence it aligns best to. Reads
@@ -316,6 +349,38 @@ class Params:
     density_scale: float = 1e5             # unique-variant density is reported x this
 
 
+# Room for adapters, barcodes and primers on a raw read: they add about the same number of
+# bases whatever the amplicon's length (80-100 bp on the bundled J꜀4 nanopore reads).
+ADAPTER_ALLOWANCE_BP = 100
+
+# a length set outright replaces the fraction that would otherwise be scaled into it
+_LENGTH_FRACS = {"min_align_len": "min_align_frac", "max_total_len": "max_total_frac"}
+
+
+def explicit_lengths(overrides: dict) -> dict:
+    """`overrides`, plus a cleared fraction for each length gate it sets outright."""
+    out = dict(overrides)
+    for length, frac in _LENGTH_FRACS.items():
+        if out.get(length) is not None and frac not in out:
+            out[frac] = None
+    return out
+
+
+def scale_lengths(p: Params, reflen: int) -> Params:
+    """p with min_align_frac / max_total_frac turned into lengths for a `reflen`-bp reference.
+
+    >>> q = scale_lengths(Params(min_align_frac=0.65, max_total_frac=1.5), 900)
+    >>> q.min_align_len, q.max_total_len, q.min_align_frac
+    (585, 1450, None)
+    """
+    if p.min_align_frac is None and p.max_total_frac is None:
+        return p
+    lo = p.min_align_len if p.min_align_frac is None else int(p.min_align_frac * reflen + 0.5)
+    hi = (p.max_total_len if p.max_total_frac is None
+          else int(p.max_total_frac * reflen + 0.5) + ADAPTER_ALLOWANCE_BP)
+    return replace(p, min_align_len=lo, max_total_len=hi, min_align_frac=None, max_total_frac=None)
+
+
 def preset_path(name_or_path: str) -> Path:
     """Resolve a preset by bare name (packaged) or by filesystem path.
 
@@ -346,7 +411,7 @@ def load_preset(path: str, **overrides) -> Params:
         data = yaml.safe_load(fh) or {}
     if data.get("analysis_window"):
         data["analysis_window"] = tuple(data["analysis_window"])
-    data.update({k: v for k, v in overrides.items() if v is not None})
+    data.update(explicit_lengths({k: v for k, v in overrides.items() if v is not None}))
     return Params(**data)
 
 

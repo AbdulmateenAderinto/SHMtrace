@@ -42,7 +42,7 @@ from . import (
     singletons,
     targeting,
 )
-from .config import load_preset
+from .config import load_preset, scale_lengths
 from .io_utils import read_fasta, sniff_format
 from .parallel import pmap
 from .reads_filter import downsample
@@ -170,6 +170,9 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
             "umi_molecules": s["reads"].get("umi_molecules"),
             "umi_median_reads_per_molecule": s["reads"].get("umi_median_reads_per_group")}
            if "umi_molecules" in (s.get("reads") or {}) else {}),
+        # rescue_short_reads: how many of the analysed reads were kept below min_align_len
+        **({"short_reads": s["reads"]["short_reads_analysed"]}
+           if "short_reads_analysed" in (s.get("reads") or {}) else {}),
         # the counts behind the two rates, for count-based tests (replicates.py)
         "mutations_total": total_mut,
         "frequency_bases": nreads * bp,
@@ -765,6 +768,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     reference = project["reference"]
     contaminants = project.get("contaminants") or []
     ref_name, ref = read_fasta(reference)[0]
+    p = scale_lengths(p, len(ref))            # a preset's length gates given as fractions (config)
     lo, hi = pipeline._window(p, ref)
     lo, hi = max(lo, p.end_trim_bp), min(hi, len(ref) - 1 - p.end_trim_bp)
     if hi < lo:

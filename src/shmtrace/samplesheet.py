@@ -494,6 +494,9 @@ def main(argv=None):
                    help="a second locus the same primers amplify (a paralogue, say), analysed in its own "
                         "right instead of being discarded; repeatable. --reference is the first target.")
     r.add_argument("--mode", default="recommended")
+    r.add_argument("--rescue-short-reads", action="store_true",
+                   help="keep a read aligned below the region's minimum span when it aligns "
+                        "well and is told from every contaminant (Params.rescue_short_reads)")
     r.add_argument("--jobs", type=int, default=0,
                    help="processes for per-library work: 0 = all but one core (default), 1 = one")
     r.add_argument("-o", "--out", required=True, help="output folder")
@@ -524,7 +527,8 @@ def main(argv=None):
         raise SystemExit(str(e)) from None
     print(f"platform: {platform}" + ("" if a.platform else " (inferred from the files)"))
     proj = sh.project(a.reference, a.region, platform, contaminants=a.contaminant, mode=a.mode,
-                      overrides={"jobs": a.jobs})
+                      overrides={"jobs": a.jobs,
+                                 **({"rescue_short_reads": True} if a.rescue_short_reads else {})})
     if a.germline_vcf:
         proj["germline_vcf"] = os.path.abspath(a.germline_vcf)
     prog = lambda f, m: print(f"{100 * f:3.0f}%  {m}")                            # noqa: E731

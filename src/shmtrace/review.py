@@ -32,6 +32,8 @@ from __future__ import annotations
 
 from statistics import median
 
+from .browse import KEPT
+
 LOW_Q = 20            # Q20: a 1-in-100 chance the base is wrong, near the somatic rate itself
 GOOD_Q = 30           # Q30: 1 in 1,000
 END_BP = 10           # reads ending this close to a call support it less
@@ -50,7 +52,7 @@ def _support(res: dict) -> dict:
     reads = {**(res.get("_call_reads") or {}), **(res.get("_alignments") or {})}
     for sample, data in reads.items():
         for r in data.get("reads", []):
-            if r.get("fate") != "kept":
+            if r.get("fate") not in KEPT:
                 continue
             for pos, base, q in r.get("diffs", []):
                 near = pos - r["start"] < END_BP or r["end"] - pos < END_BP

@@ -26,6 +26,7 @@ from .io_utils import read_fasta
 # colours by this and offers it as a filter.
 FATES = [
     ("kept", "analysed"),
+    ("kept (short)", "analysed, aligned below the minimum span but well (rescue_short_reads)"),
     ("not sampled", "dropped at depth normalisation"),
     ("minor haplotype", "removed as a co-occurring block"),
     ("alignment too short", "aligned span below the minimum"),
@@ -38,6 +39,8 @@ FATES = [
     ("unmapped", "did not align"),
 ]
 FATE_ORDER = {name: i for i, (name, _d) in enumerate(FATES)}
+# the fates of analysed reads: everything that reads "the reads behind the result" uses these
+KEPT = ("kept", "kept (short)")
 
 
 def _diffs(pairs, ref: str, minq: int = 0) -> list:
@@ -50,8 +53,11 @@ def _diffs(pairs, ref: str, minq: int = 0) -> list:
 
 
 def read_rows(aligned, ref: str, fate: str = "kept") -> list[dict]:
-    """Aligned reads as the browser draws them: span, orientation, differences, indels."""
-    return [{"name": a.qname, "fate": fate, "start": a.r_st + 1,
+    """Aligned reads as the browser draws them: span, orientation, differences, indels.
+    An analysed read kept below min_align_len (rescue_short_reads) is "kept (short)"."""
+    return [{"name": a.qname,
+             "fate": "kept (short)" if fate == "kept" and getattr(a, "short", False) else fate,
+             "start": a.r_st + 1,
              "end": a.r_en, "strand": getattr(a, "strand", 1),
              "diffs": _diffs(a.pairs, ref),
              "indels": [[pos + 1, op, (x if isinstance(x, str) else int(x))]
@@ -91,6 +97,8 @@ def alignment(aligned, fates: dict, reference: str, variants=None,
                "strand": rec.get("strand", 1), "diffs": [], "indels": []}
         if rec.get("pairs"):
             row["diffs"] = _diffs(rec["pairs"], ref)
+        if rec.get("reason"):
+            row["reason"] = rec["reason"]       # why a short read was not kept (rescue_short_reads)
         rows.append(row)
     # Ordered by fate, then by position within a fate. Grouping this way is
     # what makes the view answer "before and after" at a glance: the analysed
@@ -115,6 +123,8 @@ def window(data: dict, start: int = 1, end: int | None = None,
     without the server rebuilding it each time.
     """
     end = end or len(data["reference"])
+    if fates and "kept" in fates:
+        fates = set(fates) | set(KEPT)       # asking for the analysed reads means all of them
     rows = [r for r in data["reads"]
             if r["end"] >= start and (r["start"] <= end or not r["end"])
             and (fates is None or r["fate"] in fates)]
@@ -138,7 +148,7 @@ def call_reads(data: dict, pos: int, alt: str, flank: int = 20, others: int = 40
     few, so they show the coverage's own error pattern rather than one corner of it.
     """
     lo, hi = max(1, pos - flank), min(len(data["reference"]), pos + flank)
-    covering = [r for r in data["reads"] if r["fate"] == "kept" and r["start"] <= pos <= r["end"]]
+    covering = [r for r in data["reads"] if r["fate"] in KEPT and r["start"] <= pos <= r["end"]]
     carrying, rest = [], []
     for r in covering:
         hit = next((d for d in r["diffs"] if d[0] == pos), None)

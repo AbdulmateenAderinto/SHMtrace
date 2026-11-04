@@ -363,12 +363,80 @@ trimmed from the ends.
 | `jh4_intron` | Mouse JH4 downstream intron, the neutral polyclonal assay. Germline is unknown, so high-frequency positions are removed by the under-50% rule | 101–629 of the 1,230 bp reference | 500 | 800 bp |
 | `n114_vregion` | N114 hybridoma V region; the parental sequence is known, so germline is defined exactly. Excess mutation over empty-vector controls is AID activity | 21–635 of the 655 bp reference | 500 | 400 bp |
 | `igh_smu` | Mouse IgH Sμ switch region. Heavily mutated, so mutation loads per read are high | 21–631 | 2,000 | 420 bp |
-| `generic_amplicon` | Any other region: JH6, Sγ, a V gene, an AID off-target. Everything except 20 bp at each end is analysed and nothing is assumed about the germline | whole reference minus 20 bp each end | 1,000 | 200 bp |
+| `generic_amplicon` | Any other region: JH6, Sγ, a V gene, an AID off-target. Everything except 20 bp at each end is analysed and nothing is assumed about the germline | whole reference minus 20 bp each end | 1,000 | 65% of the reference |
 | `sanger_clones` | Sanger traces, one clone per read, with no statistical test | whole reference minus 20 bp each end | all reads | 200 bp |
 
 For a new region, start with `generic_amplicon`, look at one run, and then
 narrow the window with the Advanced box. A preset is a small YAML file, so a
 permanent new assay is a new file rather than new code.
+
+### Length cutoffs for a new amplicon
+
+Two lengths decide which reads are long enough and which too long. The
+minimum (`min_align_len`) is how much of the reference a read's alignment must
+span; adapters and barcodes do not count towards it. The maximum
+(`max_total_len`) is the raw read's length, adapters included; it drops
+concatemers and other over-long products. The built-in assays use about 65% of
+the reference for the minimum (800 bp of J꜀4's 1,230, 400 of N114's 655) and
+about 1.4-1.8 times the reference for the maximum.
+
+`generic_amplicon` applies the same rule to whatever reference you give it: the
+minimum is 65% of the reference, and the maximum 1.5 times it plus 100 bp for
+adapters and barcodes, which add about the same whatever the amplicon's length.
+For a 900 bp amplicon that is 585 and 1,450 bp. A full-length read clears the
+minimum with room to spare (95% of on-target J꜀4 reads align over at least
+1,136 bp), and primer-end fragments and primer dimers do not. On Illumina and
+Sanger the reads are shorter than most amplicons, so there the platform's own
+fixed minimum (100 or 200 bp) applies instead.
+
+To check the cutoffs on your own reads, run once with the Reads tab recorded
+(**Keep the read alignment**) and look at where the analysed reads start and
+end: full-length reads form one dense band. The minimum should sit below the
+bottom of that band, "alignment too short" should hold only fragments, and
+"too long" should not be catching full-length reads. If your amplicon has a
+paralogue or contaminant record, keep the minimum high enough that a read
+crosses about ten of the sites that tell the two apart, which is what the
+contaminant check needs. To set the lengths yourself, give `min_align_len` and
+`max_total_len` in a preset of your own (copy `generic_amplicon.yaml`) or in a
+project's `overrides`; a length given that way is used as it is, not scaled.
+
+### Short reads
+
+The minimum alignment drops every read whose alignment to the reference spans
+less than it, however well that alignment matches. **Keep short reads that
+align well** (under More options on the Set-up tab; `rescue_short_reads: true` in a project or preset,
+`--rescue-short-reads` on the command line) keeps such a read when all of these
+hold, and draws it in the Reads tab as **kept (short)**:
+
+| Test | Default | What it keeps out |
+|---|---|---|
+| It spans at least half the minimum alignment, and covers at least half the analysis window (or half the minimum alignment, if that is smaller) | `short_read_min_fraction: 0.5`: 400 bp and 265 bp of the window for J꜀4 | primer-end fragments and primer dimers, and reads that add nothing to the window |
+| At least 80% of the read aligns | `short_read_min_query_cover: 0.8` | chimeras and junk reads with a little target in them. A full-length J꜀4 read aligns about 93% of its length; the rest is adapter and barcode |
+| Its edit distance is at most 5% of the aligned bases | `short_read_max_divergence: 0.05` | paralogue reads (the J꜀4 paralogue is 11% divergent). SHM plus sequencing error keeps full-length J꜀4 reads under 3% |
+| One primary alignment and none supplementary | always, whatever `drop_supplementary` says | structural chimeras |
+| Against every contaminant record it overlaps, at least 5 more of that record's diagnostic sites read the reference base than the contaminant's | `short_read_min_margin: 5` | a contaminant or paralogue fragment the competitive alignment could not tell apart |
+
+The last test is why short reads need one of their own. The contaminant check
+drops a read carrying ten or more contaminant bases, which a full-length read
+from the paralogue always does; a short one crosses fewer of the sites that
+tell the two apart, so it can carry fewer than ten and still be paralogue. A
+short read therefore has to show it is target, site by site, against each
+contaminant record on its own, and a read lying where a contaminant record has
+no difference from the target cannot, and goes. Sites most of the library
+shares with a contaminant are germline and do not count either way. The test
+only sees contaminants you supply: without a contaminant file it is skipped.
+
+A short read is credited with the whole window by `mutation_frequency_x1e3`,
+so with the option on that column, `mutated_reads_pct` and
+`mean_mutations_per_read` read slightly low, and the run says so in its notes.
+`mutation_frequency_observed_x1e3` and the densities divide by the bases each
+read actually showed and are unaffected. The samples table gains a
+`short_reads` column, the number of analysed reads that are short. Controls
+are prepared the same way as samples, so the error model sees the same reads.
+
+The option is off by default, and every published number was made with it off.
+On the bundled nanopore libraries it changes little, because they hold few
+usable short reads: see the measurement in `CHANGELOG.md`.
 
 ### Platform
 
@@ -474,7 +542,7 @@ One row per sample.
 | `reads` | Reads actually analysed, after filtering, phasing and depth equalising |
 | `unique_mutations` | Number of distinct called mutations, counting a site and base change once however many reads carry it |
 | `unique_density_x1e5` | `unique_mutations` divided by (analysed bases × mean depth), multiplied by 10⁵. This is the paper's unique-variant density. It saturates with depth, so it is only comparable between samples analysed at the same depth |
-| `mutation_frequency_x1e3` | Total mutations summed over all reads, divided by (reads × analysed bases), multiplied by 10³. A mutation in 40 reads counts 40 times. Unlike the density this does not saturate |
+| `mutation_frequency_x1e3` | Total mutations summed over all reads, divided by (reads × analysed bases), multiplied by 10³. A mutation in 40 reads counts 40 times. Unlike the density this does not saturate. With short reads kept it reads low, as they are credited with the whole window: use `mutation_frequency_observed_x1e3` then |
 | `mutated_reads_pct` | Percentage of analysed reads carrying at least one mutation |
 | `mean_mutations_per_read` | Total mutations divided by reads |
 | `pct_GC` | Percentage of the unique mutations whose reference base is G or C. AID targets G:C, so a wild-type library should sit well above half |
@@ -680,8 +748,8 @@ amplicon that was sequenced, so nothing aligns; the reads are shorter than the
 preset's minimum alignment length (800 bp for `jh4_intron`), for example because
 they are Illumina or Sanger reads analysed with the platform left on `ont`; or
 the reads are too noisy for the quality gate. Check the platform first, then
-whether the reference is right, then try `generic_amplicon`, which asks for only
-200 bp of alignment.
+whether the reference is right, then try `generic_amplicon`, whose minimum
+alignment is 65% of the reference you give it.
 
 **The `null from` column says `none` for every sample.** No control was ticked,
 or no control other than the sample itself. The quality-calibrated model had
@@ -767,9 +835,10 @@ work out. The bands are:
 | Band | Why the read went |
 |---|---|
 | analysed | kept, and counted in the result |
+| kept (short) | analysed, though its alignment is shorter than the minimum: it passed the short-read tests (Choosing the settings, Short reads). Only with that option on |
 | not sampled | dropped at depth normalisation, so every sample is compared at one depth |
 | minor haplotype | removed as part of a co-occurring block (see the phasing figure) |
-| alignment too short | aligned span below the preset's minimum |
+| alignment too short | aligned span below the preset's minimum. With short reads kept, a short read that failed their tests; click it for which test |
 | chimeric | more than one primary alignment |
 | contaminant | best hit was a contaminant reference, not the target |
 | off target | best hit was neither |

@@ -315,6 +315,7 @@ async function runProject() {
   if ($("maxp").value.trim()) over.max_pvalue = +$("maxp").value;
   over.jobs = +$("jobs").value;
   if ($("call-indels").checked) over.exclude_indels = false;
+  if ($("short-reads").checked) over.rescue_short_reads = true;
   if ($("umi").value !== "off") {
     over.umi = $("umi").value;
     over.umi_ends = $("umi-ends").value;
@@ -1150,6 +1151,7 @@ const READY = init();
 // order the pipeline applies them, so the legend reads like the pipeline.
 const FATE_COLOUR = {
   "kept": "#3F6FA8",
+  "kept (short)": "#6FA0D8",
   "not sampled": "#9AA6B4",
   "minor haplotype": "#8E6BB5",
   "alignment too short": "#C98A2E",
@@ -1161,6 +1163,8 @@ const FATE_COLOUR = {
   "no quality segment": "#7A8794",
   "unmapped": "#5D6D7E",
 };
+// an analysed read: full length, or kept below the minimum span (rescue_short_reads)
+const isKept = (fate) => fate === "kept" || fate === "kept (short)";
 const RD = { sample: null, from: 1, to: null, offset: 0, limit: 300, data: null,
              index: null, rowH: 7, left: 108 };
 
@@ -1191,7 +1195,7 @@ async function rdLoad(reset) {
   const show = $("rd-show").value;
   let fates = "";
   if (show === "kept") fates = "kept";
-  else if (show === "dropped") fates = Object.keys(FATE_COLOUR).filter(f => f !== "kept").join(",");
+  else if (show === "dropped") fates = Object.keys(FATE_COLOUR).filter(f => !isKept(f)).join(",");
   const q = new URLSearchParams({ start: RD.from, end: RD.to, offset: RD.offset,
                                   limit: RD.limit, ...(fates ? { fates } : {}) });
   const r = await fetch(`/api/alignment/${S.job}/${encodeURIComponent(RD.sample)}?${q}`);
@@ -1279,7 +1283,7 @@ function rdDraw() {
     const a = Math.max(RD.left, x(Math.max(rd.start, d.start)));
     const b = Math.min(RD.left + plot, x(Math.min(rd.end || d.end, d.end)));
     ctx.fillStyle = colour;
-    ctx.globalAlpha = rd.fate === "kept" ? 0.3 : 0.22;
+    ctx.globalAlpha = isKept(rd.fate) ? 0.3 : 0.22;
     if (b > a) ctx.fillRect(a, y + 1, b - a, RD.rowH - 2);   // the read's span
     ctx.globalAlpha = 1;
     for (const [pos, base] of rd.diffs) {                     // its mismatches
@@ -1312,7 +1316,7 @@ function rdDraw() {
     if (i >= 0 && i < reads.length) rdDetail(reads[i]);
   };
 
-  const c = d.counts, kept = c.kept || 0;
+  const c = d.counts, kept = (c.kept || 0) + (c["kept (short)"] || 0);
   const total = Object.values(c).reduce((a, b) => a + b, 0);
   $("rd-status").textContent =
     `${RD.sample}: ${total.toLocaleString()} reads recorded, ${kept.toLocaleString()} analysed`
@@ -1338,6 +1342,7 @@ function rdDetail(rd) {
   box.innerHTML = `<h3 style="margin:0 0 6px">${esc(rd.name)}</h3>
     <p class="hint" style="margin:0 0 8px">${esc(rd.fate)} ·
       ${rd.start}–${rd.end} · ${rd.strand === 1 ? "forward" : "reverse"} strand</p>
+    ${rd.reason ? `<p class="hint" style="margin:0 0 8px">${esc(rd.reason)}</p>` : ""}
     <p style="margin:0 0 4px"><strong>Mismatches:</strong> ${esc(diffs)}</p>
     <p style="margin:0"><strong>Indels:</strong> ${esc(ind)}</p>`;
 }

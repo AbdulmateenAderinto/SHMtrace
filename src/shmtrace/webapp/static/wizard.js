@@ -130,6 +130,8 @@ function requiredLength() {
   const p = $("platform").value, d = (S.options.preset_details || {})[$("region").value] || {};
   if (p === "illumina") return 100;
   if (p === "sanger") return 200;
+  // a preset that scales its minimum to the reference (generic_amplicon: 65% of it)
+  if (d.min_align_frac && W.ref && W.ref.length) return Math.round(d.min_align_frac * W.ref.length);
   return d.min_align_len || 0;
 }
 function wizIssues(step) {

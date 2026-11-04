@@ -452,7 +452,7 @@ function alTracks() {
   const d = AL.data, n = d.end - d.start + 1;
   AL.cov = new Array(n).fill(0); AL.mis = new Array(n).fill(0);
   for (const r of d.reads) {
-    if (r.fate !== "kept") continue;          // the graphs describe the analysed reads
+    if (!isKept(r.fate)) continue;          // the graphs describe the analysed reads
     for (let p = Math.max(r.start, d.start); p <= Math.min(r.end, d.end); p++) AL.cov[p - d.start]++;
     for (const [p] of r.diffs) if (p >= d.start && p <= d.end) AL.mis[p - d.start]++;
     for (const [p, op, len] of r.indels || []) if (op === "D")
@@ -471,8 +471,8 @@ function alSort() {
     : by === "strand" ? (a, b) => (b.strand || 1) - (a.strand || 1) || a.start - b.start
     : (a, b) => alCarries(b, v) - alCarries(a, v) || calledIn(b) - calledIn(a) || a.start - b.start;
   // the analysed reads first, then (when asked for) the ones downsampling did not draw
-  AL.rows = AL.data.reads.filter(r => r.fate === "kept" || undrawn)
-    .sort((a, b) => (a.fate !== "kept") - (b.fate !== "kept") || order(a, b));
+  AL.rows = AL.data.reads.filter(r => isKept(r.fate) || undrawn)
+    .sort((a, b) => !isKept(a.fate) - !isKept(b.fate) || order(a, b));
   const n = v ? AL.rows.filter(r => alCarries(r, v)).length : 0;
   // what to show: a name search and a filter, both narrowing the reads already ordered
   const q = ($("al-name").value || "").trim().toLowerCase(), f = $("al-filter").value;
@@ -482,8 +482,8 @@ function alSort() {
     && (f === "called" ? hasCall(r) : f === "clean" ? !hasCall(r) : f === "focus" ? alCarries(r, v)
       : f === "fwd" ? (r.strand || 1) > 0 : f === "rev" ? r.strand < 0 : true));
   const fwd = AL.rows.filter(r => (r.strand || 1) > 0).length;
-  const nk = AL.data.reads.filter(r => r.fate === "kept").length, nu = AL.data.reads.length - nk;
-  const shownU = AL.rows.filter(r => r.fate !== "kept").length;
+  const nk = AL.data.reads.filter(r => isKept(r.fate)).length, nu = AL.data.reads.length - nk;
+  const shownU = AL.rows.filter(r => !isKept(r.fate)).length;
   $("al-status").innerHTML = (AL.rows.length < all ? `Showing ${fmtInt(AL.rows.length)} of ` : "")
     + `${fmtInt(nk)} analysed reads` + (nu ? (undrawn ? ` + ${fmtInt(nu)} left out by downsampling`
       : ` (${fmtInt(nu)} more left out by downsampling can be shown)`) : "")
@@ -558,7 +558,7 @@ function alDraw() {
   ctx.save(); ctx.beginPath(); ctx.rect(G, head - 2, W - G, H); ctx.clip();
   ctx.font = `${Math.min(12, cw)}px ui-monospace, Menlo, monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (let i = r0; i < r1; i++) {
-    const r = AL.rows[i], yy = y(i), st = strandOf(r), fade = r.fate === "kept" ? 1 : 0.4;
+    const r = AL.rows[i], yy = y(i), st = strandOf(r), fade = isKept(r.fate) ? 1 : 0.4;
     if (AL.picked === r.name) { ctx.fillStyle = accent; ctx.globalAlpha = 0.22; ctx.fillRect(G, yy, W - G, rh); ctx.globalAlpha = 1; }
     const a = Math.max(r.start, p0), b = Math.min(r.end, p1);
     if (b >= a) {
@@ -649,7 +649,7 @@ function alDraw() {
     else if (v && alCarries(r, v)) { ctx.fillStyle = accent; ctx.globalAlpha = 0.08; ctx.fillRect(0, yy, G, rh); ctx.globalAlpha = 1; }
     ctx.font = "10px ui-monospace, Menlo, monospace";
     ctx.fillStyle = muted;
-    if (r.fate === "kept") ctx.fillText(String(i + 1), 6, yy + rh / 2);
+    if (isKept(r.fate)) ctx.fillText(String(i + 1), 6, yy + rh / 2);
     else { ctx.font = "italic 8px system-ui, sans-serif"; ctx.fillText("not drawn", 4, yy + rh / 2); }
     ctx.fillStyle = st.colour; ctx.font = "11px system-ui, sans-serif"; ctx.fillText(st.arrow, 46, yy + rh / 2);
     ctx.fillStyle = picked ? fg : muted; ctx.font = `${picked ? "600 " : ""}10px ui-monospace, Menlo, monospace`;
@@ -674,7 +674,7 @@ function alReadPanel() {
   const el = $("al-read");
   const r = AL.picked && AL.data && AL.rows.find(x => x.name === AL.picked);
   if (!r) { el.innerHTML = '<p class="hint">Click a read in the strip to see its name, orientation and mismatches, and to extract it.</p>'; return; }
-  const st = strandOf(r), i = AL.rows.indexOf(r) + 1, drawn = r.fate === "kept";
+  const st = strandOf(r), i = AL.rows.indexOf(r) + 1, drawn = isKept(r.fate);
   const calls = r.diffs.filter(d => AL.called.get(d[0])?.has(d[1]));
   const other = r.diffs.filter(d => !AL.called.get(d[0])?.has(d[1]));
   const sanger = S.result.params.platform === "sanger";

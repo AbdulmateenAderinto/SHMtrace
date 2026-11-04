@@ -31,6 +31,15 @@ this project uses [semantic versioning](https://semver.org/).
   nanopore and Sanger sample data give the same results as before.
 
 ### Changed
+- `generic_amplicon` now sets its length cutoffs from the reference, as its description
+  always said it did: an alignment must span 65% of the reference (it was 200 bp whatever
+  the amplicon), and a read longer than 1.5 times the reference plus 100 bp of adapter and
+  barcode is dropped (it was 20,000 bp). The same rule gives 800 bp for J꜀4's 1,230-bp
+  reference, which is what `jh4_intron` uses. A preset gives the rule as `min_align_frac` and
+  `max_total_frac`. A length set outright in a project's overrides or a preset is used as
+  given, and Illumina and Sanger keep their fixed minimum (100 and 200 bp) and maximum.
+  Every published `generic_amplicon` analysis set both lengths outright, or ran on Illumina,
+  so none of them changes.
 - A run of the bundled sample data is no longer saved as a project on its own, so it runs afresh
   each time it is shown and does not fill Recent projects. Save project file still keeps it.
 - The nanopore sample data (**Try it with nanopore sample data**, `examples_nanopore/`)
@@ -41,6 +50,24 @@ this project uses [semantic versioning](https://semver.org/).
   `examples_compare/` for the tests and the Geneious benchmark.
 
 ### Added
+- Short reads kept when they align well (`rescue_short_reads`, off by default; **Keep short
+  reads that align well** under More options, `--rescue-short-reads` on the command line).
+  A read aligned below the region's minimum span is kept, as **kept (short)** in the Reads
+  tab, when it spans at least half that minimum and covers half the analysis window, 80% of
+  it aligns, its edit distance is at most 5% of the aligned bases, it has a single primary
+  alignment, and against every contaminant record it overlaps it reads the reference base at
+  5 or more diagnostic sites beyond those where it reads the contaminant's. That last test
+  exists because a short paralogue fragment crosses too few diagnostic sites for the
+  ten-allele contaminant check to catch. A short read that fails says which test it failed.
+  The samples table gains `short_reads`, and the run notes that `mutation_frequency_x1e3`
+  (which credits a partial read with the whole window) reads low; the observed-base
+  frequency and the densities do not. On the six bundled nanopore libraries it adds 3-15
+  reads per library (0.3-1.0%; most short reads there are primer-end fragments under
+  400 bp, which it still drops). Analysed over every usable read, the 722 calls are the same
+  ones and each density moves by under 1%. At the 500-read draw it reshuffles which reads
+  are drawn, which moves a library as much as drawing with another seed does: WT2 gives
+  212-244 unique mutations across four draws with it off and 169-234 with it on, and Wt
+  against *Aicda*-/- stays at p = 0.003-0.009 (Welch, log density).
 - Motif families beyond WRC/GYW and WA/TW: WRCH/DGYW, WRCY/RGYW, WGCW (a hotspot on both
   strands), the SYC/GRS coldspots and WATW. Each call lists the families it sits in
   (`motifs` in the variants table and the Check calls panel); each sample gets a percentage

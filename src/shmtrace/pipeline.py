@@ -26,10 +26,12 @@ from .align import (
     build_index,
     diagnostic_sites,
     drop_contaminant_alleles,
+    drop_unspecific_short_reads,
     pair_window,
+    record_sites,
     trim_messy_ends,
 )
-from .config import Params, load_preset, to_dict
+from .config import Params, explicit_lengths, load_preset, scale_lengths, to_dict
 from .io_utils import read_fasta, read_fastq
 from .phasing import partition
 from .reads_filter import downsample, prefilter
@@ -50,6 +52,7 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
     phasing blocks detected in the returned reads (phasing.partition's `keep`).
     """
     ref_seq = dict(read_fasta(reference))[read_fasta(reference)[0][0]]
+    p = scale_lengths(p, len(ref_seq))
     lo, hi = _window(p, ref_seq)
     reads = list(read_fastq(fastq))
     kept, s_pre = prefilter(reads, p, fates)
@@ -66,6 +69,15 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
         aligned, n_drop = drop_contaminant_alleles(aligned, sites, p.contaminant_min_alleles,
                                                    p.contaminant_germline_frac, fates)
         s_pre["dropped_contaminant_alleles"] = n_drop
+    if p.rescue_short_reads:
+        # a short read must show it is target over every contaminant it overlaps (Params)
+        n_unspecific = 0
+        if contaminants:
+            aligned, n_unspecific = drop_unspecific_short_reads(
+                aligned, record_sites(reference, contaminants, p.minimap2_preset), ref_seq,
+                p.short_read_min_margin, p.contaminant_germline_frac, fates)
+        s_pre["short_reads_kept"] = sum(1 for a in aligned if getattr(a, "short", False))
+        s_pre["short_reads_unspecific"] = n_unspecific
     if p.umi != "off":
         # one consensus read per molecule (umi.py); everything after counts molecules
         from .umi import consensus_reads
@@ -76,10 +88,12 @@ def prepare_reads(fastq: str, reference: str, contaminants: list[str], p: Params
         trimmed = [trim_messy_ends(a, ref_seq, p.sanger_clean_window,
                                    p.sanger_clean_max_mismatch) for a in aligned]
         s_pre["clones_without_clean_stretch"] = sum(t is None for t in trimmed)
-        if fates is not None:
-            for a, t in zip(aligned, trimmed, strict=True):
-                if t is None:
+        for a, t in zip(aligned, trimmed, strict=True):
+            if t is None:
+                if fates is not None:
                     fates[a.qname] = {"fate": "no clean stretch"}
+            elif getattr(a, "short", False):
+                t.short = True
         aligned = [t for t in trimmed if t is not None]
     s_pre["aligned_before_phasing"] = len(aligned)
     # Remove a co-occurring minor haplotype before depth standardisation, so the
@@ -131,6 +145,8 @@ def analyse(aligned: list, reference: str, p: Params, read_stats: dict | None = 
                         "densities from different depths are not comparable")
     s_down["depth_target"] = target
     s_align = {"aligned_to_target": len(aligned)}
+    if p.rescue_short_reads:
+        s_align["short_reads_analysed"] = sum(1 for a in aligned if getattr(a, "short", False))
 
     variants, s_var = call_variants(aligned, reference, target_name, p, null_rates)
     warnings.extend(n for n in s_var.get("notes", [])
@@ -225,6 +241,7 @@ def mutation_load_summary(per_read: list[dict]) -> dict:
 def run(fastq: str, reference: str, contaminants: list[str], p: Params,
         null_rates: dict | None = None, known_blocks: list | None = None,
         depth: int | None = None) -> dict:
+    p = scale_lengths(p, len(read_fasta(reference)[0][1]))
     aligned, s_reads = prepare_reads(fastq, reference, contaminants, p, known_blocks)
     result = analyse(aligned, reference, p, s_reads, null_rates, depth)
     result["_aligned_all"] = aligned
@@ -335,7 +352,8 @@ def platform_overrides(platform: str, base: Params | None = None) -> dict:
     Long-read platforms keep the preset's amplicon-specific length filters.
     Platforms whose reads are shorter than a long-read amplicon (Illumina,
     Sanger) lower min_align_len, to at most 100 / 200 bp (the preset's own
-    value when that is already smaller, if `base` is given).
+    value when that is already smaller, if `base` is given), and use these
+    lengths as given rather than scaled to the reference (Params.min_align_frac).
 
     ont      map-ont; the preset as written
     pacbio   map-hifi; the preset's EE gate (HiFi reads clear it easily);
@@ -358,13 +376,14 @@ def platform_overrides(platform: str, base: Params | None = None) -> dict:
         # single-read cut sits lower than on nanopore
         out.update(minimap2_preset="sr", bh_family="all", single_read_min_quality=30,
                    max_ee_rate=max(0.02, base.max_ee_rate if base else 0.0),
-                   min_align_len=min(100, base.min_align_len) if base else 100)
+                   min_align_len=min(100, base.min_align_len) if base else 100,
+                   min_align_frac=None, max_total_frac=None)
     elif plat == "sanger":
         out.update(minimap2_preset="map-ont", quality_trim="mott", trim_cutoff=0.01,
                    max_ee_rate=0.05,
                    min_align_len=min(200, base.min_align_len) if base else 200,
                    max_total_len=max(3000, base.max_total_len) if base else 3000,
-                   downsample_to=None, single_read_min_quality=None, **MODES["sanger"])
+                   min_align_frac=None, max_total_frac=None, downsample_to=None, single_read_min_quality=None, **MODES["sanger"])
     return out
 
 
@@ -379,7 +398,7 @@ def build_params(preset: str, platform: str | None = None, mode: str | None = "r
     plat = normalise_platform(platform or base.platform)
     ov = platform_overrides(plat, base)
     ov.update(mode_overrides(mode, plat))
-    ov.update({k: v for k, v in overrides.items() if v is not None})
+    ov.update(explicit_lengths({k: v for k, v in overrides.items() if v is not None}))
     if isinstance(ov.get("analysis_window"), list):
         ov["analysis_window"] = tuple(ov["analysis_window"])
     return replace(base, **ov)
@@ -495,6 +514,10 @@ def main():
                     help="do not test a position/allele that a --null control carries as a "
                          "second allele (25-50%% of its reads): a heterozygous site sits just "
                          "under the 50%% germline cut and is not somatic")
+    ap.add_argument("--rescue-short-reads", action="store_true",
+                    help="keep a read aligned below min_align_len when most of it aligns, it "
+                         "diverges little from the reference and it is told from every "
+                         "contaminant (default off)")
     ap.add_argument("--plots", action="store_true", help="also write PNG figures")
     ap.add_argument("--null", action="append", default=[], metavar="FASTQ",
                     help="mutation-free control reads (e.g. AID-deficient) used to measure "
@@ -536,6 +559,8 @@ def main():
                      read_end_margin_bp=args.read_end_margin_bp, qscale_max=args.qscale_max)
     if args.mask_control_het:
         overrides["mask_control_het"] = True
+    if args.rescue_short_reads:
+        overrides["rescue_short_reads"] = True
     if args.no_phasing:
         overrides["phase_mode"] = "off"
     if args.no_correction:

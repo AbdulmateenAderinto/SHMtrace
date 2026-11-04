@@ -115,7 +115,8 @@ def _preset_details() -> dict:
         out[name] = {"description": " ".join(str(p.description or "").split()),
                      "window": list(p.analysis_window) if p.analysis_window else None,
                      "depth": p.downsample_to, "min_align_len": p.min_align_len,
-                     "max_total_len": p.max_total_len, "end_trim_bp": p.end_trim_bp}
+                     "max_total_len": p.max_total_len, "min_align_frac": p.min_align_frac,
+                     "end_trim_bp": p.end_trim_bp}
     return out
 
 
@@ -687,7 +688,7 @@ def export(job_id: str, what: str, drop_rejected: bool = False):
         texts = {}
         for s in proj.get("samples") or []:
             data = (res.get("_alignments") or {}).get(s["name"]) or (res.get("_call_reads") or {}).get(s["name"])
-            names = {r["name"] for r in (data or {}).get("reads", []) if r.get("fate") == "kept"}
+            names = {r["name"] for r in (data or {}).get("reads", []) if r.get("fate") in browse.KEPT}
             if names:
                 try:
                     texts[s["name"]], _n = samout.sam(reference, s["path"], names,

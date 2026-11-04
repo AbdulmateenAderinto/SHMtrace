@@ -388,6 +388,14 @@ def call_variants(aligned_reads, target_ref_fasta: str, target_name: str,
                      "aligned columns per read are not counted, so the fixed-window "
                      "mutation_frequency_x1e3 reads low. Use mutation_frequency_observed_x1e3, "
                      "and the densities, which divide by the bases actually counted")
+    n_short = sum(1 for r in aligned_reads if getattr(r, "short", False))
+    if n_short:
+        # the same bias from the other side: a short read is credited with the whole window
+        notes.append(f"{n_short} of {len(aligned_reads)} analysed reads are short reads kept below "
+                     "min_align_len (rescue_short_reads), so the fixed-window "
+                     "mutation_frequency_x1e3, the mutated-read share and the mutations per read "
+                     "read low. Use mutation_frequency_observed_x1e3, and the densities, which "
+                     "divide by the bases actually counted")
     germline_on = not p.ancestral_reference
     germline_min_depth = 0
     if not germline_on:
