@@ -51,6 +51,18 @@ Raising `phase_max_drop` to 0.55 takes clone 3 from 31 calls at 31.20 per 10³ t
 
 So AIDKO_3 is not a noisy control. It is the one clone whose second allele survived a threshold the others fell below. Nothing on this page fixes that on its own.
 
+**Update, 2 November 2026: phasing now does this by default.** A block phasing finds not to be hypermutation but cannot drop without passing `phase_max_drop` is now kept with its reads and its own sites are left out of calling, as a second allele's (`CHANGELOG.md`, Fixed). On Ramos that is the case this section describes, in eight of the fifteen clones, so the default run now gives what the mask was for. Regenerated (`public_illumina.py hmces hmces_k3 hmces_het`):
+
+| | Default, before | Default, now | Mask on, now |
+|---|---:|---:|---:|
+| Wt and HMCES-KO, substitutions per 10³ | 0.45–8.17, bimodal | 0.22–0.83 | 0.22–0.83 |
+| AIDKO_3 as a control | 36 calls, 31.2 per 10³ | 8 calls, 0.04 per 10³ | 8 calls, 0.04 per 10³ |
+
+The mask now changes 4 of the 12 clones by 1–4 calls, 9 in all, none carried by more than 0.1% of reads: a shifted threshold, not allelic sites. It stays worth having for a second allele that differs at fewer than `phase_min_sites` (4) sites, which phasing cannot see as a block.
+
+The paragraph above needs one qualification. With its allele out, AIDKO_3 still makes 35 calls as a sample against 0 and 2 for its siblings, 54% at G:C, and the noisy-control rule still sets it aside. The allele was most of its excess, not all of it.
+
+
 **What the mask does not fix, and a correction.** `ACCURACY_BREADTH.md` reported Ramos recall at 0.13 in simulation, with ten of twelve libraries calling nothing, and attributed it to these sites filling the controls' decoys. **That attribution was wrong.** With the mask on, the same libraries score identically, library for library:
 
 | | base | `mask_control_het` |
