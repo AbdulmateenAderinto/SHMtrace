@@ -65,3 +65,34 @@ def test_a_run_filters_by_the_scaled_lengths(tmp_path, examples):
     res = pipeline.run(str(fq), ref, [], p)
     assert res["summary"]["params"]["min_align_len"] == 800
     assert res["summary"]["params"]["max_total_len"] == 1945
+
+
+def test_a_length_set_with_replace_is_not_rescaled():
+    # dataclasses.replace() copies the preset's fraction alongside the new length; the
+    # length still wins, as it does through load_preset(..., **overrides)
+    from dataclasses import replace
+    p = scale_lengths(replace(load_preset("generic_amplicon"), min_align_len=600, max_total_len=1400), 900)
+    assert (p.min_align_len, p.max_total_len) == (600, 1400)
+    p = scale_lengths(replace(load_preset("generic_amplicon"), min_align_len=600), 900)
+    assert (p.min_align_len, p.max_total_len) == (600, 1450)
+    # even when the value set equals the preset's own fallback
+    p = scale_lengths(replace(load_preset("generic_amplicon"), min_align_len=200), 900)
+    assert p.min_align_len == 200
+    # and a fraction added to a preset that has none scales its preset lengths
+    p = scale_lengths(replace(load_preset("jh4_intron"), min_align_frac=0.5), 900)
+    assert p.min_align_len == 450
+
+
+def test_preset_lengths_travel_like_ints():
+    import json
+    import pickle
+    from dataclasses import replace
+    from shmtrace.config import PresetLength, to_dict
+    p = load_preset("generic_amplicon")
+    assert isinstance(p.min_align_len, PresetLength)
+    back = pickle.loads(pickle.dumps(p))
+    assert back == p and isinstance(back.max_total_len, PresetLength)
+    assert scale_lengths(back, 900).min_align_len == 585
+    d = to_dict(p)
+    assert json.loads(json.dumps(d))["min_align_len"] == 200 and repr(p.min_align_len) == "200"
+    assert isinstance(replace(p, phase_mode="flag").min_align_len, PresetLength)

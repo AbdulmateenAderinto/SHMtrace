@@ -14,6 +14,22 @@ from pathlib import Path
 import yaml
 
 
+class PresetLength(int):
+    """A length gate's value as a preset or the defaults give it, not one set outright.
+
+    scale_lengths() replaces a PresetLength with its fraction of the reference, and leaves
+    a plain int alone: a length someone set, by an override or by dataclasses.replace(),
+    is used as given even when the preset also carries a fraction. Otherwise an int.
+
+    >>> PresetLength(800) == 800, repr(PresetLength(800))
+    (True, '800')
+    """
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return int.__repr__(self)
+
+
 @dataclass
 class Params:
     # ---- assay identity -----------------------------------------------------
@@ -27,13 +43,14 @@ class Params:
 
     # ---- read pre-processing (Step 1-2 of the current pipeline) -------------
     minimap2_preset: str = "map-ont"      # long noisy reads (Nanopore)
-    min_align_len: int = 800              # read must align at least this long to target
-    max_total_len: int = 2000             # discard over-length concatemers/chimeras
+    min_align_len: int = PresetLength(800)    # read must align at least this long to target
+    max_total_len: int = PresetLength(2000)   # discard over-length concatemers/chimeras
     # Or give the two as multiples of the reference's length, for a preset that does not
     # know its amplicon (generic_amplicon: 0.65 and 1.5). scale_lengths() sets min_align_len
     # to min_align_frac of the reference and max_total_len to max_total_frac of it plus
     # ADAPTER_ALLOWANCE_BP once the reference is read. A length given outright (a project
-    # override, or the Illumina and Sanger platforms) clears its fraction and is used as given.
+    # override, dataclasses.replace, or the Illumina and Sanger platforms) is used as given:
+    # a fraction scales only a length still at its preset or default value (PresetLength).
     min_align_frac: float | None = None
     max_total_frac: float | None = None
     max_ee_rate: float = 0.01             # expected errors / base  (Q20-equivalent)
@@ -375,9 +392,13 @@ def scale_lengths(p: Params, reflen: int) -> Params:
     """
     if p.min_align_frac is None and p.max_total_frac is None:
         return p
-    lo = p.min_align_len if p.min_align_frac is None else int(p.min_align_frac * reflen + 0.5)
-    hi = (p.max_total_len if p.max_total_frac is None
-          else int(p.max_total_frac * reflen + 0.5) + ADAPTER_ALLOWANCE_BP)
+    # a length set outright (a plain int, not a PresetLength) wins over its fraction
+    lo = (int(p.min_align_frac * reflen + 0.5)
+          if p.min_align_frac is not None and isinstance(p.min_align_len, PresetLength)
+          else p.min_align_len)
+    hi = (int(p.max_total_frac * reflen + 0.5) + ADAPTER_ALLOWANCE_BP
+          if p.max_total_frac is not None and isinstance(p.max_total_len, PresetLength)
+          else p.max_total_len)
     return replace(p, min_align_len=lo, max_total_len=hi, min_align_frac=None, max_total_frac=None)
 
 
@@ -411,6 +432,9 @@ def load_preset(path: str, **overrides) -> Params:
         data = yaml.safe_load(fh) or {}
     if data.get("analysis_window"):
         data["analysis_window"] = tuple(data["analysis_window"])
+    for length in _LENGTH_FRACS:            # the preset's own lengths: a fraction may scale them
+        if type(data.get(length)) is int:
+            data[length] = PresetLength(data[length])
     data.update(explicit_lengths({k: v for k, v in overrides.items() if v is not None}))
     return Params(**data)
 

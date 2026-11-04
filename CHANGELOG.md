@@ -7,6 +7,14 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- A length gate set with `dataclasses.replace()` on `generic_amplicon` was silently rescaled
+  (4 November). The preset gives its gates as fractions of the reference (0.65 and 1.5);
+  `replace(load_preset("generic_amplicon"), min_align_len=600, max_total_len=1400)` kept those
+  fractions beside the new lengths, and the fractions won, so on a 900-bp reference the gates
+  became 585 and 1,450. `load_preset(..., **overrides)`, `build_params` and project files were
+  never affected. A preset's own lengths are now marked (`config.PresetLength`), and a
+  fraction scales only those: a length set by any route is used as given. Every preset,
+  platform and override resolves to the same parameters as before through the other routes.
 - `shmtrace-sheet --platform` accepts `pacbio` (26 October). The engine always supported PacBio HiFi
   reads (`map-hifi`, with the preset's length and expected-error gates); only the sample-sheet command's
   choices left it out, so that one entry point could not select it. It is still given explicitly: a FASTQ
