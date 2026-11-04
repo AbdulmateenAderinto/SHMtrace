@@ -106,8 +106,8 @@ and in the decoy controls alike, so the control-based threshold is re-derived on
 what is left. It is **off by default**: every published number was produced
 without it.
 
-What it buys, measured on three benchmarks (`crm/spikein.py --profiles
-recommended_q30,recommended_q30_fdr20`, and the polyclonal lineage simulation):
+What it buys, measured on three benchmarks (planted mutations under the `recommended_q30`
+and `recommended_q30_fdr20` profiles, and the polyclonal lineage simulation):
 
 | Benchmark | Setting | False calls / library | FDR | One-read recall |
 |---|---|---:|---:|---:|

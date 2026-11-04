@@ -219,11 +219,7 @@ this project uses [semantic versioning](https://semver.org/).
 ### Added
 - Modes `strict` (control-based threshold at a false-discovery target of 0.01) and
   `strict_max` (the noisiest control's decoy count instead of the mean), for analyses
-  where false calls cost more than missed mutations. The default is unchanged;
-  `docs/calibration/crm/strict_sensitivity.py` and Table S7 compare them with it.
-
-See `docs/calibration/crm/CODE_AUDIT_CHANGES_2026-10-19.md` for scope,
-validation, limitations and reversal instructions.
+  where false calls cost more than missed mutations. The default is unchanged.
 
 - **Less ideal simulated libraries** (`lineage_sim`, all off by default; existing results are unchanged): planted-base quality mapped onto that of real mutant bases (`qmap`, `quality_map`), PCR duplication with early-cycle errors outside the truth (`pcr`, `amplify`), bushier lineage trees (scenario key `levels`), and `run_one(project_extra=...)` for platform and overrides. Scores add `planted_copies_unaligned`. `docs/calibration/ACCURACY_BREADTH.md` uses them.
 
@@ -369,7 +365,6 @@ validation, limitations and reversal instructions.
 ### Added
 - `shmtrace.mutation_tree`: mutation trees of a clone from long reads (mutations carried by the same reads form a node; a node's parent is the smallest node containing its reads; `fit` reports reads consistent with the tree). Figure: `docs/calibration/mutation_tree_figure.py`.
 - Project results record the background calibration (`calibration`: the leave-one-control-out factor and its trace).
-- Manuscript: J꜀4 ONT re-analysed with SHMtrace (`jh4_shmtrace.py`, also `--full-length` and `--input raw`), depth series (`depth_shmtrace.py`), Ver18 builder and the submission/deposit builder (`manuscript_corrected/`).
 - App: pooled runs from a sample sheet with `barcode` columns are split by barcode when the analysis runs (primer anchors in Set up; a note reports reads assigned per sample), and a **Screen** tab ranks every condition against the control (animal-level tests, BH q-values, volcano, CSV; `/api/screen/{id}`).
 - App: **Repair** tab (repair-route indices per animal, animal-level group comparison, spectrum decomposition against chosen reference groups with 95% intervals; sparse groups and references flagged) and **Power** tab (power table from a group of the current analysis or from given numbers; `/api/repair/{id}`, `/api/power`). Tabs wrap onto a second line on narrow windows.
 - App: **UMI consensus** in Set up → Advanced (UMI position, length, anchors with IUPAC codes, minimum reads per molecule); results report molecules per sample and reads per molecule. **Switching** tab for class-switch junctions: switch-region reference with donor picker, samples and groups, animal-level comparison, per-sample summary, microhomology and breakpoint figures, CSV exports (`/api/switch/*`, `/api/fasta-names`). Header fits narrow windows.
@@ -385,35 +380,14 @@ validation, limitations and reversal instructions.
 - Sanger pipeline for unseen data (docs/calibration/SANGER_PIPELINE.md):
   - `shmtrace.samplesheet` / `shmtrace-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.
   - `shmtrace.qc`, run on every Sanger project: duplicate files and clones, mutations shared across animals beyond chance, control clones with more mutations than their qualities predict, label mismatches, mutations lost to the germline rule, load outliers, and every clone not analysed with its reason. Flags only; nothing is changed. The flags appear in the app (Tables), the HTML report, `qc_flags.csv` and `excluded.csv`.
-  - `shmtrace.concordance` / `shmtrace-concordance`: the manuscript's two-platform statistics as a tested function; `manuscript_stats.py` now uses it, with unchanged numbers.
+  - `shmtrace.concordance` / `shmtrace-concordance`: the two-platform statistics (spectrum, position, hotspots, per-animal density) as a tested function.
   - `shmtrace.sanger_sim` / `shmtrace-validate-sanger`: simulated Sanger projects with known truth and planted bookkeeping errors. Over 40 projects: recall 99.4%, no germline calls, every planted copy, contaminant and labelled misfiling flagged, and no false flags on 6,018 clean clones.
   - The app loads a sample sheet by path. `io_utils.write_abif`. The germline rule now records which positions it removed (`germline_sites`).
-  - Tests: `test_samplesheet.py`, `test_concordance.py`, `test_sanger_validation.py`, and `test_real_jh4_sanger.py`, which reproduces the manuscript's Sanger counts from the lab's traces when they are present.
-- `organize_jh4_ab1.py --original`: organise the .ab1 traces exactly as filed in the GenBank folders (no evidence-based moves); `manuscript_corrected/export_sanger_calls.py` exports the Sanger calls the manuscript figures read. Ver17 now uses the original classification, drops the TOST analysis and the inclusion figure; `--original` still drops the two Wt2 GenBank records that are renamed MKLN K4 traces; `sanger_window_figure.py --name`; `sanger_vs_nanopore.py` also writes the two-panel `fig3_agreement_position_hotspot`.
-- **Sanger against nanopore, same mice** (`docs/calibration/sanger_vs_nanopore.py`,
-  `SANGER_VS_NANOPORE.md`). Redraws the manuscript's Figure 2A/B, 3A–E and
-  S2/S3 from SHMtrace calls on both platforms, plus position, hotspot and
-  per-mouse load agreement. Spectrum r = 0.92 (0.94 under the Geneious rule),
-  no platform × type interaction (p = 0.39), positional r = 0.90. It also
-  found that the manuscript's Geneious Sanger assemblies mix mice (W2 and W3
-  are each two mice) and that the Aicda-/- Sanger denominators are 54% JH6
-  clones. Checked from sequence alone (mutation load and shared lineages),
-  the misfiled wild-type clones belong to the mouse their names give, but
-  three clones filed as WT2 and WT4 are MKLN clones (lineages of 8 and 7
-  identical mutations shared with K4 and K2) and are removed.
-- **The J꜀4 Sanger traces organised by mouse** (`docs/calibration/organize_jh4_ab1.py`).
-  288 .ab1 traces copied into one folder per mouse, renamed
-  `<mouse>_<order>-<well>_<label>.ab1`, with a manifest. Labels the sequence
-  contradicts are corrected: two WT3 clones labelled w2 (18 and 13 mutations,
-  in the w3 wells of their plate), w4-9 to MKLN K2, and an AID-type clone in an
-  Aicda-/- sample left unassigned. From the traces, WT2 is nearly unmutated
-  (30 of 34 clones), matching its nanopore library's dominant unmutated clone,
-  and Sanger alone no longer separates wild type from Aicda-/- (P = 0.27);
-  nanopore does (P = 0.0017). The comparison now reads these folders: spectrum
-  r = 0.90, positional r = 0.89.
-  With the January 2024 orders added (429 traces), 214 of the 220 wild-type
-  and Aicda-/- clones are read from traces; the jhextra traces carry exactly
-  the mutations their GenBank records do, and every result is unchanged.
+  - Tests: `test_samplesheet.py`, `test_concordance.py`, `test_sanger_validation.py`, and `test_real_jh4_sanger.py`, which checks the clone and call counts on the lab's J꜀4 traces when they are present.
+- **Sanger against nanopore, same mice** (`SANGER_VS_NANOPORE.md`): position, hotspot
+  and per-mouse load agreement from SHMtrace calls on both platforms. Spectrum r = 0.92
+  (0.94 under the Geneious rule), no platform × type interaction (p = 0.39), positional
+  r = 0.90.
 - **Simulated libraries with known clones** (`shmtrace/lineage_sim.py`,
   `shmtrace-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
@@ -455,11 +429,8 @@ validation, limitations and reversal instructions.
   coverage; this is where to see whether that holds.
 
 ### Fixed
-- Manuscript N114 (Figure 4, Supplementary S4 and S5, Tables S1 and S2, Abstract, Methods, Results, Conclusions): now the SHMtrace re-analysis of the deposited reads. pMX-Aicda 79/58/161 calls, geometric mean 30 [19–53] × 10⁻⁵; empty vector 0/0/0 calls; group difference at least 91-fold (Welch p = 0.0045, controls at the one-event density). A Methods paragraph describes the N114 calling. The depth figures (S6, S7) remain Geneious-based.
-- Manuscript Sanger set: Wt2-filed clones wt3-4 and wt3-6 (434138-D11, F11) moved to Wt3, since their lineage's founder mutations are in 109 Wt3 nanopore reads and in no Wt2 read; wt3-3 (C11), whose lineage is in no nanopore library, stays. Ver17 rebuilt: Wt 37/40/26 clones, 135/230/106 calls; ~38-fold, P = 0.0009; r = 0.95.
 - Group tests: an animal with no mutations now counts half an event (continuity correction) instead of a third of the smallest rate among other animals; a fold against a control group with no mutations is reported as a conservative lower bound, against one event per control animal as the plots show a zero (`fold_is_lower_bound`), and two groups with none have a fold of 1.
 - The app's result endpoints failed to send a result containing an undefined statistic (NaN, e.g. a test on identical values); such values are now sent as null.
-- Manuscript Sanger set: Wt4 clone w4-9 (434141-A11) moved to MKLN K2 (identical over 520 bp, all 7 mutations, to two K2 clones), applied in `organize_jh4_ab1.py --original` too. Wt4 26 clones, 106 calls; Ver17 rebuilt (~39-fold, P = 0.0008; r = 0.96).
 - Paralogue (Agouti-type) J꜀4 reads longer than the bundled paralogue record, and PCR chimeras, passed the contaminant filter and were called as mutations: 1–4% of every raw J꜀4 library, with 35–54 false calls per simulated 500-read library. The documented allele-level check is now implemented (`contaminant_min_alleles`, default 10; germline sites ignored). The manuscript's pre-sorted 500-read files contain none of these reads.
 - The single-read estimate counted events in every prepared read, not the analysed ones, so a library deeper than the analysis depth overstated the combined density by 1.3–2×. It now counts at the analysed depth, controls included.
 - **A Sanger sample of one to three clones reported germline differences as
@@ -502,7 +473,7 @@ validation, limitations and reversal instructions.
   what makes a few thousand of them cheap enough to send to a browser, and the
   API serves one window at a time. Every filtering stage now records why it
   rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`shmtrace/viz_diagnostics.py`),
+- **Twelve figures beyond the seven standard ones** (`shmtrace/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
   per-sample positional maps, the combined density with its intervals);

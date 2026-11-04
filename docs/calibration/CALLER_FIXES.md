@@ -160,5 +160,4 @@ That directly explains section C, whose efficiency correction reads the quality 
 python -m pytest tests/test_caller_fixes.py tests/test_quant_accuracy.py
 python docs/calibration/accuracy_breadth.py run fixes --jobs 6
 python docs/calibration/accuracy_breadth.py report
-python docs/calibration/crm/public_illumina.py hmces_het ldha_margin
 ```

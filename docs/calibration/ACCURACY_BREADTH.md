@@ -16,7 +16,7 @@
 | PRJNA1481264 | ONT | Sμ in LPS blasts; Sμ in CH12 | 3 *Aicda*⁻/⁻ each |
 | PRJNA1481264 | ONT | *Pim1*; CH12 off-targets OT1 and OT2 | 3 *Aicda*⁻/⁻ each |
 
-The settings are the paper's own (`crm/datasets.py`, `crm/public_illumina.py`).
+The settings are each data set's own, as the benchmark runs use them.
 
 **Libraries.** Each control is held out in turn, mutations are planted into its reads by `lineage_sim`, and the other controls form the null. The libraries are analysed at two depths (Illumina 1,000 and 5,000 reads; ONT 500 and 2,000), with two draws per held-out control.
 
@@ -59,7 +59,7 @@ Estimate ÷ truth: the mean over 6–8 libraries, with the range in brackets. "E
 
 ## The paper's own Ramos analysis has the same artefact
 
-In the paper's Ramos run (`crm/out/public/hmces/`), AIDKO_3's 36 "substitutions" include **28 second-allele sites called at 45–48%**. Its allele ratio is about 47%, against 45% in the other two controls, which at 20,000 reads is significant at every allelic site. Seven of the twelve Wt and HMCES-KO clones gain 3–7 such calls each. Those calls make up their 7–8-per-10³ mutation frequencies, against 0.4–0.8 in the other five clones.
+In the Ramos benchmark run, AIDKO_3's 36 "substitutions" include **28 second-allele sites called at 45–48%**. Its allele ratio is about 47%, against 45% in the other two controls, which at 20,000 reads is significant at every allelic site. Seven of the twelve Wt and HMCES-KO clones gain 3–7 such calls each. Those calls make up their 7–8-per-10³ mutation frequencies, against 0.4–0.8 in the other five clones.
 
 Removing calls at an allele fraction of 0.3 or more:
 

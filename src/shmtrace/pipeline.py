@@ -308,12 +308,12 @@ MODES = {
     "recommended": {"error_model": "qcal", "multiple_testing": "control"},
     # recommended at a false-discovery rate of 0.20 instead of 0.05: more of the mutations seen in
     # one read, at about four times the background. On held-out controls with planted mutations
-    # (docs/calibration/crm/spikein.py, profile recommended_fdr20) one-read recall rose from 30% to
+    # (the spike-in benchmark, profile recommended_fdr20) one-read recall rose from 30% to
     # 72% (JH4) and 58% to 87% (N114); the false-call share was 0.18 and 0.16
     "sensitive": {"error_model": "qcal", "multiple_testing": "control", "fdr_alpha": 0.20},
     # the other direction, for when false calls cost more than missed mutations: recommended
     # at a false-discovery target of 0.01, and recommended with the noisiest control's decoy
-    # count rather than the mean. Sensitivity analyses of the paper's default (Table S7)
+    # count rather than the mean. Sensitivity analyses of the default
     "strict": {"error_model": "qcal", "multiple_testing": "control", "fdr_alpha": 0.01},
     "strict_max": {"error_model": "qcal", "multiple_testing": "control", "control_decoy_estimate": "max"},
     # the v0.1 default: per-position empirical null (or read quality), BH

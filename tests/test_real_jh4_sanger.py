@@ -1,4 +1,4 @@
-"""Regression: the lab's real JH4 Sanger traces give the manuscript's numbers (Ver17).
+"""Regression: the lab's real JH4 Sanger traces give the same clone and call counts.
 
 The traces are not in the repository; the test runs where they are (the sample
 sheet's paths) and is skipped elsewhere. A change to calling, trimming,

@@ -43,7 +43,7 @@ It is reported here both ways. Including it, the AID-knockout group mean substit
 
 ## Rerun with the November 2026 phasing
 
-*2 November 2026.* Every Ramos clone, the AID-knockout ones included, carries a second IGH allele: a block of 25–30 linked differences in close to half its reads. Phasing drops a block's reads only while that keeps it under `phase_max_drop` (45% of the library). Until this change, a library where the allele sat above that refused to phase and the allele's sites were then called as substitutions: eight of the fifteen clones, AIDKO_3 among them. Phasing now leaves the sites of such a block out of calling, as a second allele's should be. The published run (`crm/public_illumina.py hmces`) was regenerated with that code and nothing else changed:
+*2 November 2026.* Every Ramos clone, the AID-knockout ones included, carries a second IGH allele: a block of 25–30 linked differences in close to half its reads. Phasing drops a block's reads only while that keeps it under `phase_max_drop` (45% of the library). Until this change, a library where the allele sat above that refused to phase and the allele's sites were then called as substitutions: eight of the fifteen clones, AIDKO_3 among them. Phasing now leaves the sites of such a block out of calling, as a second allele's should be. The benchmark run was regenerated with that code and nothing else changed:
 
 | | Before | After |
 |---|---:|---:|
