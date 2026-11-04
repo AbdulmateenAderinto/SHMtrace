@@ -32,6 +32,11 @@ MEASURES = {
     "mean_mutations_per_read": ("mutations_per_read_mean", "per read", "mean mutations per read"),
     "pct_GC_in_WRC_GYW": ("gc_mutations_in_wrc_gyw_pct", "%", "G:C mutations at WRC/GYW hotspots"),
     "pct_AT_in_WA_TW": ("at_mutations_in_wa_tw_pct", "%", "A:T mutations at WA/TW hotspots"),
+    "pct_GC_in_WRCH_DGYW": ("gc_mutations_in_wrch_dgyw_pct", "%", "G:C mutations at WRCH/DGYW hotspots"),
+    "pct_GC_in_WRCY_RGYW": ("gc_mutations_in_wrcy_rgyw_pct", "%", "G:C mutations at WRCY/RGYW hotspots"),
+    "pct_GC_in_WGCW": ("gc_mutations_in_wgcw_pct", "%", "G:C mutations at WGCW, a hotspot on both strands"),
+    "pct_GC_in_SYC_GRS": ("gc_mutations_in_syc_grs_pct", "%", "G:C mutations at SYC/GRS coldspots"),
+    "pct_AT_in_WATW": ("at_mutations_in_watw_pct", "%", "A:T mutations at WATW, a Pol η hotspot on both strands"),
     "pct_GC": ("mutations_at_gc_pct", "%", "unique mutations at a G or C"),
     "pct_transitions": ("transitions_pct", "%", "transitions among unique mutations"),
     "clone_weighted_frequency_x1e3": ("clone_weighted_mutations_per_1e3_bp", "per 10^3 bp",
@@ -71,6 +76,13 @@ COLUMNS = {
     "reference_base": ("", "reference base at the position"),
     "mutated_reads": ("count", "reads mutated at the position"),
     "wrc_gyw_hotspot": ("yes/no", "the position is in a WRC/GYW motif"),
+    "motif": ("", "motif family: a motif and its other-strand form (WRC/GYW, WA/TW …)"),
+    "bases": ("", "the bases the family's mutated position can be, G:C or A:T"),
+    "mutations_at_bases": ("count", "the sample's unique mutations at those bases"),
+    "mutations_in_motif": ("count", "of those, the ones in the motif"),
+    "percent_in_motif": ("%", "mutations_in_motif as a share of mutations_at_bases"),
+    "percent_by_chance": ("%", "the motif's share of the window's bases of that kind: what a mutation would hit at random"),
+    "enrichment": ("ratio", "percent_in_motif / percent_by_chance; above 1, the motif is targeted"),
     "compared_with": ("", "control group the P values test against"),
     "statistic": ("", "mean, sd, or a test: welch, welch_log (Welch on log10), mann_whitney, and sensitivity variants"),
     "region": ("", "named region of the reference (all: the whole coding stretch and beyond)"),
@@ -176,6 +188,26 @@ def mutations_per_read_classes(res: dict) -> list[dict]:
     return out
 
 
+def motif_targeting(res: dict) -> list[dict]:
+    """Each sample's share of calls in each motif family, beside the share chance would give."""
+    bg = res.get("motif_background") or {}
+    out = []
+    for f in res.get("motif_families") or []:
+        k, b = f["key"], f["bases"]
+        chance = bg.get(k)
+        for s in res["samples"]:
+            n = s.get("gc_mutations" if b == "GC" else "at_mutations")
+            pct = s.get(f"pct_{b}_in_{k}")
+            if n is None:
+                continue
+            out.append({"sample": s["sample"], "group": s["group"], "motif": f["label"],
+                        "bases": "G:C" if b == "GC" else "A:T", "mutations_at_bases": n,
+                        "mutations_in_motif": round(pct * n / 100) if pct is not None else 0,
+                        "percent_in_motif": pct, "percent_by_chance": chance,
+                        "enrichment": round(pct / chance, 2) if pct is not None and chance else None})
+    return out
+
+
 def positional_by_group(res: dict) -> list[dict]:
     hot = set(res.get("hotspots") or [])
     return [{"group": x["group"], "position": x["pos"], "reference_base": x.get("ref", ""),
@@ -236,6 +268,7 @@ def tables(res: dict) -> dict[str, list[dict]]:
             "mutations_total": "mutations_total", "frequency_bases": "bases_sequenced"}),
         "mutated_reads_by_group.csv": per_sample(res, "mutated_reads_pct", {"reads": "reads"}),
         "hotspot_targeting.csv": per_sample(res, "pct_GC_in_WRC_GYW", {"gc_mutations": "gc_mutations"}),
+        "motif_targeting.csv": motif_targeting(res),
         "substitution_matrix.csv": substitution_matrix(res),
         "spectrum_by_group.csv": spectrum_by_group(res),
         "spectrum_by_sample.csv": spectrum_by_sample(res),

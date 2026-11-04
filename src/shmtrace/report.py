@@ -26,11 +26,12 @@ SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "clone_weighted_frequency_x1e3",
                   "mutation_frequency_x1e3", "mutation_frequency_observed_x1e3", "mutated_reads_pct",
                   "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_CT_GA", "s5f_index", "s5f_p",
-                  "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",
+                  "pct_GC_in_WRC_GYW", "pct_GC_in_WRCH_DGYW", "pct_GC_in_WRCY_RGYW", "pct_GC_in_WGCW",
+                  "pct_GC_in_SYC_GRS", "pct_AT_in_WA_TW", "pct_AT_in_WATW", "analysed_bp", "null_from",
                   "model_used", "warnings"]
 VARIANT_COLUMNS = ["sample", "group", "pos", "ref", "alt", "reads", "depth", "frequency",
                    "p_value", "plus_reads", "minus_reads", "context", "homopolymer",
-                   "WRC_GYW", "s5f_mutability_rel", "s5f_substitution"]
+                   "WRC_GYW", "motifs", "s5f_mutability_rel", "s5f_substitution"]
 
 
 QC_COLUMNS = ["severity", "check", "sample", "clone", "mutations", "other_sample", "other_clone",

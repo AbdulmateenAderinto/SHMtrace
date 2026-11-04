@@ -123,6 +123,12 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
     wa = sum(1 for v in vs if v.ref in "AT" and (
         motifs.is_site("WA", ref, v.pos - 1) or motifs.is_site("TW", ref, v.pos - 1)))
     at = len(vs) - gc
+    # every motif family's share of the calls at its bases (motifs.FAMILIES); WRC/GYW and WA/TW
+    # keep the names they always had, as pct_GC_in_WRC_GYW and pct_AT_in_WA_TW
+    fam = {}
+    for key, _label, bases, _ms, _what in motifs.FAMILIES:
+        hits, n = motifs.family_share(ref, [v.pos - 1 for v in vs], key)
+        fam[f"pct_{bases}_in_{key}"] = round(100 * hits / n, 1) if n else None
     # calls packed into a few bases are a localised artefact, not SHM: real
     # co-occurring blocks share reads and are removed by phasing instead
     clusters = metrics.positional_clusters(vs, bp)
@@ -156,6 +162,8 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "pct_GC_in_WRC_GYW": round(100 * hot / gc, 1) if gc else None,
         "gc_mutations": gc,
         "pct_AT_in_WA_TW": round(100 * wa / at, 1) if at else None,
+        "at_mutations": at,
+        **{k: v for k, v in fam.items() if k not in ("pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW")},
         "analysed_bp": bp,
         # UMI consensus (umi.py): reads in, molecules out
         **({"umi_reads": s["reads"].get("umi_reads_in"),
@@ -399,8 +407,10 @@ def _one_event(r: dict, k: str) -> float | None:
         return per(1e3, (r.get("clones") or 0) * (r.get("analysed_bp") or 0))
     if k in ("pct_GC", "pct_transitions"):
         return per(100.0, r.get("unique_mutations"))
-    if k == "pct_GC_in_WRC_GYW":
+    if k.startswith("pct_GC_in_"):
         return per(100.0, r.get("gc_mutations"))
+    if k.startswith("pct_AT_in_"):
+        return per(100.0, r.get("at_mutations"))
     return None
 
 
@@ -1136,7 +1146,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     keys = ["unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5",
             "clone_weighted_frequency_x1e3",
             "mutation_frequency_x1e3", "mutated_reads_pct",
-            "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_GC_in_WRC_GYW"]
+            "mean_mutations_per_read", "pct_GC", "pct_transitions",
+            *(f"pct_{b}_in_{k}" for k, _l, b, _m, _w in motifs.FAMILIES)]
     groups = group_table(per_sample, keys)
     # count-based tests with the animal as the unit (replicates.py)
     animal_tests = (replicates.group_tests(per_sample, jobs=p.jobs)
@@ -1169,7 +1180,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                   "plus_reads": v.plus_reads, "minus_reads": v.minus_reads,
                                   "context": v.context, "homopolymer": v.homopolymer,
                                   "WRC_GYW": motifs.is_site("WRC", ref, v.pos - 1)
-                                  or motifs.is_site("GYW", ref, v.pos - 1)})
+                                  or motifs.is_site("GYW", ref, v.pos - 1),
+                                  "motifs": "; ".join(motifs.families_at(ref, v.pos - 1))})
         load_hist[name] = dict(Counter(res.get("per_read_mutations") or []))
 
     # AID targeting against a 5-mer model, when one is given (targeting.py)
@@ -1228,6 +1240,9 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
     hotspots = [i + 1 for i in range(lo, hi + 1)
                 if motifs.is_site("WRC", ref, i) or motifs.is_site("GYW", ref, i)]
+    # each family's sites along the window (1-based), and its share of the bases it can sit on
+    motif_sites = {k: [i + 1 for i in range(lo, hi + 1) if any(motifs.is_site(m, ref, i) for m in ms)]
+                   for k, _l, _b, ms, _w in motifs.FAMILIES}
     progress(1.0, "done")
     return {
         "name": project.get("name") or "SHMtrace project",
@@ -1271,6 +1286,9 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "calibration": calibration,
         "reference": ref,
         "hotspots": hotspots,
+        "motif_sites": motif_sites,
+        "motif_background": motifs.background(ref, lo, hi),
+        "motif_families": [{"key": k, "label": l, "bases": b, "what": w} for k, l, b, _m, w in motifs.FAMILIES],
         "group_order": list(dict.fromkeys(gmap[s["name"]] for s in samples)),
         # per downsampled sample: every call counted over all its usable reads too
         "full_set": full_set,

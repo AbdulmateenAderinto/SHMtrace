@@ -43,11 +43,13 @@ function pjSave() {
   const a = document.createElement("a");
   a.href = `/api/project-file/${S.job}`;
   document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(pjAfterLoad, 1500);       // the download saved it too (a sample-data run was not kept before)
 }
 async function pjAfterLoad() {
   const r = await fetch(`/api/job/${S.job}`);
-  const saved = r.ok && (await r.json()).saved;
-  $("pj-saved").textContent = saved ? "Saved on this computer with its review marks; reopen it from Set up." : "";
+  const j = r.ok ? await r.json() : {};
+  $("pj-saved").textContent = j.saved ? "Saved on this computer with its review marks; reopen it from Set up."
+    : j.example ? "Sample data: not kept, so it runs afresh each time. Save project file keeps it." : "";
   pjRecent();
 }
 

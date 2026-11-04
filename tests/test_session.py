@@ -94,3 +94,25 @@ def test_the_app_saves_a_run_reopens_it_and_keeps_marks_made_after(tmp_path):
     assert c.post("/api/projects/upload", files={"file": ("x.shmtrace", b"nope")}).status_code == 400
     for k in ("t-sess", job, up):
         main.JOBS.pop(k, None)
+
+
+def test_a_sample_data_run_is_not_kept_until_asked(tmp_path, monkeypatch):
+    """The bundled sample data is for running in front of people, so a run of it is not saved on
+    its own; Save project file still keeps it, and any other run is saved as before."""
+    from fastapi.testclient import TestClient
+
+    from shmtrace import project
+    from shmtrace.webapp import main
+    monkeypatch.setattr(project, "run_project", lambda proj, progress=None: _res())
+    c = TestClient(main.app)
+    for job, example in (("t-demo", True), ("t-own", False)):
+        main.JOBS[job] = {"state": "queued", "progress": 0, "message": "", "error": None, "result": None,
+                          "project": {"name": "JH4 Nov", "samples": [], "example": example}}
+        main._run_job(job, main.JOBS[job]["project"])
+    demo, own = c.get("/api/job/t-demo").json(), c.get("/api/job/t-own").json()
+    assert demo["state"] == "done" and demo["saved"] is False and demo["example"] is True
+    assert own["saved"] is True and own["example"] is False
+    assert c.get("/api/project-file/t-demo").status_code == 200
+    assert c.get("/api/job/t-demo").json()["saved"] is True
+    for k in ("t-demo", "t-own"):
+        main.JOBS.pop(k, None)

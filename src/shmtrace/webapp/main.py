@@ -343,7 +343,10 @@ def _run_job(job_id: str, proj: dict, after=None):
         if after:
             after(res)
         job["result"] = res
-        _autosave(job_id)
+        # a run of the bundled sample data is not kept: it is there to be run, and run again in
+        # front of people, not to fill the saved projects. Save project file still keeps one.
+        if not proj.get("example"):
+            _autosave(job_id)
         job["state"] = "done"
         job["progress"] = 1.0
         job["message"] = "finished"
@@ -647,7 +650,8 @@ def job_status(job_id: str):
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(404, "no such job")
-    return {**{k: job[k] for k in ("state", "progress", "message", "error")}, "saved": bool(job.get("folder"))}
+    return {**{k: job[k] for k in ("state", "progress", "message", "error")}, "saved": bool(job.get("folder")),
+            "example": bool((job.get("project") or {}).get("example"))}
 
 
 def _result(job_id: str) -> dict:

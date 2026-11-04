@@ -7,6 +7,8 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- RGYW and DGYW were scored at the Y, not the G they mutate, so the classic view's motif
+  table counted the wrong positions for them. Nothing else used them.
 - The desktop app showed one Dock icon per worker process (ten while a run was going).
   The app was built with argv emulation, which registers every process started from
   the bundle as an app; SHMtrace opens no documents from Finder, so it is now off.
@@ -29,6 +31,8 @@ this project uses [semantic versioning](https://semver.org/).
   nanopore and Sanger sample data give the same results as before.
 
 ### Changed
+- A run of the bundled sample data is no longer saved as a project on its own, so it runs afresh
+  each time it is shown and does not fill Recent projects. Save project file still keeps it.
 - The nanopore sample data (**Try it with nanopore sample data**, `examples_nanopore/`)
   are now the six J꜀4 libraries as sequenced, about 5,000 raw reads each, with the
   bundled reference and contaminant set, in place of the 500-read Geneious exports;
@@ -37,6 +41,12 @@ this project uses [semantic versioning](https://semver.org/).
   `examples_compare/` for the tests and the Geneious benchmark.
 
 ### Added
+- Motif families beyond WRC/GYW and WA/TW: WRCH/DGYW, WRCY/RGYW, WGCW (a hotspot on both
+  strands), the SYC/GRS coldspots and WATW. Each call lists the families it sits in
+  (`motifs` in the variants table and the Check calls panel); each sample gets a percentage
+  for each (`pct_GC_in_WRCH_DGYW` and so on, and `at_mutations` beside `gc_mutations`); a
+  Motif targeting chart sets them against the share chance gives, with its numbers in
+  `plot_data/motif_targeting.csv`; and the position map can mark any family's sites.
 - Phasing reads the V(D)J junction where the amplicon has one (J꜀4): a block carried by
   reads of many unrelated junctions cannot be hypermutation and is dropped even when no
   other sample has it; a block held by one clone is kept and named as an expanded clone.

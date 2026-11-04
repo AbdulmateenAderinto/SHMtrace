@@ -297,6 +297,7 @@ async function wizExample(set = "") {
     renderSamples();
   }
   $("proj-name").value = ex.name;
+  S.example = ex.name;           // runProject marks the run as sample data while the name is still this
   wizCheckRef();
   wizGo(4);
 }

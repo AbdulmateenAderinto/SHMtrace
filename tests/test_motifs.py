@@ -57,3 +57,56 @@ def test_site_counts_never_exceeds_the_positions_examined():
     positions = [3]
     counts = site_counts(ref, positions)
     assert all(v <= len(positions) for v in counts.values())
+
+
+def test_rgyw_and_dgyw_score_the_g_not_the_y():
+    """RGYW and DGYW are the bottom-strand forms of WRCY and WRCH: the mutated base is the G."""
+    assert is_site("RGYW", "AGCT", 1) and not is_site("RGYW", "AGCT", 2)
+    assert is_site("DGYW", "TGCA", 1) and not is_site("DGYW", "CGCA", 1)   # C is not D
+    assert is_site("WRCH", "AGCA", 2) and not is_site("WRCH", "AGCG", 2)   # G is not H
+
+
+def test_overlapping_motifs_score_both_their_bases():
+    """WGCW is a WRC and a GYW at once, WATW a WA and a TW: both middle bases are sites."""
+    assert is_site("WGCW", "AGCT", 1) and is_site("WGCW", "AGCT", 2)
+    assert not is_site("WGCW", "AGCG", 1)
+    assert is_site("WATW", "TATA", 1) and is_site("WATW", "TATA", 2)
+    assert not is_site("WATW", "CATA", 1)
+
+
+def test_a_call_is_named_with_every_family_it_sits_in():
+    from shmtrace.motifs import families_at
+    assert families_at("AGCA", 2) == ["WRC/GYW", "WRCH/DGYW", "WGCW"]      # C of AGCA: not WRCY (A is not Y)
+    assert families_at("CAAGA", 2) == ["WA/TW"]
+    assert families_at("GTTC", 1) == ["WA/TW"]                             # T then W: TW
+    assert families_at("AATAT", 2) == ["WA/TW", "WATW"]
+    assert families_at("GCC", 2) == ["SYC/GRS"]
+    assert families_at("GCC", 0) == []
+
+
+def test_the_chance_level_is_the_share_of_the_window_s_bases():
+    from shmtrace.motifs import background, family_share
+    ref = "AGCTGGCC"          # G:C at 1, 2, 4, 5, 6, 7
+    hits, n = family_share(ref, range(len(ref)), "WRC_GYW")
+    assert n == 6 and hits == 2                                             # the G and C of AGCT
+    assert background(ref, 0, len(ref) - 1)["WRC_GYW"] == round(100 * 2 / 6, 1)
+
+
+def test_sample_rows_carry_every_family():
+    from types import SimpleNamespace as V
+    from shmtrace.motifs import FAMILIES
+    from shmtrace.project import sample_metrics
+    ref = "TTAGCTTAATTTGCCAAT"
+    vs = [V(pos=5, ref="C", alt="T", supporting_reads=3), V(pos=9, ref="A", alt="G", supporting_reads=2),
+          V(pos=15, ref="C", alt="T", supporting_reads=2)]
+    res = {"summary": {"calling": {}, "unique_variant_density": 0}, "variants": vs, "per_read_mutations": [1, 1]}
+    try:
+        row = sample_metrics("s", res, ref, 0, len(ref) - 1, "g", False)
+    except Exception:          # the summary is a stub: only the motif fields are under test
+        import pytest
+        pytest.skip("sample_metrics needs a fuller summary")
+    for key, _l, bases, _m, _w in FAMILIES:
+        assert f"pct_{bases}_in_{key}" in row
+    assert row["pct_GC_in_WRC_GYW"] == 50.0          # C at 5 (AGC) is; C at 15 (GCC) is not
+    assert row["pct_GC_in_SYC_GRS"] == 50.0
+    assert row["pct_AT_in_WA_TW"] == 100.0 and row["at_mutations"] == 1

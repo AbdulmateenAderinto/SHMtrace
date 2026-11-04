@@ -343,6 +343,8 @@ async function runProject() {
     germline_vcf: S.germlineVcf ? S.germlineVcf.path : null,
     sample_sheet: S.sheet || null,
     demux: { left_anchor: $("demux-left").value.trim(), right_anchor: $("demux-right").value.trim() },
+    // the bundled sample data, still under its own name: the server does not keep the run (main.py)
+    ...(S.example && $("proj-name").value === S.example ? { example: true } : {}),
   };
   $("run-btn").disabled = true;
   $("run-status").style.display = "";
@@ -493,6 +495,7 @@ const FIG_DATA = {
   "f-matrix": "substitution_matrix.csv", "f-spectrum": "spectrum_by_sample.csv",
   "f-load": "mutations_per_read.csv", "f-map": "positional_by_sample.csv",
   "f-mutated": "mutated_reads_by_group.csv", "f-hot": "hotspot_targeting.csv",
+  "f-motifs": "motif_targeting.csv",
 };
 function figShell(id, title, note) {
   const data = FIG_DATA[id];
@@ -525,7 +528,9 @@ function drawFigures() {
     + figShell("f-load", "Mutations per read", "distribution per group")
     + figShell("f-map", "Position along the amplicon", "% of reads mutated at each position")
     + figShell("f-mutated", "Reads carrying a mutation", "% of reads with at least one")
-    + figShell("f-hot", "AID hotspot targeting", "% of G:C mutations in WRC/GYW");
+    + figShell("f-hot", "AID hotspot targeting", "% of G:C mutations in WRC/GYW")
+    + figShell("f-motifs", "Motif targeting",
+      "% of G:C (AID) or A:T (Pol η) mutations in each motif; group mean ± SD, every sample shown; grey: chance");
   plotDots("f-density", "unique_density_x1e5", "Unique mutations / 10⁵ bp");
   plotDots("f-freq", "mutation_frequency_x1e3", "Mutations / 10³ bp");
   plotMatrix();
@@ -535,6 +540,7 @@ function drawFigures() {
   plotDots("f-mutated", "mutated_reads_pct", "% of reads mutated", { pct: true });
   plotDots("f-hot", "pct_GC_in_WRC_GYW", "% of G:C mutations at WRC/GYW",
            { pct: true, countKey: "gc_mutations", countWord: "G:C mutations" });
+  plotMotifs();
   if (plotResizer) document.querySelectorAll("#figs .plot").forEach(el => plotResizer.observe(el));
 }
 
@@ -769,6 +775,50 @@ function plotLoad() {
   Plotly.newPlot("f-load", traces, L, CONFIG);
 }
 
+// every motif family side by side: what share of the calls at its bases it holds in each group,
+// against what chance gives (its share of those bases in the window). A sample is left out of a
+// family when it has fewer than MIN_SAMPLE_CALLS calls at the family's bases.
+function plotMotifs() {
+  const r = S.result, fams = r.motif_families || [], el = "f-motifs";
+  if (!fams.length) { $(el).parentElement.style.display = "none"; return; }
+  const labels = fams.map(f => f.label), traces = [], left = new Set();
+  const groups = r.group_order, w = 0.8 / Math.max(groups.length, 1);
+  groups.forEach((g, gi) => {
+    const mean = [], sd = [], xs = [], ys = [], text = [];
+    fams.forEach((f, fi) => {
+      const nKey = f.bases === "GC" ? "gc_mutations" : "at_mutations", key = `pct_${f.bases}_in_${f.key}`;
+      const vals = r.samples.filter(s => s.group === g && s[key] != null).filter(s => {
+        if ((s[nKey] || 0) >= MIN_SAMPLE_CALLS) return true;
+        left.add(s.sample);
+        return false;
+      });
+      const v = vals.map(s => s[key]);
+      const m = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+      mean.push(m);
+      sd.push(v.length > 1 ? Math.sqrt(v.reduce((a, x) => a + (x - m) ** 2, 0) / (v.length - 1)) : 0);
+      vals.forEach(s => { xs.push(fi - 0.4 + w * (gi + 0.5)); ys.push(s[key]); text.push(`${s.sample}, ${f.label}`); });
+    });
+    const x = fams.map((_f, fi) => fi - 0.4 + w * (gi + 0.5));
+    traces.push({ type: "bar", name: g, x, y: mean, width: w * 0.9, marker: { color: colourOf(g), opacity: 0.35 },
+      error_y: { type: "data", array: sd, color: colourOf(g), thickness: 1.4, width: 4 },
+      customdata: labels, textposition: "none",
+      hovertemplate: `${esc(g)}, %{customdata}: mean %{y:.1f}%<extra></extra>` });
+    traces.push({ type: "scatter", mode: "markers", showlegend: false, x: xs, y: ys, text,
+      marker: { size: 6, color: colourOf(g), line: { color: dark() ? "#1b1f26" : "#fff", width: 0.8 } },
+      hovertemplate: "%{text}: %{y:.1f}%<extra></extra>" });
+  });
+  const bg = r.motif_background || {};
+  traces.push({ type: "scatter", mode: "markers", name: "chance", x: fams.map((_f, i) => i),
+    y: fams.map(f => bg[f.key]), text: fams.map(f => `${f.label}: ${f.what}`),
+    marker: { symbol: "line-ew", size: 40, color: "#9aa3b2", line: { color: "#9aa3b2", width: 2.5 } },
+    hovertemplate: "%{text}<br>chance %{y:.1f}%<extra></extra>" });
+  figNote(el, left.size ? `Left out of a motif when they have fewer than ${MIN_SAMPLE_CALLS} calls at its bases: ${[...left].join(", ")}.` : "");
+  const L = { ...withLegend(layoutBase()), barmode: "overlay", margin: { l: 64, r: 16, t: 34, b: 56 } };
+  L.xaxis = { ...L.xaxis, tickmode: "array", tickvals: fams.map((_f, i) => i), ticktext: labels, range: [-0.6, fams.length - 0.4] };
+  L.yaxis = { ...L.yaxis, title: "% of mutations at its bases", range: [0, 105] };
+  Plotly.newPlot(el, traces, L, CONFIG);
+}
+
 function plotMap() {
   const r = S.result;
   const bySample = {};
@@ -807,10 +857,17 @@ function plotMap() {
       });
     }
   });
-  traces.push({
-    type: "scatter", mode: "markers", name: "WRC/GYW", x: r.hotspots,
-    y: r.hotspots.map(() => 0), marker: { color: "#9aa3b2", size: 4, symbol: "line-ns-open" },
-    hovertemplate: "hotspot %{x}<extra></extra>",
+  // each motif family's sites as ticks along the axis; WRC/GYW shown, the rest a legend click away
+  const sites = r.motif_sites || { WRC_GYW: r.hotspots };
+  (r.motif_families || [{ key: "WRC_GYW", label: "WRC/GYW" }]).forEach(f => {
+    const xs = sites[f.key] || [];
+    if (!xs.length) return;
+    traces.push({
+      type: "scatter", mode: "markers", name: f.label, x: xs, y: xs.map(() => 0),
+      visible: f.key === "WRC_GYW" ? true : "legendonly",
+      marker: { color: f.bases === "AT" ? "#c9a227" : "#9aa3b2", size: 4, symbol: "line-ns-open" },
+      hovertemplate: `${f.label} %{x}<extra></extra>`,
+    });
   });
   const L = { ...withLegend(layoutBase()), hovermode: "closest" };
   L.xaxis.title = "Reference position"; L.yaxis.title = "% of reads mutated";
@@ -874,6 +931,12 @@ const COLS = {
   pct_GC_in_WRC_GYW: ["G:C in WRC/GYW (%)", "G:C mutations at AID's WRC/GYW hotspots"],
   gc_mutations: ["G:C mutations"],
   pct_AT_in_WA_TW: ["A:T in WA/TW (%)", "A:T mutations at Pol η's WA/TW hotspots"],
+  pct_GC_in_WRCH_DGYW: ["G:C in WRCH/DGYW (%)", "G:C mutations at AID's extended WRCH/DGYW hotspots"],
+  pct_GC_in_WRCY_RGYW: ["G:C in WRCY/RGYW (%)", "G:C mutations at AID's classic WRCY/RGYW hotspots"],
+  pct_GC_in_WGCW: ["G:C in WGCW (%)", "G:C mutations at WGCW, an AID hotspot on both strands"],
+  pct_GC_in_SYC_GRS: ["G:C in SYC/GRS (%)", "G:C mutations at AID's SYC/GRS coldspots"],
+  pct_AT_in_WATW: ["A:T in WATW (%)", "A:T mutations at WATW, a Pol η hotspot on both strands"],
+  at_mutations: ["A:T mutations"],
   analysed_bp: ["Window (bp)", "length of the analysed window"],
   mutations_total: ["Mutations, all reads", "every mutated base in every read"],
   frequency_bases: ["Bases (frequency)", "denominator of the mutation frequency"],
@@ -899,6 +962,7 @@ const COLS = {
   pos: ["Position"], ref: ["Ref"], alt: ["Alt"], depth: ["Depth"], frequency: ["Frequency", "share of reads carrying it"],
   p_value: ["P"], plus_reads: ["Forward reads"], minus_reads: ["Reverse reads"], context: ["Context"],
   homopolymer: ["Homopolymer run (bp)", "longest run of one base touching the position"], WRC_GYW: ["At WRC/GYW"],
+  motifs: ["Motifs", "the hot- and coldspot families the position sits in"],
   mutated_reads: ["Mutated reads"], frequency_pct: ["Reads mutated (%)"],
   mutations_per_read: ["Mutations per read"], substitution: ["Substitution"], count: ["Count"],
   region: ["Region"], replacement: ["Replacement"], silent: ["Silent"], stop: ["Stop"],

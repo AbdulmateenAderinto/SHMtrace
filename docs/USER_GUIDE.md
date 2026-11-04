@@ -139,6 +139,31 @@ sample, and the camera button in the corner saves the figure as a PNG.
   position, with WRC/GYW hotspot positions marked along the bottom axis.
 - **AID hotspot targeting**, the percentage of each sample's G:C mutations that
   sit in a WRC or GYW motif.
+- **Motif targeting**, every motif family side by side (below): the share of each
+  group's G:C or A:T mutations in it, with a grey tick at what chance gives. The
+  position map can mark any family's sites too; click its name in the legend.
+
+### Motif families
+
+Each family is a motif and its other-strand form, and each is scored at the base
+it names: the C of WRC, the G of GYW, the A of WA, the T of TW.
+
+| Family | Bases | What it is |
+|---|---|---|
+| WRC/GYW | G:C | AID's canonical hotspot |
+| WRCH/DGYW | G:C | The extended AID hotspot, a better predictor of G:C mutability than RGYW/WRCY (Rogozin and Diaz, 2004) |
+| WRCY/RGYW | G:C | The classic AID hotspot (Rogozin and Kolchanov, 1992) |
+| WGCW | G:C | WRC and GYW overlapping, so both strands carry a hotspot at once (Yeap et al., 2015); both the G and the C count |
+| SYC/GRS | G:C | AID coldspots: a sample targeted by AID sits below chance here |
+| WA/TW | A:T | Pol η's hotspot (Rogozin et al., 2001). A:T mutations in hypermutation are made by Pol η during mismatch repair of AID's U:G mismatch, so this is the footprint of that pathway |
+| WATW | A:T | WA and TW overlapping, the A:T counterpart of WGCW; both the A and the T count |
+
+A call can sit in several families: a WRCH is also a WRC, and a WGCW site is also a
+WRC or a GYW. So the percentages overlap and do not sum to 100. The chance level is
+the family's share of the window's bases of that kind, which differs between
+amplicons; a family is targeted when its percentage is above that, not when it is
+high. These are measured on the calls, so they say nothing in a sample with few
+calls at those bases; the chart leaves out a sample with fewer than ten.
 
 ### Tables
 
@@ -158,8 +183,8 @@ Every called mutation, one at a time, with the reads behind it. Pick a sample
 J and K. The right side shows:
 
 - the supporting reads, depth, frequency, strand split and P;
-- the sequence context, and whether the call sits in a homopolymer or a WRC/GYW
-  hotspot;
+- the sequence context, whether the call sits in a homopolymer, and the motif
+  families it sits in (WRC/GYW, WRCH/DGYW, WA/TW and the rest);
 - the error rate the controls showed at that position, as reads expected at this
   depth;
 - the same change in any other sample, controls included;
@@ -269,7 +294,10 @@ the analysis: densities and P values are those of the calls as made.
 ### Saved projects
 
 Every finished run is saved on this computer as a project, and every review mark
-is written to it the moment it is made, so closing the app loses nothing. **Recent
+is written to it the moment it is made, so closing the app loses nothing. Runs of
+the bundled sample data are the exception: they are not kept, so the sample data
+runs afresh each time (for a demonstration) and does not fill the list. **Save
+project file** keeps one like any other run. **Recent
 projects** on the Set up tab lists them, newest first, with how many calls have
 been reviewed; click one to reopen it where you left off. **Save project file** at
 the top of the Results tab saves the run as one `.shmtrace` file, to keep, move to
@@ -434,6 +462,7 @@ has means and standard deviations but no p-values.
 | Position along the amplicon | The percentage of reads mutated at each reference position, with WRC/GYW positions marked |
 | Mutations per read | The distribution of mutations per read, which separates many lightly mutated reads from a few heavily mutated ones |
 | Hotspot targeting | The share of G:C mutations in WRC or GYW motifs, one dot per sample |
+| Motif targeting | The share of G:C or A:T mutations in each motif family, per group, with the chance level (`motif_targeting.csv`, one row per sample and family, with the chance level and the enrichment over it) |
 
 ### The samples table
 
@@ -453,6 +482,8 @@ One row per sample.
 | `pct_CT_GA` | Percentage of the unique mutations that are C to T or G to A. These are what AID leaves when the uracil it makes is not repaired, so in a UNG- or MSH2-deficient background a genuine AID signal is close to 100% here. In a repair-proficient animal the figure is much lower (15–19% in the bundled wild types), because the uracil is processed into the other substitution types |
 | `pct_GC_in_WRC_GYW` | Of the mutations at G:C bases, the percentage in a WRC or GYW motif, the canonical AID hotspot. The denominator is the G:C mutations, not all mutations |
 | `pct_AT_in_WA_TW` | Of the mutations at A:T bases, the percentage in a WA or TW motif, the Pol-η signature. The denominator is the A:T mutations |
+| `pct_GC_in_WRCH_DGYW`, `pct_GC_in_WRCY_RGYW`, `pct_GC_in_WGCW`, `pct_GC_in_SYC_GRS` | The same for the other G:C families (Motif families, above), over the G:C mutations |
+| `pct_AT_in_WATW` | The same for WATW, over the A:T mutations (`at_mutations`) |
 | `analysed_bp` | Width of the analysed window after the end trims |
 | `multi_read_mutations` | Of `unique_mutations`, how many were carried by two or more reads. These are the calls the per-site test judges reliably |
 | `single_read_observed`, `single_read_background`, `single_read_estimate` | Mutations carried by one read, estimated in aggregate rather than called one at a time: how many high-quality single-read events this sample has, how many the controls predict, and the difference corrected for the share of real bases the quality cut removes. The estimate can be negative, which means no more than the controls show. Needs at least one control besides the sample itself |
@@ -469,8 +500,8 @@ A sample with no reads shows `0` reads and empty cells in the derived columns.
 
 One row per group, with `n`, whether it is the control group, and for each of
 `unique_density_x1e5`, `mutation_frequency_x1e3`, `mutated_reads_pct`,
-`mean_mutations_per_read`, `pct_GC`, `pct_transitions` and
-`pct_GC_in_WRC_GYW`:
+`mean_mutations_per_read`, `pct_GC`, `pct_transitions` and each motif
+family's percentage:
 
 - `..._mean` and `..._sd`, the mean and sample standard deviation across the
   samples of the group. A group of one sample has a mean and no standard
@@ -495,8 +526,8 @@ are over animals, which is the comparison that matters.
 - **Every mutation**: one row per called mutation per sample, with the position,
   reference and alternative base, supporting reads, depth at that position, the
   frequency, the p-value, the plus- and minus-strand read counts, the 5-mer
-  context, the homopolymer run length, and whether the position is a WRC/GYW
-  hotspot. A p-value displayed as `<1e-308` is smaller than the computer can
+  context, the homopolymer run length, whether the position is a WRC/GYW
+  hotspot, and every motif family it sits in (`motifs`). A p-value displayed as `<1e-308` is smaller than the computer can
   represent, not zero.
 - **Mutations per position**: for each group and position, how many reads were
   mutated there and what percentage of the group's reads that is. This is the
