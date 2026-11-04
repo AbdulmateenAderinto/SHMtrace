@@ -91,6 +91,8 @@ SHMtrace --fastq WT.fastq --reference ref.fasta --preset jh4_intron \
 
 **The control must come from the same sequencing run.** Nanopore error is run-specific, and a null fitted on another flow cell is not valid — `shmtrace` checks the run identifier in the read IDs and falls back to the read-quality model if they differ. So put a mutation-free sample on every flow cell; that is the same argument the manuscript makes for running an AID-null control alongside every experiment.
 
+`--null` controls are filtered, aligned, paralogue-filtered, UMI-collapsed and phased as samples are. The single-sample CLI is still not identical to a sheet or app project, though. A project calls each control against a null fitted without it, assigns decoys explicitly, sets aside a noisy control, and checks each case's run separately. For calibrated comparisons, use `shmtrace-sheet run` or an app project.
+
 ### Choose an error model
 
 `--mode` picks how a site is judged against nanopore background. Every mode except `geneious` uses `--null` controls when given, and falls back to the read-quality test with a note when not.
@@ -166,7 +168,9 @@ shmtrace-validate-sanger --reps 10 -o validation/
 
 ## Case versus control
 
-`shmtrace-compare` does group comparison in the spirit of SHMTool ([MacCarthy et al., 2009](https://doi.org/10.1016/j.jim.2009.06.005)), but starting from raw FASTQ rather than pre-aligned sequences. Each file is one independent source, for example one mouse.
+For calibrated, replicate-level inference, name the background controls in a sample sheet and use `shmtrace-sheet run` or a project in `shmtrace-app`. Each control is fitted leave-one-out, calls use control-based thresholding, and `animal_tests` compare groups with one value per animal.
+
+`shmtrace-compare` is a **legacy, descriptive** comparison in the spirit of SHMTool ([MacCarthy et al., 2009](https://doi.org/10.1016/j.jim.2009.06.005)), starting from raw FASTQ rather than pre-aligned sequences. It calls each file without a control-fitted error model. It then pools mutations across files, and its two-proportion tests treat sites or reads as independent. Its p values and stars therefore describe pooled counts; they are not evidence at the level of biological replicates. Every report says this and lists the error model each file was called with.
 
 ```bash
 shmtrace-compare \
@@ -178,7 +182,7 @@ shmtrace-compare \
   --out compare_results
 ```
 
-Reports base-composition-corrected mutation frequencies with two-proportion tests, the A:T versus G:C breakdown, the 12-class spectrum, AID and Pol-η hotspot and coldspot targeting, WRC-versus-GYW strand bias, and an optional subregion against its complement.
+Reports base-composition-corrected mutation frequencies with pooled two-proportion tests, the A:T versus G:C breakdown, the 12-class spectrum, AID and Pol-η hotspot and coldspot targeting, WRC-versus-GYW strand bias, and an optional subregion against its complement.
 
 ## Web UI
 

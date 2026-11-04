@@ -7,11 +7,27 @@ user overrides is the whole configuration story.
 """
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from importlib import resources
 from pathlib import Path
 
 import yaml
+
+
+class PresetLength(int):
+    """A length gate's value as a preset or the defaults give it, not one set outright.
+
+    scale_lengths() replaces a PresetLength with its fraction of the reference, and leaves
+    a plain int alone: a length someone set, by an override or by dataclasses.replace(),
+    is used as given even when the preset also carries a fraction. Otherwise an int.
+
+    >>> PresetLength(800) == 800, repr(PresetLength(800))
+    (True, '800')
+    """
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return int.__repr__(self)
 
 
 @dataclass
@@ -27,8 +43,16 @@ class Params:
 
     # ---- read pre-processing (Step 1-2 of the current pipeline) -------------
     minimap2_preset: str = "map-ont"      # long noisy reads (Nanopore)
-    min_align_len: int = 800              # read must align at least this long to target
-    max_total_len: int = 2000             # discard over-length concatemers/chimeras
+    min_align_len: int = PresetLength(800)    # read must align at least this long to target
+    max_total_len: int = PresetLength(2000)   # discard over-length concatemers/chimeras
+    # Or give the two as multiples of the reference's length, for a preset that does not
+    # know its amplicon (generic_amplicon: 0.65 and 1.5). scale_lengths() sets min_align_len
+    # to min_align_frac of the reference and max_total_len to max_total_frac of it plus
+    # ADAPTER_ALLOWANCE_BP once the reference is read. A length given outright (a project
+    # override, dataclasses.replace, or the Illumina and Sanger platforms) is used as given:
+    # a fraction scales only a length still at its preset or default value (PresetLength).
+    min_align_frac: float | None = None
+    max_total_frac: float | None = None
     max_ee_rate: float = 0.01             # expected errors / base  (Q20-equivalent)
     drop_supplementary: bool = True       # remove structural chimeras
     downsample_to: int | None = 500    # equalise depth across samples; None = keep all
@@ -43,6 +67,32 @@ class Params:
     # per-read counts). 0 = use every base; the Sanger profile uses 20.
     min_base_quality: int = 0
 
+    # ---- short reads (opt-in) ------------------------------------------------
+    # min_align_len drops every read whose alignment spans less than it, however well the
+    # alignment matches. With rescue_short_reads on, such a read is kept, as "kept (short)",
+    # when its alignment is as trustworthy as a full-length one (align.short_read_flaw,
+    # align.drop_unspecific_short_reads):
+    #   - it spans at least short_read_min_fraction of min_align_len, and covers at least
+    #     that fraction of the analysis window (or of min_align_len, if that is smaller)
+    #   - at least short_read_min_query_cover of the read aligned: a chimera, or a junk read
+    #     with a little target in it, leaves a long stretch unaligned
+    #   - its edit distance per aligned base is at most short_read_max_divergence: SHM and
+    #     sequencing error stay well below it, the J꜀4 paralogue (11% divergent) does not
+    #   - it has one primary alignment and none supplementary, whatever drop_supplementary says
+    #   - against every contaminant record its span overlaps, at least short_read_min_margin
+    #     more of the record's diagnostic sites read the reference base than the contaminant's.
+    #     A short read crosses fewer of the sites that tell target from paralogue, so the
+    #     contaminant-allele check (contaminant_min_alleles) cannot catch it; it must show
+    #     evidence for the target instead of merely too little against it
+    # A partial read is credited with the whole window by mutation_frequency_x1e3, which then
+    # reads low: use mutation_frequency_observed_x1e3 and the densities, which count the bases
+    # each read showed. Off by default: every published number used the fixed floor.
+    rescue_short_reads: bool = False
+    short_read_min_fraction: float = 0.5
+    short_read_min_query_cover: float = 0.8
+    short_read_max_divergence: float = 0.05
+    short_read_min_margin: int = 5
+
     # ---- competitive contaminant handling ----------------------------------
     # A read is assigned to whichever indexed sequence it aligns best to. Reads
     # whose best hit is a contaminant are dropped. Then an allele-level check:
@@ -55,12 +105,16 @@ class Params:
     # 11-62 (docs/calibration/QUANT_ACCURACY.md).
     contaminant_allele_frac: float = 0.5
     contaminant_min_alleles: int = 10
-    contaminant_germline_frac: float = 0.2
+    # Raised from 0.2 in November 2026: a library a fifth or more paralogue (a control on
+    # a raw J꜀4 run, 26%; four clones in twenty) ignored every paralogue site as germline and
+    # kept every paralogue read. 0.5 is the germline cut the caller itself applies.
+    contaminant_germline_frac: float = 0.5
 
     # ---- UMI consensus (umi.py) --------------------------------------------
     # "off", "flank" (UMI next to an anchor at a read end) or "header" (in the
     # read name). With UMIs on, each molecule becomes one consensus read and
-    # every count downstream is of molecules.
+    # every count downstream is of molecules. Indel analysis after UMI consensus
+    # is unsupported; keep exclude_indels=True when enabling UMIs.
     umi: str = "off"
     umi_ends: str = "both"           # flank: "left", "right" or "both" (dual UMIs)
     umi_length: int = 18
@@ -71,6 +125,9 @@ class Params:
     umi_anchor_edits: int = 6
     umi_header_regex: str = r"(?:_|UMI[=:])([ACGTN]{6,})"
     umi_max_edits: int = 3           # per UMI end, when grouping
+    # a UMI seen once or twice may join a group 3x its size this many edits beyond
+    # umi_max_edits; None: 2 with UMIs at both ends, off with one (docs/calibration/UMI.md)
+    umi_directional: int | None = None
     umi_min_reads: int = 3           # smaller groups are dropped
 
     # ---- variant calling ----------------------------------------------------
@@ -82,13 +139,53 @@ class Params:
     # variant the experiment is about. With this on, the frequency rule is off for calling and phasing.
     # It does not change the error model, which still keeps fixed differences out of the background, and
     # it does not change what a baseline difference shared with the controls does: the control-calibrated
-    # test already declines to call that. Leave it off for physiological SHM.
+    # test already declines to call that. It applies to indels in the same way (indels.py). Leave it
+    # off for physiological SHM.
     ancestral_reference: bool = False
+    # The frequency rule above removes a difference at 50% or more, which is a homozygous
+    # one. A heterozygous allele sits near 50% and can fall either side of it: in the Ramos
+    # IGH amplicon the second allele is read in 45-48% of reads, so it stays in the test, and
+    # a one-point difference in that ratio between a sample and its controls is significant at
+    # 20,000 reads. Those sites then dominate both the calls and the control-based threshold
+    # (docs/calibration/ACCURACY_BREADTH.md). With this on, a (position, alt) that any control
+    # library shows in control_het_band of its reads is a second allele there, not somatic, and
+    # is left out of the sample's candidates and of the decoys alike. Off by default: it needs
+    # control reads, and on a mutation-free control set it only ever removes sites.
+    mask_control_het: bool = False
+    # The band a control allele fraction must fall in to count as heterozygous: from this up to
+    # germline_freq_threshold (above which the frequency rule already applies). Sequencing error
+    # does not reach a quarter of the reads at a covered site, so the lower edge is set well
+    # clear of it.
+    control_het_min_frequency: float = 0.25
+    control_het_min_depth: int = 20         # control reads needed at the site to judge it
+    # The largest inflation the leave-one-control-out calibration may apply to the
+    # quality-calibrated error rates (null_model.calibrate_qscale). 50.0 was the whole of
+    # QSCALE_GRID until October 2026 and is every published run's ceiling, so it stays the
+    # default. It was also the last step, which meant a project needing more was given 50
+    # and reported no differently from one that fitted: now the calibration says so
+    # (qscale_warning, carried as a project note). Raising this lets the search find the
+    # factor such a project really needs -- the public Illumina J꜀4 set and simulated Ramos
+    # libraries are at or past the cap -- but a higher factor is a stricter test, and an ONT
+    # library analysed well below its sequenced depth loses a few true calls by it. See
+    # docs/calibration/CALLER_FIXES.md.
+    qscale_max: float = 50.0
     max_pvalue: float = 0.05               # keep variants with p <= this
     per_base_error: float = 0.001          # null error rate for the binomial variant test
     min_variant_reads: int = 1             # minimum supporting reads
     exclude_indels: bool = True            # SNVs only
     end_trim_bp: int = 0                   # drop calls within N bp of the reference ends (N114 = 20)
+    # Ignore this many aligned columns at each end of every read, in samples and controls
+    # alike. end_trim_bp above cuts the reference's ends; this cuts each read's own ends,
+    # which is where an aligner's soft clip falls. A mutation within a few bases of a read's
+    # start is cheaper for minimap2 to clip than to align, so that read contributes no base
+    # at those columns while its mutation-free neighbours do: the frequency there is biased
+    # down, and the bias survives into the library's estimate (J꜀4, where the reads begin
+    # inside the analysis window, loses 4.5% of planted copies this way; see
+    # docs/calibration/ACCURACY_BREADTH.md). Dropping the same number of columns from every
+    # read removes the clipped reads' deficit from the denominator as well as the numerator,
+    # at the cost of coverage where reads begin. 0 leaves every aligned column in, which is
+    # what every published number used.
+    read_end_margin_bp: int = 0
 
     # How each candidate is tested against sequencing error:
     #   "auto"     per-column read-quality Poisson, or the empirical null when
@@ -232,6 +329,17 @@ class Params:
     # share of real bases the cut removes. 35 suits current nanopore (Dorado
     # sup, Q capped at 50); 0 or None turns the estimate off.
     single_read_min_quality: int | None = 35
+    # The same floor, applied to one-read mutations the caller *reports* rather
+    # than to the aggregate estimate. A one-read candidate whose best supporting
+    # base is below this is not tested at all, in the sample and in the decoy
+    # controls alike, so the control-based threshold is re-derived on the
+    # survivors. Nanopore miscalls carry low base qualities and real bases do
+    # not, so the floor removes most one-read false calls at little cost in
+    # recall; it is measured in docs/calibration/SINGLE_READ.md. None or 0
+    # leaves one-read candidates to the statistical test alone, which is what
+    # every published number used. Only the quality-calibrated ("qcal") and
+    # Sanger models read base qualities, so it has no effect on the others.
+    single_read_call_min_quality: int | None = None
 
     # ---- indels ---------------------------------------------------------------
     # exclude_indels=False calls insertions and deletions (indels.py). Only
@@ -256,6 +364,42 @@ class Params:
 
     # ---- reporting ----------------------------------------------------------
     density_scale: float = 1e5             # unique-variant density is reported x this
+
+
+# Room for adapters, barcodes and primers on a raw read: they add about the same number of
+# bases whatever the amplicon's length (80-100 bp on the bundled J꜀4 nanopore reads).
+ADAPTER_ALLOWANCE_BP = 100
+
+# a length set outright replaces the fraction that would otherwise be scaled into it
+_LENGTH_FRACS = {"min_align_len": "min_align_frac", "max_total_len": "max_total_frac"}
+
+
+def explicit_lengths(overrides: dict) -> dict:
+    """`overrides`, plus a cleared fraction for each length gate it sets outright."""
+    out = dict(overrides)
+    for length, frac in _LENGTH_FRACS.items():
+        if out.get(length) is not None and frac not in out:
+            out[frac] = None
+    return out
+
+
+def scale_lengths(p: Params, reflen: int) -> Params:
+    """p with min_align_frac / max_total_frac turned into lengths for a `reflen`-bp reference.
+
+    >>> q = scale_lengths(Params(min_align_frac=0.65, max_total_frac=1.5), 900)
+    >>> q.min_align_len, q.max_total_len, q.min_align_frac
+    (585, 1450, None)
+    """
+    if p.min_align_frac is None and p.max_total_frac is None:
+        return p
+    # a length set outright (a plain int, not a PresetLength) wins over its fraction
+    lo = (int(p.min_align_frac * reflen + 0.5)
+          if p.min_align_frac is not None and isinstance(p.min_align_len, PresetLength)
+          else p.min_align_len)
+    hi = (int(p.max_total_frac * reflen + 0.5) + ADAPTER_ALLOWANCE_BP
+          if p.max_total_frac is not None and isinstance(p.max_total_len, PresetLength)
+          else p.max_total_len)
+    return replace(p, min_align_len=lo, max_total_len=hi, min_align_frac=None, max_total_frac=None)
 
 
 def preset_path(name_or_path: str) -> Path:
@@ -288,7 +432,10 @@ def load_preset(path: str, **overrides) -> Params:
         data = yaml.safe_load(fh) or {}
     if data.get("analysis_window"):
         data["analysis_window"] = tuple(data["analysis_window"])
-    data.update({k: v for k, v in overrides.items() if v is not None})
+    for length in _LENGTH_FRACS:            # the preset's own lengths: a fraction may scale them
+        if type(data.get(length)) is int:
+            data[length] = PresetLength(data[length])
+    data.update(explicit_lengths({k: v for k, v in overrides.items() if v is not None}))
     return Params(**data)
 
 

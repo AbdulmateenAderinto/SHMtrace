@@ -79,7 +79,7 @@ Recommended mode recalls 0.38 (Wt2), 0.86 (Wt3) and 0.97 (Wt4) of the Geneious s
 
 Counts and AID/empty separation match, but individual sites agree less than for JH4. **Cause, checked 2026-10-11: the deposited N114 sub500 FASTQs are not the reads Geneious analysed.**
 
-- The Geneious assembly BAMs (`Submission Package - JIM/6_Raw Data/N114_Vregion_ONT/*sub500 assembled to seq_23353.bam`) share only 80 of 500 read names with the deposited C1 sub500 FASTQ and 151 of 500 with D5. That is what two independent random 500-read draws from the same library would share. For JH4 the deposited Wt3 sub500 FASTQ and the Geneious BAM share all 500 reads.
+- The Geneious assembly BAMs (the N114 sub500 libraries assembled to `seq_23353`) share only 80 of 500 read names with the deposited C1 sub500 FASTQ and 151 of 500 with D5. That is what two independent random 500-read draws from the same library would share. For JH4 the deposited Wt3 sub500 FASTQ and the Geneious BAM share all 500 reads.
 - The C1 Geneious BAM pileup reproduces the exported read counts (86 of 92 variant rows exact), so the BAM is the assembly the export came from.
 - Running SHMtrace `--mode geneious` on the reads extracted from the Geneious BAMs gives the JH4-level agreement:
 

@@ -8,10 +8,21 @@ from .config import Params
 from .variants import BASES, Variant
 
 
-def unique_variant_density(variants: list[Variant], analysed_bp: int,
-                           mean_depth: float, p: Params) -> float:
-    """Unique variants / (analysed_bp x depth) x scale  (matches the paper)."""
-    denom = analysed_bp * max(1.0, mean_depth)
+def density_exposure(calling: dict) -> float:
+    """Bases sequenced at callable positions: the denominator of every density.
+
+    call_variants counts it exactly ("analysed_bases": depth summed over the
+    positions inside the window and the end trims). Results saved before that
+    field existed fall back to analysed positions x the rounded mean depth.
+    """
+    if calling.get("analysed_bases") is not None:
+        return float(calling["analysed_bases"])
+    return (calling.get("analysed_positions") or 0) * max(1.0, calling.get("mean_depth") or 0.0)
+
+
+def unique_variant_density(variants: list[Variant], calling: dict, p: Params) -> float:
+    """Unique variants / bases sequenced at callable positions x scale (the paper's)."""
+    denom = density_exposure(calling)
     if denom == 0:
         return 0.0
     return len(variants) / denom * p.density_scale

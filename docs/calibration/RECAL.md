@@ -32,7 +32,7 @@ A first version remapped each reported quality to its empirical rate; it collaps
 controls are too few to tell apart, and lowered one-read recall (J_H4 0.30 → 0.23, N114 0.58 → 0.46). It was
 replaced by the shift.
 
-## Result (planted mutations, `crm/spikein.py --tag _recal2`)
+## Result (planted mutations)
 
 | | 1-read | 2-read | all | false calls / library | FDR |
 |---|---:|---:|---:|---:|---:|

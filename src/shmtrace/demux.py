@@ -132,7 +132,7 @@ def screen_table(res: dict, metric: str = "unique_density", test: str = "p_negbi
     for r, q in zip(rows, qs, strict=True):
         out.append({"condition": r["group"], "control": r["control"],
                     "animals": r["animals_case"], "fold": r.get("fold"),
-                    "fold_is_lower_bound": r.get("fold_is_lower_bound", False),
+                    "fold_control_zero_one_event": r.get("fold_control_zero_one_event", False),
                     "fold_ci": r.get("fold_ci"), "p": r.get(test), "q": q})
     out.sort(key=lambda r: (r["q"] is None, r["q"] if r["q"] is not None else 1, -(r["fold"] or 0)))
     return out

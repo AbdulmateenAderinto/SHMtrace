@@ -17,15 +17,23 @@ Aderinto & Martin. Indels are ignored throughout; this is a substitution assay.
 
 ### The built app
 
-There is a built application for macOS and for Windows. It contains everything
-it needs, including Python, so nothing else has to be installed.
+The app contains everything it needs, including Python, so nothing else has to
+be installed. It is built on the platform it runs on; there is no cross-building
+(`packaging/BUILD.md`).
 
-- **macOS:** drag `shmtrace.app` to Applications. The first time you open it,
+- **macOS:** a built installer is available (`SHMtrace-<version>-arm64.dmg`).
+  Open it and drag `SHMtrace.app` to Applications. The first time you open it,
   right-click (or control-click) the icon and choose **Open**, then confirm.
   The app is not signed by Apple, so a double-click on the first launch is
   refused. After that first time it opens normally.
-- **Windows:** unzip the folder anywhere and run `shmtrace.exe` inside it. Keep
-  the whole folder together; the `.exe` needs the files beside it.
+- **Windows:** there is no prebuilt app. Build one on a Windows machine with
+  `packaging/BUILD.md`, which writes `dist/shmtrace/shmtrace.exe`; keep the whole
+  folder together, since the `.exe` needs the files beside it. Note that
+  installing from source on Windows is itself the hard part: SHMtrace depends on
+  `mappy`, which publishes no Windows package and does not build with Microsoft's
+  compiler. **The supported route on Windows is WSL** — run `wsl --install` in an
+  administrator PowerShell, then follow the pip instructions below inside Ubuntu,
+  where `mappy` builds normally.
 
 The app opens one window. Inside that window is a page served by the app itself
 on `127.0.0.1`, which is your own machine. Nothing listens on the network and no
@@ -131,6 +139,31 @@ sample, and the camera button in the corner saves the figure as a PNG.
   position, with WRC/GYW hotspot positions marked along the bottom axis.
 - **AID hotspot targeting**, the percentage of each sample's G:C mutations that
   sit in a WRC or GYW motif.
+- **Motif targeting**, every motif family side by side (below): the share of each
+  group's G:C or A:T mutations in it, with a grey tick at what chance gives. The
+  position map can mark any family's sites too; click its name in the legend.
+
+### Motif families
+
+Each family is a motif and its other-strand form, and each is scored at the base
+it names: the C of WRC, the G of GYW, the A of WA, the T of TW.
+
+| Family | Bases | What it is |
+|---|---|---|
+| WRC/GYW | G:C | AID's canonical hotspot |
+| WRCH/DGYW | G:C | The extended AID hotspot, a better predictor of G:C mutability than RGYW/WRCY (Rogozin and Diaz, 2004) |
+| WRCY/RGYW | G:C | The classic AID hotspot (Rogozin and Kolchanov, 1992) |
+| WGCW | G:C | WRC and GYW overlapping, so both strands carry a hotspot at once (Yeap et al., 2015); both the G and the C count |
+| SYC/GRS | G:C | AID coldspots: a sample targeted by AID sits below chance here |
+| WA/TW | A:T | Pol η's hotspot (Rogozin et al., 2001). A:T mutations in hypermutation are made by Pol η during mismatch repair of AID's U:G mismatch, so this is the footprint of that pathway |
+| WATW | A:T | WA and TW overlapping, the A:T counterpart of WGCW; both the A and the T count |
+
+A call can sit in several families: a WRCH is also a WRC, and a WGCW site is also a
+WRC or a GYW. So the percentages overlap and do not sum to 100. The chance level is
+the family's share of the window's bases of that kind, which differs between
+amplicons; a family is targeted when its percentage is above that, not when it is
+high. These are measured on the calls, so they say nothing in a sample with few
+calls at those bases; the chart leaves out a sample with fewer than ten.
 
 ### Tables
 
@@ -139,6 +172,144 @@ statistics, Every mutation, Mutations per position, and Substitution spectrum.
 The filter box matches text anywhere in a row. Clicking a column heading sorts
 by it, and clicking again reverses. **Download CSV** saves the table you are
 looking at. The table shows at most 3,000 rows; the CSV has all of them.
+Headings are in words; hovering over one says what the column means and gives
+the column's name in the CSV. The Samples, Groups and Group tests tables open on
+their main columns; tick **Show all columns** for the rest.
+
+### Check calls
+
+Every called mutation, one at a time, with the reads behind it. Pick a sample
+(or every sample) on the left and click a call, or move with the arrow keys or
+J and K. The right side shows:
+
+- the supporting reads, depth, frequency, strand split and P;
+- the sequence context, whether the call sits in a homopolymer, and the motif
+  families it sits in (WRC/GYW, WRCH/DGYW, WA/TW and the rest);
+- the error rate the controls showed at that position, as reads expected at this
+  depth;
+- the same change in any other sample, controls included;
+- plain-language warnings, for example a call in a control, supporting bases of
+  quality below 20, or reads that end within 10 bp of the call;
+- the reads themselves, as text: the reads carrying the change first, then a
+  spread of the reads covering the position without it. A dot is a match, a
+  letter a mismatch (fainter for a lower base quality), a dash a deletion.
+
+Above the list, a strip draws every analysed read of the selected call's sample
+against the reference, base by base, scrolling sideways along the whole amplicon
+and down through the reads. A called mutation is drawn in its base's colour; a
+mismatch SHMtrace did not call (a sequencing error or background) is grey and
+can be hidden. Columns holding calls are shaded and the selected call is
+outlined. Clicking a shaded column in the ruler opens that call. The reads can be
+ordered with the selected call's reads first, the most mutated first, by start, or
+forward reads then reverse.
+
+For a coding amplicon such as a V region, **Reading frame and regions** (above
+the strip) takes the coding stretch of the reference, given as start-end with
+its first base starting codon 1, and optional named regions, one per line
+(`CDR1 97-120`). The strip then shows the amino acids on their codons and the
+regions as coloured bars; each call shows its codon change, amino-acid change and
+whether it is **replacement**, **silent** or a **stop**; Tables gains
+*Replacement and silent, by region* (also `rs_by_region.csv` in the exports and
+plot data), with the R/S ratio per sample and region; and the Geneious tables
+gain Geneious's Codon Change, Amino Acid Change and Protein Effect columns plus
+the region. Each call is judged against the reference codon on its own, as
+Geneious does. SHMtrace does not find the frame or the CDRs itself; they are
+saved with the project.
+
+Under the strip's controls, **Go to** scrolls to a position (Enter) and marks
+it; **Find read** narrows the strip to reads whose name contains the text; and
+**Show** keeps only the reads with a called mutation, those without one, those
+carrying the selected call, or one orientation. **Extract the reads shown**
+saves whatever the strip is showing after those choices.
+
+Where the run downsampled a library to a common depth, a call also gives **All
+usable reads**: how many of every usable read of the library carry it, beside the
+analysed reads the call and its test rest on. Ticking **Reads left out by
+downsampling** adds those reads to the strip, faded, marked *not drawn* and after
+the analysed ones; the coverage and identity graphs stay those of the analysed
+reads. `variants.csv` has the same counts as `reads_all_usable` and
+`depth_all_usable`.
+
+Two graphs sit under the reference, as in Geneious: **coverage**, the analysed
+reads covering each position, and **identity**, the share of them that read the
+reference base there (green at 99% or more, amber from 90%, red below). A column
+where identity drops without a call is where the reads disagree for reasons
+SHMtrace set aside: a germline difference, a sequencing error hotspot, or a
+mutation too rare to call.
+
+A column on the left numbers the reads and gives each one's orientation and name,
+as Geneious does: ▶ (blue) for a read sequenced along the reference, ◀ (red) for
+one sequenced against it and reverse-complemented to align; the bar itself takes
+the same colour and its leading end points the way the read was sequenced.
+Reads that reach SHMtrace already turned to the reference (Geneious exports the
+reads it has assembled that way) all show ▶; the run notes say so when every read
+of a library runs one way. Give SHMtrace the reads as sequenced, as the nanopore
+sample data are.
+Clicking a read highlights it and shows its name, orientation, aligned span, the
+called mutations it carries (each opens its call), the mismatches that were not
+called, and its indels. **Copy name** copies the read's name; **Extract read**
+saves it as it is in your input file (FASTQ or FASTA), with its orientation in the
+header; for Sanger clones, **Original trace** downloads the .ab1. **Extract the
+reads carrying this call** saves every read behind the selected call at once.
+
+For Sanger clones, a call also shows the **traces** of the clones carrying it
+(up to six): the four channels over ten bases either side of the call, along the
+reference (a clone read against the reference is reversed and complemented, as
+Geneious shows it), with the call's column shaded and each base's quality above
+it. A clean call has one tall peak there; a shoulder or a second peak argues
+against it. The picked read's trace at the selected call appears in its panel.
+
+To **correct a base call**, as in Geneious, click the base in a clone's trace,
+choose the base it should be (or N) and say why. The edit is recorded with the
+base the trace called and the time, and listed above the strip; the trace marks
+it ✎. Edits change nothing until you press **Run again with the edits**: the
+project then runs again with each edited clone read from a copy of its base calls
+with the edits made (its qualities as the trace gave them). The new run lists
+every edit in its notes, keeps your review marks for the calls that still exist,
+the reading frame and regions, and the edits themselves; the old run stays under
+Recent projects.
+
+Each call has a **suggested verdict**, accept, reject or check by eye, with its
+reasons, worked out from what the run already holds. Decisive reasons to reject:
+the call is in a control; the controls' own error rate for this change predicts
+as many supporting reads at this depth as the call has; or a control has the
+same change. Reasons against: low-quality supporting bases, reads that end
+within 10 bp of the call, a homopolymer run, one strand only when the library
+has both, and a one-read call in a sample whose one-read events are mostly
+background by the single-read estimate. Reasons for: three or more reads, every
+supporting base at quality 30 or better, support well above the controls' rate,
+and a P far past the threshold. Whether the call sits in an AID hotspot, and
+whether other samples share it, are deliberately left out, because those are
+what the analysis goes on to measure. **Apply suggestions** marks every
+unreviewed call that has an accept or reject suggestion, with the note "as
+suggested"; calls for checking by eye are left for you. The list can be
+filtered by suggestion, or to the calls you marked against it.
+
+Mark each call with **A** (accepted), **R** (rejected) or **U** (unsure); marking
+moves on to the next call. **0** clears a mark. A note can be saved with each
+mark. The marks are kept with the run and added to `variants.csv` (columns
+`review` and `review_note`) and to the Geneious-style tables. They do not change
+the analysis: densities and P values are those of the calls as made.
+
+### Saved projects
+
+Every finished run is saved on this computer as a project, and every review mark
+is written to it the moment it is made, so closing the app loses nothing. Runs of
+the bundled sample data are the exception: they are not kept, so the sample data
+runs afresh each time (for a demonstration) and does not fill the list. **Save
+project file** keeps one like any other run. **Recent
+projects** on the Set up tab lists them, newest first, with how many calls have
+been reviewed; click one to reopen it where you left off. **Save project file** at
+the top of the Results tab saves the run as one `.shmtrace` file, to keep, move to
+another computer or send to a colleague; **Open a project file…** on Set up opens
+one. A reopened project has its results, tables, exports, Check calls and review
+marks. Extracting reads needs the original input files where they were when the
+run was made. The AIRR table and the diagnostic figures that draw individual
+reads need the run's in-memory detail and are not available after reopening.
+
+Projects are kept in `~/Library/Application Support/SHMtrace/projects` on a Mac
+(`%APPDATA%\SHMtrace\projects` on Windows, `~/.shmtrace/projects` elsewhere, or
+`$SHMTRACE_HOME/projects` if that is set), one folder per run.
 
 ### Export
 
@@ -146,6 +317,33 @@ looking at. The table shows at most 3,000 rows; the CSV has all of them.
 seven figures as PNG, a standalone `report.html`, `project.json` with every
 number and the settings that produced them, and `tables.xlsx` if the Excel
 writer is installed.
+
+The zip also holds a `geneious/` folder: one `<sample> SHMtrace Annotations.csv`
+per sample, laid out like a Geneious *Find Variations/SNPs* annotation export
+(Name, Minimum, Maximum, Change, Polymorphism Type, Coverage, Variant Frequency,
+Variant Raw Frequency, Variant P-Value (approximate)), followed by SHMtrace's
+own evidence and the review mark. Positions are 1-based on the reference you
+analysed against; only substitutions are listed. **Geneious-style calls (.zip)**
+gives these files on their own, and Check calls can leave out the rejected calls.
+
+**Plot data (.zip)**, also in the results zip as `plot_data/`, is for drawing your
+own figures. Each figure's numbers are a tidy table named after it, one row per
+value, with the unit in the column name: `density_by_group.csv`,
+`spectrum_by_sample.csv`, `positional_by_sample.csv` and so on.
+`per_sample_long.csv` stacks every per-sample measure (sample, group, control,
+measure, value, unit), so any measure can be plotted against any grouping, and
+`group_statistics_long.csv` has the groups table one statistic per row. The
+`prism/` folder has one file per measure with one column per group, ready to paste
+into a GraphPad Prism column table. `data_dictionary.csv` explains every column.
+Nothing in them is recalculated. The **Data** button under each chart on the
+Results tab saves that chart's table on its own.
+
+**Read alignment (.zip)** gives every sample's analysed reads aligned to the
+reference as SAM, and as a sorted, indexed BAM when pysam is installed, to open in
+IGV, Geneious or samtools. The reads are taken from your input files and aligned
+again with the run's aligner and preset, so they carry their own bases and
+qualities; ends the analysis trimmed before aligning (Sanger's quality trim) are
+soft-clipped instead. It needs the input files where they were.
 
 Single buttons give each table on its own, and each figure as PNG, SVG or PDF.
 In the built app only, a **Save to a folder on this computer** box appears at
@@ -165,12 +363,80 @@ trimmed from the ends.
 | `jh4_intron` | Mouse JH4 downstream intron, the neutral polyclonal assay. Germline is unknown, so high-frequency positions are removed by the under-50% rule | 101–629 of the 1,230 bp reference | 500 | 800 bp |
 | `n114_vregion` | N114 hybridoma V region; the parental sequence is known, so germline is defined exactly. Excess mutation over empty-vector controls is AID activity | 21–635 of the 655 bp reference | 500 | 400 bp |
 | `igh_smu` | Mouse IgH Sμ switch region. Heavily mutated, so mutation loads per read are high | 21–631 | 2,000 | 420 bp |
-| `generic_amplicon` | Any other region: JH6, Sγ, a V gene, an AID off-target. Everything except 20 bp at each end is analysed and nothing is assumed about the germline | whole reference minus 20 bp each end | 1,000 | 200 bp |
+| `generic_amplicon` | Any other region: JH6, Sγ, a V gene, an AID off-target. Everything except 20 bp at each end is analysed and nothing is assumed about the germline | whole reference minus 20 bp each end | 1,000 | 65% of the reference |
 | `sanger_clones` | Sanger traces, one clone per read, with no statistical test | whole reference minus 20 bp each end | all reads | 200 bp |
 
 For a new region, start with `generic_amplicon`, look at one run, and then
 narrow the window with the Advanced box. A preset is a small YAML file, so a
 permanent new assay is a new file rather than new code.
+
+### Length cutoffs for a new amplicon
+
+Two lengths decide which reads are long enough and which too long. The
+minimum (`min_align_len`) is how much of the reference a read's alignment must
+span; adapters and barcodes do not count towards it. The maximum
+(`max_total_len`) is the raw read's length, adapters included; it drops
+concatemers and other over-long products. The built-in assays use about 65% of
+the reference for the minimum (800 bp of J꜀4's 1,230, 400 of N114's 655) and
+about 1.4-1.8 times the reference for the maximum.
+
+`generic_amplicon` applies the same rule to whatever reference you give it: the
+minimum is 65% of the reference, and the maximum 1.5 times it plus 100 bp for
+adapters and barcodes, which add about the same whatever the amplicon's length.
+For a 900 bp amplicon that is 585 and 1,450 bp. A full-length read clears the
+minimum with room to spare (95% of on-target J꜀4 reads align over at least
+1,136 bp), and primer-end fragments and primer dimers do not. On Illumina and
+Sanger the reads are shorter than most amplicons, so there the platform's own
+fixed minimum (100 or 200 bp) applies instead.
+
+To check the cutoffs on your own reads, run once with the Reads tab recorded
+(**Keep the read alignment**) and look at where the analysed reads start and
+end: full-length reads form one dense band. The minimum should sit below the
+bottom of that band, "alignment too short" should hold only fragments, and
+"too long" should not be catching full-length reads. If your amplicon has a
+paralogue or contaminant record, keep the minimum high enough that a read
+crosses about ten of the sites that tell the two apart, which is what the
+contaminant check needs. To set the lengths yourself, give `min_align_len` and
+`max_total_len` in a preset of your own (copy `generic_amplicon.yaml`) or in a
+project's `overrides`; a length given that way is used as it is, not scaled.
+
+### Short reads
+
+The minimum alignment drops every read whose alignment to the reference spans
+less than it, however well that alignment matches. **Keep short reads that
+align well** (under More options on the Set-up tab; `rescue_short_reads: true` in a project or preset,
+`--rescue-short-reads` on the command line) keeps such a read when all of these
+hold, and draws it in the Reads tab as **kept (short)**:
+
+| Test | Default | What it keeps out |
+|---|---|---|
+| It spans at least half the minimum alignment, and covers at least half the analysis window (or half the minimum alignment, if that is smaller) | `short_read_min_fraction: 0.5`: 400 bp and 265 bp of the window for J꜀4 | primer-end fragments and primer dimers, and reads that add nothing to the window |
+| At least 80% of the read aligns | `short_read_min_query_cover: 0.8` | chimeras and junk reads with a little target in them. A full-length J꜀4 read aligns about 93% of its length; the rest is adapter and barcode |
+| Its edit distance is at most 5% of the aligned bases | `short_read_max_divergence: 0.05` | paralogue reads (the J꜀4 paralogue is 11% divergent). SHM plus sequencing error keeps full-length J꜀4 reads under 3% |
+| One primary alignment and none supplementary | always, whatever `drop_supplementary` says | structural chimeras |
+| Against every contaminant record it overlaps, at least 5 more of that record's diagnostic sites read the reference base than the contaminant's | `short_read_min_margin: 5` | a contaminant or paralogue fragment the competitive alignment could not tell apart |
+
+The last test is why short reads need one of their own. The contaminant check
+drops a read carrying ten or more contaminant bases, which a full-length read
+from the paralogue always does; a short one crosses fewer of the sites that
+tell the two apart, so it can carry fewer than ten and still be paralogue. A
+short read therefore has to show it is target, site by site, against each
+contaminant record on its own, and a read lying where a contaminant record has
+no difference from the target cannot, and goes. Sites most of the library
+shares with a contaminant are germline and do not count either way. The test
+only sees contaminants you supply: without a contaminant file it is skipped.
+
+A short read is credited with the whole window by `mutation_frequency_x1e3`,
+so with the option on that column, `mutated_reads_pct` and
+`mean_mutations_per_read` read slightly low, and the run says so in its notes.
+`mutation_frequency_observed_x1e3` and the densities divide by the bases each
+read actually showed and are unaffected. The samples table gains a
+`short_reads` column, the number of analysed reads that are short. Controls
+are prepared the same way as samples, so the error model sees the same reads.
+
+The option is off by default, and every published number was made with it off.
+On the bundled nanopore libraries it changes little, because they hold few
+usable short reads: see the measurement in `CHANGELOG.md`.
 
 ### Platform
 
@@ -264,6 +530,7 @@ has means and standard deviations but no p-values.
 | Position along the amplicon | The percentage of reads mutated at each reference position, with WRC/GYW positions marked |
 | Mutations per read | The distribution of mutations per read, which separates many lightly mutated reads from a few heavily mutated ones |
 | Hotspot targeting | The share of G:C mutations in WRC or GYW motifs, one dot per sample |
+| Motif targeting | The share of G:C or A:T mutations in each motif family, per group, with the chance level (`motif_targeting.csv`, one row per sample and family, with the chance level and the enrichment over it) |
 
 ### The samples table
 
@@ -275,7 +542,7 @@ One row per sample.
 | `reads` | Reads actually analysed, after filtering, phasing and depth equalising |
 | `unique_mutations` | Number of distinct called mutations, counting a site and base change once however many reads carry it |
 | `unique_density_x1e5` | `unique_mutations` divided by (analysed bases × mean depth), multiplied by 10⁵. This is the paper's unique-variant density. It saturates with depth, so it is only comparable between samples analysed at the same depth |
-| `mutation_frequency_x1e3` | Total mutations summed over all reads, divided by (reads × analysed bases), multiplied by 10³. A mutation in 40 reads counts 40 times. Unlike the density this does not saturate |
+| `mutation_frequency_x1e3` | Total mutations summed over all reads, divided by (reads × analysed bases), multiplied by 10³. A mutation in 40 reads counts 40 times. Unlike the density this does not saturate. With short reads kept it reads low, as they are credited with the whole window: use `mutation_frequency_observed_x1e3` then |
 | `mutated_reads_pct` | Percentage of analysed reads carrying at least one mutation |
 | `mean_mutations_per_read` | Total mutations divided by reads |
 | `pct_GC` | Percentage of the unique mutations whose reference base is G or C. AID targets G:C, so a wild-type library should sit well above half |
@@ -283,6 +550,8 @@ One row per sample.
 | `pct_CT_GA` | Percentage of the unique mutations that are C to T or G to A. These are what AID leaves when the uracil it makes is not repaired, so in a UNG- or MSH2-deficient background a genuine AID signal is close to 100% here. In a repair-proficient animal the figure is much lower (15–19% in the bundled wild types), because the uracil is processed into the other substitution types |
 | `pct_GC_in_WRC_GYW` | Of the mutations at G:C bases, the percentage in a WRC or GYW motif, the canonical AID hotspot. The denominator is the G:C mutations, not all mutations |
 | `pct_AT_in_WA_TW` | Of the mutations at A:T bases, the percentage in a WA or TW motif, the Pol-η signature. The denominator is the A:T mutations |
+| `pct_GC_in_WRCH_DGYW`, `pct_GC_in_WRCY_RGYW`, `pct_GC_in_WGCW`, `pct_GC_in_SYC_GRS` | The same for the other G:C families (Motif families, above), over the G:C mutations |
+| `pct_AT_in_WATW` | The same for WATW, over the A:T mutations (`at_mutations`) |
 | `analysed_bp` | Width of the analysed window after the end trims |
 | `multi_read_mutations` | Of `unique_mutations`, how many were carried by two or more reads. These are the calls the per-site test judges reliably |
 | `single_read_observed`, `single_read_background`, `single_read_estimate` | Mutations carried by one read, estimated in aggregate rather than called one at a time: how many high-quality single-read events this sample has, how many the controls predict, and the difference corrected for the share of real bases the quality cut removes. The estimate can be negative, which means no more than the controls show. Needs at least one control besides the sample itself |
@@ -299,8 +568,8 @@ A sample with no reads shows `0` reads and empty cells in the derived columns.
 
 One row per group, with `n`, whether it is the control group, and for each of
 `unique_density_x1e5`, `mutation_frequency_x1e3`, `mutated_reads_pct`,
-`mean_mutations_per_read`, `pct_GC`, `pct_transitions` and
-`pct_GC_in_WRC_GYW`:
+`mean_mutations_per_read`, `pct_GC`, `pct_transitions` and each motif
+family's percentage:
 
 - `..._mean` and `..._sd`, the mean and sample standard deviation across the
   samples of the group. A group of one sample has a mean and no standard
@@ -325,8 +594,8 @@ are over animals, which is the comparison that matters.
 - **Every mutation**: one row per called mutation per sample, with the position,
   reference and alternative base, supporting reads, depth at that position, the
   frequency, the p-value, the plus- and minus-strand read counts, the 5-mer
-  context, the homopolymer run length, and whether the position is a WRC/GYW
-  hotspot. A p-value displayed as `<1e-308` is smaller than the computer can
+  context, the homopolymer run length, whether the position is a WRC/GYW
+  hotspot, and every motif family it sits in (`motifs`). A p-value displayed as `<1e-308` is smaller than the computer can
   represent, not zero.
 - **Mutations per position**: for each group and position, how many reads were
   mutated there and what percentage of the group's reads that is. This is the
@@ -369,6 +638,22 @@ works out which from what you drop in.
 Set the platform to `sanger` and the region to `sanger_clones` (or your usual
 region preset). Leaving the mode on `recommended` is correct: with the Sanger
 platform, `recommended` means the Sanger caller.
+
+**Try it with nanopore sample data** on the Set up tab loads six J<sub>H</sub>4
+nanopore libraries (three wild-type, three *Aicda*<sup>−/−</sup> mice) as they came
+off the sequencer: about 5,000 reads each, unfiltered and in both orientations,
+with the bundled reference and contaminant set. The Reads tab then shows what
+SHMtrace set aside and why: reads too short or noisy, paralogue and off-target
+reads, and the usable reads downsampling did not draw. `examples_nanopore/README.txt`
+gives the numbers to expect.
+
+**Try it with Sanger sample data**, next to *Try it with nanopore sample data* on the Set up tab, loads
+290 J<sub>H</sub>4 clones from 12 mice (wild type, *Maea*<sup>fl/fl</sup>
+*Mb1*<sup>cre</sup> and *Aicda*<sup>−/−</sup>) from Barbulescu et al., *Nature
+Communications* 2024, as a sample sheet with each clone's order and well. It
+runs in well under a minute and reproduces the curated analysis: wild type 4.66-fold
+above *Maea*-deficient (4.7-fold in the paper). `examples_sanger/README.md` says
+how the clones were assigned to mice and what to expect.
 
 `.ab1` and `.abi` traces are read directly, including the per-base quality
 values stored in the file, and `.seq` text files are read too. Each read is
@@ -463,8 +748,8 @@ amplicon that was sequenced, so nothing aligns; the reads are shorter than the
 preset's minimum alignment length (800 bp for `jh4_intron`), for example because
 they are Illumina or Sanger reads analysed with the platform left on `ont`; or
 the reads are too noisy for the quality gate. Check the platform first, then
-whether the reference is right, then try `generic_amplicon`, which asks for only
-200 bp of alignment.
+whether the reference is right, then try `generic_amplicon`, whose minimum
+alignment is 65% of the reference you give it.
 
 **The `null from` column says `none` for every sample.** No control was ticked,
 or no control other than the sample itself. The quality-calibrated model had
@@ -550,9 +835,10 @@ work out. The bands are:
 | Band | Why the read went |
 |---|---|
 | analysed | kept, and counted in the result |
+| kept (short) | analysed, though its alignment is shorter than the minimum: it passed the short-read tests (Choosing the settings, Short reads). Only with that option on |
 | not sampled | dropped at depth normalisation, so every sample is compared at one depth |
 | minor haplotype | removed as part of a co-occurring block (see the phasing figure) |
-| alignment too short | aligned span below the preset's minimum |
+| alignment too short | aligned span below the preset's minimum. With short reads kept, a short read that failed their tests; click it for which test |
 | chimeric | more than one primary alignment |
 | contaminant | best hit was a contaminant reference, not the target |
 | off target | best hit was neither |
@@ -605,11 +891,15 @@ without controls or without indel calling simply shows fewer of them.
   control besides the sample, and it cannot see 1-bp deletions inside
   homopolymers or indels carried by fewer than three reads. See
   `docs/calibration/INDELS.md`.
-- **Clonality and lineage.** There is no clone calling, no lineage tree and no
-  mutation-sharing analysis. The app flags a block of co-occurring positions
-  that could be a second haplotype or an expanded clone, and leaves it in unless
-  the same block also appears in a control or in another animal, but it does not
-  tell you how many clones there are or how they are related.
+- **Clonality and lineage.** There is no lineage tree and no mutation-sharing
+  analysis. A block of co-occurring positions that could be a second haplotype or
+  an expanded clone is dropped when the same block also appears in a control or
+  another animal, or (where the amplicon reads into the V(D)J junction, as J꜀4
+  does) when its reads come from many different junctions; a block held by one
+  junction is kept as an expanded clone. Without a junction, a block seen in one
+  animal only is kept and flagged. Phasing never removes more than 45% of a
+  library's reads: a confirmed block it cannot remove within that is kept, its
+  sites are not called, and the run notes say so.
 - **AIRR export.** There is no AIRR Community rearrangement output, and no V, D
   or J gene assignment. The reference is whatever FASTA you supply, not a
   germline database.

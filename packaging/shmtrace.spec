@@ -9,6 +9,9 @@ datas = [
     ("../src/shmtrace/webapp/static", "shmtrace/webapp/static"),
     ("../src/shmtrace/presets", "shmtrace/presets"),
     ("../src/shmtrace/references", "shmtrace/references"),
+    # the six JH4 nanopore libraries, as sequenced, behind "Try it with nanopore sample data"
+    ("../examples_nanopore", "examples_nanopore"),
+    ("../examples_sanger", "examples_sanger"),
 ]
 datas += collect_data_files("mappy", include_py_files=False)
 
@@ -32,7 +35,7 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="shmtrace",
-          console=False, disable_windowed_traceback=False, argv_emulation=sys.platform == "darwin")
+          console=False, disable_windowed_traceback=False, argv_emulation=False)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name="shmtrace")
 
 if sys.platform == "darwin":

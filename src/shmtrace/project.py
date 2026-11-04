@@ -42,7 +42,7 @@ from . import (
     singletons,
     targeting,
 )
-from .config import load_preset
+from .config import load_preset, scale_lengths
 from .io_utils import read_fasta, sniff_format
 from .parallel import pmap
 from .reads_filter import downsample
@@ -78,20 +78,18 @@ def _welch(a: list[float], b: list[float]) -> float | None:
     return float(stats.ttest_ind(a, b, equal_var=False).pvalue)
 
 
-def _welch_log(a: list[float], b: list[float]) -> float | None:
-    """Welch on log10 densities, which is what SHM densities are distributed on.
+def _welch_log(a: list[dict], b: list[dict], k: str,
+               zero_events: float = replicates.ZERO_EVENTS) -> float | None:
+    """Welch on log10 rates, which is what SHM densities are distributed on.
 
     Mutation densities span orders of magnitude and are roughly log-normal, so a
     test on the raw numbers is dominated by the one most-mutated animal. A sample
-    with no mutations has no logarithm; it is left-censored to a third of the
-    smallest observed value, which pulls the difference *towards* no difference.
+    with no events has no logarithm; it is placed at one event on its own exposure
+    (replicates.ZERO_EVENTS), the rule animal_tests and the plots use too.
     """
-    vals = [v for v in a + b if v > 0]
-    if not vals or len(a) < 2 or len(b) < 2:
-        return None
-    floor = min(vals) / 3
-    return _welch([math.log10(max(v, floor)) for v in a],
-                  [math.log10(max(v, floor)) for v in b])
+    return replicates.welch_p(
+        replicates.censored_log10([r.get(k) for r in a], [_one_event(r, k) for r in a], zero_events),
+        replicates.censored_log10([r.get(k) for r in b], [_one_event(r, k) for r in b], zero_events))
 
 
 def _mwu(a: list[float], b: list[float]) -> float | None:
@@ -110,14 +108,14 @@ def _clean(x):
 def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
                    control: bool, scale: float = 1e5) -> dict:
     s = res["summary"]
-    denom = (s["calling"].get("analysed_positions") or 0) * max(
-        1.0, s["calling"].get("mean_depth") or 0.0)
-    one_event = round(scale / denom, 4) if denom else None
+    denom = metrics.density_exposure(s["calling"])
+    one_event = round(scale / denom, 6) if denom else None
     vs = res["variants"]
     per_read = res.get("per_read_mutations") or []
     nreads = len(per_read)
     bp = hi - lo + 1
     total_mut = sum(per_read)
+    observed = sum(r["bases"] for r in res.get("per_read") or [])
     gc = sum(1 for v in vs if v.ref in "GC")
     ts = sum(1 for v in vs if (v.ref, v.alt) in TRANSITIONS)
     hot = sum(1 for v in vs if v.ref in "GC" and (
@@ -125,6 +123,12 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
     wa = sum(1 for v in vs if v.ref in "AT" and (
         motifs.is_site("WA", ref, v.pos - 1) or motifs.is_site("TW", ref, v.pos - 1)))
     at = len(vs) - gc
+    # every motif family's share of the calls at its bases (motifs.FAMILIES); WRC/GYW and WA/TW
+    # keep the names they always had, as pct_GC_in_WRC_GYW and pct_AT_in_WA_TW
+    fam = {}
+    for key, _label, bases, _ms, _what in motifs.FAMILIES:
+        hits, n = motifs.family_share(ref, [v.pos - 1 for v in vs], key)
+        fam[f"pct_{bases}_in_{key}"] = round(100 * hits / n, 1) if n else None
     # calls packed into a few bases are a localised artefact, not SHM: real
     # co-occurring blocks share reads and are removed by phasing instead
     clusters = metrics.positional_clusters(vs, bp)
@@ -140,7 +144,14 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         # the density one single mutation would give in this sample: the scale a
         # sample with no calls is censored to on a log plot, as the paper does
         "one_event_density_x1e5": one_event,
+        # fixed-window frequency (the historical endpoint): every read is credited with
+        # the whole callable window, covered or not. The observed-base frequency beside
+        # it counts only the bases each read actually showed at quality (audit F08);
+        # the two agree when reads span the window.
         "mutation_frequency_x1e3": round(1e3 * total_mut / (nreads * bp), 4) if nreads else None,
+        "mutation_frequency_observed_x1e3": (round(1e3 * total_mut / observed, 4)
+                                             if observed else None),
+        "observed_bases": observed,
         "mutated_reads_pct": round(100 * sum(1 for m in per_read if m) / nreads, 2) if nreads else None,
         "mean_mutations_per_read": round(total_mut / nreads, 4) if nreads else None,
         "pct_GC": round(100 * gc / len(vs), 1) if vs else None,
@@ -149,13 +160,19 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         # is left unrepaired, and a quick check that calls look like AID's
         "pct_CT_GA": round(100 * sum(1 for v in vs if (v.ref, v.alt) in (("C", "T"), ("G", "A"))) / len(vs), 1) if vs else None,
         "pct_GC_in_WRC_GYW": round(100 * hot / gc, 1) if gc else None,
+        "gc_mutations": gc,
         "pct_AT_in_WA_TW": round(100 * wa / at, 1) if at else None,
+        "at_mutations": at,
+        **{k: v for k, v in fam.items() if k not in ("pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW")},
         "analysed_bp": bp,
         # UMI consensus (umi.py): reads in, molecules out
         **({"umi_reads": s["reads"].get("umi_reads_in"),
             "umi_molecules": s["reads"].get("umi_molecules"),
             "umi_median_reads_per_molecule": s["reads"].get("umi_median_reads_per_group")}
            if "umi_molecules" in (s.get("reads") or {}) else {}),
+        # rescue_short_reads: how many of the analysed reads were kept below min_align_len
+        **({"short_reads": s["reads"]["short_reads_analysed"]}
+           if "short_reads_analysed" in (s.get("reads") or {}) else {}),
         # the counts behind the two rates, for count-based tests (replicates.py)
         "mutations_total": total_mut,
         "frequency_bases": nreads * bp,
@@ -168,9 +185,9 @@ def sample_metrics(name: str, res: dict, ref: str, lo: int, hi: int, group: str,
         "high_fraction_sites": [{"pos": pos, "alt": alt, "reads": c, "depth": d,
                                  "frequency": round(c / d, 4) if d else None}
                                 for pos, alt, c, d in (s["calling"].get("germline_sites") or ())],
-        "warnings": "; ".join(list(s.get("warnings") or [])
-                              + list(s["calling"].get("notes") or [])
-                              + cluster_notes),
+        "warnings": "; ".join(dict.fromkeys(list(s.get("warnings") or [])
+                                           + list(s["calling"].get("notes") or [])
+                                           + cluster_notes)),
     }
 
 
@@ -316,7 +333,7 @@ def coverage_dips(depth: list, start: int, frac: float = 0.5, min_run: int = 10)
 def add_indels(m: dict, called: list, res: dict, scale: float) -> None:
     """Indel counts for a sample row, kept apart from the substitution density."""
     s = res["summary"]["calling"]
-    denom = (s.get("analysed_positions") or 0) * max(1.0, s.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s)
     m.update({
         "indels_called": len(called),
         "insertions": sum(1 for v in called if v.kind == "ins"),
@@ -333,11 +350,15 @@ def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
     the test did not call) per base sequenced. The test is reliable for
     mutations in several reads and cannot see most of those in one; the
     estimate leaves out what the test called, so nothing is counted twice.
+
+    The combined interval is the single-read interval shifted by the called count:
+    it holds the called mutations fixed and carries no uncertainty for them
+    (combined_density_ci_scope says so in every row).
     """
     if not est:
         return
     s = res["summary"]["calling"]
-    denom = (s.get("analysed_positions") or 0) * max(1.0, s.get("mean_depth") or 0.0)
+    denom = metrics.density_exposure(s)
     called = len(res["variants"])
     multi = sum(1 for v in res["variants"] if v.supporting_reads >= 2)
     f = scale / denom if denom else 0.0
@@ -353,7 +374,13 @@ def add_single_read(m: dict, est: dict | None, res: dict, scale: float) -> None:
         "combined_density_x1e5": round((called + max(0.0, est["estimate"])) * f, 3),
         "combined_density_ci_low": round((called + max(0.0, est["ci_low"])) * f, 3),
         "combined_density_ci_high": round((called + max(0.0, est["ci_high"])) * f, 3),
+        "combined_density_ci_scope": "single-read component only; called mutations held fixed",
     })
+    if est.get("warning"):
+        # the estimate, and the combined density that includes it, rest on base qualities
+        # that say nothing about accuracy here (singletons.quality_resolution)
+        m["single_read_quality_flat"] = True
+        m["warnings"] = "; ".join(x for x in [m.get("warnings"), est["warning"]] if x)
 
 
 def _slug(s: str) -> str:
@@ -361,28 +388,38 @@ def _slug(s: str) -> str:
     return "".join(c if (c.isalnum() or c in "-") else "_" for c in str(s)).strip("_") or "group"
 
 
-CENSORED = ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5")
-
-
-def _censored(rows: list[dict], k: str) -> list[float]:
-    """Metric values with a zero density raised to that sample's one-event scale.
+def _one_event(r: dict, k: str) -> float | None:
+    """The value of metric `k` that one event gives sample row `r`, on its own exposure.
 
     A sample that found nothing has no logarithm. The paper's convention is to
-    give it the density one single mutation would have produced in that sample,
-    which is the smallest difference the assay could have seen.
+    give it what one single event would have produced in that sample, the
+    smallest difference the assay could have seen. The single-read estimate is a
+    difference and can fall below zero; anything under one event is treated as none.
     """
-    out = []
-    for r in rows:
-        v = r.get(k)
-        if v is None:
-            continue
-        # the single-read estimate is a difference: it can fall below zero, or
-        # just above it, and anything under one event is indistinguishable from none
-        one = r.get("one_event_density_x1e5")
-        if k in CENSORED and one and v < one:
-            v = one
-        out.append(v)
-    return out
+    def per(scale, n):
+        return scale / n if n else None
+    if k in ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5"):
+        return r.get("one_event_density_x1e5")
+    if k == "mutation_frequency_x1e3":
+        return per(1e3, r.get("frequency_bases"))
+    if k == "mutated_reads_pct":
+        return per(100.0, r.get("reads"))
+    if k == "mean_mutations_per_read":
+        return per(1.0, r.get("reads"))
+    if k == "clone_weighted_frequency_x1e3":
+        return per(1e3, (r.get("clones") or 0) * (r.get("analysed_bp") or 0))
+    if k in ("pct_GC", "pct_transitions"):
+        return per(100.0, r.get("unique_mutations"))
+    if k.startswith("pct_GC_in_"):
+        return per(100.0, r.get("gc_mutations"))
+    if k.startswith("pct_AT_in_"):
+        return per(100.0, r.get("at_mutations"))
+    return None
+
+
+# rates whose zeros are common enough to report the zero-count sensitivity analyses
+ZERO_SENSITIVITY = ("unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5",
+                    "clone_weighted_frequency_x1e3", "mutation_frequency_x1e3")
 
 
 def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
@@ -401,8 +438,13 @@ def group_table(samples: list[dict], metric_keys: list[str]) -> list[dict]:
             if ctrl and g != ctrl:
                 cv = [r[k] for r in groups[ctrl] if r.get(k) is not None]
                 row[f"{k}_p_welch_vs_{_slug(ctrl)}"] = _clean(_welch(vals, cv))
-                row[f"{k}_p_welch_log_vs_{_slug(ctrl)}"] = _clean(
-                    _welch_log(_censored(rs, k), _censored(groups[ctrl], k)))
+                # primary: one event on each sample's own exposure (replicates.ZERO_EVENTS)
+                row[f"{k}_p_welch_log_vs_{_slug(ctrl)}"] = _clean(_welch_log(rs, groups[ctrl], k))
+                if k in ZERO_SENSITIVITY:
+                    row[f"{k}_sensitivity_p_welch_log_half_event_vs_{_slug(ctrl)}"] = _clean(
+                        _welch_log(rs, groups[ctrl], k, replicates.HALF_EVENT))
+                    row[f"{k}_sensitivity_p_welch_log_third_of_smallest_vs_{_slug(ctrl)}"] = _clean(
+                        replicates.welch_p(*replicates.third_of_smallest_log10(vals, cv)))
                 row[f"{k}_p_mwu_vs_{_slug(ctrl)}"] = _clean(_mwu(vals, cv))
         row["compared_with"] = "" if (not ctrl or g == ctrl) else ctrl
         out.append(row)
@@ -456,11 +498,11 @@ def _fit_null(reads, ref, p, lo, hi, ref_name):
     return null_model.fit_aligned(reads, ref, p, lo, hi, calibrate=False, ref_name=ref_name)[0]
 
 
-def _tally(drawn, ref, lo, hi):
+def _tally(drawn, ref, lo, hi, margin):
     # every library at the analysed depth, drawn as analyse() draws it (by the caller): the
     # estimate is divided by the analysed reads' bases, so counting events in a deeper
     # library would inflate it by the ratio of the two
-    return singletons.tally(drawn, ref, lo, hi)
+    return singletons.tally(drawn, ref, lo, hi, margin)
 
 
 def _call_sample(t: dict) -> dict:
@@ -480,6 +522,9 @@ def _call_sample(t: dict) -> dict:
             if a.qname not in analysed:
                 fates.setdefault(a.qname, {"fate": "not sampled"})
         alignment = browse.alignment(res["_aligned"], fates, reference, res["variants"])
+    # the analysed reads alone cost nothing more (they are already aligned) and are
+    # what a person checking a call needs to see, so they are always kept
+    call_reads = alignment or browse.alignment(res["_aligned"], {}, reference, res["variants"])
     if t["saturation_depths"]:
         # the whole depth curve, not just the one analysed point. Opt-in:
         # it re-calls variants at every depth.
@@ -514,8 +559,11 @@ def _call_sample(t: dict) -> dict:
     rows = []
     if t["indels"]:
         pile = indels.Pileup(res["_aligned"], ref, lo, hi, t["indel_minq"])
-        called_i, _st = indels.call(pile, t["indel_null"], p, sanger=sanger)
+        called_i, st_i = indels.call(pile, t["indel_null"], p, sanger=sanger)
         add_indels(m, called_i, res, p.density_scale)
+        if st_i.get("notes"):
+            m["warnings"] = "; ".join(dict.fromkeys(
+                x for x in [m["warnings"], *st_i["notes"]] if x))
         for v in called_i:
             rows.append({"sample": name, "group": s.get("group") or name,
                          "pos": v.pos, "kind": v.kind, "length": v.length,
@@ -525,8 +573,194 @@ def _call_sample(t: dict) -> dict:
                          "minus_reads": v.minus_reads, "homopolymer": v.homopolymer,
                          "frameshift": v.frameshift})
     m["null_from"] = "+".join(peers) if null is not None else "none"
+    m["null_matching"] = t.get("null_matching", "pooled") if null is not None else "none"
     return {"metrics": m, "res": res, "clones": cl, "coverage": cov, "single_read": sr,
-            "indel_rows": rows, "alignment": alignment}
+            "indel_rows": rows, "alignment": alignment, "call_reads": call_reads}
+
+
+def _sample_files(path) -> list[str]:
+    """Every file a sample's path names: a filename, a list of them, or
+    [[file, clone_id], ...] from a sample sheet."""
+    if isinstance(path, str):
+        return [path]
+    if isinstance(path, (list, tuple)):
+        return [f for x in path
+                for f in _sample_files(x[0] if isinstance(x, (list, tuple)) and x else x)]
+    return []
+
+
+def run_compatibility(samples: list[dict], controls: set) -> dict:
+    """Which sequencing run each case came from, against the controls' runs (audit F12).
+
+    A case is judged on its own runs, not the project's: controls from run A
+    and cases from A and B leave the B case uncalibrated by its own run. An
+    explicit `run` (a string, or a list for several files) wins over run IDs
+    parsed from read headers. Status per case:
+
+    * "different run": at least one of its runs has no control.
+    * "same run": every run it has is a control run, and the runs of all its
+      files and of every control are known.
+    * "unverified": some run is unknown, so same-run provenance is not shown.
+
+    `runs_by_sample` gives every sample's runs (controls included) for
+    run_matched_peers, which picks each case's controls from its own run.
+    """
+    def runs_of(s_):
+        given = s_.get("run")
+        if given:
+            return set([given] if isinstance(given, str) else given), False
+        toks = [null_model.run_token(f) for f in _sample_files(s_.get("path"))]
+        return {t for t in toks if t}, (not toks or None in toks)
+
+    ctl_runs, ctl_unknown = set(), False
+    by_sample = {}
+    for s_ in samples:
+        r, unk = runs_of(s_)
+        by_sample[s_["name"]] = {"runs": sorted(r), "unknown": bool(unk)}
+        if s_["name"] in controls:
+            ctl_runs |= r
+            ctl_unknown |= bool(unk)
+    out = {}
+    for s_ in samples:
+        if s_["name"] in controls:
+            continue
+        r, unk = runs_of(s_)
+        missing = sorted(r - ctl_runs) if ctl_runs else []
+        status = ("different run" if missing else
+                  "same run" if r and not unk and ctl_runs and not ctl_unknown else "unverified")
+        out[s_["name"]] = {"runs": sorted(r), "status": status, "runs_without_control": missing}
+    return {"control_runs": sorted(ctl_runs), "control_runs_unknown": ctl_unknown, "samples": out,
+            "runs_by_sample": by_sample}
+
+
+# a case is judged against its own run's controls only when the run has at least this many
+# (two give it decoys from more than one library); a control needs one same-run peer
+MIN_RUN_CONTROLS = 2
+
+
+def run_matched_peers(samples: list[dict], controls: set, run_check: dict | None,
+                      match: bool = True) -> tuple[dict, dict]:
+    """The controls each sample is judged against, and how they were chosen (audit F12).
+
+    With every run known, a sample whose runs all have controls is judged against the
+    controls from those runs (never itself), if there are at least MIN_RUN_CONTROLS of
+    them (one for a control). Otherwise, or with match=False, it is judged against every
+    other control, as before: the pooled model. When all controls and samples share one
+    run, both rules give the same controls.
+    """
+    pooled = {s_["name"]: tuple(sorted(c for c in controls if c != s_["name"])) for s_ in samples}
+    how = {n: "pooled" for n in pooled}
+    if not match or not run_check:
+        return pooled, how
+    runs = run_check.get("runs_by_sample") or {}
+    peers = dict(pooled)
+    for s_ in samples:
+        n = s_["name"]
+        mine = runs.get(n) or {}
+        if not mine.get("runs") or mine.get("unknown"):
+            continue
+        want = set(mine["runs"])
+        same = tuple(sorted(c for c in controls if c != n and runs.get(c, {}).get("runs")
+                            and not runs[c]["unknown"] and set(runs[c]["runs"]) <= want))
+        covered = set().union(*(set(runs[c]["runs"]) for c in same)) if same else set()
+        need = 1 if n in controls else MIN_RUN_CONTROLS
+        if len(same) >= need and covered == want:
+            peers[n] = same
+            how[n] = "same run" if same == pooled[n] else "run-matched"
+    return peers, how
+
+
+def full_counts(reads, variants, p) -> dict:
+    """{"<pos><alt>": [reads carrying it, reads covering pos]} over `reads`, counted as the
+    pileup counts (bases at or above the quality gate, read ends trimmed by read_end_margin_bp),
+    so that over the analysed reads it gives each call's own reads and depth."""
+    from .align import pair_window
+    from .variants import gate_quality
+    want = {(v.pos - 1, v.alt) for v in variants}
+    at = {k[0] for k in want}
+    minq = gate_quality(p)
+    depth, carry = Counter(), Counter()
+    for r in reads:
+        for rp, base, q in pair_window(r, p.read_end_margin_bp)[0]:
+            if rp in at and base in "ACGT" and q >= minq:
+                depth[rp] += 1
+                if (rp, base) in want:
+                    carry[(rp, base)] += 1
+    return {f"{pos + 1}{alt}": [carry[(pos, alt)], depth[pos]] for pos, alt in sorted(want)}
+
+
+def phasing_notes(stats: dict, reads: dict) -> list[str]:
+    """What phasing removed and kept that a reader should know: a block dropped for being
+    carried by many clones, and a block it could not drop without passing phase_max_drop."""
+    out = []
+    for name, st in stats.items():
+        for bl in st.get("blocks") or []:
+            jx = bl.get("junctions") or {}
+            if bl.get("action") == "drop" and "junctions" in bl.get("why", "") and jx:
+                out.append(f"{name}: {bl['reads']} reads sharing a {bl['n_sites']}-site block were removed; "
+                           f"they come from {jx['junctions']} different V(D)J junctions, so the block is "
+                           "a second haplotype, paralogue or contaminant, not hypermutation.")
+            elif bl.get("action") == "kept (cap)":
+                n = st.get("aligned_before_phasing") or (len(reads.get(name) or []) + st.get("reads_dropped_minor", 0))
+                out.append(f"{name}: a {bl['n_sites']}-site block in {bl['reads']} of {n} reads is not "
+                           "hypermutation but was kept, since removing it would take the library past the "
+                           "phasing cap; its sites are not called. Check the library for a second allele "
+                           "or contamination.")
+    return out
+
+
+def orientation_notes(reads: dict, min_reads: int = 50) -> list[str]:
+    """Libraries whose reads all run one way. An amplicon library as sequenced comes in both
+    orientations (about half each on Nanopore); all one way means the reads were turned to the
+    reference before SHMtrace saw them (Geneious exports the reads it assembled like that),
+    so the orientation shown is not the one they were sequenced in, and strand checks have
+    nothing to compare."""
+    one = sorted(n for n, al in reads.items()
+                 if len(al) >= min_reads and len({getattr(a, "strand", 1) for a in al}) == 1)
+    if not one:
+        return []
+    return [f"Every read of {', '.join(one)} runs the same way along the reference. Reads as sequenced "
+            "come in both orientations, so these were probably oriented before they reached SHMtrace "
+            "(Geneious exports reads it has assembled that way): the orientation shown in Check calls "
+            "is not the sequenced one, and strand-bias checks cannot be made."]
+
+
+def run_notes(run_check: dict, per_sample: list[dict]) -> list[str]:
+    """Project notes from run_compatibility; marks each mismatched case's own warnings."""
+    notes: list[str] = []
+    ctl_runs = run_check["control_runs"]
+    mismatched = {n: c for n, c in run_check["samples"].items() if c["status"] == "different run"}
+    if mismatched:
+        notes.append(
+            "CALIBRATION NOT SUPPORTED for " + ", ".join(
+                f"{n} (run {', '.join(c['runs_without_control'])})" for n, c in sorted(mismatched.items()))
+            + f": the controls come from sequencing run(s) {', '.join(ctl_runs)}. Nanopore error is "
+            "run-specific, so a control from another flow cell does not measure this run's background: if "
+            "the control run was cleaner, its error model makes this run's errors look like real mutations "
+            "and calls MORE of them. Treat these samples as exploratory, or sequence a mutation-free "
+            "control alongside them.")
+        for m in per_sample:
+            c = mismatched.get(m.get("sample"))
+            if c:
+                w = ("no control from run " + ", ".join(c["runs_without_control"])
+                     + "; its background model comes from another run")
+                m["warnings"] = "; ".join(x for x in [m.get("warnings"), w] if x)
+    if len(ctl_runs) > 1:
+        how = run_check.get("null_matching") or {}
+        matched = sorted(n for n in run_check["samples"] if how.get(n) == "run-matched")
+        pooled = sorted(n for n, c in run_check["samples"].items() if how.get(n, "pooled") == "pooled")
+        notes.append(f"The controls span sequencing runs {', '.join(ctl_runs)}. "
+                     + (f"Judged against controls from their own run: {', '.join(matched)}. " if matched else "")
+                     + (f"Judged against controls pooled across runs (no run with {MIN_RUN_CONTROLS} "
+                        f"or more of their own controls, or run unknown): {', '.join(pooled)}."
+                        if pooled else ""))
+    unverified = sorted(n for n, c in run_check["samples"].items() if c["status"] == "unverified")
+    if unverified and (ctl_runs or any(c["runs"] for c in run_check["samples"].values())):
+        notes.append("The sequencing run could not be identified for "
+                     + ("some controls and " if run_check["control_runs_unknown"] else "")
+                     + "sample(s) " + ", ".join(unverified) + ", so same-run calibration is not "
+                     "verified for them. Give the run in the sample sheet's run column.")
+    return notes
 
 
 def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
@@ -534,6 +768,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     reference = project["reference"]
     contaminants = project.get("contaminants") or []
     ref_name, ref = read_fasta(reference)[0]
+    p = scale_lengths(p, len(ref))            # a preset's length gates given as fractions (config)
     lo, hi = pipeline._window(p, ref)
     lo, hi = max(lo, p.end_trim_bp), min(hi, len(ref) - 1 - p.end_trim_bp)
     if hi < lo:
@@ -610,7 +845,11 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     # the null fitted from each set of peers, once: each sample is judged against its
     # peers' null, and a control's peers are also its calibration fold
     nulls: dict = {}
-    peers_of = {s["name"]: tuple(sorted(c for c in controls if c != s["name"])) for s in samples}
+    # Nanopore error is run-specific: each sample is judged against the controls from its
+    # own sequencing run when the run has enough of them (run_matched_peers, audit F12)
+    run_check = run_compatibility(samples, controls) if controls and not sanger else None
+    peers_of, null_matching = run_matched_peers(
+        samples, controls, run_check, match=project.get("match_controls_by_run", True))
     if p.error_model != "geneious" and not sanger:
         sets = sorted({pr for pr in peers_of.values() if pr})
         fits = pmap(_fit_null, [([b["reads"][c] for c in pr], ref, p, lo, hi, ref_name) for pr in sets], p.jobs)
@@ -629,6 +868,11 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             qscale = null_model.DEFAULT_QSCALE
             calibration = {"qscale_source": "default (one control file)"}
         calibration = {"qscale": qscale, **calibration}
+        if calibration.get("qscale_warning"):
+            # the quality model could not be calibrated on these controls; say so where a
+            # reader will see it, not only in the calibration block. setup_notes, not
+            # `notes`: that name is rebound from setup_notes further down.
+            setup_notes.append(calibration["qscale_warning"])
 
     per_sample, details = [], {}
     project_germline = None           # Sanger: germline seen across all clones
@@ -637,7 +881,9 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     tallies: dict = {}
     single_read: dict = {}
     control_background: dict = {}
+    control_background_alt: dict = {}
     alignments: dict = {}
+    call_reads: dict = {}
     coverage: dict = {}
     clone_results: dict = {}
     # project["saturation"]: True for a sensible ladder up to the analysed
@@ -696,11 +942,13 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         names = sorted({n for s in samples if peers_of[s["name"]] for n in (s["name"], *peers_of[s["name"]])})
         pd = replace(p, downsample_to=depth)
         # drawn here, tallied on workers: the analysed depth is all a worker needs to receive
-        tallies = dict(zip(names, pmap(_tally, [(downsample(b["reads"][n], pd)[0], ref, lo, hi) for n in names],
+        tallies = dict(zip(names, pmap(_tally, [(downsample(b["reads"][n], pd)[0], ref, lo, hi,
+                                                 p.read_end_margin_bp) for n in names],
                                        p.jobs), strict=True))
     if want_indels and not sanger:
         for pr in {pr for pr in peers_of.values() if pr}:
-            indel_nulls[pr] = indels.IndelNull([indel_piles[c] for c in pr], ref)
+            indel_nulls[pr] = indels.IndelNull([indel_piles[c] for c in pr], ref,
+                                               p.ancestral_reference)
             indel_nulls[pr].qscale = indel_qscale
     # germline variants from a VCF (germline_vcf.py): project-wide and per animal
     vcf_cache: dict = {}
@@ -732,6 +980,14 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         for v in vcfs:
             germ |= vcf_sites(v)
         germ_src = ("the germline VCF " + " and ".join(os.path.basename(v) for v in vcfs)) if vcfs else germ_from
+        # a block phasing found not to be hypermutation but had to keep (phase_max_drop): its
+        # reads stay in, and its own sites are not called, as a second allele's would not be
+        capped = {(pos - 1, alt) for bl in b["stats"][name].get("blocks") or []
+                  if bl.get("action") == "kept (cap)" for pos, alt in bl["sites"]}
+        if capped:
+            germ |= capped
+            germ_src = " and ".join(x for x in (germ_src, "a co-occurring block phasing could not remove "
+                                                "without taking more than the cap of the reads") if x)
         null = nulls.get(peers) if (p.error_model != "geneious" and not sanger and peers) else None
         reads, drawn = b["reads"][name], None
         if not saturation_depths:
@@ -744,6 +1000,7 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             "depth": depth, "germline": germ or None, "germline_source": germ_src, "browse": want_browse,
             "saturation_depths": saturation_depths, "saturation_draws": project.get("saturation_draws", 3),
             "ref": ref, "lo": lo, "hi": hi, "control": name in controls, "sanger": sanger, "peers": peers,
+            "null_matching": null_matching.get(name, "pooled"),
             "tallies": ({n: tallies[n] for n in (name, *peers)} if single_q and peers else None),
             "single_q": single_q, "indels": want_indels and (sanger or bool(peers)),
             "indel_null": indel_nulls.get(peers) if not sanger else None, "indel_minq": indel_minq},))
@@ -756,12 +1013,15 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
             # the fitted background a non-control sample is judged against:
             # the highest per-alt error rate at each position (viz_project)
             per_pos: dict = {}
-            for (pos0, _alt), rate in null.items():
+            for (pos0, alt), rate in null.items():
                 if lo <= pos0 <= hi:
                     per_pos[pos0 + 1] = max(per_pos.get(pos0 + 1, 0.0), rate)
+                    control_background_alt[f"{pos0 + 1}{alt}"] = round(rate, 8)
             control_background.update(per_pos)
         if out["alignment"] is not None:
             alignments[name] = out["alignment"]
+        if out.get("call_reads") is not None:
+            call_reads[name] = out["call_reads"]
         if out["clones"]:
             clone_results[name] = out["clones"]
         if out["coverage"]:
@@ -772,8 +1032,26 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         per_sample.append(out["metrics"])
         details[name] = out["res"]
 
+    # the usable reads downsampling did not draw: kept for Check calls to show beside the
+    # analysed ones, and every call counted over all of them as well (full_counts)
+    full_set: dict = {}
+    if not sanger and depth:
+        for s in samples:
+            name = s["name"]
+            usable = b["reads"][name]
+            analysed = {a.qname for a in details[name]["_aligned"]}
+            if len(usable) <= len(analysed):
+                continue
+            undrawn = [a for a in usable if a.qname not in analysed]
+            for data in (call_reads.get(name), alignments.get(name)):
+                if data is not None:
+                    browse.add_undrawn(data, undrawn, ref)
+            full_set[name] = {"usable": len(usable), "analysed": len(analysed),
+                              "calls": full_counts(usable, details[name]["variants"], p)}
+
     progress(0.92, "summarising")
-    notes = setup_notes + list(vcf_notes)
+    notes = setup_notes + list(vcf_notes) + phasing_notes(b["stats"], b["reads"]) \
+        + ([] if sanger else orientation_notes(b["reads"]))
     # Sanger: what the AID-null clones say the background is, and how much of each library's
     # calls it accounts for. The calls are not changed by this; it is the scale against which
     # they should be read, as the nanopore path measures its background from the same controls.
@@ -816,29 +1094,14 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                      "measured. Every mutation was judged from base qualities alone, "
                      "which calls more background. Mark your mutation-free samples as "
                      "controls, or sequence one on the same run.")
-    if controls and not sanger:
+    if run_check is not None:
         # Nanopore error is run-specific, so a control from another flow cell does not describe
         # this run's background. The single-sample CLI checks this (pipeline.fit_null); project
         # mode has to check it here, because controls arrive as samples marked control=yes.
-        def _first_file(path):
-            # a sample's path is a filename, or [[file, clone_id], ...] from a sample sheet
-            while isinstance(path, (list, tuple)) and path:
-                path = path[0]
-            return path if isinstance(path, str) else None
-        runs = {}
-        for s_ in samples:
-            f = _first_file(s_.get("path"))
-            tok = s_.get("run") or (null_model.run_token(f) if f else None)
-            if tok:
-                runs.setdefault(s_["name"] in controls, set()).add(tok)
-        ctl_runs, smp_runs = runs.get(True, set()), runs.get(False, set())
-        if ctl_runs and smp_runs and not (ctl_runs & smp_runs):
-            notes.append(
-                f"The controls come from sequencing run(s) {', '.join(sorted(ctl_runs))} and the samples from "
-                f"{', '.join(sorted(smp_runs))}. Nanopore error is run-specific, so a control from another flow "
-                "cell does not measure this run's background: if the control run was cleaner, its error model "
-                "makes this run's errors look like real mutations and calls MORE of them. Sequence a "
-                "mutation-free control alongside these samples.")
+        # Each case is checked on its own runs (run_compatibility): a project-wide overlap
+        # of run sets let a case from an uncontrolled run through (audit F12).
+        run_check["null_matching"] = null_matching
+        notes += run_notes(run_check, per_sample)
     if len(controls) < 2 and p.error_model == "qcal" and controls:
         notes.append(f"Only one control, so the background model could not be calibrated "
                      f"by leaving a control out; the default factor "
@@ -887,7 +1150,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
     keys = ["unique_density_x1e5", "combined_density_x1e5", "single_read_density_x1e5",
             "clone_weighted_frequency_x1e3",
             "mutation_frequency_x1e3", "mutated_reads_pct",
-            "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_GC_in_WRC_GYW"]
+            "mean_mutations_per_read", "pct_GC", "pct_transitions",
+            *(f"pct_{b}_in_{k}" for k, _l, b, _m, _w in motifs.FAMILIES)]
     groups = group_table(per_sample, keys)
     # count-based tests with the animal as the unit (replicates.py)
     animal_tests = (replicates.group_tests(per_sample, jobs=p.jobs)
@@ -920,7 +1184,8 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
                                   "plus_reads": v.plus_reads, "minus_reads": v.minus_reads,
                                   "context": v.context, "homopolymer": v.homopolymer,
                                   "WRC_GYW": motifs.is_site("WRC", ref, v.pos - 1)
-                                  or motifs.is_site("GYW", ref, v.pos - 1)})
+                                  or motifs.is_site("GYW", ref, v.pos - 1),
+                                  "motifs": "; ".join(motifs.families_at(ref, v.pos - 1))})
         load_hist[name] = dict(Counter(res.get("per_read_mutations") or []))
 
     # AID targeting against a 5-mer model, when one is given (targeting.py)
@@ -979,6 +1244,9 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
 
     hotspots = [i + 1 for i in range(lo, hi + 1)
                 if motifs.is_site("WRC", ref, i) or motifs.is_site("GYW", ref, i)]
+    # each family's sites along the window (1-based), and its share of the bases it can sit on
+    motif_sites = {k: [i + 1 for i in range(lo, hi + 1) if any(motifs.is_site(m, ref, i) for m in ms)]
+                   for k, _l, _b, ms, _w in motifs.FAMILIES}
     progress(1.0, "done")
     return {
         "name": project.get("name") or "SHMtrace project",
@@ -995,11 +1263,15 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "indels": indel_rows,
         # position -> fitted control error rate, for the background diagnostic
         "control_background": {str(k): round(v, 8) for k, v in sorted(control_background.items())},
+        # the same per position and base ("102T"): the rate a call of that change was tested against
+        "control_background_alt": control_background_alt,
         # Sanger only: the error the control clones themselves show (sanger_background)
         "sanger_background": sanger_bg or None,
         "groups": groups,
         "animal_tests": animal_tests,
         "notes": notes,
+        # each case's sequencing run against the controls' (run_compatibility)
+        "run_check": run_check,
         "spectrum_group": {g: dict(c) for g, c in spec_group.items()},
         # unique mutations per site of the from-base, per animal: the SHMTool
         # convention, so a base the window is short of is not under-counted
@@ -1018,9 +1290,16 @@ def run_project(project: dict, progress=lambda frac, msg: None) -> dict:
         "calibration": calibration,
         "reference": ref,
         "hotspots": hotspots,
+        "motif_sites": motif_sites,
+        "motif_background": motifs.background(ref, lo, hi),
+        "motif_families": [{"key": k, "label": l, "bases": b, "what": w} for k, l, b, _m, w in motifs.FAMILIES],
         "group_order": list(dict.fromkeys(gmap[s["name"]] for s in samples)),
+        # per downsampled sample: every call counted over all its usable reads too
+        "full_set": full_set,
         "_details": details,
         "_alignments": alignments,
+        # the analysed reads of every sample, for checking calls (webapp /api/call-reads)
+        "_call_reads": call_reads,
     }
 
 

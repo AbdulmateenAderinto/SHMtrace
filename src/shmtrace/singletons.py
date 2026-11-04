@@ -25,12 +25,28 @@ JH4, is the check that the efficiency correction is right
 
 Samples and controls must be at the same depth: whether a mutation is seen in
 exactly one read depends on how many reads there are.
+
+The 95% interval inverts a profile likelihood (Rolke, Lopez and Conrad 2005,
+Nucl. Instrum. Meth. A 551:493) for the count model
+
+  observed ~ Poisson(signal + background)
+  control  ~ Poisson(tau x background)    tau = control bases / sample bases
+
+with the likelihood ratio divided by the between-control overdispersion phi
+(quasi-likelihood). Zero observed events do not make a zero-width interval: with
+none in the sample and none in the controls the upper limit is still about two
+events. The efficiency is treated as known (it is a ratio of large base counts).
+docs/calibration/SINGLE_READ_INTERVAL.md has the coverage simulation.
 """
 from __future__ import annotations
 
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
+
+from scipy.optimize import brentq
+
+from .align import pair_window
 
 BASES = "ACGT"
 # a site where a control shows an alt in at least this share of reads is a
@@ -40,6 +56,22 @@ POLYMORPHIC_IN_CONTROLS = 0.02
 # least this share of every library's correctly read bases
 MIN_EFFICIENCY = 0.5
 MIN_Q = 20
+# The estimate separates real bases from errors by quality, so it needs the
+# qualities to vary with how right the base is. Some files carry almost no such
+# variation and the correction then has nothing to work on; the estimate is
+# reported with a warning rather than silently. Two shapes count as that:
+#   * one quality on nearly every base (FLAT_QUALITY_SHARE), e.g. a constant Q30;
+#   * fewer than MIN_QUALITY_LEVELS values carrying any appreciable share
+#     (QUALITY_LEVEL_SHARE each). The two public Illumina sets are this shape:
+#     PRJNA973112 is 95% Q60 and 5% Q30, PRJNA918596 is 88% Q30 and 12% Q60. The
+#     level says whether both mates covered the base, not how confident the
+#     basecall is, so the quality cut sorts merged from unmerged reads rather
+#     than correct bases from errors.
+# A NovaSeq's four bins do vary with accuracy and are left alone.
+# See docs/calibration/ACCURACY_BREADTH.md.
+FLAT_QUALITY_SHARE = 0.99
+QUALITY_LEVEL_SHARE = 0.005
+MIN_QUALITY_LEVELS = 4
 
 
 def _list_by_key():
@@ -61,11 +93,11 @@ class Tally:
     ref_quals: dict = field(default_factory=lambda: defaultdict(_count_by_key))
 
 
-def tally(aligned, ref: str, lo: int, hi: int) -> Tally:
+def tally(aligned, ref: str, lo: int, hi: int, margin: int = 0) -> Tally:
     t = Tally()
     for r in aligned:
         s = getattr(r, "strand", 1)
-        for pos, base, q in r.pairs:
+        for pos, base, q in pair_window(r, margin)[0]:
             if not (lo <= pos <= hi) or base not in BASES:
                 continue
             rb = ref[pos].upper()
@@ -77,6 +109,33 @@ def tally(aligned, ref: str, lo: int, hi: int) -> Tally:
             else:
                 t.alts[pos][base].append((q, s))
     return t
+
+
+def quality_resolution(tallies: list[Tally]) -> dict:
+    """How far these libraries' base qualities vary at all.
+
+    The sample and its controls are pooled: the estimate is a difference between
+    them, so qualities that carry no information in any of them make the
+    difference unreliable in the same way. Only reference-matching bases are
+    counted, which is what the efficiency correction is measured on.
+
+    Returns the quality carrying the largest share of those bases, that share,
+    the number of qualities carrying at least QUALITY_LEVEL_SHARE each, and
+    whether that leaves the estimate without usable quality information.
+    """
+    hist: dict = defaultdict(int)
+    for t in tallies:
+        for h in t.ref_quals.values():
+            for q, n in h.items():
+                hist[q] += n
+    total = sum(hist.values())
+    if not total:
+        return {"bases": 0, "levels": 0, "top_quality": None, "top_share": 0.0, "flat": False}
+    top_q, top_n = max(hist.items(), key=lambda kv: kv[1])
+    levels = sorted(q for q, n in hist.items() if n / total >= QUALITY_LEVEL_SHARE)
+    flat = top_n / total >= FLAT_QUALITY_SHARE or len(levels) < MIN_QUALITY_LEVELS
+    return {"bases": total, "levels": len(levels), "level_values": levels,
+            "top_quality": top_q, "top_share": round(top_n / total, 4), "flat": flat}
 
 
 def excluded_sites(sample: Tally, controls: list[Tally], germline_freq: float) -> set[int]:
@@ -128,14 +187,81 @@ def count(t: Tally, q_min: int, skip: set[int], called: set | None = None) -> di
             "efficiency": ref_hi / ref_all if ref_all else 0.0}
 
 
+def unavailable_pairs(sample: Tally, q_min: int, called: set | None = None) -> set:
+    """(position, alt) pairs where `sample` cannot show a single-read event: the
+    per-site calls, and every alt the sample carries in two or more reads at q_min."""
+    out = set(called or ())
+    for pos, alts in sample.alts.items():
+        for alt, reads in alts.items():
+            if sum(1 for r in reads if r[0] >= q_min) >= 2:
+                out.add((pos, alt))
+    return out
+
+
+def _profile_ll(mu: float, n: int, m: int, tau: float) -> float:
+    """log L(mu, b) maximised over the background b (constants dropped).
+
+    n ~ Poisson(mu + b), m ~ Poisson(tau b), with b >= 0 and mu + b >= 0: the signal
+    may be negative, as the background-subtracted estimate can be.
+    """
+    lo = max(0.0, -mu)
+    a = 1.0 + tau
+    lin = a * mu - n - m
+    disc = lin * lin + 4.0 * a * m * mu
+    b = lo
+    if disc >= 0:
+        root = (-lin + math.sqrt(disc)) / (2.0 * a)
+        if root > lo:
+            b = root
+    lam = mu + b
+
+    def term(k, x):
+        if k == 0:
+            return -x
+        return k * math.log(x) - x if x > 0 else -math.inf
+    return term(n, lam) + term(m, tau * b)
+
+
+def profile_interval(n: int, m: int, tau: float, phi: float = 1.0,
+                     z: float = 1.96) -> tuple[float, float, float]:
+    """(estimate, low, high) of the signal mu in events, from the profile likelihood.
+
+    The limits are where 2 (l_max - l_p(mu)) / phi reaches z^2. Both limits exist
+    for every n, m >= 0 and tau > 0, so a zero count never gives a zero-width interval.
+    """
+    mu_hat = n - m / tau
+    lmax = _profile_ll(mu_hat, n, m, tau)
+    crit = z * z * max(phi, 1.0)
+
+    def g(mu):
+        return 2.0 * (lmax - _profile_ll(mu, n, m, tau)) - crit
+    # g(mu_hat) = -crit < 0; widen each bracket until g changes sign
+    step = max(1.0, math.sqrt(n + m / (tau * tau) + 1.0))
+    hi, lo = mu_hat + step, mu_hat - step
+    while g(hi) < 0:
+        hi += step
+        step *= 2
+    step = max(1.0, math.sqrt(n + m / (tau * tau) + 1.0))
+    while g(lo) < 0:
+        lo -= step
+        step *= 2
+    return mu_hat, brentq(g, lo, mu_hat, xtol=1e-6), brentq(g, mu_hat, hi, xtol=1e-6)
+
+
 def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: float,
              ref: str, called: set | None = None, z: float = 1.96) -> dict | None:
     """Background-subtracted count of single-read mutations, with a 95% interval.
 
-    Variance: the sample's own count is Poisson in the signal and overdispersed
-    in the background (phi, from the spread between control libraries when
-    there are three or more), and the background rate carries the uncertainty
-    of the control count it was measured from.
+    The interval is a profile likelihood (see the module docstring): the sample's
+    count is Poisson in signal plus background, overdispersed by phi (from the
+    spread between control libraries when there are three or more), and the
+    background rate carries the uncertainty of the control count.
+
+    The controls are counted only at (position, alt) pairs where this sample could
+    show a single-read event: not at the pairs the per-site test called, and not at
+    pairs where the sample already has the alt in two or more reads at q_min. An
+    error there is invisible in the sample, so counting it in the controls would
+    make the background too high in heavily mutated samples (unavailable_pairs).
     """
     if not controls:
         return None
@@ -145,8 +271,9 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
     # sliver of the reads
     asked = q_min
     while True:
-        s = count(sample, q_min, skip, called)
-        cs = [count(c, q_min, skip) for c in controls]
+        blocked = unavailable_pairs(sample, q_min, called)
+        s = count(sample, q_min, skip, blocked)
+        cs = [count(c, q_min, skip, blocked) for c in controls]
         if q_min <= MIN_Q or min([s["efficiency"]] + [c["efficiency"] for c in cs]) \
                 >= MIN_EFFICIENCY:
             break
@@ -165,8 +292,7 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         phi = max(1.0, x2 / (len(cs) - 1))
     eff = s["efficiency"]
     est = (obs - exp) / eff
-    var = obs + (phi - 1.0) * exp + phi * exp * exp / max(kc, 1)
-    se = math.sqrt(max(var, 0.0)) / eff
+    _mu, mu_lo, mu_hi = profile_interval(obs, kc, nc / s["bases"], phi, z)
     # the spectrum of the excess: observed single-read events by class, and the
     # background expected for each class from the controls' own events
     obs_cls = defaultdict(int)
@@ -177,15 +303,17 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         for pos, alt, _q, _st in c["events"]:
             ctrl_cls[f"{ref[pos].upper()}>{alt}"] += 1
     exp_cls = {k: round(v * s["bases"] / nc, 3) for k, v in ctrl_cls.items()}
-    return {
+    out = {
         "q_min": q_min,
         "q_min_requested": asked,
         "observed": obs,
         "expected": round(exp, 3),
         "efficiency": round(eff, 4),
         "estimate": round(est, 2),
-        "ci_low": round(est - z * se, 2),
-        "ci_high": round(est + z * se, 2),
+        "ci_low": round(mu_lo / eff, 2),
+        "ci_high": round(mu_hi / eff, 2),
+        "ci_method": "profile likelihood: Poisson sample and control counts, "
+                     "scaled by the control overdispersion",
         "overdispersion": round(phi, 3),
         "bases": s["bases"],
         "control_events": kc,
@@ -194,3 +322,14 @@ def estimate(sample: Tally, controls: list[Tally], q_min: int, germline_freq: fl
         "observed_by_class": dict(obs_cls),
         "expected_by_class": exp_cls,
     }
+    qres = quality_resolution([sample, *controls])
+    out["quality_levels"] = qres["levels"]
+    if qres["flat"]:
+        out["quality_flat"] = True
+        levels = ", ".join(f"Q{q}" for q in qres.get("level_values", ()))
+        out["warning"] = (
+            f"the reference-matching bases carry only {qres['levels']} quality value(s) "
+            f"({levels}; {qres['top_share']:.0%} at Q{qres['top_quality']}): the quality cut "
+            "cannot separate a real base from an error here, so this estimate, and any "
+            "density that includes it, is not interpretable")
+    return out

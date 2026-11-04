@@ -68,7 +68,7 @@ Every clone that was not analysed is listed with the reason: excluded by the she
 
 ## 3. Concordance between two measurements (`shmtrace.concordance`)
 
-This is the manuscript's Sanger-vs-ONT comparison as a tested function, for any two runs of the same animals:
+The Sanger-vs-ONT comparison as a tested function, for any two runs of the same animals:
 - **Spectrum:** pooled proportions with 95% Wilson intervals; Pearson r with a Fisher interval, and slope; the platform × type repeated-measures interaction; paired t tests with Šídák adjustment per type and for G:C Ts/Tv.
 - **Position:** the profile along the window.
 - **Hotspots:** WRC/GYW and WA/TW shares.
@@ -78,8 +78,6 @@ This is the manuscript's Sanger-vs-ONT comparison as a tested function, for any 
 shmtrace-concordance sanger/project.json ont/project.json --pair WT2=WT2 --pair WT3=WT3 \
       --pair WT4=WT4 --labels Sanger,ONT
 ```
-
-`docs/calibration/manuscript_corrected/manuscript_stats.py` now uses this module and gives the manuscript's numbers unchanged.
 
 ## 4. Validation with known answers
 
@@ -123,26 +121,18 @@ The pipeline then runs exactly as on real data, from the sample sheet. Results f
 |---|---|---|---|---|---|---|
 | Detected | 0/3 | 0/6 | 4/10 | 9/10 | 6/7 | 3/4 |
 
-The misfiled clones in your real data shared 10–21 mutations.
-
 `tests/test_sanger_validation.py` runs two of these projects, plus a clean one with nothing planted, on every test run. It fails if calling or QC gets worse.
 
-### Your real data (`tests/test_real_jh4_sanger.py`)
+### The lab's J꜀4 traces (`tests/test_real_jh4_sanger.py`)
 
-`docs/calibration/samplesheets/jh4_manuscript.csv` is the manuscript's six mice, with every clone kept where it was filed. Run through the pipeline, it gives the manuscript's numbers exactly:
+The test runs the lab's six J꜀4 mice through the pipeline, every clone kept where it was filed, and checks the clone and call counts:
 
 | | WT2 | WT3 | WT4 | Aicda⁻/⁻ 1 | Aicda⁻/⁻ 2 | Aicda⁻/⁻ 3 |
 |---|---|---|---|---|---|---|
 | Clones | 37 | 40 | 26 | 11 | 10 | 10 |
 | Unique calls (101–629) | 135 | 230 | 106 | 1 | 1 | 2 |
 
-The test runs where the traces are and is skipped elsewhere. On this sheet the QC reports, without changing anything:
-- **Duplicates (problem):** three clones labelled `wt3-3`, `wt3-4` and `wt3-6`, filed under WT2, were identical to WT3 clones (sharing 10–21 mutations). Founder mutations decided: `wt3-4` and `wt3-6` belong to a lineage in 109 WT3 nanopore reads and no WT2 read, so they were moved to WT3 (12 Oct 2026). `wt3-3` is identical to WT3 clone 434141-F9, but its lineage is in no mouse's nanopore reads; it stays in WT2 and is still flagged. After the move, WT3 holds three identical clones of that lineage (432625-E4, 434138-D11, 434138-F11); the author kept all three (identical clones are not collapsed within a mouse; unique mutations are counted once per mouse regardless).
-- **Label mismatches (check):** 14 clones labelled w3 are in WT2, carrying 1–26 mutations. 13 clones labelled w2 are in WT3: 12 carry no mutation and one carries 3. Two Aicda⁻/⁻ clones carry another knockout mouse's label.
-- **Clean controls:** no Aicda⁻/⁻ clone carries more mutations than its qualities explain.
-- **Germline:** the same five germline positions are removed in all six mice, so they are true strain differences, and no lineage was lost to the rule.
-
-With the MKLN mice added (`jh4_with_mkln.csv`), the QC also found that WT4 clone w4-9 (434141-A11) is identical over 520 bp, with 7 shared mutations, to two MKLN K2 clones (434141-E11 and 434355-H3). Its G:C spectrum (one transition, two transversions) was too small to tell WT from MKLN. On the identity, the author moved it to MKLN K2 (12 Oct 2026); the counts above are without it.
+It runs where the traces are and is skipped elsewhere. The QC runs on this sheet as on any project. The clean-control check passes (no Aicda⁻/⁻ clone carries more mutations than its qualities explain), and the same five germline positions are removed in all six mice, so they are true strain differences and no lineage was lost to the rule.
 
 ## Known limits
 

@@ -7,7 +7,9 @@ export is a download from it.
 
 Endpoints
   GET  /                      the app
-  GET  /api/options           presets, platforms, modes, version
+  GET  /api/options           presets (with what each does), platforms, modes, version
+  GET  /api/example           a ready-made six-library project (the set-up guide's example)
+  POST /api/check-reads       read count, length and quality of one sample, for the guide
   POST /api/files             upload files, returns server-side paths
   POST /api/local-scan        list a folder on this machine (desktop app)
   POST /api/run               start a project; returns {"job": id}
@@ -31,6 +33,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import shutil
 import tempfile
 import threading
@@ -73,12 +76,12 @@ def _finite(x):
 # ---- pages ------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return (STATIC / "index.html").read_text()
+    return HTMLResponse((STATIC / "index.html").read_text(), headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/classic", response_class=HTMLResponse)
 def classic():
-    return (STATIC / "classic.html").read_text()
+    return HTMLResponse((STATIC / "classic.html").read_text(), headers={"Cache-Control": "no-cache"})
 
 
 def _contaminant_references() -> list[dict]:
@@ -101,6 +104,106 @@ def _bundled_references() -> list[dict]:
     return out
 
 
+def _preset_details() -> dict:
+    """What each region preset will do, in the terms the set-up guide shows."""
+    out = {}
+    for name in available_presets():
+        try:
+            p = load_preset(name)
+        except Exception:                       # noqa: BLE001 - a broken preset is just not described
+            continue
+        out[name] = {"description": " ".join(str(p.description or "").split()),
+                     "window": list(p.analysis_window) if p.analysis_window else None,
+                     "depth": p.downsample_to, "min_align_len": p.min_align_len,
+                     "max_total_len": p.max_total_len, "min_align_frac": p.min_align_frac,
+                     "end_trim_bp": p.end_trim_bp}
+    return out
+
+
+def _example_dir() -> Path | None:
+    """The six-library JH4 nanopore reads, as sequenced: the repository's, or the copy inside the
+    built app. (examples_compare/ holds the 500-read Geneious exports the tests and benchmark use.)"""
+    import sys
+    roots = [APP_DIR.parents[2] / "examples_nanopore"]
+    if getattr(sys, "_MEIPASS", None):
+        roots.insert(0, Path(sys._MEIPASS) / "examples_nanopore")
+    return next((r for r in roots if (r / "samples.csv").is_file()), None)
+
+
+def _sanger_example() -> Path | None:
+    """The Maea Sanger clones' sample sheet: the repository's, or the copy inside the built app."""
+    import sys
+    roots = [APP_DIR.parents[2] / "examples_sanger"]
+    if getattr(sys, "_MEIPASS", None):
+        roots.insert(0, Path(sys._MEIPASS) / "examples_sanger")
+    return next((r / "samples.csv" for r in roots if (r / "samples.csv").is_file()), None)
+
+
+@app.get("/api/example")
+def example(set: str = ""):
+    """A ready-made project for the "Try it with nanopore / Sanger sample data" buttons.
+
+    set="sanger": the JH4 Sanger clones of Barbulescu et al. (2024), as a sample sheet.
+    """
+    import csv
+    if set == "sanger":
+        sheet = _sanger_example()
+        if sheet is None:
+            raise HTTPException(404, "the Sanger example is not installed with this copy of SHMtrace")
+        refs = APP_DIR.parent / "references"
+        return {"name": "Example: JH4 Sanger clones, Wt vs Maea-fl/fl Mb1cre vs Aicda-/- (Barbulescu et al. 2024)",
+                # the JH4 preset (positions 101-629), as in the curated run that matches the paper
+                "region": "jh4_intron", "platform": "sanger",
+                "reference": {"name": "JH4 intron", "path": str(refs / "mouse_jh4_intron.fasta")},
+                "contaminant": {"name": "JH4 contaminant", "path": str(refs / "mouse_jh4_contaminant.fasta")},
+                "sheet": str(sheet)}
+    d = _example_dir()
+    if d is None:
+        raise HTTPException(404, "the example data is not installed with this copy of SHMtrace")
+    rows = list(csv.DictReader(open(d / "samples.csv")))
+    refs = APP_DIR.parent / "references"
+    return {"name": "Example: JH4 nanopore reads, 3 wild-type vs 3 Aicda-/- mice",
+            "region": "jh4_intron", "platform": "ont",
+            # the bundled contaminant set: the deposit's contaminant and the J꜀4-like paralogue,
+            # both of which reads as sequenced contain
+            "reference": {"name": "JH4 intron", "path": str(refs / "mouse_jh4_intron.fasta")},
+            "contaminant": {"name": "JH4 contaminant", "path": str(refs / "mouse_jh4_contaminant.fasta")},
+            "samples": [{"name": r["sample"], "path": str(d / r["file"]), "group": r["group"],
+                         "control": r["control"] == "yes"} for r in rows]}
+
+
+@app.post("/api/check-reads")
+def check_reads(payload: dict):
+    """A quick look at one sample's reads, so the guide can flag problems before a run.
+
+    Reads at most `limit` records: enough for the length and quality, and a count
+    that is exact for small files and a lower bound for big ones.
+    """
+    import statistics
+    from ..io_utils import read_fastq
+    path = payload.get("path", "")
+    limit = int(payload.get("limit", 20000))
+    n, lengths, quals = 0, [], []
+    try:
+        for _name, seq, qual in read_fastq(path):
+            n += 1
+            if len(lengths) < 2000:
+                lengths.append(len(seq))
+                if qual:
+                    quals.append(sum(ord(c) - 33 for c in qual) / len(qual))
+            if n >= limit:
+                break
+    except Exception as e:                      # noqa: BLE001 - shown to the user
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+    srt = sorted(lengths)
+    return {"ok": True, "reads": n, "more": n >= limit,
+            "median_length": int(statistics.median(lengths)) if lengths else 0,
+            # the read lengths at every percentile, so the guide can tell a library of short reads
+            # from one whose short off-target reads will simply be set aside
+            "length_percentiles": [srt[min(len(srt) - 1, len(srt) * k // 100)] for k in range(101)] if srt else [],
+            "mean_quality": round(statistics.mean(quals), 1) if quals else None}
+
+
 @app.get("/api/options")
 def options():
     return {
@@ -112,11 +215,19 @@ def options():
         "modes": ["recommended", "sensitive", "geneious", "v0.1", "strand", "pbinom", "qcal+filter",
                   "sanger"],
         "preset_help": {
+            "generic_amplicon": "Any region you amplified: a V gene, JH6, Sγ, an AID off-target. "
+                                "You give the reference; the whole amplicon is analysed.",
             "jh4_intron": "Mouse JH4 downstream intron, the neutral polyclonal assay.",
-            "n114_vregion": "N114 hybridoma V region; the parental sequence is known.",
             "igh_smu": "Mouse IgH Sμ switch region.",
-            "generic_amplicon": "Any other region: JH6, Sγ, a V gene, an AID off-target.",
+            "n114_vregion": "Only for the N114 hybridoma's V region, whose parental sequence is known.",
             "sanger_clones": "Sanger traces, one clone per read.",
+        },
+        "preset_details": _preset_details(),
+        "platform_help": {
+            "ont": "Oxford Nanopore long reads, one FASTQ (or BAM) per sample.",
+            "pacbio": "PacBio HiFi reads. Accurate enough that the error model changes little.",
+            "illumina": "Paired short reads (R1/R2), merged on their overlap. Choose a window the reads cover.",
+            "sanger": "Sanger traces (.ab1): one clone per trace, a folder of traces per sample.",
         },
         "mode_help": {
             "recommended": "Quality-calibrated against your controls. The default.",
@@ -213,7 +324,8 @@ def load_samplesheet(payload: dict):
 
 
 # ---- running a project -------------------------------------------------------
-def _run_job(job_id: str, proj: dict):
+def _run_job(job_id: str, proj: dict, after=None):
+    """Run a project as a job. `after(res)` may finish the result before the job is done."""
     job = JOBS[job_id]
 
     def progress(frac, msg):
@@ -229,7 +341,13 @@ def _run_job(job_id: str, proj: dict):
         if proj.get("_demux_notes"):
             res["notes"] = proj["_demux_notes"] + res.get("notes", [])
             res["demux"] = proj.get("_demux_stats")
+        if after:
+            after(res)
         job["result"] = res
+        # a run of the bundled sample data is not kept: it is there to be run, and run again in
+        # front of people, not to fill the saved projects. Save project file still keeps one.
+        if not proj.get("example"):
+            _autosave(job_id)
         job["state"] = "done"
         job["progress"] = 1.0
         job["message"] = "finished"
@@ -237,6 +355,77 @@ def _run_job(job_id: str, proj: dict):
         job["state"] = "error"
         job["error"] = f"{type(exc).__name__}: {exc}"
         job["message"] = "failed"
+
+
+def _autosave(job_id: str) -> None:
+    """Keep a finished run as a saved project, so it survives the app closing (session.py)."""
+    from .. import session
+    job = JOBS[job_id]
+    try:
+        folder = job.get("folder") or session.home() / session.folder_name(job["result"].get("name"), job_id)
+        session.write(Path(folder), job["result"], job.get("project") or {})
+        job["folder"] = str(folder)
+    except OSError as exc:                     # a full or read-only disk must not lose the run itself
+        job["result"].setdefault("notes", []).append(f"The project could not be saved on this computer: {exc}")
+
+
+def _open_project(folder: Path) -> str:
+    """A saved project back as a finished job; returns its id."""
+    from .. import session
+    try:
+        res, proj = session.read(folder)
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(400, f"could not open the project: {exc}") from None
+    job_id = uuid.uuid4().hex[:12]
+    with _LOCK:
+        JOBS[job_id] = {"state": "done", "progress": 1.0, "message": "opened", "error": None,
+                        "result": res, "project": proj, "folder": str(folder)}
+    return job_id
+
+
+@app.get("/api/projects")
+def projects_recent():
+    """Saved projects on this computer, newest first."""
+    from .. import session
+    return {"folder": str(session.home()), "projects": session.recent()}
+
+
+@app.post("/api/projects/open")
+def projects_open(payload: dict):
+    """Reopen a saved project by its folder name (from /api/projects)."""
+    from .. import session
+    name = str(payload.get("folder", ""))
+    folder = session.home() / name
+    if not name or "/" in name or "\\" in name or name.startswith(".") or not folder.is_dir():
+        raise HTTPException(404, "no such saved project")
+    return {"job": _open_project(folder)}
+
+
+@app.post("/api/projects/upload")
+async def projects_upload(file: UploadFile = File(...)):
+    """Open a .shmtrace file: it is copied into the saved projects, then opened."""
+    from .. import session
+    blob = await file.read()
+    try:
+        folder = session.unpack(blob, session.home())
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from None
+    return {"job": _open_project(folder)}
+
+
+@app.get("/api/project-file/{job_id}")
+def project_file(job_id: str):
+    """The run as one .shmtrace file, to keep, move to another computer or send."""
+    from .. import session
+    _result(job_id)
+    job = JOBS[job_id]
+    if not job.get("folder"):
+        _autosave(job_id)
+    if not job.get("folder"):
+        raise HTTPException(500, "the project could not be saved")
+    name = re.sub(r"[^A-Za-z0-9._-]+", "_", job["result"].get("name") or "project").strip("_") or "project"
+    return Response(session.pack(Path(job["folder"])), media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="{name}.shmtrace"'})
 
 
 def _demultiplex(job_id: str, proj: dict, pooled: dict) -> None:
@@ -462,7 +651,8 @@ def job_status(job_id: str):
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(404, "no such job")
-    return {k: job[k] for k in ("state", "progress", "message", "error")}
+    return {**{k: job[k] for k in ("state", "progress", "message", "error")}, "saved": bool(job.get("folder")),
+            "example": bool((job.get("project") or {}).get("example"))}
 
 
 def _result(job_id: str) -> dict:
@@ -479,8 +669,8 @@ def result(job_id: str):
     return JSONResponse(_finite(json.loads(json.dumps(project.public(_result(job_id)), default=str))))
 
 
-@app.get("/api/export/{job_id}/{what}")
-def export(job_id: str, what: str):
+@app.get("/api/export/{job_id}/{what:path}")
+def export(job_id: str, what: str, drop_rejected: bool = False):
     res = _result(job_id)
     if what == "report.html":
         return HTMLResponse(report.html_report(res),
@@ -488,6 +678,46 @@ def export(job_id: str, what: str):
     if what == "bundle.zip":
         return Response(report.zip_bytes(res), media_type="application/zip",
                         headers={"Content-Disposition": "attachment; filename=shmtrace_results.zip"})
+    if what == "alignment.zip":
+        # the analysed reads of every sample, aligned again from the input files (samout.py)
+        from .. import samout
+        proj = (JOBS.get(job_id) or {}).get("project") or {}
+        reference = proj.get("reference")
+        if not reference or not Path(reference).is_file():
+            raise HTTPException(404, "the run's reference file is no longer where it was")
+        texts = {}
+        for s in proj.get("samples") or []:
+            data = (res.get("_alignments") or {}).get(s["name"]) or (res.get("_call_reads") or {}).get(s["name"])
+            names = {r["name"] for r in (data or {}).get("reads", []) if r.get("fate") in browse.KEPT}
+            if names:
+                try:
+                    texts[s["name"]], _n = samout.sam(reference, s["path"], names,
+                                                      (res.get("params") or {}).get("platform", "ont"), s["name"])
+                except (OSError, ValueError) as exc:
+                    raise HTTPException(404, f"could not read {s['name']}'s input: {exc}") from None
+        if not texts:
+            raise HTTPException(404, "no analysed reads to export")
+        return Response(samout.zip_bytes(texts), media_type="application/zip",
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_alignment.zip"})
+    if what == "plot_data.zip":
+        from .. import plotdata
+        return Response(plotdata.zip_bytes(res), media_type="application/zip",
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_plot_data.zip"})
+    if what.startswith("plot_data/"):
+        # one figure's numbers, from its Data button
+        from .. import plotdata
+        files = plotdata.files(res)
+        name = what[len("plot_data/"):]
+        if name not in files:
+            raise HTTPException(404, f"no plot data {name}")
+        return Response(files[name], media_type="text/csv",
+                        headers={"Content-Disposition": f"attachment; filename={name.replace('/', '_')}"})
+    if what == "geneious.zip":
+        from .. import geneious
+        # one Geneious-style annotation table per sample; drop_rejected leaves out
+        # the calls a review rejected
+        return Response(geneious.zip_bytes(res, drop_rejected=drop_rejected), media_type="application/zip",
+                        headers={"Content-Disposition": "attachment; filename=shmtrace_geneious_annotations.zip"})
     if what == "tables.xlsx":
         try:
             blob = report.workbook(res)
@@ -528,13 +758,247 @@ def alignment(job_id: str, sample: str, start: int = 1, end: int | None = None,
     `fates` is a comma-separated filter ("kept,contaminant"); omit it for all.
     """
     res = _result(job_id)
-    data = (res.get("_alignments") or {}).get(sample)
+    # the analysed reads are always kept (for Check calls); the dropped ones only on request
+    data = (res.get("_alignments") or {}).get(sample) or (res.get("_call_reads") or {}).get(sample)
     if data is None:
         raise HTTPException(404, "this run did not record read alignments; "
                                  "tick 'Keep the read alignment' and run again")
     want = {f for f in fates.split(",") if f} if fates else None
     return browse.window(data, start=max(1, start), end=end, fates=want,
-                         offset=max(0, offset), limit=min(2000, max(1, limit)))
+                         offset=max(0, offset), limit=min(10000, max(1, limit)))
+
+
+@app.get("/api/call-reads/{job_id}/{sample}")
+def call_reads(job_id: str, sample: str, pos: int, alt: str, flank: int = 20, others: int = 40):
+    """The reads behind one call, for the call review: those carrying it, then a sample of the rest."""
+    res = _result(job_id)
+    data = (res.get("_alignments") or {}).get(sample) or (res.get("_call_reads") or {}).get(sample)
+    if data is None:
+        raise HTTPException(404, f"no reads recorded for {sample}")
+    return browse.call_reads(data, pos=pos, alt=alt.upper(), flank=max(3, min(60, flank)),
+                             others=max(0, min(200, others)))
+
+
+def _sample_input(job_id: str, sample: str):
+    """What the run read for one sample: a file, a folder, a pair, or a list of (trace, clone)."""
+    job = JOBS.get(job_id) or {}
+    for s in (job.get("project") or {}).get("samples") or []:
+        if s.get("name") == sample:
+            return s.get("path")
+    raise HTTPException(404, f"no sample {sample} in this run")
+
+
+@app.post("/api/extract-reads/{job_id}/{sample}")
+def extract_reads(job_id: str, sample: str, payload: dict):
+    """Named reads of one sample, as they are in its input files: {"names": [...], "format": fastq|fasta}.
+
+    Each record's header gives the read's orientation against the reference. A read the input
+    no longer holds under that name (a UMI consensus, say) comes from the analysed read instead,
+    as FASTA, and its header says so.
+    """
+    from ..io_utils import read_fastq
+    res = _result(job_id)
+    names = list(dict.fromkeys(str(n) for n in payload.get("names") or []))[:20000]
+    if not names:
+        raise HTTPException(400, "name at least one read")
+    fasta = payload.get("format") == "fasta"
+    strand = {}
+    for src in (res.get("_alignments") or {}, res.get("_call_reads") or {}):
+        for r in (src.get(sample) or {}).get("reads", []):
+            strand.setdefault(r["name"], r.get("strand", 1))
+    want, found = set(names), {}
+    for qname, seq, qual in read_fastq(_sample_input(job_id, sample)):
+        if qname in want and qname not in found:
+            found[qname] = (seq, qual)
+            if len(found) == len(want):
+                break
+    analysed = {a.qname: a for a in ((res.get("_details") or {}).get(sample) or {}).get("_aligned", [])}
+    out, missing = [], []
+    for n in names:
+        o = {1: "+", -1: "-"}.get(strand.get(n), "?")
+        tag = f"sample={sample} orientation={o}"
+        if n in found:
+            seq, qual = found[n]
+            out.append(f">{n} {tag}\n{seq}\n" if fasta else f"@{n} {tag}\n{seq}\n+\n{qual}\n")
+        elif n in analysed and getattr(analysed[n], "seq", None):
+            out.append(f">{n} {tag} source=analysed-read\n{analysed[n].seq}\n")
+        else:
+            missing.append(n)
+    name = re.sub(r"[^A-Za-z0-9._-]", "_", sample)
+    return Response("".join(out), media_type="text/plain", headers={
+        "Content-Disposition": f'attachment; filename="{name}_{len(out)}_reads.{"fasta" if fasta else "fastq"}"',
+        "X-Reads-Found": str(len(out)), "X-Reads-Missing": str(len(missing))})
+
+
+@app.get("/api/trace/{job_id}/{sample}")
+def sanger_trace(job_id: str, sample: str, clone: str):
+    """A Sanger clone's original trace file, to open in a trace viewer."""
+    f = _clone_file(job_id, sample, clone)
+    return FileResponse(f, filename=Path(f).name)
+
+
+def _clone_file(job_id: str, sample: str, clone: str) -> str:
+    """A clone's .ab1. After a re-run with edits, the edited clones read FASTQ copies; their
+    trace is still the original, in the samples as first given."""
+    from ..io_utils import _list_item
+    proj = (JOBS.get(job_id) or {}).get("project") or {}
+    for samples in (proj.get("samples") or [], proj.get("original_samples") or []):
+        s = next((x for x in samples if x.get("name") == sample), None)
+        for item in (s or {}).get("path") or [] if isinstance((s or {}).get("path"), (list, tuple)) else []:
+            f, rid = _list_item(item)
+            if (rid == clone or Path(f).stem == clone) and not f.endswith(".edited.fastq"):
+                return f
+    raise HTTPException(404, f"no trace for {clone}")
+
+
+@app.get("/api/chromatogram/{job_id}/{sample}")
+def chromatogram_window(job_id: str, sample: str, clone: str, pos: int, flank: int = 10):
+    """A Sanger clone's trace around one reference position, in reference orientation."""
+    from .. import chromatogram
+    _result(job_id)
+    reference = (JOBS[job_id].get("project") or {}).get("reference")
+    if not reference or not Path(reference).is_file():
+        raise HTTPException(404, "the run's reference file is no longer where it was")
+    try:
+        return chromatogram.window(_clone_file(job_id, sample, clone), reference, pos,
+                                   flank=max(3, min(30, flank)))
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from None
+
+
+@app.post("/api/annotation/{job_id}")
+def annotation_set(job_id: str, payload: dict):
+    """The coding stretch and named regions of the reference (coding.py): {"cds": "1-366",
+    "regions": "FR1 1-75\\nCDR1 76-99"}; an empty payload clears them. Saved with the project."""
+    from .. import coding
+    res = _result(job_id)
+    try:
+        res["annotation"] = coding.parse(payload, len(res.get("reference") or ""))
+    except (ValueError, TypeError, KeyError) as exc:
+        raise HTTPException(400, str(exc)) from None
+    coding.apply(res)
+    folder = (JOBS.get(job_id) or {}).get("folder")
+    if folder:
+        from .. import session
+        try:
+            session.write_annotation(Path(folder), res)
+        except OSError:
+            pass
+    return {"annotation": res.get("annotation"), "coding": res.get("coding") or {},
+            "rs_by_region": res.get("rs_by_region") or []}
+
+
+@app.get("/api/edits/{job_id}")
+def edits_get(job_id: str):
+    res = _result(job_id)
+    applied = (JOBS[job_id].get("project") or {}).get("base_edits") or []
+    return {"edits": res.get("base_edits") or [], "applied": applied}
+
+
+@app.post("/api/edits/{job_id}")
+def edits_set(job_id: str, payload: dict):
+    """Record a hand edit to a Sanger base call: {"sample", "clone", "pos", "to", "note"};
+    to="" removes it. Edits take effect when the project is run again (edits.py)."""
+    from .. import edits
+    res = _result(job_id)
+    proj = JOBS[job_id].get("project") or {}
+    if (res.get("params") or {}).get("platform") != "sanger":
+        raise HTTPException(400, "base calls can be edited for Sanger clones only")
+    sample, clone = str(payload.get("sample", "")), str(payload.get("clone", ""))
+    try:
+        pos = int(payload.get("pos"))
+        trace = _clone_file(job_id, sample, clone) if payload.get("to") else ""
+        res["base_edits"] = edits.record(res.get("base_edits") or [], sample, clone, trace,
+                                         proj.get("reference", ""), res.get("reference") or "", pos,
+                                         str(payload.get("to") or ""), str(payload.get("note") or ""))
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, str(exc) or "could not record the edit") from None
+    folder = (JOBS.get(job_id) or {}).get("folder")
+    if folder:
+        from .. import session
+        try:
+            session.write_edits(Path(folder), res)
+        except OSError:
+            pass
+    return edits_get(job_id)
+
+
+@app.post("/api/edits/{job_id}/rerun")
+def edits_rerun(job_id: str):
+    """Run the project again with its edited clones; the marks, regions and edits carry over."""
+    from .. import edits, session
+    res = _result(job_id)
+    proj = JOBS[job_id].get("project") or {}
+    todo = res.get("base_edits") or []
+    new_id = uuid.uuid4().hex[:12]
+    folder = session.home() / session.folder_name(res.get("name"), new_id)
+    try:
+        new_proj = edits.edited_project(proj, todo, folder / "edited")
+    except (ValueError, OSError, KeyError) as exc:
+        raise HTTPException(400, f"could not apply the edits: {exc}") from None
+    with _LOCK:
+        JOBS[new_id] = {"state": "queued", "progress": 0.0, "message": "queued", "error": None,
+                        "result": None, "project": new_proj, "folder": str(folder)}
+
+    def carry(new):
+        new["notes"] = edits.notes(todo) + (new.get("notes") or [])
+        new["base_edits"] = list(todo)
+        known = {f"{v['sample']}|{v['pos']}|{v['ref']}>{v['alt']}" for v in new.get("variants") or []}
+        new["review"] = {k: m for k, m in (res.get("review") or {}).items() if k in known}
+        if res.get("annotation"):
+            from .. import coding
+            new["annotation"] = res["annotation"]
+            coding.apply(new)
+    threading.Thread(target=_run_job, args=(new_id, new_proj, carry), daemon=True).start()
+    return {"job": new_id}
+
+
+REVIEW_MARKS = ("accepted", "rejected", "unsure", "")
+
+
+@app.get("/api/suggestions/{job_id}")
+def suggestions(job_id: str):
+    """A suggested verdict and its reasons for every call (review.py); worked out once per run."""
+    from .. import review
+    return review.cached(_result(job_id))
+
+
+@app.get("/api/review/{job_id}")
+def review_get(job_id: str):
+    return _result(job_id).get("review") or {}
+
+
+@app.post("/api/review/{job_id}")
+def review_set(job_id: str, payload: dict):
+    """Record marks on calls: {"marks": {"<sample>|<pos>|<ref>><alt>": {"mark": ..., "note": ...}}}.
+
+    A blank mark with no note removes the entry. The marks go into variants.csv and the
+    Geneious tables, and the counts come back so the page can show progress.
+    """
+    res = _result(job_id)
+    review = res.setdefault("review", {})
+    from .. import geneious
+    known = {geneious.review_key(v) for v in res.get("variants") or []}
+    for key, val in (payload.get("marks") or {}).items():
+        if key not in known:
+            raise HTTPException(400, f"no call {key}")
+        mark, note = (val or {}).get("mark", ""), str((val or {}).get("note", ""))[:500]
+        if mark not in REVIEW_MARKS:
+            raise HTTPException(400, f"mark must be one of {', '.join(m for m in REVIEW_MARKS if m)}")
+        if not mark and not note:
+            review.pop(key, None)
+        else:
+            review[key] = {"mark": mark, "note": note}
+    counts = {m: sum(1 for v in review.values() if v["mark"] == m) for m in REVIEW_MARKS if m}
+    folder = (JOBS.get(job_id) or {}).get("folder")
+    if folder:                                 # every mark is on disk as soon as it is made
+        from .. import session
+        try:
+            session.write_review(Path(folder), res)
+        except OSError:
+            pass
+    return {"reviewed": sum(counts.values()), "calls": len(known), **counts,
+            "saved": bool(folder)}
 
 
 @app.get("/api/alignment/{job_id}")
@@ -574,7 +1038,7 @@ async def analyze(
     reference: UploadFile = File(...),
     contaminant: UploadFile | None = File(None),
     null: list[UploadFile] | None = File(None),
-    preset: str = Form("jh4_intron"),
+    preset: str = Form("generic_amplicon"),
     mode: str = Form("recommended"),
     platform: str = Form("ont"),
     downsample_to: str = Form(""),
@@ -582,6 +1046,8 @@ async def analyze(
     max_pvalue: str = Form(""),
     germline_freq_threshold: str = Form(""),
     end_trim_bp: str = Form(""),
+    read_end_margin_bp: str = Form(""),
+    mask_control_het: str = Form(""),
     analysis_window: str = Form(""),
 ):
     work = Path(tempfile.mkdtemp(prefix="shm_"))
@@ -606,6 +1072,8 @@ async def analyze(
             max_pvalue=num(max_pvalue, float),
             germline_freq_threshold=num(germline_freq_threshold, float),
             end_trim_bp=num(end_trim_bp, int),
+            read_end_margin_bp=num(read_end_margin_bp, int),
+            mask_control_het=True if str(mask_control_het).strip() else None,
         )
         if analysis_window.strip():
             a, b = analysis_window.replace(" ", "").split("-")
@@ -642,7 +1110,7 @@ async def compare_groups(
     case: list[UploadFile] = File(...),
     reference: UploadFile = File(...),
     contaminant: UploadFile | None = File(None),
-    preset: str = Form("jh4_intron"),
+    preset: str = Form("generic_amplicon"),
     subregion: str = Form(""),
     mode: str = Form("recommended"),
 ):
@@ -685,4 +1153,14 @@ def builtin_reference(name: str):
     return FileResponse(path, media_type="text/plain")
 
 
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+class _Revalidated(StaticFiles):
+    """The page's scripts and styles, checked with the server on every load (a cheap 304 when
+    unchanged), so a browser or the app's window never runs a stale copy after an update."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
+app.mount("/static", _Revalidated(directory=STATIC), name="static")

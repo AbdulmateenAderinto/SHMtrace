@@ -6,6 +6,235 @@ this project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- A length gate set with `dataclasses.replace()` on `generic_amplicon` was silently rescaled
+  (4 November). The preset gives its gates as fractions of the reference (0.65 and 1.5);
+  `replace(load_preset("generic_amplicon"), min_align_len=600, max_total_len=1400)` kept those
+  fractions beside the new lengths, and the fractions won, so on a 900-bp reference the gates
+  became 585 and 1,450. `load_preset(..., **overrides)`, `build_params` and project files were
+  never affected. A preset's own lengths are now marked (`config.PresetLength`), and a
+  fraction scales only those: a length set by any route is used as given. Every preset,
+  platform and override resolves to the same parameters as before through the other routes.
+- `shmtrace-sheet --platform` accepts `pacbio` (26 October). The engine always supported PacBio HiFi
+  reads (`map-hifi`, with the preset's length and expected-error gates); only the sample-sheet command's
+  choices left it out, so that one entry point could not select it. It is still given explicitly: a FASTQ
+  does not say which platform made it.
+- `pyproject.toml`'s Homepage and Issues links pointed at a repository that does not exist; they point at
+  `AbdulmateenAderinto/SHMtrace` (26 October).
+- A deep Illumina project could run out of memory. Every aligned read held one
+  (position, base, quality) tuple per base, about 90 bytes a base, and a project keeps every
+  usable read of every library at once: 15 Ramos libraries of 100,000 reads reached 44 GB on
+  a 32 GB machine, and the garbage collector walking those tuples then stalled the run.
+  Reads now hold their columns packed (`AlignedRead.compact`, about 6 bytes a base) and
+  `pairs` rebuilds the list when it is read. The same project peaks at 5.8 GB and runs in
+  4.4 minutes; four of its libraries went from 12.7 GB and 380 s to 1.7 GB and 117 s, and
+  the nanopore sample data from 1.7 GB to 0.3 GB. Results are byte-identical on all three.
+- RGYW and DGYW were scored at the Y, not the G they mutate, so the classic view's motif
+  table counted the wrong positions for them. Nothing else used them.
+- The desktop app showed one Dock icon per worker process (ten while a run was going).
+  The app was built with argv emulation, which registers every process started from
+  the bundle as an app; SHMtrace opens no documents from Finder, so it is now off.
+- Phasing let a confirmed non-hypermutation block through in three ways, each now closed:
+  - the `phase_max_drop` cap (45%) was applied to all of a library's blocks together, so
+    one large block kept every other in. It is now weighed block by block, the block
+    with the most sites first, and a block that would pass the cap is kept and says so.
+    On a raw J꜀4 run a control kept a 58-site paralogue block in a quarter of its reads
+    this way, and its background hid every call in the run;
+  - a block confirmed as not hypermutation but kept for the cap now has its own sites
+    left out of calling, as germline (it had been called at about 44% of reads);
+  - a read carrying ten or more sites of a dropped block (a chimera, or a read too short
+    for most of them) is dropped with it.
+- Block search counted sites already in a found block against its ten seeds, so a block
+  of ten or more sites hid every rarer one in the library.
+- The contaminant-allele check ignored every site where a fifth of a library's reads
+  carried the contaminant base, so a library a fifth or more paralogue (four Sanger clones
+  in twenty, or 26% of one raw nanopore control) kept all its paralogue reads.
+  `contaminant_germline_frac` is now 0.5, the caller's own germline cut. The bundled
+  nanopore and Sanger sample data give the same results as before.
+
+### Changed
+- `generic_amplicon` now sets its length cutoffs from the reference, as its description
+  always said it did: an alignment must span 65% of the reference (it was 200 bp whatever
+  the amplicon), and a read longer than 1.5 times the reference plus 100 bp of adapter and
+  barcode is dropped (it was 20,000 bp). The same rule gives 800 bp for J꜀4's 1,230-bp
+  reference, which is what `jh4_intron` uses. A preset gives the rule as `min_align_frac` and
+  `max_total_frac`. A length set outright in a project's overrides or a preset is used as
+  given, and Illumina and Sanger keep their fixed minimum (100 and 200 bp) and maximum.
+  Every published `generic_amplicon` analysis set both lengths outright, or ran on Illumina,
+  so none of them changes.
+- A run of the bundled sample data is no longer saved as a project on its own, so it runs afresh
+  each time it is shown and does not fill Recent projects. Save project file still keeps it.
+- The nanopore sample data (**Try it with nanopore sample data**, `examples_nanopore/`)
+  are now the six J꜀4 libraries as sequenced, about 5,000 raw reads each, with the
+  bundled reference and contaminant set, in place of the 500-read Geneious exports;
+  SHMtrace does the filtering, competitive alignment and downsampling itself. Wild type
+  221 / 344 / 73 unique mutations, *Aicda*−/− 0 / 2 / 0. The exports stay in
+  `examples_compare/` for the tests and the Geneious benchmark.
+
+### Added
+- Short reads kept when they align well (`rescue_short_reads`, off by default; **Keep short
+  reads that align well** under More options, `--rescue-short-reads` on the command line).
+  A read aligned below the region's minimum span is kept, as **kept (short)** in the Reads
+  tab, when it spans at least half that minimum and covers half the analysis window, 80% of
+  it aligns, its edit distance is at most 5% of the aligned bases, it has a single primary
+  alignment, and against every contaminant record it overlaps it reads the reference base at
+  5 or more diagnostic sites beyond those where it reads the contaminant's. That last test
+  exists because a short paralogue fragment crosses too few diagnostic sites for the
+  ten-allele contaminant check to catch. A short read that fails says which test it failed.
+  The samples table gains `short_reads`, and the run notes that `mutation_frequency_x1e3`
+  (which credits a partial read with the whole window) reads low; the observed-base
+  frequency and the densities do not. On the six bundled nanopore libraries it adds 3-15
+  reads per library (0.3-1.0%; most short reads there are primer-end fragments under
+  400 bp, which it still drops). Analysed over every usable read, the 722 calls are the same
+  ones and each density moves by under 1%. At the 500-read draw it reshuffles which reads
+  are drawn, which moves a library as much as drawing with another seed does: WT2 gives
+  212-244 unique mutations across four draws with it off and 169-234 with it on, and Wt
+  against *Aicda*-/- stays at p = 0.003-0.009 (Welch, log density).
+- Motif families beyond WRC/GYW and WA/TW: WRCH/DGYW, WRCY/RGYW, WGCW (a hotspot on both
+  strands), the SYC/GRS coldspots and WATW. Each call lists the families it sits in
+  (`motifs` in the variants table and the Check calls panel); each sample gets a percentage
+  for each (`pct_GC_in_WRCH_DGYW` and so on, and `at_mutations` beside `gc_mutations`); a
+  Motif targeting chart sets them against the share chance gives, with its numbers in
+  `plot_data/motif_targeting.csv`; and the position map can mark any family's sites.
+- Phasing reads the V(D)J junction where the amplicon has one (J꜀4): a block carried by
+  reads of many unrelated junctions cannot be hypermutation and is dropped even when no
+  other sample has it; a block held by one clone is kept and named as an expanded clone.
+  Every block's junction spread is in its phasing record, and the run notes say when a
+  block was dropped for this or kept because of the cap.
+- The reads downsampling left out: each call in Check calls also gives its count over
+  every usable read (and `variants.csv` gains `reads_all_usable` and
+  `depth_all_usable`), and the read strip can show those reads, faded, after the
+  analysed ones (**Reads left out by downsampling**).
+- A run note when every read of a library runs the same way along the reference: the
+  reads were oriented before SHMtrace saw them (Geneious exports the reads it has
+  assembled that way), so the orientation shown is not the sequenced one.
+- Hand edits to Sanger base calls (`edits.py`, `/api/edits/<job>`): click a base
+  in a trace, correct it with a note, and run again; the edited clones are read
+  from corrected copies of their base calls, and the new run lists the edits.
+- Read alignment export (`samout.py`, `alignment.zip`): every sample's analysed
+  reads as SAM, plus sorted and indexed BAM where pysam is installed, for IGV,
+  Geneious or samtools.
+- Reading frame and named regions for coding amplicons (`coding.py`,
+  `/api/annotation/<job>`): codons, amino acids and regions in the read strip,
+  replacement / silent / stop for every call, R/S by sample and region
+  (`rs_by_region.csv`), and Geneious's codon columns in the Geneious tables.
+- Sanger traces in Check calls (`chromatogram.py`, `/api/chromatogram/<job>/<sample>`):
+  the peaks of the clones carrying a call, along the reference, around the call.
+- Saved projects (`session.py`): every finished run is kept on this computer
+  with its inputs and the reads Check calls draws, and each review mark is
+  written as it is made. Recent projects on the Set up tab reopens them; Save
+  project file and Open a project file move a run as one `.shmtrace` file.
+- Sanger sample data (`examples_sanger/`, and a **Try it with Sanger sample data** button on the Set up
+  tab): 290 J<sub>H</sub>4 clones from 12 mice of Barbulescu et al., Nat Commun
+  2024, shared with the authors' agreement, as a sample sheet with order and well
+  for each clone. It reproduces the curated analysis (wild type 4.66-fold above
+  *Maea*-deficient). Bundled in the desktop app.
+- Check calls tab: click through every called mutation with its reads, the
+  controls' error rate at that position, the same change in other samples and
+  plain-language warnings, and mark it accepted, rejected or unsure. The marks go
+  into `variants.csv` and the Geneious-style tables; the analysis is not re-run.
+  The analysed reads of every sample are now always kept for this. A strip
+  draws all of a sample's reads against the reference at base resolution,
+  scrolling sideways, with called mutations in colour and uncalled mismatches
+  in grey. Each call has a suggested verdict (accept, reject, check by eye)
+  with its reasons (`review.py`, `/api/suggestions/<job>`), also written to the
+  Geneious tables; the results now carry the controls' rate per position and
+  base (`control_background_alt`). The strip numbers each read and shows its
+  orientation and name in a side column; a picked read can be copied by name,
+  extracted from the input file (`/api/extract-reads/<job>/<sample>`) or, for
+  Sanger, downloaded as its original trace (`/api/trace/<job>/<sample>`).
+- Plot data: the numbers behind every figure as tidy tables (one row per value,
+  units in the column names), a long per-sample table of every measure, the
+  groups table one statistic per row, Prism-ready one-column-per-group copies and
+  a data dictionary. In the results zip as `plot_data/`, as `plot_data.zip`, and
+  per chart from a Data button on the Results tab.
+- Geneious-style annotation tables, one `<sample> SHMtrace Annotations.csv` per
+  sample, in the results zip, the folder export and on their own
+  (`/api/export/<job>/geneious.zip`, optionally without rejected calls).
+
+### Fixed
+- Use the same substitution-candidate eligibility rules for samples and held-out
+  controls, including the optional singleton quality floor and ancestral-reference
+  policy. Spike-in calibration caches now distinguish the complete parameter set.
+- Preserve control decoys in saved null panels (format version 3). Older panels
+  remain readable; a fallback to Benjamini-Hochberg is now explicitly reported.
+  Panel round trips do not establish calibration across sequencing runs.
+- Stop batch analysis when a library has no usable reads, rather than reducing all
+  libraries to zero depth; reject nonpositive analysis depths.
+- Reject indel analysis after UMI consensus, which does not yet reconstruct
+  insertion alleles and contiguous deletion events correctly. UMI substitution
+  analysis and non-UMI indel analysis remain available.
+- One zero-count convention for every log-scale test, fold, plot and power
+  simulation: a library with no events counts one event on its own exposure.
+  The half-event and third-of-smallest conventions are reported only as labelled
+  sensitivity columns. `fold_is_lower_bound` is renamed
+  `fold_control_zero_one_event`. **Changes `animal_tests` and project frequency
+  p values and folds.**
+- Single-read 95% intervals now invert a profile likelihood (Poisson sample and
+  control counts, overdispersion-scaled), so zero counts no longer give 0 [0, 0];
+  coverage in `docs/calibration/SINGLE_READ_INTERVAL.md`.
+- `shmtrace-compare` is labelled a legacy, pooled, descriptive comparison and
+  reports the error model each file was called with, including fallbacks.
+- Densities use the exact bases at callable positions; end-trimmed positions no
+  longer enter the denominator. Project rows add the observed-base mutation
+  frequency beside the fixed-window one.
+- Indel calls under control-based thresholding report their Benjamini-Hochberg
+  fallback.
+- The standalone null fitter (`null_model.fit`, `--null` on the single-sample CLI)
+  prepares controls with `pipeline.prepare_reads`, so the paralogue-allele filter,
+  UMI consensus, `ignore_qualities` and Sanger trimming apply to controls as they do
+  to samples. Only the control phasing policy (drop every block) differs.
+- A positive `min_base_quality` now gates the null's counts, depths and quality tails
+  and the decoys' base total, as it gates the sample pileup. Error probabilities are
+  conditional on a base passing the gate. **Changes calls when `min_base_quality > 0`**;
+  the Q0 read-library presets are unaffected.
+- Indel class rates count opportunities inside the analysis window, using reads
+  that span each event, instead of the whole reference times every read. Padding
+  the reference outside the window no longer changes indel inference. **Changes
+  indel p values.** `ancestral_reference` now applies to indels: a fixed event is
+  tested against the controls' rate there instead of being removed.
+- Run-mismatch checks are made per case: a case from a run with no control is named
+  in a "calibration not supported" note and in its own warnings, even when other
+  cases share the controls' run. Controls spanning several runs and unidentified
+  runs are reported; project output adds `run_check`.
+- Clone summaries count only bases at or above the caller's quality gate for
+  coverage, carriage and sharing.
+- Clone sharing samples pair indices directly when there are more than `max_pairs`
+  pairs, so memory no longer grows with the square of the read count. Small pair
+  sets give identical results; capped samples differ from the previous draw.
+- `AlignedRead` pickling keeps attributes added after construction, including UMI
+  `members`, so worker processes return the same reads as a serial run.
+- Projects judge each case against controls from its own sequencing run when
+  that run has two or more; otherwise against the pooled controls, as before
+  (`match_controls_by_run`, default on; `null_matching` in each sample row).
+- The single-read background no longer counts control errors at pairs the
+  sample cannot show as single-read events (its per-site calls and alleles it
+  carries in two or more reads), which overstated the background in heavily
+  mutated samples.
+
+- **UMI grouping found no centroid for a UMI with an indel or cut short at the read end**, so such a UMI became a
+  molecule of its own even one edit away. Candidate lookup now uses pieces of one length for all UMIs and searches
+  every substring (`umi.group`). UMIs are also grouped only among reads aligned to the same reference.
+
+### Added
+- Modes `strict` (control-based threshold at a false-discovery target of 0.01) and
+  `strict_max` (the noisiest control's decoy count instead of the mean), for analyses
+  where false calls cost more than missed mutations. The default is unchanged.
+
+- **Less ideal simulated libraries** (`lineage_sim`, all off by default; existing results are unchanged): planted-base quality mapped onto that of real mutant bases (`qmap`, `quality_map`), PCR duplication with early-cycle errors outside the truth (`pcr`, `amplify`), bushier lineage trees (scenario key `levels`), and `run_one(project_extra=...)` for platform and overrides. Scores add `planted_copies_unaligned`. `docs/calibration/ACCURACY_BREADTH.md` uses them.
+
+- **Four opt-in caller options** for the problems `docs/calibration/ACCURACY_BREADTH.md` found on the public Illumina sets. All off by default, so no published number moves; measured in the same truth-known framework and written up in `docs/calibration/CALLER_FIXES.md`.
+  - `mask_control_het` (with `control_het_min_frequency` 0.25 and `control_het_min_depth` 20): a position and allele that a control library reads in a quarter to a half of its reads is a second allele there, not somatic, and is left out of the samples' candidates and the controls' decoys alike. The 50% frequency rule only ever caught a homozygous difference, so Ramos's second allele (45-48% of reads) was tested as if it were somatic. Reported as `control_het_removed` and `control_het_alleles`, and carried in saved null panels.
+  - `read_end_margin_bp`: ignore that many aligned columns at each end of every read, in samples and controls alike. A mismatch near a read's end is soft-clipped rather than aligned, so the columns where reads begin are covered by fewer mutant reads than mutation-free ones; dropping the same number of columns from every read takes that deficit out of the denominator too. `align.pair_window` is the single place that decides which columns a pileup counts. Measured on the public Illumina J꜀4 set it buys nothing (0.81 of truth against 0.80) and adds false calls, so it is documented as not recommended. With it set, the fixed-window `mutation_frequency_x1e3` reads low — it credits every read with the whole window whatever it covered, so trimming takes mutations out of the numerator only; the caller now says so in its notes, and `mutation_frequency_observed_x1e3` and the densities stay matched. `lineage_sim.score` adds `true_observed_x1e3`, `est_observed_x1e3` and `planted_copies_counted` for that matched comparison.
+  - `qscale_max` (default **50.0**, the published ceiling) caps the inflation the leave-one-control-out calibration may apply, and `QSCALE_GRID` now runs to 1000 behind it. 50.0 used to be both the last step and the ceiling, so a project that needed more was given 50 and reported no differently from one that fitted; exhausting the cap, or any factor above 50, now sets `qscale_warning` and a project note saying the quality model does not fit the data. Every published run calibrates as before (5, 10, 10 for the paper's own; 50, satisfied, for public Illumina J꜀4). Raising the cap is stricter, not better: the J꜀4 ONT library analysed at 100 of its 497 reads loses 3 of 33 true calls by it.
+  - The single-read estimate now reports `quality_levels`, and `quality_flat` with a warning where the base qualities carry no accuracy information — fewer than four quality values with any appreciable share, or one value on 99% of the bases. The two public Illumina mouse sets are of that shape (one and two levels), where the quality cut sorts merged read pairs from unmerged ones rather than correct bases from errors.
+
+### Changed
+- **The UMI directional step is on only for dual UMIs** (`umi_directional`, default: +2 edits with UMIs at both
+  ends, off with one). With a single 18-nt UMI it mixed molecules in 6–9% of groups at 1,000 molecules and
+  16–22% at 3,000 in simulation. With dual UMIs it mixed none and, on the Karst et al. reads, cut consensus
+  substitution error from 0.088% to 0.027% by keeping split-off molecules together (`docs/calibration/UMI.md`).
+
 ## [0.2.2] - 2026-10-15
 
 ### Added
@@ -136,7 +365,6 @@ this project uses [semantic versioning](https://semver.org/).
 ### Added
 - `shmtrace.mutation_tree`: mutation trees of a clone from long reads (mutations carried by the same reads form a node; a node's parent is the smallest node containing its reads; `fit` reports reads consistent with the tree). Figure: `docs/calibration/mutation_tree_figure.py`.
 - Project results record the background calibration (`calibration`: the leave-one-control-out factor and its trace).
-- Manuscript: J꜀4 ONT re-analysed with SHMtrace (`jh4_shmtrace.py`, also `--full-length` and `--input raw`), depth series (`depth_shmtrace.py`), Ver18 builder and the submission/deposit builder (`manuscript_corrected/`).
 - App: pooled runs from a sample sheet with `barcode` columns are split by barcode when the analysis runs (primer anchors in Set up; a note reports reads assigned per sample), and a **Screen** tab ranks every condition against the control (animal-level tests, BH q-values, volcano, CSV; `/api/screen/{id}`).
 - App: **Repair** tab (repair-route indices per animal, animal-level group comparison, spectrum decomposition against chosen reference groups with 95% intervals; sparse groups and references flagged) and **Power** tab (power table from a group of the current analysis or from given numbers; `/api/repair/{id}`, `/api/power`). Tabs wrap onto a second line on narrow windows.
 - App: **UMI consensus** in Set up → Advanced (UMI position, length, anchors with IUPAC codes, minimum reads per molecule); results report molecules per sample and reads per molecule. **Switching** tab for class-switch junctions: switch-region reference with donor picker, samples and groups, animal-level comparison, per-sample summary, microhomology and breakpoint figures, CSV exports (`/api/switch/*`, `/api/fasta-names`). Header fits narrow windows.
@@ -152,35 +380,14 @@ this project uses [semantic versioning](https://semver.org/).
 - Sanger pipeline for unseen data (docs/calibration/SANGER_PIPELINE.md):
   - `shmtrace.samplesheet` / `shmtrace-sheet`: explicit file→sample assignment with order, well, label and exclusions. Every problem is reported by line; copied traces and re-run wells are warned about. Read lists name each clone by its order and well.
   - `shmtrace.qc`, run on every Sanger project: duplicate files and clones, mutations shared across animals beyond chance, control clones with more mutations than their qualities predict, label mismatches, mutations lost to the germline rule, load outliers, and every clone not analysed with its reason. Flags only; nothing is changed. The flags appear in the app (Tables), the HTML report, `qc_flags.csv` and `excluded.csv`.
-  - `shmtrace.concordance` / `shmtrace-concordance`: the manuscript's two-platform statistics as a tested function; `manuscript_stats.py` now uses it, with unchanged numbers.
+  - `shmtrace.concordance` / `shmtrace-concordance`: the two-platform statistics (spectrum, position, hotspots, per-animal density) as a tested function.
   - `shmtrace.sanger_sim` / `shmtrace-validate-sanger`: simulated Sanger projects with known truth and planted bookkeeping errors. Over 40 projects: recall 99.4%, no germline calls, every planted copy, contaminant and labelled misfiling flagged, and no false flags on 6,018 clean clones.
   - The app loads a sample sheet by path. `io_utils.write_abif`. The germline rule now records which positions it removed (`germline_sites`).
-  - Tests: `test_samplesheet.py`, `test_concordance.py`, `test_sanger_validation.py`, and `test_real_jh4_sanger.py`, which reproduces the manuscript's Sanger counts from the lab's traces when they are present.
-- `organize_jh4_ab1.py --original`: organise the .ab1 traces exactly as filed in the GenBank folders (no evidence-based moves); `manuscript_corrected/export_sanger_calls.py` exports the Sanger calls the manuscript figures read. Ver17 now uses the original classification, drops the TOST analysis and the inclusion figure; `--original` still drops the two Wt2 GenBank records that are renamed MKLN K4 traces; `sanger_window_figure.py --name`; `sanger_vs_nanopore.py` also writes the two-panel `fig3_agreement_position_hotspot`.
-- **Sanger against nanopore, same mice** (`docs/calibration/sanger_vs_nanopore.py`,
-  `SANGER_VS_NANOPORE.md`). Redraws the manuscript's Figure 2A/B, 3A–E and
-  S2/S3 from SHMtrace calls on both platforms, plus position, hotspot and
-  per-mouse load agreement. Spectrum r = 0.92 (0.94 under the Geneious rule),
-  no platform × type interaction (p = 0.39), positional r = 0.90. It also
-  found that the manuscript's Geneious Sanger assemblies mix mice (W2 and W3
-  are each two mice) and that the Aicda-/- Sanger denominators are 54% JH6
-  clones. Checked from sequence alone (mutation load and shared lineages),
-  the misfiled wild-type clones belong to the mouse their names give, but
-  three clones filed as WT2 and WT4 are MKLN clones (lineages of 8 and 7
-  identical mutations shared with K4 and K2) and are removed.
-- **The J꜀4 Sanger traces organised by mouse** (`docs/calibration/organize_jh4_ab1.py`).
-  288 .ab1 traces copied into one folder per mouse, renamed
-  `<mouse>_<order>-<well>_<label>.ab1`, with a manifest. Labels the sequence
-  contradicts are corrected: two WT3 clones labelled w2 (18 and 13 mutations,
-  in the w3 wells of their plate), w4-9 to MKLN K2, and an AID-type clone in an
-  Aicda-/- sample left unassigned. From the traces, WT2 is nearly unmutated
-  (30 of 34 clones), matching its nanopore library's dominant unmutated clone,
-  and Sanger alone no longer separates wild type from Aicda-/- (P = 0.27);
-  nanopore does (P = 0.0017). The comparison now reads these folders: spectrum
-  r = 0.90, positional r = 0.89.
-  With the January 2024 orders added (429 traces), 214 of the 220 wild-type
-  and Aicda-/- clones are read from traces; the jhextra traces carry exactly
-  the mutations their GenBank records do, and every result is unchanged.
+  - Tests: `test_samplesheet.py`, `test_concordance.py`, `test_sanger_validation.py`, and `test_real_jh4_sanger.py`, which checks the clone and call counts on the lab's J꜀4 traces when they are present.
+- **Sanger against nanopore, same mice** (`SANGER_VS_NANOPORE.md`): position, hotspot
+  and per-mouse load agreement from SHMtrace calls on both platforms. Spectrum r = 0.92
+  (0.94 under the Geneious rule), no platform × type interaction (p = 0.39), positional
+  r = 0.90.
 - **Simulated libraries with known clones** (`shmtrace/lineage_sim.py`,
   `shmtrace-simulate-lineages`). Real control reads are dealt into clones with
   their own junctions and J trimming, lineage mutations (trunk, branch,
@@ -222,11 +429,8 @@ this project uses [semantic versioning](https://semver.org/).
   coverage; this is where to see whether that holds.
 
 ### Fixed
-- Manuscript N114 (Figure 4, Supplementary S4 and S5, Tables S1 and S2, Abstract, Methods, Results, Conclusions): now the SHMtrace re-analysis of the deposited reads. pMX-Aicda 79/58/161 calls, geometric mean 30 [19–53] × 10⁻⁵; empty vector 0/0/0 calls; group difference at least 91-fold (Welch p = 0.0045, controls at the one-event density). A Methods paragraph describes the N114 calling. The depth figures (S6, S7) remain Geneious-based.
-- Manuscript Sanger set: Wt2-filed clones wt3-4 and wt3-6 (434138-D11, F11) moved to Wt3, since their lineage's founder mutations are in 109 Wt3 nanopore reads and in no Wt2 read; wt3-3 (C11), whose lineage is in no nanopore library, stays. Ver17 rebuilt: Wt 37/40/26 clones, 135/230/106 calls; ~38-fold, P = 0.0009; r = 0.95.
 - Group tests: an animal with no mutations now counts half an event (continuity correction) instead of a third of the smallest rate among other animals; a fold against a control group with no mutations is reported as a conservative lower bound, against one event per control animal as the plots show a zero (`fold_is_lower_bound`), and two groups with none have a fold of 1.
 - The app's result endpoints failed to send a result containing an undefined statistic (NaN, e.g. a test on identical values); such values are now sent as null.
-- Manuscript Sanger set: Wt4 clone w4-9 (434141-A11) moved to MKLN K2 (identical over 520 bp, all 7 mutations, to two K2 clones), applied in `organize_jh4_ab1.py --original` too. Wt4 26 clones, 106 calls; Ver17 rebuilt (~39-fold, P = 0.0008; r = 0.96).
 - Paralogue (Agouti-type) J꜀4 reads longer than the bundled paralogue record, and PCR chimeras, passed the contaminant filter and were called as mutations: 1–4% of every raw J꜀4 library, with 35–54 false calls per simulated 500-read library. The documented allele-level check is now implemented (`contaminant_min_alleles`, default 10; germline sites ignored). The manuscript's pre-sorted 500-read files contain none of these reads.
 - The single-read estimate counted events in every prepared read, not the analysed ones, so a library deeper than the analysis depth overstated the combined density by 1.3–2×. It now counts at the analysed depth, controls included.
 - **A Sanger sample of one to three clones reported germline differences as
@@ -269,7 +473,7 @@ this project uses [semantic versioning](https://semver.org/).
   what makes a few thousand of them cheap enough to send to a browser, and the
   API serves one window at a time. Every filtering stage now records why it
   rejected a read.
-- **Twelve figures beyond the manuscript's seven** (`shmtrace/viz_diagnostics.py`),
+- **Twelve figures beyond the seven standard ones** (`shmtrace/viz_diagnostics.py`),
   in three groups: detail the project already computed but never drew (the
   saturation curve, the single-read excess by substitution class, indels,
   per-sample positional maps, the combined density with its intervals);

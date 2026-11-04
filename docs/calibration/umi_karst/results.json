@@ -3,27 +3,27 @@
   "reads": 4259,
   "aligned": 4254,
   "with_umi": 4082,
-  "umi_groups": 216,
-  "molecules_3plus_reads": 103,
-  "median_reads_per_molecule": 34,
-  "group_purity_mean": 0.9486,
+  "umi_groups": 213,
+  "molecules_3plus_reads": 105,
+  "median_reads_per_molecule": 33,
+  "group_purity_mean": 0.9514,
   "raw_read_error_pct": 9.538,
-  "consensus_error_pct": 0.1686,
-  "error_reduction_fold": 56.6,
+  "consensus_error_pct": 0.2071,
+  "error_reduction_fold": 46.1,
   "by_reads_per_molecule": {
    "3-4": {
-    "molecules": 4,
-    "error_pct": 2.0961,
+    "molecules": 6,
+    "error_pct": 2.157,
     "perfect_pct": 0.0,
-    "substitution_error_pct": 0.2802,
+    "substitution_error_pct": 0.2818,
     "no_substitution_pct": 0.0
    },
    "5-9": {
     "molecules": 7,
-    "error_pct": 0.4725,
+    "error_pct": 0.4461,
     "perfect_pct": 0.0,
-    "substitution_error_pct": 0.033,
-    "no_substitution_pct": 28.6
+    "substitution_error_pct": 0.0231,
+    "no_substitution_pct": 42.9
    },
    "10-19": {
     "molecules": 15,
@@ -34,13 +34,45 @@
    },
    "20-+": {
     "molecules": 77,
-    "error_pct": 0.0529,
-    "perfect_pct": 6.5,
+    "error_pct": 0.0532,
+    "perfect_pct": 5.2,
     "substitution_error_pct": 0.0103,
     "no_substitution_pct": 55.8
    }
   },
-  "consensus_matching_group_operon_pct": 100.0
+  "consensus_matching_group_operon_pct": 100.0,
+  "directional": {
+   "+2": {
+    "umis": 213,
+    "groups_3plus_reads": 105,
+    "reads_in_groups_3plus": 3962,
+    "group_purity_mean": 0.9514,
+    "groups_mixing_species_pct": 0.0,
+    "consensus_error_pct": 0.2071,
+    "consensus_substitution_error_pct": 0.0268,
+    "molecules_3_4_reads": 6
+   },
+   "+1": {
+    "umis": 272,
+    "groups_3plus_reads": 107,
+    "reads_in_groups_3plus": 3901,
+    "group_purity_mean": 0.9516,
+    "groups_mixing_species_pct": 0.0,
+    "consensus_error_pct": 0.2584,
+    "consensus_substitution_error_pct": 0.0475,
+    "molecules_3_4_reads": 8
+   },
+   "off": {
+    "umis": 360,
+    "groups_3plus_reads": 110,
+    "reads_in_groups_3plus": 3812,
+    "group_purity_mean": 0.9531,
+    "groups_mixing_species_pct": 0.0,
+    "consensus_error_pct": 0.3769,
+    "consensus_substitution_error_pct": 0.088,
+    "molecules_3_4_reads": 11
+   }
+  }
  },
  "molecules": [
   {
@@ -104,10 +136,10 @@
    "span": 4489
   },
   {
-   "reads": 50,
+   "reads": 49,
    "operon": "Listeria_4",
    "best_operon": "Listeria_4",
-   "purity": 0.84,
+   "purity": 0.8367346938775511,
    "nm": 0,
    "blen": 4581,
    "subs_vs_group_operon": 0,
@@ -144,13 +176,23 @@
    "span": 4249
   },
   {
-   "reads": 70,
+   "reads": 68,
    "operon": "Pseudomonas_1_2_3_4",
    "best_operon": "Pseudomonas_1_2_3_4",
    "purity": 1.0,
-   "nm": 0,
+   "nm": 1,
    "blen": 4492,
    "subs_vs_group_operon": 0,
+   "span": 4492
+  },
+  {
+   "reads": 3,
+   "operon": "Pseudomonas_1_2_3_4",
+   "best_operon": "Pseudomonas_1_2_3_4",
+   "purity": 1.0,
+   "nm": 48,
+   "blen": 4492,
+   "subs_vs_group_operon": 6,
    "span": 4492
   },
   {
@@ -234,7 +276,7 @@
    "span": 4555
   },
   {
-   "reads": 67,
+   "reads": 66,
    "operon": "Staphylococcus_4",
    "best_operon": "Staphylococcus_4",
    "purity": 1.0,
@@ -294,7 +336,7 @@
    "span": 4489
   },
   {
-   "reads": 45,
+   "reads": 44,
    "operon": "Pseudomonas_1_2_3_4",
    "best_operon": "Pseudomonas_1_2_3_4",
    "purity": 1.0,
@@ -384,10 +426,10 @@
    "span": 4304
   },
   {
-   "reads": 28,
+   "reads": 29,
    "operon": "Enterococcus_1",
    "best_operon": "Enterococcus_1",
-   "purity": 0.9285714285714286,
+   "purity": 0.9310344827586207,
    "nm": 3,
    "blen": 4403,
    "subs_vs_group_operon": 1,
@@ -664,7 +706,7 @@
    "span": 4558
   },
   {
-   "reads": 14,
+   "reads": 12,
    "operon": "Escherichia_1",
    "best_operon": "Escherichia_1",
    "purity": 1.0,
@@ -704,13 +746,13 @@
    "span": 4471
   },
   {
-   "reads": 7,
+   "reads": 8,
    "operon": "Bacillus_8",
    "best_operon": "Bacillus_8",
    "purity": 1.0,
-   "nm": 12,
+   "nm": 11,
    "blen": 4249,
-   "subs_vs_group_operon": 1,
+   "subs_vs_group_operon": 0,
    "span": 4249
   },
   {
@@ -762,6 +804,16 @@
    "blen": 4297,
    "subs_vs_group_operon": 1,
    "span": 4297
+  },
+  {
+   "reads": 4,
+   "operon": "Lactobacillus_4",
+   "best_operon": "Lactobacillus_4",
+   "purity": 1.0,
+   "nm": 139,
+   "blen": 4276,
+   "subs_vs_group_operon": 15,
+   "span": 4276
   },
   {
    "reads": 111,
@@ -884,23 +936,23 @@
    "span": 4298
   },
   {
-   "reads": 6,
-   "operon": "Escherichia_2",
-   "best_operon": "Escherichia_2",
-   "purity": 0.6666666666666666,
-   "nm": 27,
-   "blen": 4394,
-   "subs_vs_group_operon": 5,
-   "span": 4394
-  },
-  {
-   "reads": 4,
+   "reads": 3,
    "operon": "Escherichia_2",
    "best_operon": "Escherichia_2",
    "purity": 1.0,
-   "nm": 49,
+   "nm": 62,
    "blen": 4394,
-   "subs_vs_group_operon": 7,
+   "subs_vs_group_operon": 11,
+   "span": 4394
+  },
+  {
+   "reads": 7,
+   "operon": "Escherichia_2",
+   "best_operon": "Escherichia_2",
+   "purity": 0.8571428571428571,
+   "nm": 20,
+   "blen": 4394,
+   "subs_vs_group_operon": 3,
    "span": 4394
   },
   {
@@ -954,7 +1006,7 @@
    "span": 4397
   },
   {
-   "reads": 65,
+   "reads": 64,
    "operon": "Staphylococcus_6",
    "best_operon": "Staphylococcus_6",
    "purity": 1.0,
@@ -984,10 +1036,10 @@
    "span": 4494
   },
   {
-   "reads": 53,
+   "reads": 54,
    "operon": "Staphylococcus_3",
    "best_operon": "Staphylococcus_3",
-   "purity": 0.9433962264150944,
+   "purity": 0.9444444444444444,
    "nm": 3,
    "blen": 4552,
    "subs_vs_group_operon": 0,

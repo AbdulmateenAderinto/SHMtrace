@@ -26,7 +26,7 @@ import math
 import numpy as np
 from scipy import stats
 
-from .replicates import permutation_p
+from .replicates import ZERO_EVENTS, permutation_p
 
 METRICS = {
     # metric: (per-animal rate from a sample row, per-read clumping applies)
@@ -88,11 +88,10 @@ def simulate(rate: float, fold: float, animals: int, reads: int, bp: int, cv_bet
     hits = 0
     for _ in range(sims):
         a, b = counts(rate), counts(rate * fold)
-        ra, rb = a / n_bases, b / n_bases
-        pos = np.concatenate([ra, rb])
-        pos = pos[pos > 0]
-        floor = pos.min() / 3 if len(pos) else 1e-12
-        la, lb = np.log10(np.maximum(ra, floor)), np.log10(np.maximum(rb, floor))
+        # the zero-count rule of the test being powered: one event on the animal's
+        # own exposure (replicates.ZERO_EVENTS)
+        la = np.log10(np.maximum(a, ZERO_EVENTS) / n_bases)
+        lb = np.log10(np.maximum(b, ZERO_EVENTS) / n_bases)
         if test == "permutation":
             p = permutation_p(list(lb), list(la))
         else:

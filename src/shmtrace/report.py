@@ -24,13 +24,14 @@ SAMPLE_COLUMNS = ["sample", "group", "control", "reads", "unique_mutations",
                   "indel_density_x1e5", "clustered_calls",
                   "reads_with_junction", "clones", "largest_clone_pct",
                   "clone_weighted_frequency_x1e3",
-                  "mutation_frequency_x1e3", "mutated_reads_pct",
+                  "mutation_frequency_x1e3", "mutation_frequency_observed_x1e3", "mutated_reads_pct",
                   "mean_mutations_per_read", "pct_GC", "pct_transitions", "pct_CT_GA", "s5f_index", "s5f_p",
-                  "pct_GC_in_WRC_GYW", "pct_AT_in_WA_TW", "analysed_bp", "null_from",
+                  "pct_GC_in_WRC_GYW", "pct_GC_in_WRCH_DGYW", "pct_GC_in_WRCY_RGYW", "pct_GC_in_WGCW",
+                  "pct_GC_in_SYC_GRS", "pct_AT_in_WA_TW", "pct_AT_in_WATW", "analysed_bp", "null_from",
                   "model_used", "warnings"]
 VARIANT_COLUMNS = ["sample", "group", "pos", "ref", "alt", "reads", "depth", "frequency",
                    "p_value", "plus_reads", "minus_reads", "context", "homopolymer",
-                   "WRC_GYW", "s5f_mutability_rel", "s5f_substitution"]
+                   "WRC_GYW", "motifs", "s5f_mutability_rel", "s5f_substitution"]
 
 
 QC_COLUMNS = ["severity", "check", "sample", "clone", "mutations", "other_sample", "other_clone",
@@ -46,6 +47,29 @@ def _rows_csv(rows: list[dict], columns: list[str] | None = None) -> str:
     w.writeheader()
     w.writerows(rows)
     return buf.getvalue()
+
+
+def _variants_csv(res: dict) -> str:
+    """variants.csv, with the review mark of each call once anything has been reviewed."""
+    review = res.get("review") or {}
+    full = res.get("full_set") or {}
+    rows, cols = list(res["variants"]), list(VARIANT_COLUMNS)
+    if full:
+        # where downsampling drew only some reads: the call over every usable read as well
+        def whole(v):
+            c = ((full.get(v["sample"]) or {}).get("calls") or {}).get(f"{v['pos']}{v['alt']}")
+            return {"reads_all_usable": c[0], "depth_all_usable": c[1]} if c else {}
+        rows = [{**v, **whole(v)} for v in rows]
+        cols += ["reads_all_usable", "depth_all_usable"]
+    if not review:
+        return _rows_csv(rows, cols)
+    from .geneious import review_key
+    from .review import cached
+    sug = cached(res)
+    rows = [{**v, "review": (review.get(review_key(v)) or {}).get("mark", ""),
+             "review_note": (review.get(review_key(v)) or {}).get("note", ""),
+             "suggestion": (sug.get(review_key(v)) or {}).get("suggestion", "")} for v in rows]
+    return _rows_csv(rows, cols + ["review", "review_note", "suggestion"])
 
 
 def tables(res: dict) -> dict[str, str]:
@@ -68,7 +92,8 @@ def tables(res: dict) -> dict[str, str]:
     return {
         "samples.csv": _rows_csv(res["samples"], SAMPLE_COLUMNS),
         "groups.csv": _rows_csv(res["groups"]),
-        "variants.csv": _rows_csv(res["variants"], VARIANT_COLUMNS),
+        "variants.csv": _variants_csv(res),
+        **({"rs_by_region.csv": _rows_csv(res["rs_by_region"])} if res.get("rs_by_region") else {}),
         **({"indels.csv": _rows_csv(res["indels"])} if res.get("indels") else {}),
         "spectrum.csv": _rows_csv(spec_rows),
         "positional_frequency.csv": _rows_csv(res["positional"]),
@@ -232,6 +257,14 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
     with open(path, "w") as fh:
         fh.write(html_report(res, fmt="png"))
     written.append(path)
+    from . import geneious, plotdata
+    for folder, texts in (("geneious", geneious.files(res)), ("plot_data", plotdata.files(res))):
+        for name, text in texts.items():
+            path = os.path.join(out_dir, folder, name)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", newline="") as fh:
+                fh.write(text)
+            written.append(path)
     from . import airr
     rows = airr.project_rows(res)
     if rows:
@@ -242,7 +275,7 @@ def write_all(res: dict, out_dir: str, fmt: str = "png", excel: bool = True) -> 
         written.append(path)
     path = os.path.join(out_dir, "project.json")
     with open(path, "w") as fh:
-        json.dump({k: v for k, v in res.items() if k not in ("reference", "_details")},
+        json.dump({k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads", "_suggestions")},
                   fh, indent=2, default=str)
     written.append(path)
     if excel:
@@ -265,8 +298,13 @@ def zip_bytes(res: dict, fmt: str = "png") -> bytes:
         for name, blob in figures(res, fmt=fmt).items():
             z.writestr(name, blob)
         z.writestr("report.html", html_report(res, fmt="png"))
+        from . import geneious, plotdata
+        for name, text in geneious.files(res).items():
+            z.writestr("geneious/" + name, text)
+        for name, text in plotdata.files(res).items():
+            z.writestr("plot_data/" + name, text)
         z.writestr("project.json", json.dumps(
-            {k: v for k, v in res.items() if k not in ("reference", "_details")},
+            {k: v for k, v in res.items() if k not in ("reference", "_details", "_call_reads", "_suggestions")},
             indent=2, default=str))
         try:
             z.writestr("tables.xlsx", workbook(res))

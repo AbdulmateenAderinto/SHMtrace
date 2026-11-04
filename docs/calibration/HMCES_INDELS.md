@@ -1,6 +1,6 @@
 # Indels against a known biological effect
 
-*12 October 2026. Data: [PRJNA820976](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA820976), "HMCES protects immunoglobulin genes specifically from deletions during somatic hypermutation". Illumina MiSeq 2×300, human Ramos B cells, IGH VDJ. All 30 FASTQ files checked against ENA's MD5.*
+*12 October 2026; rerun 2 November 2026 (see "Rerun with the November 2026 phasing"). Data: [PRJNA820976](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA820976), "HMCES protects immunoglobulin genes specifically from deletions during somatic hypermutation". Illumina MiSeq 2×300, human Ramos B cells, IGH VDJ. All 30 FASTQ files checked against ENA's MD5.*
 
 The spike-ins in [`INDELS.md`](INDELS.md) show the indel caller recovers indels that were planted into real reads. They cannot show it tracks a real biological difference. This set can: knocking out HMCES is published to raise SHM-associated deletions specifically, and the same study provides AID-knockout clones as the null.
 
@@ -40,6 +40,23 @@ Deletion sizes are large in both mutating groups (median 11–19 bp, maximum 123
 AIDKO_3 is out of line with its two siblings: 33 substitution calls and 21 indels against zero and zero. Its substitutions are only 61% at G:C, against 91–94% in the genuinely mutating clones, so they do not look like AID's either. The library appears contaminated or mislabelled.
 
 It is reported here both ways. Including it, the AID-knockout group mean substitution frequency (10.39 per 10³ bp) exceeds wild type (2.00), which is obviously wrong; excluding it, the controls are clean and every comparison strengthens. The HMCES-versus-wild-type conclusion does not depend on it, since that comparison never uses the controls except to fit the null.
+
+## Rerun with the November 2026 phasing
+
+*2 November 2026.* Every Ramos clone, the AID-knockout ones included, carries a second IGH allele: a block of 25–30 linked differences in close to half its reads. Phasing drops a block's reads only while that keeps it under `phase_max_drop` (45% of the library). Until this change, a library where the allele sat above that refused to phase and the allele's sites were then called as substitutions: eight of the fifteen clones, AIDKO_3 among them. Phasing now leaves the sites of such a block out of calling, as a second allele's should be. The benchmark run was regenerated with that code and nothing else changed:
+
+| | Before | After |
+|---|---:|---:|
+| Deletions per clone, Wt / HMCES-KO | 23.2 / 87.2 | 25.8 / 87.2 |
+| HMCES-KO vs Wt, deletions (Welch on log) | 3.8-fold, P = 1.0 × 10⁻⁴ | 3.4-fold, P = 2.9 × 10⁻⁴ |
+| Insertions per clone, Wt / HMCES-KO | 5.5 / 13.7 | 5.5 / 14.2 |
+| Substitutions per 10³ bp, Wt / HMCES-KO / AID-KO (means) | 2.47 / 6.45 / 10.40 | 0.67 / 0.34 / 0.01 |
+| AIDKO_3 as a control | 36 calls, 31.2 per 10³, 61% G:C | 8 calls, 0.04 per 10³, 75% G:C |
+| AIDKO_3 analysed as a sample (`hmces_k3`) | 63 calls, 31.4 per 10³, 57% G:C | 35 calls, 0.26 per 10³, 54% G:C |
+
+The "Before" column is the run the paper reported in October, which is not the table above (that one is from 12 October, an earlier version still). The deletion effect stands; the four Wt clones that phase gain a few deletions each because phasing now finds the allele as two to four blocks and drops a few dozen more reads, so a slightly different 20,000 are drawn.
+
+**This corrects the section above.** Most of AIDKO_3's excess was the second allele, not contamination or a mislabel: its substitution frequency falls from 31.2 to 0.04 per 10³ once the allele is out. Some excess remains. As a sample it still makes 35 calls where its two siblings make 0 and 2, only 54% at G:C against 90–97% in the mutating clones, and the noisy-control rule still sets it aside as a decoy. So it is a control with a background its siblings lack, but a small one, and the group means in the first table that include it are no longer what a default run gives.
 
 Two honest notes about the automatic checks:
 

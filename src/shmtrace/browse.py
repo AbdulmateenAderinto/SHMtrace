@@ -18,12 +18,15 @@ reads cheap enough to send to a browser.
 """
 from __future__ import annotations
 
+from collections import Counter
+
 from .io_utils import read_fasta
 
 # how a read left the pipeline, in the order the stages run. The browser
 # colours by this and offers it as a filter.
 FATES = [
     ("kept", "analysed"),
+    ("kept (short)", "analysed, aligned below the minimum span but well (rescue_short_reads)"),
     ("not sampled", "dropped at depth normalisation"),
     ("minor haplotype", "removed as a co-occurring block"),
     ("alignment too short", "aligned span below the minimum"),
@@ -36,6 +39,8 @@ FATES = [
     ("unmapped", "did not align"),
 ]
 FATE_ORDER = {name: i for i, (name, _d) in enumerate(FATES)}
+# the fates of analysed reads: everything that reads "the reads behind the result" uses these
+KEPT = ("kept", "kept (short)")
 
 
 def _diffs(pairs, ref: str, minq: int = 0) -> list:
@@ -45,6 +50,33 @@ def _diffs(pairs, ref: str, minq: int = 0) -> list:
         if base != ref[rpos].upper() and base in "ACGT" and q >= minq:
             out.append([rpos + 1, base, int(q)])
     return out
+
+
+def read_rows(aligned, ref: str, fate: str = "kept") -> list[dict]:
+    """Aligned reads as the browser draws them: span, orientation, differences, indels.
+    An analysed read kept below min_align_len (rescue_short_reads) is "kept (short)"."""
+    return [{"name": a.qname,
+             "fate": "kept (short)" if fate == "kept" and getattr(a, "short", False) else fate,
+             "start": a.r_st + 1,
+             "end": a.r_en, "strand": getattr(a, "strand", 1),
+             "diffs": _diffs(a.pairs, ref),
+             "indels": [[pos + 1, op, (x if isinstance(x, str) else int(x))]
+                        for pos, op, x, _q in getattr(a, "indels", ())]}
+            for a in aligned]
+
+
+# reads left out by downsampling that are kept for a person to look at, per sample
+UNDRAWN_MAX = 8000
+
+
+def add_undrawn(data: dict, undrawn, ref: str) -> None:
+    """Put the usable reads that downsampling did not draw into a sample's alignment as
+    "not sampled" rows with their differences, in place of any recorded without them."""
+    rows = read_rows(undrawn[:UNDRAWN_MAX], ref, "not sampled")
+    data["reads"] = [r for r in data["reads"] if r["fate"] != "not sampled"] + rows
+    data["reads"].sort(key=lambda r: (FATE_ORDER.get(r["fate"], 99), r["start"], r["name"]))
+    data["counts"] = dict(Counter(r["fate"] for r in data["reads"]))
+    data["undrawn_truncated"] = max(0, len(undrawn) - UNDRAWN_MAX)
 
 
 def alignment(aligned, fates: dict, reference: str, variants=None,
@@ -58,19 +90,15 @@ def alignment(aligned, fates: dict, reference: str, variants=None,
     read is evidence about the result.
     """
     ref_name, ref = read_fasta(reference)[0]
-    rows = []
-    for a in aligned:
-        rows.append({"name": a.qname, "fate": "kept", "start": a.r_st + 1,
-                     "end": a.r_en, "strand": getattr(a, "strand", 1),
-                     "diffs": _diffs(a.pairs, ref),
-                     "indels": [[pos + 1, op, (x if isinstance(x, str) else int(x))]
-                                for pos, op, x, _q in getattr(a, "indels", ())]})
+    rows = read_rows(aligned, ref)
     for name, rec in fates.items():
         row = {"name": name, "fate": rec.get("fate", "dropped"),
                "start": (rec.get("r_st", 0) or 0) + 1, "end": rec.get("r_en") or 0,
                "strand": rec.get("strand", 1), "diffs": [], "indels": []}
         if rec.get("pairs"):
             row["diffs"] = _diffs(rec["pairs"], ref)
+        if rec.get("reason"):
+            row["reason"] = rec["reason"]       # why a short read was not kept (rescue_short_reads)
         rows.append(row)
     # Ordered by fate, then by position within a fate. Grouping this way is
     # what makes the view answer "before and after" at a glance: the analysed
@@ -95,6 +123,8 @@ def window(data: dict, start: int = 1, end: int | None = None,
     without the server rebuilding it each time.
     """
     end = end or len(data["reference"])
+    if fates and "kept" in fates:
+        fates = set(fates) | set(KEPT)       # asking for the analysed reads means all of them
     rows = [r for r in data["reads"]
             if r["end"] >= start and (r["start"] <= end or not r["end"])
             and (fates is None or r["fate"] in fates)]
@@ -108,3 +138,32 @@ def window(data: dict, start: int = 1, end: int | None = None,
         "counts": data["counts"], "truncated": data["truncated"],
         "called": [c for c in data["called"] if start <= c["pos"] <= end],
     }
+
+
+def call_reads(data: dict, pos: int, alt: str, flank: int = 20, others: int = 40) -> dict:
+    """The reads behind one call: every analysed read carrying `alt` at `pos`, then a
+    sample of the reads that cover `pos` without it, for a person to judge the call by.
+
+    The reads without the change are spread over the pileup (every k-th), not the first
+    few, so they show the coverage's own error pattern rather than one corner of it.
+    """
+    lo, hi = max(1, pos - flank), min(len(data["reference"]), pos + flank)
+    covering = [r for r in data["reads"] if r["fate"] in KEPT and r["start"] <= pos <= r["end"]]
+    carrying, rest = [], []
+    for r in covering:
+        hit = next((d for d in r["diffs"] if d[0] == pos), None)
+        (carrying if hit and hit[1] == alt else rest).append(r)
+    step = max(1, len(rest) // max(1, others))
+    shown = rest[::step][:others]
+
+    def trim(r):
+        return {"name": r["name"], "start": r["start"], "end": r["end"], "strand": r["strand"],
+                "diffs": [d for d in r["diffs"] if lo <= d[0] <= hi],
+                "indels": [d for d in r.get("indels", []) if lo <= d[0] <= hi]}
+    other_alt = sum(1 for r in rest if any(d[0] == pos for d in r["diffs"]))
+    return {"start": lo, "end": hi, "pos": pos, "alt": alt,
+            "sequence": data["reference"][lo - 1:hi],
+            "covering": len(covering), "carrying": [trim(r) for r in carrying],
+            "others": [trim(r) for r in shown], "others_total": len(rest),
+            "other_alt_reads": other_alt,
+            "called": [c for c in data["called"] if lo <= c["pos"] <= hi]}

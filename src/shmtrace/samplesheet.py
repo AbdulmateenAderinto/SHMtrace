@@ -145,7 +145,10 @@ class Sheet:
         .seq, .gb), "ont" for reads (FASTQ, BAM, or pooled rows with a barcode). FASTA files
         are neutral (Sanger clones are often exported as FASTA) and follow the other files; a
         sheet of FASTA files only is Sanger, as before. A sheet mixing chromatograms and reads,
-        or with files of neither kind, raises SheetError."""
+        or with files of neither kind, raises SheetError.
+
+        Reads are reported as "ont" because a FASTQ does not say which sequencer wrote it, so
+        Illumina and PacBio reads need --platform (or the project's own "platform") to say so."""
         kinds = {}
         for r in self.used:
             kinds.setdefault("ont" if r.barcode else _file_kind(r.file), []).append(r.file)
@@ -481,13 +484,19 @@ def main(argv=None):
     r.add_argument("sheet")
     r.add_argument("--reference", required=True)
     r.add_argument("--region", required=True, help="preset name, e.g. jh4_intron")
-    r.add_argument("--platform", default=None, choices=("sanger", "ont", "illumina"),
-                   help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont)")
+    # pipeline.PLATFORMS is the source of truth; repeated as a literal so that checking or drafting a
+    # sheet does not need the aligner that importing pipeline pulls in
+    r.add_argument("--platform", default=None, choices=("sanger", "ont", "pacbio", "illumina"),
+                   help="default: inferred from the files (.ab1 etc. -> sanger, reads -> ont); give "
+                        "pacbio or illumina explicitly, since a FASTQ does not say which it is")
     r.add_argument("--contaminant", action="append", default=[])
     r.add_argument("--target", action="append", default=[], metavar="NAME=FASTA[:REGION]",
                    help="a second locus the same primers amplify (a paralogue, say), analysed in its own "
                         "right instead of being discarded; repeatable. --reference is the first target.")
     r.add_argument("--mode", default="recommended")
+    r.add_argument("--rescue-short-reads", action="store_true",
+                   help="keep a read aligned below the region's minimum span when it aligns "
+                        "well and is told from every contaminant (Params.rescue_short_reads)")
     r.add_argument("--jobs", type=int, default=0,
                    help="processes for per-library work: 0 = all but one core (default), 1 = one")
     r.add_argument("-o", "--out", required=True, help="output folder")
@@ -518,7 +527,8 @@ def main(argv=None):
         raise SystemExit(str(e)) from None
     print(f"platform: {platform}" + ("" if a.platform else " (inferred from the files)"))
     proj = sh.project(a.reference, a.region, platform, contaminants=a.contaminant, mode=a.mode,
-                      overrides={"jobs": a.jobs})
+                      overrides={"jobs": a.jobs,
+                                 **({"rescue_short_reads": True} if a.rescue_short_reads else {})})
     if a.germline_vcf:
         proj["germline_vcf"] = os.path.abspath(a.germline_vcf)
     prog = lambda f, m: print(f"{100 * f:3.0f}%  {m}")                            # noqa: E731

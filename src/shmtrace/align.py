@@ -46,29 +46,77 @@ class AlignedRead:
     q_st: int = 0
     q_en: int = -1
 
+    def compact(self) -> AlignedRead:
+        """Hold the aligned columns packed, about 6 bytes a base in place of about 90.
+
+        A list of one (rpos, base, qval) tuple per aligned base is what every pileup reads,
+        and a project keeps every usable read of every library at once: 15 Illumina libraries
+        of 100,000 reads came to 44 GB that way, and the garbage collector walking those
+        tuples is what then stalls a run. Packed, `pairs` builds the list afresh on each use
+        (about as long as one pass over it), so a change made to that list is not kept: a
+        read is compacted only where nothing edits its columns. Columns that cannot be packed
+        (an empty base, a position or quality out of range) are left as they are.
+        """
+        if "_pairs" not in self.__dict__:
+            return self
+        cols = self.__dict__["_pairs"]
+        try:
+            rpos = array("i", [c[0] for c in cols])
+            bases = "".join(c[1] for c in cols)
+            quals = bytes(c[2] for c in cols)
+            if len(bases) != len(cols) or not all(type(c[0]) is int and type(c[2]) is int for c in cols):
+                raise ValueError
+        except (ValueError, TypeError, OverflowError, IndexError):
+            return self
+        del self.__dict__["_pairs"]
+        self.__dict__["_packed"] = (rpos, bases, quals)
+        return self
+
     def __reduce__(self):
         # Reads cross process boundaries in bulk (parallel.py), and a list of one tuple per
         # aligned base is slow to pickle: pack the columns as two arrays and a string instead.
-        # The rebuilt read is equal to this one; anything unusual is pickled as it is.
-        try:
-            rpos = array("i", [c[0] for c in self.pairs])
-            bases = "".join(c[1] for c in self.pairs)
-            quals = bytes(c[2] for c in self.pairs)
-            if len(bases) != len(self.pairs) or not all(type(c[0]) is int and type(c[2]) is int
-                                                        for c in self.pairs):
-                raise ValueError
-        except (ValueError, TypeError, OverflowError):
+        # The rebuilt read is equal to this one, and arrives compacted; anything unusual is
+        # pickled as it is. Attributes set on a read after it was built (umi.py's `members`,
+        # the reads a consensus molecule came from) travel as pickle state, so a worker
+        # process returns the same reads as a serial run (audit F15).
+        extra = {k: v for k, v in self.__dict__.items() if k not in _OWN} or None
+        packed = self.__dict__.get("_packed")
+        if packed is None:
+            packed = AlignedRead(self.qname, self.ctg, 0, 0, self.pairs, "").compact().__dict__.get("_packed")
+        if packed is None:
             return (AlignedRead, (self.qname, self.ctg, self.r_st, self.r_en, self.pairs, self.seq,
-                                  self.strand, self.indels, self.q_st, self.q_en))
+                                  self.strand, self.indels, self.q_st, self.q_en), extra)
+        rpos, bases, quals = packed
         return (_unpack_read, (self.qname, self.ctg, self.r_st, self.r_en, rpos.tobytes(), bases, quals,
-                               self.seq, self.strand, self.indels, self.q_st, self.q_en))
+                               self.seq, self.strand, self.indels, self.q_st, self.q_en), extra)
+
+
+def _get_pairs(self) -> list:
+    cols = self.__dict__.get("_pairs")
+    if cols is not None:
+        return cols
+    rpos, bases, quals = self.__dict__["_packed"]
+    return list(zip(rpos.tolist(), bases, quals))
+
+
+def _set_pairs(self, cols) -> None:
+    self.__dict__.pop("_packed", None)
+    self.__dict__["_pairs"] = cols
+
+
+# `pairs` is a property set after the dataclass is made, so the generated __init__, __eq__ and
+# __repr__ go through it: a read built from a list keeps that list; a compacted one rebuilds it
+AlignedRead.pairs = property(_get_pairs, _set_pairs, doc="list of (rpos, base, qval) at aligned columns")
+_OWN = set(AlignedRead.__dataclass_fields__) | {"_pairs", "_packed"}
 
 
 def _unpack_read(qname, ctg, r_st, r_en, rpos, bases, quals, seq, strand, indels, q_st, q_en):
     pos = array("i")
     pos.frombytes(rpos)
-    return AlignedRead(qname, ctg, r_st, r_en, list(zip(pos.tolist(), bases, quals, strict=True)), seq, strand,
-                       indels, q_st, q_en)
+    r = AlignedRead(qname, ctg, r_st, r_en, None, seq, strand, indels, q_st, q_en)
+    r.__dict__.pop("_pairs")
+    r.__dict__["_packed"] = (pos, bases, quals)
+    return r
 
 
 def diagnostic_sites(reference: str, contaminant_fastas: list[str],
@@ -85,15 +133,39 @@ def diagnostic_sites(reference: str, contaminant_fastas: list[str],
 
 @functools.lru_cache(maxsize=16)
 def _diagnostic_sites(reference: str, contaminant_fastas: tuple, preset: str):
+    sites: dict[int, set[str]] = {}
+    for _name, _spans, rec_sites in _record_sites(reference, contaminant_fastas, preset):
+        for k, b in rec_sites:
+            sites.setdefault(k, set()).update(b)
+    return tuple((k, frozenset(v)) for k, v in sorted(sites.items()))
+
+
+def record_sites(reference: str, contaminant_fastas: list[str],
+                 preset: str = "map-ont") -> list[tuple[str, list, dict[int, set[str]]]]:
+    """`diagnostic_sites` one contaminant record at a time: (record name, the
+    half-open reference spans it aligns to, {position: its base(s) there}).
+
+    The short-read check needs these apart: a site where only the paralogue
+    differs says nothing about whether a read is the deposit's contaminant.
+    """
+    return [(n, list(spans), {k: set(b) for k, b in s})
+            for n, spans, s in _record_sites(reference, tuple(contaminant_fastas or ()), preset)]
+
+
+@functools.lru_cache(maxsize=16)
+def _record_sites(reference: str, contaminant_fastas: tuple, preset: str):
     ref = read_fasta(reference)[0][1].upper()
     aligner = mp.Aligner(seq=ref, preset=preset)
-    sites: dict[int, set[str]] = {}
+    out = []
     for f in contaminant_fastas:
-        for _name, con in read_fasta(f):
+        for name, con in read_fasta(f):
             con = con.upper()
+            sites: dict[int, set[str]] = {}
+            spans = []
             for h in aligner.map(con):
                 if not h.is_primary:
                     continue
+                spans.append((h.r_st, h.r_en))
                 q = con if h.strand == 1 else _revcomp(con)
                 rp, qp = h.r_st, (h.q_st if h.strand == 1 else len(con) - h.q_en)
                 for length, op in h.cigar:
@@ -108,7 +180,9 @@ def _diagnostic_sites(reference: str, contaminant_fastas: tuple, preset: str):
                         qp += length
                     elif op in (2, 3):
                         rp += length
-    return tuple((k, frozenset(v)) for k, v in sorted(sites.items()))
+            out.append((name, tuple(spans),
+                        tuple((k, frozenset(v)) for k, v in sorted(sites.items()))))
+    return tuple(out)
 
 
 def drop_contaminant_alleles(aligned: list, sites: dict, min_alleles: int,
@@ -139,6 +213,84 @@ def drop_contaminant_alleles(aligned: list, sites: dict, min_alleles: int,
             continue
         kept.append(r)
     return kept, dropped
+
+
+def drop_unspecific_short_reads(aligned: list, records: list, ref: str, min_margin: int,
+                                germline_frac: float = 0.5, fates: dict | None = None):
+    """Drop rescued short reads (Params.rescue_short_reads) that do not show they are target.
+
+    For each contaminant record whose span the read overlaps, count the record's
+    diagnostic sites where the read has the reference base (t) and where it has the
+    record's (c); the read stays only if t - c >= `min_margin` for every such record.
+    A record with no diagnostic site under the read gives t = c = 0: there the read
+    cannot be told from that contaminant, so it goes. Sites `germline_frac` or more of
+    the sample's reads share with the record are left out, as drop_contaminant_alleles
+    does. Full-length reads are not judged here. Returns (kept, dropped count).
+    """
+    short = [r for r in aligned if getattr(r, "short", False)]
+    if not short or not records:
+        return aligned, 0
+    ref = ref.upper()
+    union: dict[int, list[int]] = {}
+    for i, (_n, _spans, sites) in enumerate(records):
+        for k in sites:
+            union.setdefault(k, []).append(i)
+    cov: dict[tuple[int, int], int] = {}
+    car: dict[tuple[int, int], int] = {}
+    for r in aligned:
+        for rp, b, _q in r.pairs:
+            for i in union.get(rp, ()):
+                cov[i, rp] = cov.get((i, rp), 0) + 1
+                car[i, rp] = car.get((i, rp), 0) + (b in records[i][2][rp])
+    shared = {key for key, n in cov.items() if car.get(key, 0) / n >= germline_frac}
+    bad = set()
+    for r in short:
+        bases = {rp: b for rp, b, _q in r.pairs}
+        for i, (name, spans, sites) in enumerate(records):
+            if not any(st < r.r_en and r.r_st < en for st, en in spans):
+                continue
+            t = c = 0
+            for k, alts in sites.items():
+                b = bases.get(k)
+                if b is None or (i, k) in shared:
+                    continue
+                c += b in alts
+                t += b == ref[k]
+            if t - c < min_margin:
+                bad.add(r.qname)
+                if fates is not None:
+                    fates[r.qname] = {
+                        "fate": "alignment too short", "ctg": r.ctg, "r_st": r.r_st,
+                        "r_en": r.r_en, "strand": r.strand, "pairs": r.pairs,
+                        "reason": f"not told from {name}: {t} reference and {c} contaminant "
+                                  f"base(s) at its diagnostic sites, margin below {min_margin}"}
+                break
+    return [r for r in aligned if r.qname not in bad], len(bad)
+
+
+def short_read_flaw(hit, read_len: int, n_primary: int, p: Params) -> str | None:
+    """Why an alignment spanning less than p.min_align_len is not kept as a short read,
+    or None when it is (Params.rescue_short_reads). The target-over-contaminant test
+    needs the whole sample and comes later (drop_unspecific_short_reads)."""
+    frac = p.short_read_min_fraction
+    span = hit.r_en - hit.r_st
+    if span < frac * p.min_align_len:
+        return f"aligned span {span} bp, below {frac * p.min_align_len:.0f}"
+    win = p.analysis_window
+    lo, hi = (win[0] - 1, win[1]) if win else (0, hit.ctg_len)
+    need = frac * min(p.min_align_len, hi - lo)
+    inside = max(0, min(hit.r_en, hi) - max(hit.r_st, lo))
+    if inside < need:
+        return f"covers {inside} bp of the analysis window, below {need:.0f}"
+    cover = (hit.q_en - hit.q_st) / read_len if read_len else 0.0
+    if cover < p.short_read_min_query_cover:
+        return f"{100 * cover:.0f}% of the read aligned, below {100 * p.short_read_min_query_cover:.0f}%"
+    div = hit.NM / hit.blen if hit.blen else 1.0
+    if div > p.short_read_max_divergence:
+        return f"{100 * div:.1f}% divergent from the reference, above {100 * p.short_read_max_divergence:.1f}%"
+    if n_primary > 1:
+        return "more than one primary alignment"
+    return None
 
 
 def build_index(target_fastas: list[str], contaminant_fastas: list[str],
@@ -172,7 +324,7 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params,
     read that aligned but was rejected is recorded with its alignment, so the
     read browser can show it in place against the reference.
     """
-    def note(name, why, hit=None, seq=None, qual=None):
+    def note(name, why, hit=None, seq=None, qual=None, reason=None):
         if fates is None:
             return
         rec = {"fate": why}
@@ -180,6 +332,8 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params,
             rec.update(ctg=hit.ctg, r_st=hit.r_st, r_en=hit.r_en, strand=hit.strand)
             if seq is not None:
                 rec["pairs"] = _oriented_pairs(hit, seq, qual)
+        if reason:
+            rec["reason"] = reason
         fates[name] = rec
 
     for qname, seq, qual in reads:
@@ -202,9 +356,13 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params,
         if best.ctg not in target_names:
             note(qname, "off target", best)
             continue
-        if (best.r_en - best.r_st) < p.min_align_len:
-            note(qname, "alignment too short", best, seq, qual)
-            continue                                  # aligned span too short
+        short = (best.r_en - best.r_st) < p.min_align_len
+        if short:
+            why = (short_read_flaw(best, len(seq), n_primary, p) if p.rescue_short_reads
+                   else None)
+            if not p.rescue_short_reads or why:
+                note(qname, "alignment too short", best, seq, qual, why)
+                continue                              # aligned span too short
         # minimap2 CIGAR is reference-forward. For a reverse-strand hit the
         # query bases/qualities must come from the reverse-complemented read,
         # with query coordinates remapped onto it.
@@ -217,8 +375,11 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params,
             wquals = phred(qual)
             q_start = best.q_st
         pairs, indels = _aligned_pairs(best, wseq, wquals, q_start, with_indels=True)
-        yield AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand,
-                          indels, q_start, q_start + (best.q_en - best.q_st))
+        read = AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand,
+                           indels, q_start, q_start + (best.q_en - best.q_st)).compact()
+        if short:
+            read.short = True       # kept below min_align_len (rescue_short_reads)
+        yield read
 
 
 def _oriented_pairs(hit, seq: str, qual: str):
@@ -261,6 +422,40 @@ def _aligned_pairs(hit, seq: str, quals: list[int], q_start: int, with_indels: b
         elif op == 4:                       # soft clip
             qpos += length
     return (pairs, indels) if with_indels else pairs
+
+
+def pair_span(read, margin: int) -> tuple[int, int]:
+    """The half-open range of `read.pairs` a pileup may count, less `margin`
+    aligned columns at each end of the read (Params.read_end_margin_bp).
+
+    minimap2 soft-clips a mismatch near a read's end rather than align it, so the
+    columns where reads begin and end are covered by fewer mutant reads than
+    mutation-free ones and read a lower frequency than the library carries.
+    Dropping the same number of columns from every read takes that deficit out of
+    the depth as well as out of the counts, at the cost of coverage there. A read
+    with nothing left over contributes no bases at all.
+
+    Every pileup that feeds a call applies this: the sample's (variants), the
+    controls' background and their decoys (null_model), the project-wide tallies
+    (project) and the single-read estimate (singletons). With margin 0 the span
+    is the whole read, as every published number had it.
+    """
+    n = len(read.pairs)
+    if margin <= 0:
+        return 0, n
+    return (margin, n - margin) if n > 2 * margin else (0, 0)
+
+
+def pair_window(read, margin: int):
+    """(the aligned columns a pileup may count, the index of the first in read.pairs).
+
+    `pair_span` as the pileups use it. With margin 0 this is the read's own list,
+    not a copy of it, so the hot loops pay nothing for the option being off.
+    """
+    if margin <= 0:
+        return read.pairs, 0
+    i0, i1 = pair_span(read, margin)
+    return read.pairs[i0:i1], i0
 
 
 def trim_messy_ends(read: AlignedRead, ref: str, window: int,

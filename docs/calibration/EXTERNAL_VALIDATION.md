@@ -2,6 +2,14 @@
 
 *11 October 2026.*
 
+> **Superseded numbers (marked 4 November 2026).** Everything below was measured before release 0.2.0
+> (13 October), which replaced the Benjamini–Hochberg cut with the control-decoy threshold, and before the
+> October audit fixes. The analyses are still the right ones to run, but
+> the folds in §1 (*Pim1* 11-fold, Sμ in LPS blasts 167-fold, "no background" in Sμ CH12) are not what the
+> current release gives on the same reads and should not be quoted. *Pim1* in particular changed in kind:
+> at 2,000 reads it no longer separates from the controls at all, and the question became one of depth.
+> Rerun with the current release for any number taken from this note.
+
 The calibration in [`ERROR_MODELS.md`](ERROR_MODELS.md) was measured on the
 paper's own libraries. Everything below is from data SHMtrace had never seen: a
 public nanopore SHM deposit from another laboratory, and the AID-variant /
