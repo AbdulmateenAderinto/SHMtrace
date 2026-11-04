@@ -46,34 +46,77 @@ class AlignedRead:
     q_st: int = 0
     q_en: int = -1
 
+    def compact(self) -> AlignedRead:
+        """Hold the aligned columns packed, about 6 bytes a base in place of about 90.
+
+        A list of one (rpos, base, qval) tuple per aligned base is what every pileup reads,
+        and a project keeps every usable read of every library at once: 15 Illumina libraries
+        of 100,000 reads came to 44 GB that way, and the garbage collector walking those
+        tuples is what then stalls a run. Packed, `pairs` builds the list afresh on each use
+        (about as long as one pass over it), so a change made to that list is not kept: a
+        read is compacted only where nothing edits its columns. Columns that cannot be packed
+        (an empty base, a position or quality out of range) are left as they are.
+        """
+        if "_pairs" not in self.__dict__:
+            return self
+        cols = self.__dict__["_pairs"]
+        try:
+            rpos = array("i", [c[0] for c in cols])
+            bases = "".join(c[1] for c in cols)
+            quals = bytes(c[2] for c in cols)
+            if len(bases) != len(cols) or not all(type(c[0]) is int and type(c[2]) is int for c in cols):
+                raise ValueError
+        except (ValueError, TypeError, OverflowError, IndexError):
+            return self
+        del self.__dict__["_pairs"]
+        self.__dict__["_packed"] = (rpos, bases, quals)
+        return self
+
     def __reduce__(self):
         # Reads cross process boundaries in bulk (parallel.py), and a list of one tuple per
         # aligned base is slow to pickle: pack the columns as two arrays and a string instead.
-        # The rebuilt read is equal to this one; anything unusual is pickled as it is.
-        # Attributes set on a read after it was built (umi.py's `members`, the reads a
-        # consensus molecule came from) travel as pickle state, so a worker process returns
-        # the same reads as a serial run (audit F15).
-        declared = AlignedRead.__dataclass_fields__
-        extra = {k: v for k, v in self.__dict__.items() if k not in declared} or None
-        try:
-            rpos = array("i", [c[0] for c in self.pairs])
-            bases = "".join(c[1] for c in self.pairs)
-            quals = bytes(c[2] for c in self.pairs)
-            if len(bases) != len(self.pairs) or not all(type(c[0]) is int and type(c[2]) is int
-                                                        for c in self.pairs):
-                raise ValueError
-        except (ValueError, TypeError, OverflowError):
+        # The rebuilt read is equal to this one, and arrives compacted; anything unusual is
+        # pickled as it is. Attributes set on a read after it was built (umi.py's `members`,
+        # the reads a consensus molecule came from) travel as pickle state, so a worker
+        # process returns the same reads as a serial run (audit F15).
+        extra = {k: v for k, v in self.__dict__.items() if k not in _OWN} or None
+        packed = self.__dict__.get("_packed")
+        if packed is None:
+            packed = AlignedRead(self.qname, self.ctg, 0, 0, self.pairs, "").compact().__dict__.get("_packed")
+        if packed is None:
             return (AlignedRead, (self.qname, self.ctg, self.r_st, self.r_en, self.pairs, self.seq,
                                   self.strand, self.indels, self.q_st, self.q_en), extra)
+        rpos, bases, quals = packed
         return (_unpack_read, (self.qname, self.ctg, self.r_st, self.r_en, rpos.tobytes(), bases, quals,
                                self.seq, self.strand, self.indels, self.q_st, self.q_en), extra)
+
+
+def _get_pairs(self) -> list:
+    cols = self.__dict__.get("_pairs")
+    if cols is not None:
+        return cols
+    rpos, bases, quals = self.__dict__["_packed"]
+    return list(zip(rpos.tolist(), bases, quals))
+
+
+def _set_pairs(self, cols) -> None:
+    self.__dict__.pop("_packed", None)
+    self.__dict__["_pairs"] = cols
+
+
+# `pairs` is a property set after the dataclass is made, so the generated __init__, __eq__ and
+# __repr__ go through it: a read built from a list keeps that list; a compacted one rebuilds it
+AlignedRead.pairs = property(_get_pairs, _set_pairs, doc="list of (rpos, base, qval) at aligned columns")
+_OWN = set(AlignedRead.__dataclass_fields__) | {"_pairs", "_packed"}
 
 
 def _unpack_read(qname, ctg, r_st, r_en, rpos, bases, quals, seq, strand, indels, q_st, q_en):
     pos = array("i")
     pos.frombytes(rpos)
-    return AlignedRead(qname, ctg, r_st, r_en, list(zip(pos.tolist(), bases, quals, strict=True)), seq, strand,
-                       indels, q_st, q_en)
+    r = AlignedRead(qname, ctg, r_st, r_en, None, seq, strand, indels, q_st, q_en)
+    r.__dict__.pop("_pairs")
+    r.__dict__["_packed"] = (pos, bases, quals)
+    return r
 
 
 def diagnostic_sites(reference: str, contaminant_fastas: list[str],
@@ -333,7 +376,7 @@ def align_reads(reads, aligner, target_names, contam_names, p: Params,
             q_start = best.q_st
         pairs, indels = _aligned_pairs(best, wseq, wquals, q_start, with_indels=True)
         read = AlignedRead(qname, best.ctg, best.r_st, best.r_en, pairs, wseq, best.strand,
-                           indels, q_start, q_start + (best.q_en - best.q_st))
+                           indels, q_start, q_start + (best.q_en - best.q_st)).compact()
         if short:
             read.short = True       # kept below min_align_len (rescue_short_reads)
         yield read

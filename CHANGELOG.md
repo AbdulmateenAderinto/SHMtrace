@@ -7,6 +7,14 @@ this project uses [semantic versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- A deep Illumina project could run out of memory. Every aligned read held one
+  (position, base, quality) tuple per base, about 90 bytes a base, and a project keeps every
+  usable read of every library at once: 15 Ramos libraries of 100,000 reads reached 44 GB on
+  a 32 GB machine, and the garbage collector walking those tuples then stalled the run.
+  Reads now hold their columns packed (`AlignedRead.compact`, about 6 bytes a base) and
+  `pairs` rebuilds the list when it is read. The same project peaks at 5.8 GB and runs in
+  4.4 minutes; four of its libraries went from 12.7 GB and 380 s to 1.7 GB and 117 s, and
+  the nanopore sample data from 1.7 GB to 0.3 GB. Results are byte-identical on all three.
 - RGYW and DGYW were scored at the Y, not the G they mutate, so the classic view's motif
   table counted the wrong positions for them. Nothing else used them.
 - The desktop app showed one Dock icon per worker process (ten while a run was going).
